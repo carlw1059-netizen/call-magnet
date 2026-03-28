@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>CallMagnet</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,17 +14,30 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg: #0d0d0d; --surface: #161616; --surface2: #1e1e1e;
-    --border: #2a2a2a; --border2: #333; --text: #f0f0f0;
-    --muted: #888; --dim: #555; --accent: #00e87a; --accent-dim: #00e87a22;
-    --amber: #f5a623; --amber-dim: #f5a62322; --red: #ff4d4d; --red-dim: #ff4d4d18;
-    --mono: 'DM Mono', monospace; --sans: 'DM Sans', sans-serif;
+    --bg: #0d0d0d;
+    --surface: #161616;
+    --surface2: #1e1e1e;
+    --border: #2a2a2a;
+    --border2: #333;
+    --text: #f0f0f0;
+    --muted: #888;
+    --dim: #555;
+    --accent: #00e87a;
+    --accent-dim: #00e87a22;
+    --amber: #f5a623;
+    --amber-dim: #f5a62322;
+    --red: #ff4d4d;
+    --red-dim: #ff4d4d18;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
   }
-  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; font-size: 14px; line-height: 1.5; }
-  .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; font-size: 14px; line-height: 1.5; -webkit-text-size-adjust: 100%; }
+
+  .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; background: var(--bg); }
   .login-box { width: 100%; max-width: 380px; }
   .login-logo { font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em; color: var(--accent); text-transform: uppercase; margin-bottom: 2.5rem; display: flex; align-items: center; gap: 8px; }
-  .dot-pulse { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; display: inline-block; }
+  .dot-pulse { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; display: inline-block; flex-shrink: 0; }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
   .login-heading { font-size: 28px; font-weight: 300; color: var(--text); margin-bottom: 0.5rem; letter-spacing: -0.02em; }
   .login-sub { font-size: 13px; color: var(--muted); margin-bottom: 2rem; }
@@ -39,43 +52,63 @@
   .btn-primary:hover { opacity: 0.85; }
   .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
   .error-msg { background: var(--red-dim); border: 1px solid var(--red); color: var(--red); border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-top: 1rem; display: none; }
-  .dash { display: none; min-height: 100vh; }
-  .topbar { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 10; }
+
+  .dash { display: none; min-height: 100vh; background: var(--bg); }
+  .topbar { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 20; }
   .topbar-logo { font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em; color: var(--accent); text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
   .topbar-logo .dot-pulse { width: 6px; height: 6px; }
+  .topbar-right { display: flex; align-items: center; gap: 8px; position: relative; }
+  .settings-btn { background: none; border: 1px solid var(--border2); color: var(--muted); border-radius: 4px; padding: 5px 10px; font-size: 16px; cursor: pointer; transition: all 0.2s; line-height: 1; }
+  .settings-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .settings-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
   .logout-btn { background: none; border: 1px solid var(--border2); color: var(--muted); border-radius: 4px; padding: 5px 12px; font-size: 12px; font-family: var(--mono); cursor: pointer; transition: all 0.2s; }
   .logout-btn:hover { border-color: var(--text); color: var(--text); }
+
+  .settings-panel { position: absolute; top: calc(100% + 8px); right: 0; width: 260px; background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; padding: 1rem; z-index: 100; box-shadow: 0 8px 32px rgba(0,0,0,0.4); display: none; animation: slideDown 0.15s ease; }
+  .settings-panel.open { display: block; }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+  .settings-section { margin-bottom: 1rem; }
+  .settings-section:last-child { margin-bottom: 0; }
+  .settings-section-title { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); margin-bottom: 10px; }
+  .swatch-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .s-swatch { width: 28px; height: 28px; border-radius: 6px; border: 2px solid transparent; cursor: pointer; transition: transform 0.15s, border-color 0.15s; position: relative; }
+  .s-swatch:hover { transform: scale(1.1); }
+  .s-swatch.selected { border-color: var(--text); }
+  .s-swatch.selected::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: rgba(0,0,0,0.7); }
+  .s-swatch.light-swatch.selected::after { color: rgba(255,255,255,0.5); }
+  .settings-divider { height: 1px; background: var(--border); margin: 0.75rem 0; }
+
   .main { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
   .biz-header { margin-bottom: 1.5rem; }
   .biz-name-large { font-size: 32px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; line-height: 1.1; }
   .biz-tagline { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
-  .period-controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem; }
+
+  .period-controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem; }
   .period-nav { display: flex; align-items: center; gap: 0.5rem; }
-  .nav-btn { background: var(--surface); border: 1px solid var(--border); color: var(--muted); border-radius: 4px; padding: 5px 12px; font-size: 14px; cursor: pointer; transition: all 0.2s; font-family: var(--mono); }
-  .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .nav-btn { background: var(--surface); border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 5px 12px; font-size: 14px; cursor: pointer; transition: all 0.2s; font-family: var(--mono); }
+  .nav-btn:hover { background: var(--accent); color: #000; }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; background: var(--surface); color: var(--dim); border-color: var(--border); }
   .period-label-text { font-family: var(--mono); font-size: 12px; color: var(--text); letter-spacing: 0.05em; min-width: 160px; text-align: center; }
-  .toggle-row { display: flex; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-  .toggle-btn { padding: 6px 16px; font-size: 12px; font-family: var(--mono); letter-spacing: 0.05em; background: none; border: none; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+  .toggle-row { display: flex; background: var(--surface); border: 1px solid var(--accent); border-radius: 6px; overflow: hidden; }
+  .toggle-btn { padding: 6px 16px; font-size: 12px; font-family: var(--mono); letter-spacing: 0.05em; background: none; border: none; color: var(--accent); cursor: pointer; transition: all 0.2s; }
   .toggle-btn.active { background: var(--accent); color: #000; font-weight: 600; }
-  .colour-row { display: flex; align-items: center; gap: 8px; margin-bottom: 1.5rem; }
-  .colour-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); margin-right: 4px; }
-  .colour-swatch { width: 22px; height: 22px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: transform 0.15s, border-color 0.15s; }
-  .colour-swatch:hover { transform: scale(1.2); }
-  .colour-swatch.selected { border-color: var(--text); }
+
   .hero { background: var(--accent-dim); border: 1px solid var(--accent); border-radius: 10px; padding: 1.5rem; margin-bottom: 1rem; }
   .hero-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
   .hero-value { font-size: 56px; font-weight: 300; color: var(--accent); letter-spacing: -0.03em; line-height: 1; }
   .hero-sub { font-size: 13px; color: var(--accent); opacity: 0.7; margin-top: 8px; }
+
   .metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 1rem; }
-  .metric { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
-  .metric-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); margin-bottom: 8px; }
-  .metric-value { font-size: 32px; font-weight: 300; color: var(--text); letter-spacing: -0.02em; }
+  .metric { background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; padding: 1rem; }
+  .metric-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+  .metric-value { font-size: 32px; font-weight: 300; color: var(--accent); letter-spacing: -0.02em; }
   .metric-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
   .reset-row { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
   .reset-btn { background: none; border: 1px solid var(--border2); color: var(--dim); border-radius: 4px; padding: 5px 12px; font-size: 11px; font-family: var(--mono); letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s; }
   .reset-btn:hover { border-color: var(--red); color: var(--red); }
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; padding: 2rem; }
+
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center; padding: 2rem; }
   .modal-overlay.open { display: flex; }
   .modal { background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; padding: 1.5rem; max-width: 340px; width: 100%; }
   .modal-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 0.5rem; }
@@ -83,24 +116,36 @@
   .modal-actions { display: flex; gap: 0.75rem; }
   .btn-cancel { flex: 1; background: none; border: 1px solid var(--border2); color: var(--muted); border-radius: 6px; padding: 10px; font-size: 13px; cursor: pointer; font-family: var(--sans); }
   .btn-confirm { flex: 1; background: var(--red); border: none; color: #fff; border-radius: 6px; padding: 10px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--sans); }
-  .section-title { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); margin-bottom: 0.75rem; }
-  .activity-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-  .activity-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); transition: background 0.15s; }
-  .activity-row:last-child { border-bottom: none; }
-  .activity-row:hover { background: var(--surface2); }
-  .activity-left { display: flex; align-items: center; gap: 12px; }
+
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+  .section-title { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+  .call-count-badge { font-family: var(--mono); font-size: 11px; color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent); border-radius: 20px; padding: 2px 10px; }
+  .activity-card { background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; overflow: hidden; }
+  .activity-summary { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; cursor: pointer; transition: background 0.15s; }
+  .activity-summary:hover { background: var(--surface2); }
+  .activity-summary-left { display: flex; align-items: center; gap: 10px; }
   .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; background: var(--accent); }
+  .activity-summary-text { font-family: var(--mono); font-size: 13px; color: var(--accent); }
+  .activity-summary-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .expand-icon { font-size: 11px; color: var(--accent); font-family: var(--mono); transition: transform 0.2s; }
+  .expand-icon.open { transform: rotate(180deg); }
+  .activity-dropdown { display: none; border-top: 1px solid var(--border); }
+  .activity-dropdown.open { display: block; }
+  .activity-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--border); }
+  .activity-row:last-child { border-bottom: none; }
   .activity-number { font-family: var(--mono); font-size: 13px; color: var(--text); }
   .activity-time { font-size: 11px; color: var(--dim); margin-top: 1px; }
   .status-pill { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); }
   .empty-state { padding: 2rem; text-align: center; color: var(--dim); font-size: 13px; }
   .loading { padding: 2rem; text-align: center; color: var(--dim); font-family: var(--mono); font-size: 12px; }
   .demo-banner { background: var(--amber-dim); border: 1px solid var(--amber); border-radius: 8px; padding: 12px 16px; font-size: 12px; color: var(--amber); margin-bottom: 1.5rem; font-family: var(--mono); letter-spacing: 0.03em; display: none; }
+
   @media (max-width: 600px) {
     .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .hero-value { font-size: 40px; }
     .biz-name-large { font-size: 24px; }
     .period-controls { flex-direction: column; align-items: flex-start; }
+    .settings-panel { width: 220px; }
   }
 </style>
 </head>
@@ -132,15 +177,49 @@
   <div class="topbar">
     <div class="topbar-logo"><span class="dot-pulse"></span>CallMagnet</div>
     <div class="topbar-right">
+      <button class="settings-btn" id="settingsBtn" onclick="toggleSettings()" title="Appearance">&#9881;</button>
       <button class="logout-btn" onclick="handleLogout()">Sign out</button>
+
+      <div class="settings-panel" id="settingsPanel">
+        <div class="settings-section">
+          <div class="settings-section-title">Accent colour</div>
+          <div class="swatch-grid">
+            <div class="s-swatch selected" id="acc-0" style="background:#00e87a" onclick="setAccent(0,'#00e87a','#00e87a22')"></div>
+            <div class="s-swatch" id="acc-1" style="background:#3b82f6" onclick="setAccent(1,'#3b82f6','#3b82f622')"></div>
+            <div class="s-swatch" id="acc-2" style="background:#a855f7" onclick="setAccent(2,'#a855f7','#a855f722')"></div>
+            <div class="s-swatch" id="acc-3" style="background:#f5a623" onclick="setAccent(3,'#f5a623','#f5a62322')"></div>
+            <div class="s-swatch" id="acc-4" style="background:#ff4d4d" onclick="setAccent(4,'#ff4d4d','#ff4d4d22')"></div>
+            <div class="s-swatch" id="acc-5" style="background:#ec4899" onclick="setAccent(5,'#ec4899','#ec489922')"></div>
+            <div class="s-swatch" id="acc-6" style="background:#14b8a6" onclick="setAccent(6,'#14b8a6','#14b8a622')"></div>
+            <div class="s-swatch light-swatch" id="acc-7" style="background:#ffffff;border:1px solid #444" onclick="setAccent(7,'#ffffff','#ffffff18')"></div>
+          </div>
+        </div>
+        <div class="settings-divider"></div>
+        <div class="settings-section">
+          <div class="settings-section-title">Background</div>
+          <div class="swatch-grid">
+            <div class="s-swatch selected" id="bg-0" style="background:#0d0d0d;border:1px solid #444" onclick="setBg(0,'#0d0d0d','#161616','#1e1e1e','#2a2a2a','#f0f0f0','#888','#555')"></div>
+            <div class="s-swatch" id="bg-1" style="background:#0f172a" onclick="setBg(1,'#0f172a','#1e293b','#334155','#334155','#f0f0f0','#94a3b8','#475569')"></div>
+            <div class="s-swatch" id="bg-2" style="background:#1a0a2e" onclick="setBg(2,'#1a0a2e','#2d1b4e','#3d2660','#4a2d70','#f0f0f0','#a78bca','#7c5fa0')"></div>
+            <div class="s-swatch" id="bg-3" style="background:#0a1628" onclick="setBg(3,'#0a1628','#112240','#1d3557','#1d3a5f','#f0f0f0','#7da8d4','#4a7fa8')"></div>
+            <div class="s-swatch" id="bg-4" style="background:#1a1200" onclick="setBg(4,'#1a1200','#2a1f00','#3a2c00','#4a3900','#f0f0f0','#a09060','#6a5c30')"></div>
+            <div class="s-swatch" id="bg-5" style="background:#0d1a0d" onclick="setBg(5,'#0d1a0d','#162616','#1e321e','#2a402a','#f0f0f0','#6da87d','#4a784a')"></div>
+            <div class="s-swatch" id="bg-6" style="background:#1a1a1a" onclick="setBg(6,'#1a1a1a','#242424','#2e2e2e','#383838','#f0f0f0','#888','#555')"></div>
+            <div class="s-swatch light-swatch" id="bg-7" style="background:#f5f5f5;border:1px solid #ddd" onclick="setBg(7,'#f5f5f5','#ffffff','#f0f0f0','#e0e0e0','#111111','#555555','#888888')"></div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+
   <div class="main">
     <div class="biz-header">
       <div class="biz-name-large" id="bizNameLarge"></div>
       <div class="biz-tagline">Pull every customer back.</div>
     </div>
+
     <div class="demo-banner" id="demoBanner">No data yet — your CallMagnet system will start showing live stats once your first call comes in.</div>
+
     <div class="period-controls">
       <div class="period-nav">
         <button class="nav-btn" id="prevBtn" onclick="navigate(-1)">&#8592;</button>
@@ -152,20 +231,13 @@
         <button class="toggle-btn" id="toggleMonth" onclick="setMode('month')">Month</button>
       </div>
     </div>
-    <div class="colour-row">
-      <span class="colour-label">Theme</span>
-      <div class="colour-swatch selected" style="background:#00e87a" onclick="setColour('#00e87a','#00e87a22')"></div>
-      <div class="colour-swatch" style="background:#3b82f6" onclick="setColour('#3b82f6','#3b82f622')"></div>
-      <div class="colour-swatch" style="background:#a855f7" onclick="setColour('#a855f7','#a855f722')"></div>
-      <div class="colour-swatch" style="background:#f5a623" onclick="setColour('#f5a623','#f5a62322')"></div>
-      <div class="colour-swatch" style="background:#ff4d4d" onclick="setColour('#ff4d4d','#ff4d4d22')"></div>
-      <div class="colour-swatch" style="background:#ffffff" onclick="setColour('#ffffff','#ffffff18')"></div>
-    </div>
+
     <div class="hero">
       <div class="hero-label">Estimated revenue recovered</div>
       <div class="hero-value" id="heroValue">$0</div>
       <div class="hero-sub" id="heroSub"></div>
     </div>
+
     <div class="metrics">
       <div class="metric">
         <div class="metric-label">SMS sent</div>
@@ -183,10 +255,15 @@
         <div class="metric-sub">SMS → booking</div>
       </div>
     </div>
+
     <div class="reset-row">
       <button class="reset-btn" onclick="showResetModal()">Reset counter to zero</button>
     </div>
-    <div class="section-title">Recent activity</div>
+
+    <div class="section-header">
+      <div class="section-title">Recent activity</div>
+      <div class="call-count-badge" id="callCountBadge">0 calls</div>
+    </div>
     <div class="activity-card" id="activityCard"><div class="loading">Loading...</div></div>
   </div>
 </div>
@@ -212,20 +289,54 @@ let currentClient = null;
 let viewMode = 'week';
 let offset = 0;
 
-function setColour(accent, accentDim) {
-  document.documentElement.style.setProperty('--accent', accent);
-  document.documentElement.style.setProperty('--accent-dim', accentDim);
-  localStorage.setItem('cm_accent', accent);
-  localStorage.setItem('cm_accent_dim', accentDim);
-  document.querySelectorAll('.colour-swatch').forEach(s => {
-    s.classList.toggle('selected', s.style.background === accent);
-  });
+function toggleSettings() {
+  const panel = document.getElementById('settingsPanel');
+  const btn = document.getElementById('settingsBtn');
+  panel.classList.toggle('open');
+  btn.classList.toggle('active');
 }
 
-function loadSavedColour() {
-  const a = localStorage.getItem('cm_accent');
-  const d = localStorage.getItem('cm_accent_dim');
-  if (a && d) setColour(a, d);
+document.addEventListener('click', e => {
+  const panel = document.getElementById('settingsPanel');
+  const btn = document.getElementById('settingsBtn');
+  if (panel && !panel.contains(e.target) && !btn.contains(e.target)) {
+    panel.classList.remove('open');
+    btn.classList.remove('active');
+  }
+});
+
+function setAccent(idx, accent, accentDim) {
+  document.documentElement.style.setProperty('--accent', accent);
+  document.documentElement.style.setProperty('--accent-dim', accentDim);
+  localStorage.setItem('cm_accent', JSON.stringify({idx, accent, accentDim}));
+  for (let i = 0; i < 8; i++) {
+    const el = document.getElementById('acc-' + i);
+    if (el) el.classList.toggle('selected', i === idx);
+  }
+}
+
+function setBg(idx, bg, surface, surface2, border, text, muted, dim) {
+  document.documentElement.style.setProperty('--bg', bg);
+  document.documentElement.style.setProperty('--surface', surface);
+  document.documentElement.style.setProperty('--surface2', surface2);
+  document.documentElement.style.setProperty('--border', border);
+  document.documentElement.style.setProperty('--text', text);
+  document.documentElement.style.setProperty('--muted', muted);
+  document.documentElement.style.setProperty('--dim', dim);
+  localStorage.setItem('cm_bg', JSON.stringify({idx, bg, surface, surface2, border, text, muted, dim}));
+  for (let i = 0; i < 8; i++) {
+    const el = document.getElementById('bg-' + i);
+    if (el) el.classList.toggle('selected', i === idx);
+  }
+}
+
+function loadSavedTheme() {
+  try {
+    const aRaw = localStorage.getItem('cm_accent');
+    if (aRaw) { const a = JSON.parse(aRaw); setAccent(a.idx, a.accent, a.accentDim); }
+    const bRaw = localStorage.getItem('cm_bg');
+    if (bRaw) { const b = JSON.parse(bRaw); setBg(b.idx, b.bg, b.surface, b.surface2, b.border, b.text, b.muted, b.dim); }
+  } catch(e) {}
 }
 
 function setMode(mode) {
@@ -305,8 +416,7 @@ async function loadDashboard(user) {
   document.getElementById('dash').style.display = 'block';
   const { data: clientData } = await db.from('clients').select('*').eq('email', user.email).single();
   currentClient = clientData;
-  const bizName = clientData ? clientData.business_name : user.email;
-  document.getElementById('bizNameLarge').textContent = bizName;
+  document.getElementById('bizNameLarge').textContent = clientData ? clientData.business_name : user.email;
   if (!clientData) { showDemoState(); return; }
   loadData();
 }
@@ -317,27 +427,32 @@ async function loadData() {
   document.getElementById('periodLabelText').textContent = label;
   const resetDate = currentClient.reset_date || null;
   const effectiveStart = resetDate && resetDate > start ? resetDate : start;
+
   const { data: smsData } = await db.from('sms_events').select('*')
     .eq('client_id', currentClient.id)
     .gte('received_at', effectiveStart)
     .lt('received_at', end)
     .order('received_at', { ascending: false });
+
   const { data: bookingData } = await db.from('bookings').select('*')
     .eq('client_id', currentClient.id)
     .gte('booked_at', effectiveStart)
     .lt('booked_at', end)
     .order('booked_at', { ascending: false });
+
   const smsCount = smsData ? smsData.length : 0;
   const bookingCount = bookingData ? bookingData.length : 0;
   const avgJob = currentClient.avg_job_value || 0;
   const recovered = bookingCount * avgJob;
   const rate = smsCount > 0 ? Math.round((bookingCount / smsCount) * 100) : 0;
+
   document.getElementById('smsCount').textContent = smsCount;
   document.getElementById('bookingCount').textContent = bookingCount;
   document.getElementById('convRate').textContent = rate + '%';
   document.getElementById('heroValue').textContent = '$' + recovered.toLocaleString();
   document.getElementById('heroSub').textContent = bookingCount + ' bookings × $' + avgJob.toLocaleString() + ' avg job';
   document.getElementById('demoBanner').style.display = (smsCount === 0 && bookingCount === 0) ? 'block' : 'none';
+  document.getElementById('callCountBadge').textContent = smsCount + ' call' + (smsCount !== 1 ? 's' : '');
   renderActivity(smsData || []);
 }
 
@@ -347,18 +462,34 @@ function renderActivity(smsEvents) {
     card.innerHTML = '<div class="empty-state">No activity this period.</div>';
     return;
   }
-  card.innerHTML = smsEvents.slice(0, 20).map(e => `
+  const rows = smsEvents.slice(0, 50).map(e => `
     <div class="activity-row">
-      <div class="activity-left">
-        <div class="dot"></div>
-        <div>
-          <div class="activity-number">${maskNumber(e.customer_number || 'Unknown')}</div>
-          <div class="activity-time">${formatTime(e.received_at)}</div>
-        </div>
+      <div>
+        <div class="activity-number">${maskNumber(e.customer_number || 'Unknown')}</div>
+        <div class="activity-time">${formatTime(e.received_at)}</div>
       </div>
       <span class="status-pill">SMS sent</span>
     </div>
   `).join('');
+
+  card.innerHTML = `
+    <div class="activity-summary" onclick="toggleDropdown()">
+      <div class="activity-summary-left">
+        <div class="dot"></div>
+        <div>
+          <div class="activity-summary-text">${smsEvents.length} missed call${smsEvents.length !== 1 ? 's' : ''} caught</div>
+          <div class="activity-summary-sub">Tap to see caller details</div>
+        </div>
+      </div>
+      <span class="expand-icon" id="expandIcon">&#9660;</span>
+    </div>
+    <div class="activity-dropdown" id="activityDropdown">${rows}</div>
+  `;
+}
+
+function toggleDropdown() {
+  document.getElementById('activityDropdown').classList.toggle('open');
+  document.getElementById('expandIcon').classList.toggle('open');
 }
 
 function showDemoState() {
@@ -393,7 +524,7 @@ async function handleLogout() {
 }
 
 window.addEventListener('load', async () => {
-  loadSavedColour();
+  loadSavedTheme();
   const { data: { session } } = await db.auth.getSession();
   if (session && localStorage.getItem('cm_remember')) {
     await loadDashboard(session.user);
