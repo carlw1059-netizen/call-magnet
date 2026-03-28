@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CallMagnet</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CallMagnet">
+<meta name="theme-color" content="#0d0d0d">
+<link rel="manifest" href="manifest.json">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d0d;
+    --surface: #161616;
+    --surface2: #1e1e1e;
+    --border: #2a2a2a;
+    --border2: #333;
+    --text: #f0f0f0;
+    --muted: #888;
+    --dim: #555;
+    --green: #00e87a;
+    --green-dim: #00e87a22;
+    --amber: #f5a623;
+    --amber-dim: #f5a62322;
+    --red: #ff4d4d;
+    --red-dim: #ff4d4d18;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* LOGIN */
+  .login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .login-box {
+    width: 100%;
+    max-width: 380px;
+  }
+
+  .login-logo {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 2.5rem;
+  }
+
+  .login-logo span {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    margin-right: 8px;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .login-heading {
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  .login-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 2rem;
+  }
+
+  .field {
+    margin-bottom: 1rem;
+  }
+
+  .field label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 6px;
+    font-family: var(--mono);
+  }
+
+  .field input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .field input:focus {
+    border-color: var(--green);
+  }
+
+  .btn-primary {
+    width: 100%;
+    background: var(--green);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    padding: 11px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: opacity 0.2s;
+  }
+
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .error-msg {
+    background: var(--red-dim);
+    border: 1px solid var(--red);
+    color: var(--red);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-top: 1rem;
+    display: none;
+  }
+
+  /* DASHBOARD */
+  .dash { display: none; min-height: 100vh; }
+
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+
+  .topbar-logo {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--green);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .topbar-logo span {
+    width: 6px;
+    height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .business-name {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .logout-btn {
+    background: none;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    border-radius: 4px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-family: var(--mono);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .logout-btn:hover { border-color: var(--text); color: var(--text); }
+
+  .main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  .period-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  /* HERO METRIC */
+  .hero {
+    background: var(--green-dim);
+    border: 1px solid var(--green);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .hero-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 8px;
+  }
+
+  .hero-value {
+    font-size: 48px;
+    font-weight: 300;
+    color: var(--green);
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .hero-sub {
+    font-size: 12px;
+    color: var(--green);
+    opacity: 0.7;
+    margin-top: 6px;
+  }
+
+  .hero-right {
+    text-align: right;
+  }
+
+  .without-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .without-value {
+    font-size: 22px;
+    font-weight: 300;
+    color: var(--muted);
+    letter-spacing: -0.02em;
+  }
+
+  .without-sub {
+    font-size: 11px;
+    color: var(--dim);
+    margin-top: 4px;
+  }
+
+  /* METRICS GRID */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+
+  .metric {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+  }
+
+  .metric-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 8px;
+  }
+
+  .metric-value {
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .metric-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ACTIVITY */
+  .section-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 0.75rem;
+  }
+
+  .activity-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .activity-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  .activity-row:last-child { border-bottom: none; }
+  .activity-row:hover { background: var(--surface2); }
+
+  .activity-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot.booked { background: var(--green); }
+  .dot.missed { background: var(--dim); }
+
+  .activity-number {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .activity-time {
+    font-size: 11px;
+    color: var(--dim);
+    margin-top: 1px;
+  }
+
+  .status-pill {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  .status-pill.booked {
+    background: var(--green-dim);
+    color: var(--green);
+    border: 1px solid var(--green);
+  }
+
+  .status-pill.missed {
+    background: transparent;
+    color: var(--dim);
+    border: 1px solid var(--border2);
+  }
+
+  .empty-state {
+    padding: 2rem;
+    text-align: center;
+    color: var(--dim);
+    font-size: 13px;
+  }
+
+  .loading {
+    padding: 2rem;
+    text-align: center;
+    color: var(--dim);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .demo-banner {
+    background: var(--amber-dim);
+    border: 1px solid var(--amber);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: var(--amber);
+    margin-bottom: 1.5rem;
+    font-family: var(--mono);
+    letter-spacing: 0.03em;
+    display: none;
+  }
+
+  @media (max-width: 600px) {
+    .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .hero { flex-direction: column; }
+    .hero-right { text-align: left; }
+    .hero-value { font-size: 36px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo"><span></span>CallMagnet</div>
+    <h1 class="login-heading">Welcome back.</h1>
+    <p class="login-sub">Sign in to view your recovery stats.</p>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="emailInput" placeholder="you@example.com" />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="passwordInput" placeholder="••••••••" />
+    </div>
+    <button class="btn-primary" id="loginBtn" onclick="handleLogin()">Sign in</button>
+    <div class="error-msg" id="errorMsg"></div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dash" id="dash">
+  <div class="topbar">
+    <div class="topbar-logo"><span></span>CallMagnet</div>
+    <div class="topbar-right">
+      <span class="business-name" id="bizName"></span>
+      <button class="logout-btn" onclick="handleLogout()">Sign out</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="period-label" id="periodLabel"></div>
+
+    <div class="demo-banner" id="demoBanner">
+      No data yet — your CallMagnet system will start showing live stats once your first call comes in.
+    </div>
+
+    <!-- HERO -->
+    <div class="hero" id="heroBlock">
+      <div>
+        <div class="hero-label">Estimated revenue recovered</div>
+        <div class="hero-value" id="heroValue">$0</div>
+        <div class="hero-sub" id="heroSub"></div>
+      </div>
+    </div>
+
+    <!-- METRICS -->
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-label">SMS received</div>
+        <div class="metric-value" id="smsCount">0</div>
+        <div class="metric-sub">This month</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Bookings created</div>
+        <div class="metric-value" id="bookingCount">0</div>
+        <div class="metric-sub">This month</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Conversion rate</div>
+        <div class="metric-value" id="convRate">0%</div>
+        <div class="metric-sub">SMS → booking</div>
+      </div>
+    </div>
+
+    <!-- ACTIVITY -->
+    <div class="section-title">Recent activity</div>
+    <div class="activity-card" id="activityCard">
+      <div class="loading">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://iskvvnhacqdxybpmwuni.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
+
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentClient = null;
+
+async function handleLogin() {
+  const email = document.getElementById('emailInput').value.trim();
+  const password = document.getElementById('passwordInput').value;
+  const btn = document.getElementById('loginBtn');
+  const err = document.getElementById('errorMsg');
+
+  err.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Signing in...';
+
+  const { data, error } = await db.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    err.textContent = error.message;
+    err.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Sign in';
+    return;
+  }
+
+  await loadDashboard(data.user);
+}
+
+async function loadDashboard(user) {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('dash').style.display = 'block';
+
+  const { data: clientData } = await db
+    .from('clients')
+    .select('*')
+    .eq('email', user.email)
+    .single();
+
+  currentClient = clientData;
+
+  const bizName = clientData ? clientData.business_name : user.email;
+  document.getElementById('bizName').textContent = bizName;
+
+  const now = new Date();
+  const monthName = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+  document.getElementById('periodLabel').textContent = monthName;
+
+  if (!clientData) {
+    showDemoState();
+    return;
+  }
+
+  const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
+
+  const { data: smsData } = await db
+    .from('sms_events')
+    .select('*')
+    .eq('client_id', clientData.id)
+    .gte('received_at', start)
+    .lte('received_at', end)
+    .order('received_at', { ascending: false });
+
+  const { data: bookingData } = await db
+    .from('bookings')
+    .select('*')
+    .eq('client_id', clientData.id)
+    .gte('booked_at', start)
+    .lte('booked_at', end)
+    .order('booked_at', { ascending: false });
+
+  const smsCount = smsData ? smsData.length : 0;
+  const bookingCount = bookingData ? bookingData.length : 0;
+  const avgJob = clientData.avg_job_value || 0;
+  const recovered = bookingCount * avgJob;
+  const rate = smsCount > 0 ? Math.round((bookingCount / smsCount) * 100) : 0;
+
+  document.getElementById('smsCount').textContent = smsCount;
+  document.getElementById('bookingCount').textContent = bookingCount;
+  document.getElementById('convRate').textContent = rate + '%';
+  document.getElementById('heroValue').textContent = '$' + recovered.toLocaleString();
+  document.getElementById('heroSub').textContent = bookingCount + ' bookings × $' + avgJob.toLocaleString() + ' avg job';
+
+  if (smsCount === 0 && bookingCount === 0) {
+    document.getElementById('demoBanner').style.display = 'block';
+  }
+
+  renderActivity(smsData || [], bookingData || []);
+}
+
+function renderActivity(smsEvents, bookings) {
+  const card = document.getElementById('activityCard');
+
+  if (smsEvents.length === 0) {
+    card.innerHTML = '<div class="empty-state">No activity yet this month. Calls caught by CallMagnet will appear here.</div>';
+    return;
+  }
+
+  const rows = smsEvents.slice(0, 20).map(e => {
+    const time = formatTime(e.received_at);
+    const num = maskNumber(e.customer_number || 'Unknown');
+    return `
+      <div class="activity-row">
+        <div class="activity-left">
+          <div class="dot missed"></div>
+          <div>
+            <div class="activity-number">${num}</div>
+            <div class="activity-time">${time}</div>
+          </div>
+        </div>
+        <span class="status-pill missed">SMS sent</span>
+      </div>
+    `;
+  }).join('');
+
+  card.innerHTML = rows;
+}
+
+function showDemoState() {
+  document.getElementById('demoBanner').style.display = 'block';
+  document.getElementById('activityCard').innerHTML = '<div class="empty-state">No client record found. Contact CallMagnet support.</div>';
+}
+
+function maskNumber(num) {
+  if (!num || num.length < 6) return num;
+  return num.slice(0, 4) + ' *** ' + num.slice(-3);
+}
+
+function formatTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = d.toDateString() === yesterday.toDateString();
+  const time = d.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true });
+  if (isToday) return 'Today ' + time;
+  if (isYesterday) return 'Yesterday ' + time;
+  return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' }) + ' ' + time;
+}
+
+async function handleLogout() {
+  await db.auth.signOut();
+  document.getElementById('dash').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginBtn').disabled = false;
+  document.getElementById('loginBtn').textContent = 'Sign in';
+}
+
+window.addEventListener('load', async () => {
+  const { data: { session } } = await db.auth.getSession();
+  if (session) {
+    await loadDashboard(session.user);
+  }
+});
+
+document.getElementById('passwordInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleLogin();
+});
+</script>
+</body>
+</html>

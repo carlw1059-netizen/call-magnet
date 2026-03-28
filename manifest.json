@@ -1,0 +1,22 @@
+{
+  "name": "CallMagnet",
+  "short_name": "CallMagnet",
+  "description": "Pull every customer back.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d0d0d",
+  "theme_color": "#0d0d0d",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192x192/00e87a/000000?text=CM",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512x512/00e87a/000000?text=CM",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
