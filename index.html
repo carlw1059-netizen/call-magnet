@@ -420,20 +420,24 @@ function navigate(dir) {
 
 function getDateRange() {
   const now = new Date();
+  const tzOffset = 11 * 60;
+  const localNow = new Date(now.getTime() + tzOffset * 60000);
   let start, end, label;
   if (viewMode === 'week') {
-    const day = now.getDay();
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - ((day + 6) % 7) + (offset * 7));
-    monday.setHours(0, 0, 0, 0);
+    const day = localNow.getUTCDay();
+    const monday = new Date(localNow);
+    monday.setUTCDate(localNow.getUTCDate() - ((day + 6) % 7) + (offset * 7));
+    monday.setUTCHours(0, 0, 0, 0);
     const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 7);
-    start = monday.toISOString();
-    end = sunday.toISOString();
+    sunday.setUTCDate(monday.getUTCDate() + 7);
+    const adjustedStart = new Date(monday.getTime() - tzOffset * 60000);
+    const adjustedEnd = new Date(sunday.getTime() - tzOffset * 60000);
+    start = adjustedStart.toISOString();
+    end = adjustedEnd.toISOString();
     const opts = { day: 'numeric', month: 'short' };
-    label = monday.toLocaleDateString('en-AU', opts) + ' – ' + new Date(sunday - 86400000).toLocaleDateString('en-AU', opts);
+    label = monday.toLocaleDateString('en-AU', opts) + ' – ' + new Date(sunday.getTime() - 86400000).toLocaleDateString('en-AU', opts);
   } else {
-    const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+    const d = new Date(localNow.getUTCFullYear(), localNow.getUTCMonth() + offset, 1);
     start = new Date(d.getFullYear(), d.getMonth(), 1).toISOString();
     end = new Date(d.getFullYear(), d.getMonth() + 1, 1).toISOString();
     label = d.toLocaleString('default', { month: 'long', year: 'numeric' });
