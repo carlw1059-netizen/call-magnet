@@ -49,24 +49,30 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .field label { display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); margin-bottom: 6px; font-family: var(--mono); font-weight: 700; }
 .field input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; color: var(--text); font-family: var(--sans); font-size: 14px; outline: none; transition: border-color 0.2s; font-weight: 600; }
 .field input:focus { border-color: var(--accent); }
-.remember-row { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; }
+.remember-row { display: flex; align-items: center; gap: 8px; margin-bottom: 0.5rem; }
 .remember-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
 .remember-row label { font-size: 13px; color: var(--muted); cursor: pointer; font-weight: 600; }
+.forgot-link { font-size: 12px; color: var(--accent); font-family: var(--mono); cursor: pointer; text-decoration: underline; margin-bottom: 1rem; display: block; font-weight: 700; letter-spacing: 0.03em; }
+.forgot-link:hover { opacity: 0.7; }
 .btn-primary { width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 11px; font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 0.5rem; transition: opacity 0.2s; }
 .btn-primary:hover { opacity: 0.85; }
 .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 .error-msg { background: var(--red-dim); border: 1px solid var(--red); color: var(--red); border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-top: 1rem; display: none; font-weight: 600; }
+.success-msg { background: var(--accent-dim); border: 1px solid var(--accent); color: var(--accent); border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-top: 1rem; display: none; font-weight: 600; }
+
+.forgot-screen { min-height: 100vh; display: none; align-items: center; justify-content: center; padding: 2rem; background: var(--bg); }
+.forgot-screen.active { display: flex; }
+.back-link { font-size: 12px; color: var(--accent); font-family: var(--mono); cursor: pointer; text-decoration: underline; margin-bottom: 1.5rem; display: block; font-weight: 700; letter-spacing: 0.03em; }
+.back-link:hover { opacity: 0.7; }
 
 .dash { display: none; min-height: 100vh; background: var(--bg); }
 
 .topbar { display: flex; justify-content: space-between; align-items: flex-end; padding: 1.2rem 1.5rem 0.8rem 1.5rem; position: sticky; top: 0; background: var(--bg); z-index: 20; overflow: visible; }
 .topbar::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%); background-size: 200% 100%; animation: lineSweep 3s ease-in-out infinite; }
 @keyframes lineSweep { 0% { background-position: -100% 0; } 100% { background-position: 200% 0; } }
-
 .topbar-logo { font-family: var(--mono); font-size: 27px; letter-spacing: 0.15em; color: var(--accent); text-transform: uppercase; display: flex; align-items: center; gap: 12px; font-weight: 700; line-height: 1; padding-bottom: 4px; }
 .topbar-logo .star-pulse { font-size: 27px; }
 .topbar-right { display: flex; align-items: center; gap: 8px; position: relative; padding-bottom: 4px; }
-
 .settings-btn { background: none; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 5px 10px; font-size: 13px; cursor: pointer; transition: all 0.2s; line-height: 1; font-weight: 700; }
 .settings-btn:hover { background: var(--accent); color: #000; }
 .settings-btn.active { background: var(--accent); color: #000; }
@@ -179,8 +185,25 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
       <input type="checkbox" id="rememberMe" checked />
       <label for="rememberMe">Keep me signed in</label>
     </div>
+    <span class="forgot-link" onclick="showForgot()">Forgot password?</span>
     <button class="btn-primary" id="loginBtn" onclick="handleLogin()">Sign in</button>
     <div class="error-msg" id="errorMsg"></div>
+  </div>
+</div>
+
+<div class="forgot-screen" id="forgotScreen">
+  <div class="login-box">
+    <div class="login-logo"><span class="star-pulse">★</span>CallMagnet</div>
+    <span class="back-link" onclick="showLogin()">&#8592; Back to sign in</span>
+    <h1 class="login-heading">Reset password.</h1>
+    <p class="login-sub">Enter your email and we'll send you a reset link.</p>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="resetEmailInput" placeholder="you@example.com" />
+    </div>
+    <button class="btn-primary" id="resetBtn" onclick="handleReset()">Send reset link</button>
+    <div class="error-msg" id="resetErrorMsg"></div>
+    <div class="success-msg" id="resetSuccessMsg">Reset link sent. Check your email.</div>
   </div>
 </div>
 
@@ -291,6 +314,45 @@ const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentClient = null;
 let viewMode = 'week';
 let offset = 0;
+
+function showLogin() {
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('forgotScreen').classList.remove('active');
+}
+
+function showForgot() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('forgotScreen').classList.add('active');
+}
+
+async function handleReset() {
+  const email = document.getElementById('resetEmailInput').value.trim();
+  const btn = document.getElementById('resetBtn');
+  const err = document.getElementById('resetErrorMsg');
+  const success = document.getElementById('resetSuccessMsg');
+  err.style.display = 'none';
+  success.style.display = 'none';
+  if (!email) {
+    err.textContent = 'Please enter your email address.';
+    err.style.display = 'block';
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+  const { error } = await db.auth.resetPasswordForEmail(email, {
+    redirectTo: 'https://callmagnet.com.au'
+  });
+  if (error) {
+    err.textContent = error.message;
+    err.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Send reset link';
+    return;
+  }
+  success.style.display = 'block';
+  btn.disabled = false;
+  btn.textContent = 'Send reset link';
+}
 
 function toggleSettings() {
   const panel = document.getElementById('settingsPanel');
@@ -415,6 +477,7 @@ async function handleLogin() {
 
 async function loadDashboard(user) {
   document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('forgotScreen').classList.remove('active');
   document.getElementById('dash').style.display = 'block';
   const { data: clientData } = await db.from('clients').select('*').eq('email', user.email).single();
   currentClient = clientData;
@@ -502,6 +565,8 @@ async function handleLogout() {
   document.getElementById('loginBtn').textContent = 'Sign in';
 }
 
+setInterval(function() { if (currentClient) loadData(); }, 30000);
+
 window.addEventListener('load', async function() {
   loadSavedTheme();
   const { data: { session } } = await db.auth.getSession();
@@ -512,6 +577,9 @@ window.addEventListener('load', async function() {
 
 document.getElementById('passwordInput').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') handleLogin();
+});
+document.getElementById('resetEmailInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') handleReset();
 });
 </script>
 </body>
