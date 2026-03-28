@@ -24,8 +24,8 @@
   --text: #f0f0f0;
   --muted: #888;
   --dim: #555;
-  --accent: #00e87a;
-  --accent-dim: #00e87a22;
+  --accent: #191970;
+  --accent-dim: #19197022;
   --amber: #f5a623;
   --amber-dim: #f5a62322;
   --red: #ff4d4d;
@@ -52,7 +52,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .remember-row { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; }
 .remember-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
 .remember-row label { font-size: 13px; color: var(--muted); cursor: pointer; font-weight: 600; }
-.btn-primary { width: 100%; background: var(--accent); color: #000; border: none; border-radius: 6px; padding: 11px; font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 0.5rem; transition: opacity 0.2s; }
+.btn-primary { width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 11px; font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 0.5rem; transition: opacity 0.2s; }
 .btn-primary:hover { opacity: 0.85; }
 .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 .error-msg { background: var(--red-dim); border: 1px solid var(--red); color: var(--red); border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-top: 1rem; display: none; font-weight: 600; }
@@ -67,11 +67,11 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .topbar-logo .star-pulse { font-size: 27px; }
 .topbar-right { display: flex; align-items: center; gap: 8px; position: relative; padding-bottom: 4px; }
 
-.settings-btn { background: none; border: 1px solid #ffffff; color: #ffffff; border-radius: 4px; padding: 5px 10px; font-size: 13px; cursor: pointer; transition: all 0.2s; line-height: 1; font-weight: 700; }
-.settings-btn:hover { background: rgba(255,255,255,0.15); }
-.settings-btn.active { background: rgba(255,255,255,0.2); }
-.logout-btn { background: none; border: 1px solid #ffffff; color: #ffffff; border-radius: 4px; padding: 5px 12px; font-size: 12px; font-family: var(--mono); cursor: pointer; transition: all 0.2s; font-weight: 700; letter-spacing: 0.05em; }
-.logout-btn:hover { background: rgba(255,255,255,0.15); }
+.settings-btn { background: none; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 5px 10px; font-size: 13px; cursor: pointer; transition: all 0.2s; line-height: 1; font-weight: 700; }
+.settings-btn:hover { background: var(--accent); color: #000; }
+.settings-btn.active { background: var(--accent); color: #000; }
+.logout-btn { background: none; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 5px 12px; font-size: 12px; font-family: var(--mono); cursor: pointer; transition: all 0.2s; font-weight: 700; letter-spacing: 0.05em; }
+.logout-btn:hover { background: var(--accent); color: #000; }
 
 .settings-panel { position: absolute; top: calc(100% + 8px); right: 0; width: 270px; background: #ffffff; border: 1px solid #dddddd; border-radius: 10px; padding: 1rem; z-index: 100; box-shadow: 0 8px 32px rgba(0,0,0,0.3); display: none; animation: slideDown 0.15s ease; }
 .settings-panel.open { display: block; }
@@ -89,7 +89,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 
 .main { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
 .biz-header { margin-bottom: 1.5rem; }
-.biz-name-large { font-size: 36px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; line-height: 1.1; }
+.biz-name-large { font-size: 36px; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; line-height: 1.1; }
 .biz-tagline { font-family: var(--mono); font-size: 12px; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 6px; font-weight: 700; }
 .demo-banner { background: var(--amber-dim); border: 1px solid var(--amber); border-radius: 8px; padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--amber); margin-bottom: 1.5rem; font-family: var(--mono); letter-spacing: 0.03em; display: none; }
 
@@ -101,7 +101,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .period-label-text { font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--accent); letter-spacing: 0.05em; min-width: 180px; text-align: center; }
 .toggle-row { display: flex; background: var(--surface); border: 1px solid var(--accent); border-radius: 6px; overflow: hidden; }
 .toggle-btn { padding: 6px 18px; font-size: 13px; font-family: var(--mono); letter-spacing: 0.05em; background: none; border: none; color: var(--accent); cursor: pointer; transition: all 0.2s; font-weight: 700; }
-.toggle-btn.active { background: var(--accent); color: #000; font-weight: 700; }
+.toggle-btn.active { background: var(--accent); color: #fff; font-weight: 700; }
 
 .hero { background: var(--accent-dim); border: 1px solid var(--accent); border-radius: 10px; padding: 1.5rem; margin-bottom: 1rem; }
 .hero-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; font-weight: 700; }
@@ -194,13 +194,13 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
         <div class="settings-section">
           <div class="settings-section-title">Accent colour</div>
           <div class="swatch-grid">
-            <div class="s-swatch selected" id="acc-0" style="background:#00e87a" onclick="setAccent(0,'#00e87a','#00e87a22')"></div>
-            <div class="s-swatch" id="acc-1" style="background:#3b82f6" onclick="setAccent(1,'#3b82f6','#3b82f622')"></div>
-            <div class="s-swatch" id="acc-2" style="background:#a855f7" onclick="setAccent(2,'#a855f7','#a855f722')"></div>
-            <div class="s-swatch" id="acc-3" style="background:#f5a623" onclick="setAccent(3,'#f5a623','#f5a62322')"></div>
-            <div class="s-swatch" id="acc-4" style="background:#ff4d4d" onclick="setAccent(4,'#ff4d4d','#ff4d4d22')"></div>
-            <div class="s-swatch" id="acc-5" style="background:#ec4899" onclick="setAccent(5,'#ec4899','#ec489922')"></div>
-            <div class="s-swatch" id="acc-6" style="background:#14b8a6" onclick="setAccent(6,'#14b8a6','#14b8a622')"></div>
+            <div class="s-swatch selected" id="acc-0" style="background:#191970" onclick="setAccent(0,'#191970','#19197022')"></div>
+            <div class="s-swatch" id="acc-1" style="background:#B2BEB5;border:1px solid #999" onclick="setAccent(1,'#B2BEB5','#B2BEB522')"></div>
+            <div class="s-swatch" id="acc-2" style="background:#3b82f6" onclick="setAccent(2,'#3b82f6','#3b82f622')"></div>
+            <div class="s-swatch" id="acc-3" style="background:#a855f7" onclick="setAccent(3,'#a855f7','#a855f722')"></div>
+            <div class="s-swatch" id="acc-4" style="background:#f5a623" onclick="setAccent(4,'#f5a623','#f5a62322')"></div>
+            <div class="s-swatch" id="acc-5" style="background:#ff4d4d" onclick="setAccent(5,'#ff4d4d','#ff4d4d22')"></div>
+            <div class="s-swatch" id="acc-6" style="background:#ec4899" onclick="setAccent(6,'#ec4899','#ec489922')"></div>
             <div class="s-swatch dark-check" id="acc-7" style="background:#ffffff;border:2px solid #ccc" onclick="setAccent(7,'#ffffff','#ffffff18')"></div>
           </div>
         </div>
@@ -209,12 +209,12 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
           <div class="settings-section-title">Background</div>
           <div class="swatch-grid">
             <div class="s-swatch selected dark-check" id="bg-0" style="background:#0d0d0d;border:2px solid #666" onclick="setBg(0,'#0d0d0d','#161616','#1e1e1e','#2a2a2a','#f0f0f0','#888','#555')"></div>
-            <div class="s-swatch" id="bg-1" style="background:#f150fa" onclick="setBg(1,'#f150fa','#c030d0','#a020b0','#8010a0','#ffffff','#f0d0f8','#d0a0e0')"></div>
-            <div class="s-swatch" id="bg-2" style="background:#89faf2" onclick="setBg(2,'#89faf2','#60d8d0','#40b8b0','#208a84','#001a18','#004040','#006060')"></div>
-            <div class="s-swatch" id="bg-3" style="background:#70e07d" onclick="setBg(3,'#70e07d','#50c060','#309040','#186028','#001a06','#003a10','#005018')"></div>
-            <div class="s-swatch dark-check" id="bg-4" style="background:#2f1a6b" onclick="setBg(4,'#2f1a6b','#3d2880','#4c3595','#5a42a8','#f0eaff','#c8b8f0','#9070d0')"></div>
-            <div class="s-swatch" id="bg-5" style="background:#ed0e0e" onclick="setBg(5,'#ed0e0e','#c00000','#980000','#700000','#fff0f0','#ffc0c0','#ff8080')"></div>
-            <div class="s-swatch" id="bg-6" style="background:#f0f274" onclick="setBg(6,'#f0f274','#d0d250','#b0b230','#909010','#1a1a00','#3a3a00','#585800')"></div>
+            <div class="s-swatch dark-check" id="bg-1" style="background:#191970" onclick="setBg(1,'#191970','#2a2a8a','#3a3a9a','#4a4aaa','#f0eeff','#c8c8ff','#9898dd')"></div>
+            <div class="s-swatch" id="bg-2" style="background:#B2BEB5;border:1px solid #999" onclick="setBg(2,'#B2BEB5','#d0d8d2','#e0e8e2','#c0ccc4','#111111','#333333','#555555')"></div>
+            <div class="s-swatch" id="bg-3" style="background:#f150fa" onclick="setBg(3,'#f150fa','#c030d0','#a020b0','#8010a0','#ffffff','#f0d0f8','#d0a0e0')"></div>
+            <div class="s-swatch" id="bg-4" style="background:#89faf2" onclick="setBg(4,'#89faf2','#60d8d0','#40b8b0','#208a84','#001a18','#004040','#006060')"></div>
+            <div class="s-swatch" id="bg-5" style="background:#70e07d" onclick="setBg(5,'#70e07d','#50c060','#309040','#186028','#001a06','#003a10','#005018')"></div>
+            <div class="s-swatch dark-check" id="bg-6" style="background:#2f1a6b" onclick="setBg(6,'#2f1a6b','#3d2880','#4c3595','#5a42a8','#f0eaff','#c8b8f0','#9070d0')"></div>
             <div class="s-swatch" id="bg-7" style="background:#FAF9F6;border:2px solid #ddd" onclick="setBg(7,'#FAF9F6','#ffffff','#f0efe8','#e0dfd8','#111111','#444444','#777777')"></div>
           </div>
         </div>
