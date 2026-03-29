@@ -26,6 +26,7 @@
   --dim: #555;
   --accent: #191970;
   --accent-dim: #19197022;
+  --accent-contrast: #fff;
   --amber: #f5a623;
   --amber-dim: #f5a62322;
   --red: #ff4d4d;
@@ -34,10 +35,15 @@
   --sans: 'DM Sans', sans-serif;
 }
 
-body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; font-size: 14px; line-height: 1.5; -webkit-text-size-adjust: 100%; font-weight: 600; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; font-size: 14px; line-height: 1.5; -webkit-text-size-adjust: 100%; font-weight: 600; overflow-x: hidden; }
 
 .star-pulse { color: var(--accent); animation: pulse 2s infinite; display: inline-block; flex-shrink: 0; line-height: 1; }
 @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
+
+.ptr-indicator { position: fixed; top: 0; left: 0; width: 100%; height: 50px; display: flex; align-items: center; justify-content: center; background: var(--bg); z-index: 50; transform: translateY(-50px); transition: transform 0.2s ease; font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; }
+.ptr-indicator.visible { transform: translateY(0); }
+.ptr-spinner { width: 16px; height: 16px; border: 2px solid var(--accent-dim); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
 .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; background: var(--bg); }
 .login-box { width: 100%; max-width: 380px; }
@@ -54,7 +60,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .remember-row label { font-size: 13px; color: var(--muted); cursor: pointer; font-weight: 600; }
 .forgot-link { font-size: 12px; color: var(--accent); font-family: var(--mono); cursor: pointer; text-decoration: underline; margin-bottom: 1rem; display: block; font-weight: 700; letter-spacing: 0.03em; }
 .forgot-link:hover { opacity: 0.7; }
-.btn-primary { width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 11px; font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 0.5rem; transition: opacity 0.2s; }
+.btn-primary { width: 100%; background: var(--accent); color: var(--accent-contrast); border: none; border-radius: 6px; padding: 11px; font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 0.5rem; transition: opacity 0.2s; }
 .btn-primary:hover { opacity: 0.85; }
 .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 .error-msg { background: var(--red-dim); border: 1px solid var(--red); color: var(--red); border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-top: 1rem; display: none; font-weight: 600; }
@@ -74,10 +80,10 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .topbar-logo .star-pulse { font-size: 27px; }
 .topbar-right { display: flex; align-items: center; gap: 8px; position: relative; padding-bottom: 4px; }
 .settings-btn { background: none; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 5px 10px; font-size: 13px; cursor: pointer; transition: all 0.2s; line-height: 1; font-weight: 700; }
-.settings-btn:hover { background: var(--accent); color: #000; }
-.settings-btn.active { background: var(--accent); color: #000; }
+.settings-btn:hover { background: var(--accent); color: var(--accent-contrast); }
+.settings-btn.active { background: var(--accent); color: var(--accent-contrast); }
 .logout-btn { background: none; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 5px 12px; font-size: 12px; font-family: var(--mono); cursor: pointer; transition: all 0.2s; font-weight: 700; letter-spacing: 0.05em; }
-.logout-btn:hover { background: var(--accent); color: #000; }
+.logout-btn:hover { background: var(--accent); color: var(--accent-contrast); }
 
 .settings-panel { position: absolute; top: calc(100% + 8px); right: 0; width: 270px; background: #ffffff; border: 1px solid #dddddd; border-radius: 10px; padding: 1rem; z-index: 100; box-shadow: 0 8px 32px rgba(0,0,0,0.3); display: none; animation: slideDown 0.15s ease; }
 .settings-panel.open { display: block; }
@@ -102,12 +108,12 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .period-controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem; }
 .period-nav { display: flex; align-items: center; gap: 0.5rem; }
 .nav-btn { background: var(--surface); border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 5px 12px; font-size: 14px; cursor: pointer; transition: all 0.2s; font-family: var(--mono); font-weight: 700; }
-.nav-btn:hover { background: var(--accent); color: #000; }
+.nav-btn:hover { background: var(--accent); color: var(--accent-contrast); }
 .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; background: var(--surface); color: var(--dim); border-color: var(--border); }
 .period-label-text { font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--accent); letter-spacing: 0.05em; min-width: 180px; text-align: center; }
 .toggle-row { display: flex; background: var(--surface); border: 1px solid var(--accent); border-radius: 6px; overflow: hidden; }
 .toggle-btn { padding: 6px 18px; font-size: 13px; font-family: var(--mono); letter-spacing: 0.05em; background: none; border: none; color: var(--accent); cursor: pointer; transition: all 0.2s; font-weight: 700; }
-.toggle-btn.active { background: var(--accent); color: #fff; font-weight: 700; }
+.toggle-btn.active { background: var(--accent); color: var(--accent-contrast); font-weight: 700; }
 
 .hero { background: var(--accent-dim); border: 1px solid var(--accent); border-radius: 10px; padding: 1.5rem; margin-bottom: 1rem; }
 .hero-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; font-weight: 700; }
@@ -122,7 +128,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 
 .reset-row { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
 .reset-btn { background: none; border: 2px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 6px 14px; font-size: 12px; font-family: var(--mono); letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s; font-weight: 700; }
-.reset-btn:hover { background: var(--accent); color: #000; }
+.reset-btn:hover { background: var(--accent); color: var(--accent-contrast); }
 
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center; padding: 2rem; }
 .modal-overlay.open { display: flex; }
@@ -168,6 +174,11 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 </style>
 </head>
 <body>
+<div class="ptr-indicator" id="ptrIndicator">
+  <div class="ptr-spinner" id="ptrSpinner" style="display:none"></div>
+  <span id="ptrText">Pull down to refresh</span>
+</div>
+
 <div class="login-screen" id="loginScreen">
   <div class="login-box">
     <div class="login-logo"><span class="star-pulse">★</span>CallMagnet</div>
@@ -217,14 +228,14 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
         <div class="settings-section">
           <div class="settings-section-title">Accent colour</div>
           <div class="swatch-grid">
-            <div class="s-swatch selected" id="acc-0" style="background:#191970" onclick="setAccent(0,'#191970','#19197022')"></div>
-            <div class="s-swatch" id="acc-1" style="background:#B2BEB5;border:1px solid #999" onclick="setAccent(1,'#B2BEB5','#B2BEB522')"></div>
-            <div class="s-swatch" id="acc-2" style="background:#3b82f6" onclick="setAccent(2,'#3b82f6','#3b82f622')"></div>
-            <div class="s-swatch" id="acc-3" style="background:#a855f7" onclick="setAccent(3,'#a855f7','#a855f722')"></div>
-            <div class="s-swatch" id="acc-4" style="background:#f5a623" onclick="setAccent(4,'#f5a623','#f5a62322')"></div>
-            <div class="s-swatch" id="acc-5" style="background:#ff4d4d" onclick="setAccent(5,'#ff4d4d','#ff4d4d22')"></div>
-            <div class="s-swatch" id="acc-6" style="background:#ec4899" onclick="setAccent(6,'#ec4899','#ec489922')"></div>
-            <div class="s-swatch dark-check" id="acc-7" style="background:#ffffff;border:2px solid #ccc" onclick="setAccent(7,'#ffffff','#ffffff18')"></div>
+            <div class="s-swatch selected" id="acc-0" style="background:#191970" onclick="setAccent(0,'#191970','#19197022','#fff')"></div>
+            <div class="s-swatch" id="acc-1" style="background:#B2BEB5;border:1px solid #999" onclick="setAccent(1,'#B2BEB5','#B2BEB522','#111')"></div>
+            <div class="s-swatch" id="acc-2" style="background:#3b82f6" onclick="setAccent(2,'#3b82f6','#3b82f622','#fff')"></div>
+            <div class="s-swatch" id="acc-3" style="background:#a855f7" onclick="setAccent(3,'#a855f7','#a855f722','#fff')"></div>
+            <div class="s-swatch" id="acc-4" style="background:#f5a623" onclick="setAccent(4,'#f5a623','#f5a62322','#000')"></div>
+            <div class="s-swatch" id="acc-5" style="background:#ff4d4d" onclick="setAccent(5,'#ff4d4d','#ff4d4d22','#fff')"></div>
+            <div class="s-swatch" id="acc-6" style="background:#ec4899" onclick="setAccent(6,'#ec4899','#ec489922','#fff')"></div>
+            <div class="s-swatch dark-check" id="acc-7" style="background:#ffffff;border:2px solid #ccc" onclick="setAccent(7,'#ffffff','#ffffff18','#0d0d0d')"></div>
           </div>
         </div>
         <div class="settings-divider"></div>
@@ -315,6 +326,54 @@ let currentClient = null;
 let viewMode = 'week';
 let offset = 0;
 
+let ptrStartY = 0;
+let ptrActive = false;
+const PTR_THRESHOLD = 80;
+
+document.addEventListener('touchstart', function(e) {
+  if (window.scrollY === 0) {
+    ptrStartY = e.touches[0].clientY;
+    ptrActive = true;
+  }
+}, { passive: true });
+
+document.addEventListener('touchmove', function(e) {
+  if (!ptrActive) return;
+  const pullDistance = e.touches[0].clientY - ptrStartY;
+  if (pullDistance > 20 && window.scrollY === 0) {
+    const indicator = document.getElementById('ptrIndicator');
+    const text = document.getElementById('ptrText');
+    indicator.classList.add('visible');
+    if (pullDistance > PTR_THRESHOLD) {
+      text.textContent = 'Release to refresh';
+    } else {
+      text.textContent = 'Pull down to refresh';
+    }
+  }
+}, { passive: true });
+
+document.addEventListener('touchend', function(e) {
+  if (!ptrActive) return;
+  const pullDistance = e.changedTouches[0].clientY - ptrStartY;
+  const indicator = document.getElementById('ptrIndicator');
+  const text = document.getElementById('ptrText');
+  const spinner = document.getElementById('ptrSpinner');
+  if (pullDistance > PTR_THRESHOLD && window.scrollY === 0 && currentClient) {
+    text.textContent = 'Refreshing...';
+    spinner.style.display = 'block';
+    loadData().then(function() {
+      setTimeout(function() {
+        indicator.classList.remove('visible');
+        spinner.style.display = 'none';
+        text.textContent = 'Pull down to refresh';
+      }, 600);
+    });
+  } else {
+    indicator.classList.remove('visible');
+  }
+  ptrActive = false;
+}, { passive: true });
+
 function showLogin() {
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('forgotScreen').classList.remove('active');
@@ -370,10 +429,11 @@ document.addEventListener('click', function(e) {
   }
 });
 
-function setAccent(idx, accent, accentDim) {
+function setAccent(idx, accent, accentDim, accentContrast) {
   document.documentElement.style.setProperty('--accent', accent);
   document.documentElement.style.setProperty('--accent-dim', accentDim);
-  localStorage.setItem('cm_accent', JSON.stringify({ idx, accent, accentDim }));
+  document.documentElement.style.setProperty('--accent-contrast', accentContrast);
+  localStorage.setItem('cm_accent', JSON.stringify({ idx, accent, accentDim, accentContrast }));
   for (let i = 0; i < 8; i++) {
     const el = document.getElementById('acc-' + i);
     if (el) el.classList.toggle('selected', i === idx);
@@ -398,9 +458,15 @@ function setBg(idx, bg, surface, surface2, border, text, muted, dim) {
 function loadSavedTheme() {
   try {
     const aRaw = localStorage.getItem('cm_accent');
-    if (aRaw) { const a = JSON.parse(aRaw); setAccent(a.idx, a.accent, a.accentDim); }
+    if (aRaw) {
+      const a = JSON.parse(aRaw);
+      setAccent(a.idx, a.accent, a.accentDim, a.accentContrast || '#fff');
+    }
     const bRaw = localStorage.getItem('cm_bg');
-    if (bRaw) { const b = JSON.parse(bRaw); setBg(b.idx, b.bg, b.surface, b.surface2, b.border, b.text, b.muted, b.dim); }
+    if (bRaw) {
+      const b = JSON.parse(bRaw);
+      setBg(b.idx, b.bg, b.surface, b.surface2, b.border, b.text, b.muted, b.dim);
+    }
   } catch(e) {}
 }
 
