@@ -331,10 +331,7 @@ let ptrActive = false;
 const PTR_THRESHOLD = 80;
 
 document.addEventListener('touchstart', function(e) {
-  if (window.scrollY === 0) {
-    ptrStartY = e.touches[0].clientY;
-    ptrActive = true;
-  }
+  if (window.scrollY === 0) { ptrStartY = e.touches[0].clientY; ptrActive = true; }
 }, { passive: true });
 
 document.addEventListener('touchmove', function(e) {
@@ -344,11 +341,7 @@ document.addEventListener('touchmove', function(e) {
     const indicator = document.getElementById('ptrIndicator');
     const text = document.getElementById('ptrText');
     indicator.classList.add('visible');
-    if (pullDistance > PTR_THRESHOLD) {
-      text.textContent = 'Release to refresh';
-    } else {
-      text.textContent = 'Pull down to refresh';
-    }
+    text.textContent = pullDistance > PTR_THRESHOLD ? 'Release to refresh' : 'Pull down to refresh';
   }
 }, { passive: true });
 
@@ -391,23 +384,11 @@ async function handleReset() {
   const success = document.getElementById('resetSuccessMsg');
   err.style.display = 'none';
   success.style.display = 'none';
-  if (!email) {
-    err.textContent = 'Please enter your email address.';
-    err.style.display = 'block';
-    return;
-  }
+  if (!email) { err.textContent = 'Please enter your email address.'; err.style.display = 'block'; return; }
   btn.disabled = true;
   btn.textContent = 'Sending...';
-  const { error } = await db.auth.resetPasswordForEmail(email, {
-    redirectTo: 'https://callmagnet.com.au'
-  });
-  if (error) {
-    err.textContent = error.message;
-    err.style.display = 'block';
-    btn.disabled = false;
-    btn.textContent = 'Send reset link';
-    return;
-  }
+  const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo: 'https://callmagnet.com.au' });
+  if (error) { err.textContent = error.message; err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Send reset link'; return; }
   success.style.display = 'block';
   btn.disabled = false;
   btn.textContent = 'Send reset link';
@@ -429,7 +410,7 @@ document.addEventListener('click', function(e) {
   }
 });
 
-function setAccent(idx, accent, accentDim, accentContrast) {
+async function setAccent(idx, accent, accentDim, accentContrast) {
   document.documentElement.style.setProperty('--accent', accent);
   document.documentElement.style.setProperty('--accent-dim', accentDim);
   document.documentElement.style.setProperty('--accent-contrast', accentContrast);
@@ -438,9 +419,12 @@ function setAccent(idx, accent, accentDim, accentContrast) {
     const el = document.getElementById('acc-' + i);
     if (el) el.classList.toggle('selected', i === idx);
   }
+  if (currentClient) {
+    await db.from('clients').update({ accent_preference: JSON.stringify({ idx, accent, accentDim, accentContrast }) }).eq('id', currentClient.id);
+  }
 }
 
-function setBg(idx, bg, surface, surface2, border, text, muted, dim) {
+async function setBg(idx, bg, surface, surface2, border, text, muted, dim) {
   document.documentElement.style.setProperty('--bg', bg);
   document.documentElement.style.setProperty('--surface', surface);
   document.documentElement.style.setProperty('--surface2', surface2);
@@ -453,20 +437,45 @@ function setBg(idx, bg, surface, surface2, border, text, muted, dim) {
     const el = document.getElementById('bg-' + i);
     if (el) el.classList.toggle('selected', i === idx);
   }
+  if (currentClient) {
+    await db.from('clients').update({ bg_preference: JSON.stringify({ idx, bg, surface, surface2, border, text, muted, dim }) }).eq('id', currentClient.id);
+  }
+}
+
+function applyTheme(accentRaw, bgRaw) {
+  try {
+    if (accentRaw) {
+      const a = JSON.parse(accentRaw);
+      document.documentElement.style.setProperty('--accent', a.accent);
+      document.documentElement.style.setProperty('--accent-dim', a.accentDim);
+      document.documentElement.style.setProperty('--accent-contrast', a.accentContrast || '#fff');
+      for (let i = 0; i < 8; i++) {
+        const el = document.getElementById('acc-' + i);
+        if (el) el.classList.toggle('selected', i === a.idx);
+      }
+    }
+    if (bgRaw) {
+      const b = JSON.parse(bgRaw);
+      document.documentElement.style.setProperty('--bg', b.bg);
+      document.documentElement.style.setProperty('--surface', b.surface);
+      document.documentElement.style.setProperty('--surface2', b.surface2);
+      document.documentElement.style.setProperty('--border', b.border);
+      document.documentElement.style.setProperty('--text', b.text);
+      document.documentElement.style.setProperty('--muted', b.muted);
+      document.documentElement.style.setProperty('--dim', b.dim);
+      for (let i = 0; i < 8; i++) {
+        const el = document.getElementById('bg-' + i);
+        if (el) el.classList.toggle('selected', i === b.idx);
+      }
+    }
+  } catch(e) {}
 }
 
 function loadSavedTheme() {
   try {
     const aRaw = localStorage.getItem('cm_accent');
-    if (aRaw) {
-      const a = JSON.parse(aRaw);
-      setAccent(a.idx, a.accent, a.accentDim, a.accentContrast || '#fff');
-    }
     const bRaw = localStorage.getItem('cm_bg');
-    if (bRaw) {
-      const b = JSON.parse(bRaw);
-      setBg(b.idx, b.bg, b.surface, b.surface2, b.border, b.text, b.muted, b.dim);
-    }
+    applyTheme(aRaw, bRaw);
   } catch(e) {}
 }
 
@@ -552,8 +561,14 @@ async function loadDashboard(user) {
   const { data: clientData } = await db.from('clients').select('*').eq('email', user.email).single();
   currentClient = clientData;
   document.getElementById('bizNameLarge').textContent = clientData ? clientData.business_name : user.email;
-  if (!clientData) { showDemoState(); return; }
-  loadData();
+  if (clientData) {
+    if (clientData.accent_preference || clientData.bg_preference) {
+      applyTheme(clientData.accent_preference, clientData.bg_preference);
+    }
+    loadData();
+  } else {
+    showDemoState();
+  }
 }
 
 async function loadData() {
