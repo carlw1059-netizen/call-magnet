@@ -139,21 +139,32 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .btn-cancel { flex: 1; background: none; border: 1px solid var(--border2); color: var(--muted); border-radius: 6px; padding: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--sans); }
 .btn-confirm { flex: 1; background: var(--red); border: none; color: #fff; border-radius: 6px; padding: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--sans); }
 
-/* ── SECTION HEADER WITH SMS ODOMETER ── */
 .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
 .section-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
 
-/* SMS ODOMETER */
-.sms-odometer-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
-.odometer { display: flex; align-items: center; gap: 0; overflow: hidden; border-radius: 4px; border: 1px solid var(--accent); background: var(--surface); }
-.odometer-digit { width: 22px; height: 28px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--accent); overflow: hidden; position: relative; }
-.odometer-digit-inner { display: flex; flex-direction: column; transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
-.odometer-digit-inner span { height: 28px; display: flex; align-items: center; justify-content: center; }
-.odometer-sep { width: 1px; height: 28px; background: var(--accent); opacity: 0.4; }
-.overage-amount { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--red); letter-spacing: 0.05em; text-align: right; }
-
-/* ── ACTIVITY ── */
+.badge-sms-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 .call-count-badge { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent); border-radius: 20px; padding: 2px 10px; }
+
+/* SMS ODOMETER */
+.odometer-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.odometer { display: flex; align-items: stretch; border: 1px solid var(--accent); border-radius: 4px; overflow: hidden; background: var(--surface); }
+.odometer-cell { width: 22px; height: 26px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--accent); position: relative; overflow: hidden; }
+.odometer-cell .old { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; }
+.odometer-cell .new { position: absolute; top: 100%; left: 0; right: 0; bottom: -100%; display: flex; align-items: center; justify-content: center; }
+.odometer-cell.rolling .old { animation: rollOut 0.35s ease forwards; }
+.odometer-cell.rolling .new { animation: rollIn 0.35s ease forwards; }
+@keyframes rollOut { to { transform: translateY(-100%); opacity: 0; } }
+@keyframes rollIn { to { transform: translateY(-100%); opacity: 1; } }
+.odometer-sep { width: 1px; background: var(--accent); opacity: 0.3; }
+.overage-line { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--red); letter-spacing: 0.03em; }
+
+/* BOTTOM STRIP */
+.bottom-strip { display: flex; justify-content: flex-start; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.countdown-block { display: flex; flex-direction: column; gap: 2px; }
+.countdown-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); font-weight: 700; opacity: 0.7; }
+.countdown-value { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent); }
+.countdown-thanks { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--accent); }
+
 .activity-card { background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; overflow: hidden; }
 .activity-summary { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; cursor: pointer; transition: background 0.15s; }
 .activity-summary:hover { background: var(--surface2); }
@@ -173,13 +184,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .empty-state { padding: 2rem; text-align: center; color: var(--dim); font-size: 13px; font-weight: 600; }
 .loading { padding: 2rem; text-align: center; color: var(--dim); font-family: var(--mono); font-size: 12px; font-weight: 700; }
 
-/* ── BOTTOM STRIP — COUNTDOWN ── */
-.bottom-strip { display: flex; justify-content: flex-start; align-items: center; margin-top: 1.5rem; padding: 12px 0; border-top: 1px solid var(--border); }
-.countdown-wrap { display: flex; flex-direction: column; gap: 2px; }
-.countdown-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); font-weight: 700; opacity: 0.7; }
-.countdown-value { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: 0.05em; }
-.countdown-thankyou { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: 0.03em; }
-
 @media (max-width: 600px) {
   .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hero-value { font-size: 40px; }
@@ -189,7 +193,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
   .period-controls { flex-direction: column; align-items: flex-start; }
   .settings-panel { width: 230px; }
 }
-
 </style>
 </head>
 <body>
@@ -241,7 +244,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
   <div class="topbar">
     <div class="topbar-logo"><span class="star-pulse">★</span>CallMagnet</div>
     <div class="topbar-right">
-      <button class="settings-btn" id="settingsBtn" onclick="toggleSettings()" title="Appearance">&#9881;</button>
+      <button class="settings-btn" id="settingsBtn" onclick="toggleSettings()">&#9881;</button>
       <button class="logout-btn" onclick="handleLogout()">Sign out</button>
       <div class="settings-panel" id="settingsPanel">
         <div class="settings-section">
@@ -318,34 +321,31 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
       <button class="reset-btn" onclick="showResetModal()">Reset counter to zero</button>
     </div>
 
-    <!-- SECTION HEADER WITH SMS ODOMETER -->
     <div class="section-header">
       <div class="section-title">Recent activity</div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+      <div class="badge-sms-wrap">
         <div class="call-count-badge" id="callCountBadge">0 calls</div>
-        <div class="sms-odometer-wrap">
+        <div class="odometer-wrap">
           <div class="odometer" id="smsOdometer">
-            <div class="odometer-digit" id="digit-2"><div class="odometer-digit-inner" id="inner-2"><span>0</span></div></div>
+            <div class="odometer-cell" id="odom-2"><span class="old">0</span><span class="new">0</span></div>
             <div class="odometer-sep"></div>
-            <div class="odometer-digit" id="digit-1"><div class="odometer-digit-inner" id="inner-1"><span>0</span></div></div>
+            <div class="odometer-cell" id="odom-1"><span class="old">0</span><span class="new">0</span></div>
             <div class="odometer-sep"></div>
-            <div class="odometer-digit" id="digit-0"><div class="odometer-digit-inner" id="inner-0"><span>0</span></div></div>
+            <div class="odometer-cell" id="odom-0"><span class="old">0</span><span class="new">0</span></div>
           </div>
-          <div class="overage-amount" id="overageAmount" style="display:none;"></div>
+          <div class="overage-line" id="overageLine" style="display:none"></div>
         </div>
       </div>
     </div>
 
     <div class="activity-card" id="activityCard"><div class="loading">Loading...</div></div>
 
-    <!-- COUNTDOWN STRIP -->
     <div class="bottom-strip">
-      <div class="countdown-wrap" id="countdownWrap">
+      <div class="countdown-block" id="countdownBlock">
         <div class="countdown-label">Renewal in</div>
-        <div class="countdown-value" id="countdownValue">— days</div>
+        <div class="countdown-value" id="countdownVal">—</div>
       </div>
     </div>
-
   </div>
 </div>
 
@@ -368,7 +368,7 @@ const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentClient = null;
 let viewMode = 'week';
 let offset = 0;
-let currentSmsTotal = 0;
+let lastOdometerValue = 0;
 
 // ── PULL TO REFRESH ───────────────────────────────────────────────────────────
 let ptrStartY = 0;
@@ -381,80 +381,72 @@ document.addEventListener('touchstart', function(e) {
 
 document.addEventListener('touchmove', function(e) {
   if (!ptrActive) return;
-  const pullDistance = e.touches[0].clientY - ptrStartY;
-  if (pullDistance > 20 && window.scrollY === 0) {
-    const indicator = document.getElementById('ptrIndicator');
-    const text = document.getElementById('ptrText');
-    indicator.classList.add('visible');
-    text.textContent = pullDistance > PTR_THRESHOLD ? 'Release to refresh' : 'Pull down to refresh';
+  const pd = e.touches[0].clientY - ptrStartY;
+  if (pd > 20 && window.scrollY === 0) {
+    const ind = document.getElementById('ptrIndicator');
+    const txt = document.getElementById('ptrText');
+    ind.classList.add('visible');
+    txt.textContent = pd > PTR_THRESHOLD ? 'Release to refresh' : 'Pull down to refresh';
   }
 }, { passive: true });
 
 document.addEventListener('touchend', function(e) {
   if (!ptrActive) return;
-  const pullDistance = e.changedTouches[0].clientY - ptrStartY;
-  const indicator = document.getElementById('ptrIndicator');
-  const text = document.getElementById('ptrText');
-  const spinner = document.getElementById('ptrSpinner');
-  if (pullDistance > PTR_THRESHOLD && window.scrollY === 0 && currentClient) {
-    text.textContent = 'Refreshing...';
-    spinner.style.display = 'block';
+  const pd = e.changedTouches[0].clientY - ptrStartY;
+  const ind = document.getElementById('ptrIndicator');
+  const txt = document.getElementById('ptrText');
+  const spn = document.getElementById('ptrSpinner');
+  if (pd > PTR_THRESHOLD && window.scrollY === 0 && currentClient) {
+    txt.textContent = 'Refreshing...';
+    spn.style.display = 'block';
     loadData().then(function() {
       setTimeout(function() {
-        indicator.classList.remove('visible');
-        spinner.style.display = 'none';
-        text.textContent = 'Pull down to refresh';
+        ind.classList.remove('visible');
+        spn.style.display = 'none';
+        txt.textContent = 'Pull down to refresh';
       }, 600);
     });
   } else {
-    indicator.classList.remove('visible');
+    ind.classList.remove('visible');
   }
   ptrActive = false;
 }, { passive: true });
 
-// ── SMS ODOMETER ──────────────────────────────────────────────────────────────
-function animateOdometer(newCount) {
-  const digits = String(newCount).padStart(3, '0').split('');
-  digits.forEach(function(digit, i) {
-    const inner = document.getElementById('inner-' + (2 - i));
-    if (!inner) return;
-    const current = inner.querySelector('span') ? inner.querySelector('span').textContent : '0';
-    if (current === digit) return;
-    const items = [];
-    let d = parseInt(current);
-    const target = parseInt(digit);
-    while (d !== target) {
-      d = (d + 1) % 10;
-      items.push(d);
-    }
-    const allSpans = [current, ...items].map(function(n) {
-      return '<span>' + n + '</span>';
-    }).join('');
-    inner.innerHTML = allSpans;
-    inner.style.transition = 'none';
-    inner.style.transform = 'translateY(0)';
-    requestAnimationFrame(function() {
-      requestAnimationFrame(function() {
-        inner.style.transition = 'transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94)';
-        inner.style.transform = 'translateY(-' + (items.length * 28) + 'px)';
-      });
-    });
+// ── ODOMETER ──────────────────────────────────────────────────────────────────
+function setOdometerDigit(cellId, newDigit, animate) {
+  var cell = document.getElementById(cellId);
+  if (!cell) return;
+  var oldSpan = cell.querySelector('.old');
+  var newSpan = cell.querySelector('.new');
+  var currentVal = oldSpan ? oldSpan.textContent : '0';
+  if (currentVal === String(newDigit) && !animate) return;
+  if (newSpan) newSpan.textContent = String(newDigit);
+  if (animate && currentVal !== String(newDigit)) {
+    cell.classList.remove('rolling');
+    void cell.offsetWidth;
+    cell.classList.add('rolling');
     setTimeout(function() {
-      inner.innerHTML = '<span>' + digit + '</span>';
-      inner.style.transition = 'none';
-      inner.style.transform = 'translateY(0)';
-    }, 500);
-  });
+      if (oldSpan) oldSpan.textContent = String(newDigit);
+      cell.classList.remove('rolling');
+    }, 400);
+  } else {
+    if (oldSpan) oldSpan.textContent = String(newDigit);
+  }
 }
 
-function updateOdometer(totalSms) {
-  const smsIncluded = currentClient ? (currentClient.sms_included || 50) : 50;
-  animateOdometer(totalSms);
-  const overageEl = document.getElementById('overageAmount');
-  if (totalSms > smsIncluded) {
-    const overCount = totalSms - smsIncluded;
-    const overCost = (overCount * 0.10).toFixed(2);
-    overageEl.textContent = '+$' + overCost + ' overage';
+function updateOdometer(count) {
+  var padded = String(Math.min(count, 999)).padStart(3, '0');
+  var animate = count !== lastOdometerValue;
+  setOdometerDigit('odom-2', padded[0], animate);
+  setOdometerDigit('odom-1', padded[1], animate);
+  setOdometerDigit('odom-0', padded[2], animate);
+  lastOdometerValue = count;
+  var included = currentClient ? (currentClient.sms_included || 50) : 50;
+  var overageEl = document.getElementById('overageLine');
+  if (count > included) {
+    var over = count - included;
+    var cost = (over * 0.10).toFixed(2);
+    overageEl.textContent = '+$' + cost + ' overage';
     overageEl.style.display = 'block';
   } else {
     overageEl.style.display = 'none';
@@ -464,28 +456,25 @@ function updateOdometer(totalSms) {
 // ── COUNTDOWN ─────────────────────────────────────────────────────────────────
 function updateCountdown() {
   if (!currentClient || !currentClient.subscription_start) return;
-  const bizName = currentClient.business_name || '';
-  const start = new Date(currentClient.subscription_start);
-  const now = new Date();
-  const msPerDay = 86400000;
-  const daysSinceStart = Math.floor((now - start) / msPerDay);
-  const cycleDay = daysSinceStart % 30;
-  const daysLeft = 30 - cycleDay;
-  const countdownEl = document.getElementById('countdownValue');
-  const wrapEl = document.getElementById('countdownWrap');
-  if (daysLeft === 30 || cycleDay === 0) {
-    wrapEl.innerHTML = '<div class="countdown-thankyou">Thank you for your payment, ' + bizName + '!</div>';
+  var subStart = new Date(currentClient.subscription_start);
+  var now = new Date();
+  var msPerDay = 86400000;
+  var daysSince = Math.floor((now - subStart) / msPerDay);
+  var cycleDay = daysSince % 30;
+  var daysLeft = 30 - cycleDay;
+  var block = document.getElementById('countdownBlock');
+  if (cycleDay === 0 && daysSince > 0) {
+    block.innerHTML = '<div class="countdown-thanks">Thank you for your payment, ' + (currentClient.business_name || '') + '!</div>';
   } else {
-    wrapEl.innerHTML = '<div class="countdown-label">Renewal in</div><div class="countdown-value">' + daysLeft + ' day' + (daysLeft !== 1 ? 's' : '') + '</div>';
+    block.innerHTML = '<div class="countdown-label">Renewal in</div><div class="countdown-value">' + daysLeft + ' day' + (daysLeft !== 1 ? 's' : '') + '</div>';
   }
 }
 
-// ── NAVIGATION ────────────────────────────────────────────────────────────────
+// ── NAV ───────────────────────────────────────────────────────────────────────
 function showLogin() {
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('forgotScreen').classList.remove('active');
 }
-
 function showForgot() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('forgotScreen').classList.add('active');
@@ -493,36 +482,28 @@ function showForgot() {
 
 // ── FORGOT PASSWORD ───────────────────────────────────────────────────────────
 async function handleReset() {
-  const email = document.getElementById('resetEmailInput').value.trim();
-  const btn = document.getElementById('resetBtn');
-  const err = document.getElementById('resetErrorMsg');
-  const success = document.getElementById('resetSuccessMsg');
-  err.style.display = 'none';
-  success.style.display = 'none';
-  if (!email) { err.textContent = 'Please enter your email address.'; err.style.display = 'block'; return; }
-  btn.disabled = true;
-  btn.textContent = 'Sending...';
-  const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo: 'https://callmagnet.com.au' });
-  if (error) { err.textContent = error.message; err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Send reset link'; return; }
-  success.style.display = 'block';
-  btn.disabled = false;
-  btn.textContent = 'Send reset link';
+  var email = document.getElementById('resetEmailInput').value.trim();
+  var btn = document.getElementById('resetBtn');
+  var err = document.getElementById('resetErrorMsg');
+  var suc = document.getElementById('resetSuccessMsg');
+  err.style.display = 'none'; suc.style.display = 'none';
+  if (!email) { err.textContent = 'Please enter your email.'; err.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = 'Sending...';
+  var res = await db.auth.resetPasswordForEmail(email, { redirectTo: 'https://callmagnet.com.au' });
+  if (res.error) { err.textContent = res.error.message; err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Send reset link'; return; }
+  suc.style.display = 'block'; btn.disabled = false; btn.textContent = 'Send reset link';
 }
 
 // ── SETTINGS ──────────────────────────────────────────────────────────────────
 function toggleSettings() {
-  const panel = document.getElementById('settingsPanel');
-  const btn = document.getElementById('settingsBtn');
-  panel.classList.toggle('open');
-  btn.classList.toggle('active');
+  document.getElementById('settingsPanel').classList.toggle('open');
+  document.getElementById('settingsBtn').classList.toggle('active');
 }
-
 document.addEventListener('click', function(e) {
-  const panel = document.getElementById('settingsPanel');
-  const btn = document.getElementById('settingsBtn');
-  if (panel && !panel.contains(e.target) && !btn.contains(e.target)) {
-    panel.classList.remove('open');
-    btn.classList.remove('active');
+  var p = document.getElementById('settingsPanel');
+  var b = document.getElementById('settingsBtn');
+  if (p && !p.contains(e.target) && !b.contains(e.target)) {
+    p.classList.remove('open'); b.classList.remove('active');
   }
 });
 
@@ -531,14 +512,10 @@ async function setAccent(idx, accent, accentDim, accentContrast) {
   document.documentElement.style.setProperty('--accent', accent);
   document.documentElement.style.setProperty('--accent-dim', accentDim);
   document.documentElement.style.setProperty('--accent-contrast', accentContrast);
-  localStorage.setItem('cm_accent', JSON.stringify({ idx, accent, accentDim, accentContrast }));
-  for (let i = 0; i < 8; i++) {
-    const el = document.getElementById('acc-' + i);
-    if (el) el.classList.toggle('selected', i === idx);
-  }
-  if (currentClient) {
-    await db.from('clients').update({ accent_preference: JSON.stringify({ idx, accent, accentDim, accentContrast }) }).eq('id', currentClient.id);
-  }
+  var val = JSON.stringify({ idx: idx, accent: accent, accentDim: accentDim, accentContrast: accentContrast });
+  localStorage.setItem('cm_accent', val);
+  for (var i = 0; i < 8; i++) { var el = document.getElementById('acc-' + i); if (el) el.classList.toggle('selected', i === idx); }
+  if (currentClient) await db.from('clients').update({ accent_preference: val }).eq('id', currentClient.id);
 }
 
 async function setBg(idx, bg, surface, surface2, border, text, muted, dim) {
@@ -549,30 +526,23 @@ async function setBg(idx, bg, surface, surface2, border, text, muted, dim) {
   document.documentElement.style.setProperty('--text', text);
   document.documentElement.style.setProperty('--muted', muted);
   document.documentElement.style.setProperty('--dim', dim);
-  localStorage.setItem('cm_bg', JSON.stringify({ idx, bg, surface, surface2, border, text, muted, dim }));
-  for (let i = 0; i < 8; i++) {
-    const el = document.getElementById('bg-' + i);
-    if (el) el.classList.toggle('selected', i === idx);
-  }
-  if (currentClient) {
-    await db.from('clients').update({ bg_preference: JSON.stringify({ idx, bg, surface, surface2, border, text, muted, dim }) }).eq('id', currentClient.id);
-  }
+  var val = JSON.stringify({ idx: idx, bg: bg, surface: surface, surface2: surface2, border: border, text: text, muted: muted, dim: dim });
+  localStorage.setItem('cm_bg', val);
+  for (var i = 0; i < 8; i++) { var el = document.getElementById('bg-' + i); if (el) el.classList.toggle('selected', i === idx); }
+  if (currentClient) await db.from('clients').update({ bg_preference: val }).eq('id', currentClient.id);
 }
 
-function applyTheme(accentRaw, bgRaw) {
+function applyTheme(aRaw, bRaw) {
   try {
-    if (accentRaw) {
-      const a = JSON.parse(accentRaw);
+    if (aRaw) {
+      var a = JSON.parse(aRaw);
       document.documentElement.style.setProperty('--accent', a.accent);
       document.documentElement.style.setProperty('--accent-dim', a.accentDim);
       document.documentElement.style.setProperty('--accent-contrast', a.accentContrast || '#fff');
-      for (let i = 0; i < 8; i++) {
-        const el = document.getElementById('acc-' + i);
-        if (el) el.classList.toggle('selected', i === a.idx);
-      }
+      for (var i = 0; i < 8; i++) { var el = document.getElementById('acc-' + i); if (el) el.classList.toggle('selected', i === a.idx); }
     }
-    if (bgRaw) {
-      const b = JSON.parse(bgRaw);
+    if (bRaw) {
+      var b = JSON.parse(bRaw);
       document.documentElement.style.setProperty('--bg', b.bg);
       document.documentElement.style.setProperty('--surface', b.surface);
       document.documentElement.style.setProperty('--surface2', b.surface2);
@@ -580,20 +550,13 @@ function applyTheme(accentRaw, bgRaw) {
       document.documentElement.style.setProperty('--text', b.text);
       document.documentElement.style.setProperty('--muted', b.muted);
       document.documentElement.style.setProperty('--dim', b.dim);
-      for (let i = 0; i < 8; i++) {
-        const el = document.getElementById('bg-' + i);
-        if (el) el.classList.toggle('selected', i === b.idx);
-      }
+      for (var i = 0; i < 8; i++) { var el = document.getElementById('bg-' + i); if (el) el.classList.toggle('selected', i === b.idx); }
     }
   } catch(e) {}
 }
 
 function loadSavedTheme() {
-  try {
-    const aRaw = localStorage.getItem('cm_accent');
-    const bRaw = localStorage.getItem('cm_bg');
-    applyTheme(aRaw, bRaw);
-  } catch(e) {}
+  applyTheme(localStorage.getItem('cm_accent'), localStorage.getItem('cm_bg'));
 }
 
 // ── PERIOD ────────────────────────────────────────────────────────────────────
@@ -604,7 +567,6 @@ function setMode(mode) {
   document.getElementById('nextBtn').disabled = true;
   loadData();
 }
-
 function navigate(dir) {
   offset += dir;
   document.getElementById('nextBtn').disabled = offset >= 0;
@@ -612,39 +574,38 @@ function navigate(dir) {
 }
 
 function getDateRange() {
-  const now = new Date();
-  const tzOffset = 11 * 60;
-  const localNow = new Date(now.getTime() + tzOffset * 60000);
-  let start, end, label;
+  var now = new Date();
+  var tzOffset = 11 * 60;
+  var localNow = new Date(now.getTime() + tzOffset * 60000);
+  var start, end, label;
   if (viewMode === 'week') {
-    const day = localNow.getUTCDay();
-    const monday = new Date(localNow);
+    var day = localNow.getUTCDay();
+    var monday = new Date(localNow);
     monday.setUTCDate(localNow.getUTCDate() - ((day + 6) % 7) + (offset * 7));
     monday.setUTCHours(0, 0, 0, 0);
-    const sunday = new Date(monday);
+    var sunday = new Date(monday);
     sunday.setUTCDate(monday.getUTCDate() + 7);
-    const adjustedStart = new Date(monday.getTime() - tzOffset * 60000);
-    const adjustedEnd = new Date(sunday.getTime() - tzOffset * 60000);
-    start = adjustedStart.toISOString();
-    end = adjustedEnd.toISOString();
-    const opts = { day: 'numeric', month: 'short' };
+    var adjStart = new Date(monday.getTime() - tzOffset * 60000);
+    var adjEnd = new Date(sunday.getTime() - tzOffset * 60000);
+    start = adjStart.toISOString();
+    end = adjEnd.toISOString();
+    var opts = { day: 'numeric', month: 'short' };
     label = monday.toLocaleDateString('en-AU', opts) + ' – ' + new Date(sunday.getTime() - 86400000).toLocaleDateString('en-AU', opts);
   } else {
-    const d = new Date(localNow.getUTCFullYear(), localNow.getUTCMonth() + offset, 1);
+    var d = new Date(localNow.getUTCFullYear(), localNow.getUTCMonth() + offset, 1);
     start = new Date(d.getFullYear(), d.getMonth(), 1).toISOString();
     end = new Date(d.getFullYear(), d.getMonth() + 1, 1).toISOString();
     label = d.toLocaleString('default', { month: 'long', year: 'numeric' });
   }
-  return { start, end, label };
+  return { start: start, end: end, label: label };
 }
 
-// ── RESET COUNTER ─────────────────────────────────────────────────────────────
+// ── RESET ─────────────────────────────────────────────────────────────────────
 function showResetModal() { document.getElementById('resetModal').classList.add('open'); }
 function closeResetModal() { document.getElementById('resetModal').classList.remove('open'); }
-
 async function confirmReset() {
   if (!currentClient) return;
-  const resetDate = new Date().toISOString();
+  var resetDate = new Date().toISOString();
   await db.from('clients').update({ reset_date: resetDate }).eq('id', currentClient.id);
   currentClient.reset_date = resetDate;
   closeResetModal();
@@ -653,25 +614,20 @@ async function confirmReset() {
 
 // ── LOGIN ─────────────────────────────────────────────────────────────────────
 async function handleLogin() {
-  const email = document.getElementById('emailInput').value.trim();
-  const password = document.getElementById('passwordInput').value;
-  const remember = document.getElementById('rememberMe').checked;
-  const btn = document.getElementById('loginBtn');
-  const err = document.getElementById('errorMsg');
-  err.style.display = 'none';
-  btn.disabled = true;
-  btn.textContent = 'Signing in...';
-  const { data, error } = await db.auth.signInWithPassword({ email, password });
-  if (error) {
-    err.textContent = error.message;
-    err.style.display = 'block';
-    btn.disabled = false;
-    btn.textContent = 'Sign in';
-    return;
+  var email = document.getElementById('emailInput').value.trim();
+  var password = document.getElementById('passwordInput').value;
+  var remember = document.getElementById('rememberMe').checked;
+  var btn = document.getElementById('loginBtn');
+  var err = document.getElementById('errorMsg');
+  err.style.display = 'none'; btn.disabled = true; btn.textContent = 'Signing in...';
+  var res = await db.auth.signInWithPassword({ email: email, password: password });
+  if (res.error) {
+    err.textContent = res.error.message; err.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Sign in'; return;
   }
   if (remember) localStorage.setItem('cm_remember', '1');
   else localStorage.removeItem('cm_remember');
-  await loadDashboard(data.user);
+  await loadDashboard(res.data.user);
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
@@ -679,12 +635,12 @@ async function loadDashboard(user) {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('forgotScreen').classList.remove('active');
   document.getElementById('dash').style.display = 'block';
-  const { data: clientData } = await db.from('clients').select('*').eq('email', user.email).single();
-  currentClient = clientData;
-  document.getElementById('bizNameLarge').textContent = clientData ? clientData.business_name : user.email;
-  if (clientData) {
-    if (clientData.accent_preference || clientData.bg_preference) {
-      applyTheme(clientData.accent_preference, clientData.bg_preference);
+  var res = await db.from('clients').select('*').eq('email', user.email).single();
+  currentClient = res.data;
+  document.getElementById('bizNameLarge').textContent = currentClient ? currentClient.business_name : user.email;
+  if (currentClient) {
+    if (currentClient.accent_preference || currentClient.bg_preference) {
+      applyTheme(currentClient.accent_preference, currentClient.bg_preference);
     }
     updateCountdown();
     loadData();
@@ -693,67 +649,65 @@ async function loadDashboard(user) {
   }
 }
 
-// ── LOAD DATA ─────────────────────────────────────────────────────────────────
 async function loadData() {
   if (!currentClient) return;
-  const { start, end, label } = getDateRange();
-  document.getElementById('periodLabelText').textContent = label;
-  const resetDate = currentClient.reset_date || null;
-  const effectiveStart = resetDate && resetDate > start ? resetDate : start;
+  var range = getDateRange();
+  document.getElementById('periodLabelText').textContent = range.label;
+  var resetDate = currentClient.reset_date || null;
+  var effectiveStart = resetDate && resetDate > range.start ? resetDate : range.start;
 
-  const { data: smsData } = await db.from('sms_events').select('*')
+  var smsRes = await db.from('sms_events').select('*')
     .eq('client_id', currentClient.id)
     .gte('received_at', effectiveStart)
-    .lt('received_at', end)
+    .lt('received_at', range.end)
     .order('received_at', { ascending: false });
 
-  const { data: bookingData } = await db.from('bookings').select('*')
+  var bookRes = await db.from('bookings').select('*')
     .eq('client_id', currentClient.id)
     .gte('booked_at', effectiveStart)
-    .lt('booked_at', end)
+    .lt('booked_at', range.end)
     .order('booked_at', { ascending: false });
 
-  // All SMS this billing cycle for odometer
-  const subStart = currentClient.subscription_start ? new Date(currentClient.subscription_start) : new Date();
-  const now = new Date();
-  const msPerDay = 86400000;
-  const daysSinceStart = Math.floor((now - subStart) / msPerDay);
-  const cycleDay = daysSinceStart % 30;
-  const cycleStart = new Date(now.getTime() - cycleDay * msPerDay);
+  var subStart = currentClient.subscription_start ? new Date(currentClient.subscription_start) : new Date();
+  var now = new Date();
+  var daysSince = Math.floor((now - subStart) / 86400000);
+  var cycleDay = daysSince % 30;
+  var cycleStart = new Date(now.getTime() - cycleDay * 86400000);
   cycleStart.setHours(0, 0, 0, 0);
 
-  const { data: cycleSmsData } = await db.from('sms_events').select('id')
+  var cycleRes = await db.from('sms_events').select('id')
     .eq('client_id', currentClient.id)
     .gte('received_at', cycleStart.toISOString());
 
-  const cycleSmsCount = cycleSmsData ? cycleSmsData.length : 0;
-  updateOdometer(cycleSmsCount);
+  var cycleSms = cycleRes.data ? cycleRes.data.length : 0;
+  updateOdometer(cycleSms);
 
-  const smsCount = smsData ? smsData.length : 0;
-  const bookingCount = bookingData ? bookingData.length : 0;
-  const avgJob = currentClient.avg_job_value || 0;
-  const recovered = bookingCount * avgJob;
-  const rate = smsCount > 0 ? Math.round((bookingCount / smsCount) * 100) : 0;
+  var smsData = smsRes.data || [];
+  var bookData = bookRes.data || [];
+  var smsCount = smsData.length;
+  var bookCount = bookData.length;
+  var avgJob = currentClient.avg_job_value || 0;
+  var recovered = bookCount * avgJob;
+  var rate = smsCount > 0 ? Math.round((bookCount / smsCount) * 100) : 0;
 
   document.getElementById('smsCount').textContent = smsCount;
-  document.getElementById('bookingCount').textContent = bookingCount;
+  document.getElementById('bookingCount').textContent = bookCount;
   document.getElementById('convRate').textContent = rate + '%';
   document.getElementById('heroValue').textContent = '$' + recovered.toLocaleString();
-  document.getElementById('heroSub').textContent = bookingCount + ' bookings × $' + avgJob.toLocaleString() + ' avg job';
-  document.getElementById('demoBanner').style.display = (smsCount === 0 && bookingCount === 0) ? 'block' : 'none';
+  document.getElementById('heroSub').textContent = bookCount + ' bookings × $' + avgJob.toLocaleString() + ' avg job';
+  document.getElementById('demoBanner').style.display = (smsCount === 0 && bookCount === 0) ? 'block' : 'none';
   document.getElementById('callCountBadge').textContent = smsCount + ' call' + (smsCount !== 1 ? 's' : '');
-  renderActivity(smsData || []);
+  renderActivity(smsData);
   updateCountdown();
 }
 
-// ── ACTIVITY ──────────────────────────────────────────────────────────────────
 function renderActivity(smsEvents) {
-  const card = document.getElementById('activityCard');
-  if (smsEvents.length === 0) {
+  var card = document.getElementById('activityCard');
+  if (!smsEvents || smsEvents.length === 0) {
     card.innerHTML = '<div class="empty-state">No activity this period.</div>';
     return;
   }
-  const rows = smsEvents.slice(0, 50).map(function(e) {
+  var rows = smsEvents.slice(0, 50).map(function(e) {
     return '<div class="activity-row"><div><div class="activity-number">' + maskNumber(e.customer_number || 'Unknown') + '</div><div class="activity-time">' + formatTime(e.received_at) + '</div></div><span class="status-pill">SMS sent</span></div>';
   }).join('');
   card.innerHTML = '<div class="activity-summary" onclick="toggleDropdown()"><div class="activity-summary-left"><div class="dot"></div><div><div class="activity-summary-text">' + smsEvents.length + ' missed call' + (smsEvents.length !== 1 ? 's' : '') + ' caught</div><div class="activity-summary-sub">Tap to see caller details</div></div></div><span class="expand-icon" id="expandIcon">&#9660;</span></div><div class="activity-dropdown" id="activityDropdown">' + rows + '</div>';
@@ -776,17 +730,16 @@ function maskNumber(num) {
 
 function formatTime(iso) {
   if (!iso) return '';
-  const d = new Date(iso);
-  const now = new Date();
-  const yesterday = new Date(now);
+  var d = new Date(iso);
+  var now = new Date();
+  var yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
-  const time = d.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true });
+  var time = d.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true });
   if (d.toDateString() === now.toDateString()) return 'Today ' + time;
   if (d.toDateString() === yesterday.toDateString()) return 'Yesterday ' + time;
   return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' }) + ' ' + time;
 }
 
-// ── LOGOUT ────────────────────────────────────────────────────────────────────
 async function handleLogout() {
   await db.auth.signOut();
   localStorage.removeItem('cm_remember');
@@ -796,15 +749,13 @@ async function handleLogout() {
   document.getElementById('loginBtn').textContent = 'Sign in';
 }
 
-// ── AUTO REFRESH ──────────────────────────────────────────────────────────────
 setInterval(function() { if (currentClient) loadData(); }, 30000);
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
 window.addEventListener('load', async function() {
   loadSavedTheme();
-  const { data: { session } } = await db.auth.getSession();
-  if (session && localStorage.getItem('cm_remember')) {
-    await loadDashboard(session.user);
+  var sessionRes = await db.auth.getSession();
+  if (sessionRes.data.session && localStorage.getItem('cm_remember')) {
+    await loadDashboard(sessionRes.data.session.user);
   }
 });
 
