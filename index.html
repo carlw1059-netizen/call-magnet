@@ -55,6 +55,10 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .field label { display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); margin-bottom: 6px; font-family: var(--mono); font-weight: 700; }
 .field input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; color: var(--text); font-family: var(--sans); font-size: 14px; outline: none; transition: border-color 0.2s; font-weight: 600; }
 .field input:focus { border-color: var(--accent); }
+.password-wrap { position: relative; }
+.password-wrap input { padding-right: 44px; }
+.eye-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--dim); font-size: 16px; padding: 4px; line-height: 1; transition: color 0.2s; }
+.eye-btn:hover { color: var(--accent); }
 .remember-row { display: flex; align-items: center; gap: 8px; margin-bottom: 0.5rem; }
 .remember-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
 .remember-row label { font-size: 13px; color: var(--muted); cursor: pointer; font-weight: 600; }
@@ -139,27 +143,17 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .btn-cancel { flex: 1; background: none; border: 1px solid var(--border2); color: var(--muted); border-radius: 6px; padding: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--sans); }
 .btn-confirm { flex: 1; background: var(--red); border: none; color: #fff; border-radius: 6px; padding: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--sans); }
 
-/* ── RENEWAL COUNTDOWN ── */
 .renewal-strip { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; padding: 10px 14px; background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; }
-.renewal-left { display: flex; flex-direction: column; gap: 2px; }
 .renewal-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); font-weight: 700; opacity: 0.7; }
 .renewal-value { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent); }
 .renewal-thanks { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--accent); }
 
-/* ── SECTION HEADER ── */
 .section-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
 .section-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-weight: 700; padding-top: 4px; }
 
-/* ── SMS COUNTER BLOCK ── */
 .sms-counter-block { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
-
-/* OVERAGE + ODOMETER ROW */
 .odometer-row { display: flex; align-items: center; gap: 8px; }
-
-/* OVERAGE COST — left of odometer */
 .overage-cost { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--red); display: none; }
-
-/* ODOMETER */
 .odometer { display: flex; align-items: stretch; border: 1px solid var(--accent); border-radius: 4px; overflow: hidden; background: var(--surface); }
 .odometer-cell { width: 22px; height: 26px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--accent); position: relative; overflow: hidden; }
 .odometer-cell .old { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; }
@@ -169,14 +163,9 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 @keyframes rollOut { to { transform: translateY(-100%); opacity: 0; } }
 @keyframes rollIn { to { transform: translateY(-100%); } }
 .odometer-sep { width: 1px; background: var(--accent); opacity: 0.3; }
-
-/* CALLS BADGE */
 .call-count-badge { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent); border-radius: 20px; padding: 2px 10px; }
-
-/* MESSAGES LABEL */
 .sms-month-label { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--accent); letter-spacing: 0.05em; opacity: 0.8; }
 
-/* ── ACTIVITY ── */
 .activity-card { background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; overflow: hidden; }
 .activity-summary { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; cursor: pointer; transition: background 0.15s; }
 .activity-summary:hover { background: var(--surface2); }
@@ -208,7 +197,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 </style>
 </head>
 <body>
-
 <div class="ptr-indicator" id="ptrIndicator">
   <div class="ptr-spinner" id="ptrSpinner" style="display:none"></div>
   <span id="ptrText">Pull down to refresh</span>
@@ -225,7 +213,10 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
     </div>
     <div class="field">
       <label>Password</label>
-      <input type="password" id="passwordInput" placeholder="••••••••" />
+      <div class="password-wrap">
+        <input type="password" id="passwordInput" placeholder="••••••••" />
+        <button class="eye-btn" type="button" onclick="togglePassword()" id="eyeBtn">👁</button>
+      </div>
     </div>
     <div class="remember-row">
       <input type="checkbox" id="rememberMe" checked />
@@ -334,22 +325,20 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
       <button class="reset-btn" onclick="showResetModal()">Reset counter to zero</button>
     </div>
 
-    <!-- RENEWAL COUNTDOWN — above recent activity -->
-    <div class="renewal-strip" id="renewalStrip">
-      <div class="renewal-left" id="renewalContent">
+    <div class="renewal-strip">
+      <div id="renewalContent">
         <div class="renewal-label">Renewal in</div>
         <div class="renewal-value" id="renewalValue">—</div>
       </div>
     </div>
 
-    <!-- SECTION HEADER WITH SMS COUNTER -->
     <div class="section-header">
       <div class="section-title">Recent activity</div>
       <div class="sms-counter-block">
         <div class="call-count-badge" id="callCountBadge">0 calls</div>
         <div class="odometer-row">
           <div class="overage-cost" id="overageCost"></div>
-          <div class="odometer" id="smsOdometer">
+          <div class="odometer">
             <div class="odometer-cell" id="odom-2"><span class="old">0</span><span class="new">0</span></div>
             <div class="odometer-sep"></div>
             <div class="odometer-cell" id="odom-1"><span class="old">0</span><span class="new">0</span></div>
@@ -385,6 +374,19 @@ var currentClient = null;
 var viewMode = 'week';
 var offset = 0;
 var lastOdomVal = 0;
+
+// ── SHOW/HIDE PASSWORD ────────────────────────────────────────────────────────
+function togglePassword() {
+  var input = document.getElementById('passwordInput');
+  var btn = document.getElementById('eyeBtn');
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁';
+  }
+}
 
 // ── PULL TO REFRESH ───────────────────────────────────────────────────────────
 var ptrStartY = 0;
@@ -680,7 +682,6 @@ async function loadData() {
     .lt('booked_at', range.end)
     .order('booked_at', { ascending: false });
 
-  // Billing cycle SMS count for odometer
   var subStart = currentClient.subscription_start ? new Date(currentClient.subscription_start) : new Date();
   var now = new Date();
   var daysSince = Math.floor((now - subStart) / 86400000);
