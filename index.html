@@ -139,32 +139,44 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .btn-cancel { flex: 1; background: none; border: 1px solid var(--border2); color: var(--muted); border-radius: 6px; padding: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--sans); }
 .btn-confirm { flex: 1; background: var(--red); border: none; color: #fff; border-radius: 6px; padding: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--sans); }
 
-.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
-.section-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+/* ── RENEWAL COUNTDOWN ── */
+.renewal-strip { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; padding: 10px 14px; background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; }
+.renewal-left { display: flex; flex-direction: column; gap: 2px; }
+.renewal-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); font-weight: 700; opacity: 0.7; }
+.renewal-value { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent); }
+.renewal-thanks { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--accent); }
 
-.badge-sms-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-.call-count-badge { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent); border-radius: 20px; padding: 2px 10px; }
+/* ── SECTION HEADER ── */
+.section-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
+.section-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-weight: 700; padding-top: 4px; }
 
-/* SMS ODOMETER */
-.odometer-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+/* ── SMS COUNTER BLOCK ── */
+.sms-counter-block { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+
+/* OVERAGE + ODOMETER ROW */
+.odometer-row { display: flex; align-items: center; gap: 8px; }
+
+/* OVERAGE COST — left of odometer */
+.overage-cost { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--red); display: none; }
+
+/* ODOMETER */
 .odometer { display: flex; align-items: stretch; border: 1px solid var(--accent); border-radius: 4px; overflow: hidden; background: var(--surface); }
 .odometer-cell { width: 22px; height: 26px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--accent); position: relative; overflow: hidden; }
 .odometer-cell .old { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; }
-.odometer-cell .new { position: absolute; top: 100%; left: 0; right: 0; bottom: -100%; display: flex; align-items: center; justify-content: center; }
+.odometer-cell .new { position: absolute; top: 100%; left: 0; right: 0; height: 100%; display: flex; align-items: center; justify-content: center; }
 .odometer-cell.rolling .old { animation: rollOut 0.35s ease forwards; }
 .odometer-cell.rolling .new { animation: rollIn 0.35s ease forwards; }
 @keyframes rollOut { to { transform: translateY(-100%); opacity: 0; } }
-@keyframes rollIn { to { transform: translateY(-100%); opacity: 1; } }
+@keyframes rollIn { to { transform: translateY(-100%); } }
 .odometer-sep { width: 1px; background: var(--accent); opacity: 0.3; }
-.overage-line { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--red); letter-spacing: 0.03em; }
 
-/* BOTTOM STRIP */
-.bottom-strip { display: flex; justify-content: flex-start; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border); }
-.countdown-block { display: flex; flex-direction: column; gap: 2px; }
-.countdown-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); font-weight: 700; opacity: 0.7; }
-.countdown-value { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent); }
-.countdown-thanks { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--accent); }
+/* CALLS BADGE */
+.call-count-badge { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent); border-radius: 20px; padding: 2px 10px; }
 
+/* MESSAGES LABEL */
+.sms-month-label { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--accent); letter-spacing: 0.05em; opacity: 0.8; }
+
+/* ── ACTIVITY ── */
 .activity-card { background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; overflow: hidden; }
 .activity-summary { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; cursor: pointer; transition: background 0.15s; }
 .activity-summary:hover { background: var(--surface2); }
@@ -196,6 +208,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 </style>
 </head>
 <body>
+
 <div class="ptr-indicator" id="ptrIndicator">
   <div class="ptr-spinner" id="ptrSpinner" style="display:none"></div>
   <span id="ptrText">Pull down to refresh</span>
@@ -321,11 +334,21 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
       <button class="reset-btn" onclick="showResetModal()">Reset counter to zero</button>
     </div>
 
+    <!-- RENEWAL COUNTDOWN — above recent activity -->
+    <div class="renewal-strip" id="renewalStrip">
+      <div class="renewal-left" id="renewalContent">
+        <div class="renewal-label">Renewal in</div>
+        <div class="renewal-value" id="renewalValue">—</div>
+      </div>
+    </div>
+
+    <!-- SECTION HEADER WITH SMS COUNTER -->
     <div class="section-header">
       <div class="section-title">Recent activity</div>
-      <div class="badge-sms-wrap">
+      <div class="sms-counter-block">
         <div class="call-count-badge" id="callCountBadge">0 calls</div>
-        <div class="odometer-wrap">
+        <div class="odometer-row">
+          <div class="overage-cost" id="overageCost"></div>
           <div class="odometer" id="smsOdometer">
             <div class="odometer-cell" id="odom-2"><span class="old">0</span><span class="new">0</span></div>
             <div class="odometer-sep"></div>
@@ -333,19 +356,12 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
             <div class="odometer-sep"></div>
             <div class="odometer-cell" id="odom-0"><span class="old">0</span><span class="new">0</span></div>
           </div>
-          <div class="overage-line" id="overageLine" style="display:none"></div>
         </div>
+        <div class="sms-month-label">Messages sent this month</div>
       </div>
     </div>
 
     <div class="activity-card" id="activityCard"><div class="loading">Loading...</div></div>
-
-    <div class="bottom-strip">
-      <div class="countdown-block" id="countdownBlock">
-        <div class="countdown-label">Renewal in</div>
-        <div class="countdown-value" id="countdownVal">—</div>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -365,15 +381,15 @@ const SUPABASE_URL = 'https://iskvvnhacqdxybpmwuni.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-let currentClient = null;
-let viewMode = 'week';
-let offset = 0;
-let lastOdometerValue = 0;
+var currentClient = null;
+var viewMode = 'week';
+var offset = 0;
+var lastOdomVal = 0;
 
 // ── PULL TO REFRESH ───────────────────────────────────────────────────────────
-let ptrStartY = 0;
-let ptrActive = false;
-const PTR_THRESHOLD = 80;
+var ptrStartY = 0;
+var ptrActive = false;
+var PTR_THRESHOLD = 80;
 
 document.addEventListener('touchstart', function(e) {
   if (window.scrollY === 0) { ptrStartY = e.touches[0].clientY; ptrActive = true; }
@@ -381,21 +397,19 @@ document.addEventListener('touchstart', function(e) {
 
 document.addEventListener('touchmove', function(e) {
   if (!ptrActive) return;
-  const pd = e.touches[0].clientY - ptrStartY;
+  var pd = e.touches[0].clientY - ptrStartY;
   if (pd > 20 && window.scrollY === 0) {
-    const ind = document.getElementById('ptrIndicator');
-    const txt = document.getElementById('ptrText');
-    ind.classList.add('visible');
-    txt.textContent = pd > PTR_THRESHOLD ? 'Release to refresh' : 'Pull down to refresh';
+    document.getElementById('ptrIndicator').classList.add('visible');
+    document.getElementById('ptrText').textContent = pd > PTR_THRESHOLD ? 'Release to refresh' : 'Pull down to refresh';
   }
 }, { passive: true });
 
 document.addEventListener('touchend', function(e) {
   if (!ptrActive) return;
-  const pd = e.changedTouches[0].clientY - ptrStartY;
-  const ind = document.getElementById('ptrIndicator');
-  const txt = document.getElementById('ptrText');
-  const spn = document.getElementById('ptrSpinner');
+  var pd = e.changedTouches[0].clientY - ptrStartY;
+  var ind = document.getElementById('ptrIndicator');
+  var spn = document.getElementById('ptrSpinner');
+  var txt = document.getElementById('ptrText');
   if (pd > PTR_THRESHOLD && window.scrollY === 0 && currentClient) {
     txt.textContent = 'Refreshing...';
     spn.style.display = 'block';
@@ -413,43 +427,42 @@ document.addEventListener('touchend', function(e) {
 }, { passive: true });
 
 // ── ODOMETER ──────────────────────────────────────────────────────────────────
-function setOdometerDigit(cellId, newDigit, animate) {
-  var cell = document.getElementById(cellId);
+function setOdomDigit(id, digit, animate) {
+  var cell = document.getElementById(id);
   if (!cell) return;
-  var oldSpan = cell.querySelector('.old');
-  var newSpan = cell.querySelector('.new');
-  var currentVal = oldSpan ? oldSpan.textContent : '0';
-  if (currentVal === String(newDigit) && !animate) return;
-  if (newSpan) newSpan.textContent = String(newDigit);
-  if (animate && currentVal !== String(newDigit)) {
+  var oldEl = cell.querySelector('.old');
+  var newEl = cell.querySelector('.new');
+  var cur = oldEl ? oldEl.textContent : '0';
+  var d = String(digit);
+  if (newEl) newEl.textContent = d;
+  if (animate && cur !== d) {
     cell.classList.remove('rolling');
     void cell.offsetWidth;
     cell.classList.add('rolling');
     setTimeout(function() {
-      if (oldSpan) oldSpan.textContent = String(newDigit);
+      if (oldEl) oldEl.textContent = d;
       cell.classList.remove('rolling');
     }, 400);
   } else {
-    if (oldSpan) oldSpan.textContent = String(newDigit);
+    if (oldEl) oldEl.textContent = d;
   }
 }
 
 function updateOdometer(count) {
   var padded = String(Math.min(count, 999)).padStart(3, '0');
-  var animate = count !== lastOdometerValue;
-  setOdometerDigit('odom-2', padded[0], animate);
-  setOdometerDigit('odom-1', padded[1], animate);
-  setOdometerDigit('odom-0', padded[2], animate);
-  lastOdometerValue = count;
+  var anim = count !== lastOdomVal;
+  setOdomDigit('odom-2', padded[0], anim);
+  setOdomDigit('odom-1', padded[1], anim);
+  setOdomDigit('odom-0', padded[2], anim);
+  lastOdomVal = count;
   var included = currentClient ? (currentClient.sms_included || 50) : 50;
-  var overageEl = document.getElementById('overageLine');
+  var costEl = document.getElementById('overageCost');
   if (count > included) {
     var over = count - included;
-    var cost = (over * 0.10).toFixed(2);
-    overageEl.textContent = '+$' + cost + ' overage';
-    overageEl.style.display = 'block';
+    costEl.textContent = '+$' + (over * 0.10).toFixed(2);
+    costEl.style.display = 'block';
   } else {
-    overageEl.style.display = 'none';
+    costEl.style.display = 'none';
   }
 }
 
@@ -458,15 +471,14 @@ function updateCountdown() {
   if (!currentClient || !currentClient.subscription_start) return;
   var subStart = new Date(currentClient.subscription_start);
   var now = new Date();
-  var msPerDay = 86400000;
-  var daysSince = Math.floor((now - subStart) / msPerDay);
+  var daysSince = Math.floor((now - subStart) / 86400000);
   var cycleDay = daysSince % 30;
   var daysLeft = 30 - cycleDay;
-  var block = document.getElementById('countdownBlock');
+  var content = document.getElementById('renewalContent');
   if (cycleDay === 0 && daysSince > 0) {
-    block.innerHTML = '<div class="countdown-thanks">Thank you for your payment, ' + (currentClient.business_name || '') + '!</div>';
+    content.innerHTML = '<div class="renewal-thanks">Thank you for your payment, ' + (currentClient.business_name || '') + '!</div>';
   } else {
-    block.innerHTML = '<div class="countdown-label">Renewal in</div><div class="countdown-value">' + daysLeft + ' day' + (daysLeft !== 1 ? 's' : '') + '</div>';
+    content.innerHTML = '<div class="renewal-label">Renewal in</div><div class="renewal-value">' + daysLeft + ' day' + (daysLeft !== 1 ? 's' : '') + '</div>';
   }
 }
 
@@ -590,7 +602,7 @@ function getDateRange() {
     start = adjStart.toISOString();
     end = adjEnd.toISOString();
     var opts = { day: 'numeric', month: 'short' };
-    label = monday.toLocaleDateString('en-AU', opts) + ' – ' + new Date(sunday.getTime() - 86400000).toLocaleDateString('en-AU', opts);
+    label = monday.toLocaleDateString('en-AU', opts) + ' \u2013 ' + new Date(sunday.getTime() - 86400000).toLocaleDateString('en-AU', opts);
   } else {
     var d = new Date(localNow.getUTCFullYear(), localNow.getUTCMonth() + offset, 1);
     start = new Date(d.getFullYear(), d.getMonth(), 1).toISOString();
@@ -668,6 +680,7 @@ async function loadData() {
     .lt('booked_at', range.end)
     .order('booked_at', { ascending: false });
 
+  // Billing cycle SMS count for odometer
   var subStart = currentClient.subscription_start ? new Date(currentClient.subscription_start) : new Date();
   var now = new Date();
   var daysSince = Math.floor((now - subStart) / 86400000);
@@ -694,13 +707,14 @@ async function loadData() {
   document.getElementById('bookingCount').textContent = bookCount;
   document.getElementById('convRate').textContent = rate + '%';
   document.getElementById('heroValue').textContent = '$' + recovered.toLocaleString();
-  document.getElementById('heroSub').textContent = bookCount + ' bookings × $' + avgJob.toLocaleString() + ' avg job';
+  document.getElementById('heroSub').textContent = bookCount + ' bookings \xd7 $' + avgJob.toLocaleString() + ' avg job';
   document.getElementById('demoBanner').style.display = (smsCount === 0 && bookCount === 0) ? 'block' : 'none';
   document.getElementById('callCountBadge').textContent = smsCount + ' call' + (smsCount !== 1 ? 's' : '');
   renderActivity(smsData);
   updateCountdown();
 }
 
+// ── ACTIVITY ──────────────────────────────────────────────────────────────────
 function renderActivity(smsEvents) {
   var card = document.getElementById('activityCard');
   if (!smsEvents || smsEvents.length === 0) {
