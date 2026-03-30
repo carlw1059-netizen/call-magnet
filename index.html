@@ -77,6 +77,10 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 
 .dash { display: none; min-height: 100vh; background: var(--bg); }
 
+/* SUSPENSION BANNER */
+.suspension-banner { display: none; background: var(--red-dim); border-bottom: 2px solid var(--red); padding: 14px 1.5rem; font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--red); letter-spacing: 0.03em; text-align: center; }
+.suspension-banner.active { display: block; }
+
 .topbar { display: flex; justify-content: space-between; align-items: flex-end; padding: 1.2rem 1.5rem 0.8rem 1.5rem; position: sticky; top: 0; background: var(--bg); z-index: 20; overflow: visible; }
 .topbar::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%); background-size: 200% 100%; animation: lineSweep 3s ease-in-out infinite; }
 @keyframes lineSweep { 0% { background-position: -100% 0; } 100% { background-position: 200% 0; } }
@@ -201,636 +205,210 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 </style>
 </head>
 <body>
-<div class="ptr-indicator" id="ptrIndicator">
-  <div class="ptr-spinner" id="ptrSpinner" style="display:none"></div>
-  <span id="ptrText">Pull down to refresh</span>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CallMagnet</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CallMagnet">
+<meta name="theme-color" content="#0d0d0d">
+<link rel="manifest" href="manifest.json">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
 
-<div class="login-screen" id="loginScreen">
-  <div class="login-box">
-    <div class="login-logo"><span class="star-pulse">★</span>CallMagnet</div>
-    <h1 class="login-heading">Welcome back.</h1>
-    <p class="login-sub">Sign in to view your recovery stats.</p>
-    <div class="field">
-      <label>Email</label>
-      <input type="email" id="emailInput" placeholder="you@example.com" />
-    </div>
-    <div class="field">
-      <label>Password</label>
-      <div class="password-wrap">
-        <input type="password" id="passwordInput" placeholder="••••••••" />
-        <button class="eye-btn" type="button" onclick="togglePassword()" id="eyeBtn">👁</button>
-      </div>
-    </div>
-    <div class="remember-row">
-      <input type="checkbox" id="rememberMe" checked />
-      <label for="rememberMe">Keep me signed in</label>
-    </div>
-    <span class="forgot-link" onclick="showForgot()">Forgot password?</span>
-    <button class="btn-primary" id="loginBtn" onclick="handleLogin()">Sign in</button>
-    <div class="error-msg" id="errorMsg"></div>
-  </div>
-</div>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-<div class="forgot-screen" id="forgotScreen">
-  <div class="login-box">
-    <div class="login-logo"><span class="star-pulse">★</span>CallMagnet</div>
-    <span class="back-link" onclick="showLogin()">&#8592; Back to sign in</span>
-    <h1 class="login-heading">Reset password.</h1>
-    <p class="login-sub">Enter your email and we'll send you a reset link.</p>
-    <div class="field">
-      <label>Email</label>
-      <input type="email" id="resetEmailInput" placeholder="you@example.com" />
-    </div>
-    <button class="btn-primary" id="resetBtn" onclick="handleReset()">Send reset link</button>
-    <div class="error-msg" id="resetErrorMsg"></div>
-    <div class="success-msg" id="resetSuccessMsg">Reset link sent. Check your email.</div>
-  </div>
-</div>
-
-<div class="dash" id="dash">
-  <div class="topbar">
-    <div class="topbar-logo"><span class="star-pulse">★</span>CallMagnet</div>
-    <div class="topbar-right">
-      <button class="settings-btn" id="settingsBtn" onclick="toggleSettings()">&#9881;</button>
-      <button class="logout-btn" onclick="handleLogout()">Sign out</button>
-      <div class="settings-panel" id="settingsPanel">
-        <div class="settings-section">
-          <div class="settings-section-title">Accent colour</div>
-          <div class="swatch-grid">
-            <div class="s-swatch selected" id="acc-0" style="background:#191970" onclick="setAccent(0,'#191970','#19197022','#fff')"></div>
-            <div class="s-swatch" id="acc-1" style="background:#B2BEB5;border:1px solid #999" onclick="setAccent(1,'#B2BEB5','#B2BEB522','#111')"></div>
-            <div class="s-swatch" id="acc-2" style="background:#3b82f6" onclick="setAccent(2,'#3b82f6','#3b82f622','#fff')"></div>
-            <div class="s-swatch" id="acc-3" style="background:#a855f7" onclick="setAccent(3,'#a855f7','#a855f722','#fff')"></div>
-            <div class="s-swatch" id="acc-4" style="background:#f5a623" onclick="setAccent(4,'#f5a623','#f5a62322','#000')"></div>
-            <div class="s-swatch" id="acc-5" style="background:#ff4d4d" onclick="setAccent(5,'#ff4d4d','#ff4d4d22','#fff')"></div>
-            <div class="s-swatch" id="acc-6" style="background:#ec4899" onclick="setAccent(6,'#ec4899','#ec489922','#fff')"></div>
-            <div class="s-swatch dark-check" id="acc-7" style="background:#ffffff;border:2px solid #ccc" onclick="setAccent(7,'#ffffff','#ffffff18','#0d0d0d')"></div>
-          </div>
-        </div>
-        <div class="settings-divider"></div>
-        <div class="settings-section">
-          <div class="settings-section-title">Background</div>
-          <div class="swatch-grid">
-            <div class="s-swatch selected dark-check" id="bg-0" style="background:#0d0d0d;border:2px solid #666" onclick="setBg(0,'#0d0d0d','#161616','#1e1e1e','#2a2a2a','#f0f0f0','#888','#555')"></div>
-            <div class="s-swatch dark-check" id="bg-1" style="background:#191970" onclick="setBg(1,'#191970','#2a2a8a','#3a3a9a','#4a4aaa','#f0eeff','#c8c8ff','#9898dd')"></div>
-            <div class="s-swatch" id="bg-2" style="background:#B2BEB5;border:1px solid #999" onclick="setBg(2,'#B2BEB5','#d0d8d2','#e0e8e2','#c0ccc4','#111111','#333333','#555555')"></div>
-            <div class="s-swatch" id="bg-3" style="background:#f150fa" onclick="setBg(3,'#f150fa','#c030d0','#a020b0','#8010a0','#ffffff','#f0d0f8','#d0a0e0')"></div>
-            <div class="s-swatch" id="bg-4" style="background:#89faf2" onclick="setBg(4,'#89faf2','#60d8d0','#40b8b0','#208a84','#001a18','#004040','#006060')"></div>
-            <div class="s-swatch" id="bg-5" style="background:#70e07d" onclick="setBg(5,'#70e07d','#50c060','#309040','#186028','#001a06','#003a10','#005018')"></div>
-            <div class="s-swatch dark-check" id="bg-6" style="background:#2f1a6b" onclick="setBg(6,'#2f1a6b','#3d2880','#4c3595','#5a42a8','#f0eaff','#c8b8f0','#9070d0')"></div>
-            <div class="s-swatch" id="bg-7" style="background:#FAF9F6;border:2px solid #ddd" onclick="setBg(7,'#FAF9F6','#ffffff','#f0efe8','#e0dfd8','#111111','#444444','#777777')"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="main">
-    <div class="biz-header">
-      <div class="biz-name-large" id="bizNameLarge"></div>
-      <div class="biz-tagline">Pull every customer back.</div>
-    </div>
-    <div class="demo-banner" id="demoBanner">No data yet — your CallMagnet system will start showing live stats once your first call comes in.</div>
-    <div class="period-controls">
-      <div class="period-nav">
-        <button class="nav-btn" id="prevBtn" onclick="navigate(-1)">&#8592;</button>
-        <div class="period-label-text" id="periodLabelText"></div>
-        <button class="nav-btn" id="nextBtn" onclick="navigate(1)" disabled>&#8594;</button>
-      </div>
-      <div class="toggle-row">
-        <button class="toggle-btn active" id="toggleWeek" onclick="setMode('week')">Week</button>
-        <button class="toggle-btn" id="toggleMonth" onclick="setMode('month')">Month</button>
-      </div>
-    </div>
-    <div class="hero">
-      <div class="hero-label">Estimated revenue recovered</div>
-      <div class="hero-value" id="heroValue">$0</div>
-      <div class="hero-sub" id="heroSub"></div>
-    </div>
-    <div class="metrics">
-      <div class="metric">
-        <div class="metric-label">SMS sent</div>
-        <div class="metric-value" id="smsCount">0</div>
-        <div class="metric-sub">This period</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Bookings created</div>
-        <div class="metric-value" id="bookingCount">0</div>
-        <div class="metric-sub">This period</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Conversion rate</div>
-        <div class="metric-value" id="convRate">0%</div>
-        <div class="metric-sub">SMS → booking</div>
-      </div>
-    </div>
-    <div class="reset-row">
-      <button class="reset-btn" onclick="showResetModal()">Reset counter to zero</button>
-    </div>
-
-    <div class="renewal-strip">
-      <div id="renewalContent">
-        <div class="renewal-label">Renewal in</div>
-        <div class="renewal-value" id="renewalValue">—</div>
-      </div>
-    </div>
-
-    <div class="section-header">
-      <div class="section-title">Recent activity</div>
-      <div class="sms-counter-block">
-        <div class="call-count-badge" id="callCountBadge">0 calls</div>
-        <div class="sms-odom-row">
-          <div class="odometer">
-            <div class="odometer-cell" id="odom-2"><span class="old">0</span><span class="new">0</span></div>
-            <div class="odometer-sep"></div>
-            <div class="odometer-cell" id="odom-1"><span class="old">0</span><span class="new">0</span></div>
-            <div class="odometer-sep"></div>
-            <div class="odometer-cell" id="odom-0"><span class="old">0</span><span class="new">0</span></div>
-          </div>
-        </div>
-        <div class="sms-month-label">Messages sent this month</div>
-        <div class="overage-row" id="overageRow" style="display:none">
-          <div class="overage-label">SMS Overage</div>
-          <div class="odometer">
-            <div class="odometer-prefix">$</div>
-            <div class="odometer-cell" id="ov-3"><span class="old">0</span><span class="new">0</span></div>
-            <div class="odometer-sep"></div>
-            <div class="odometer-cell" id="ov-2"><span class="old">0</span><span class="new">0</span></div>
-            <div class="odometer-sep"></div>
-            <div class="odometer-cell" id="ov-1"><span class="old">0</span><span class="new">0</span></div>
-            <div class="odometer-sep"></div>
-            <div class="odometer-cell" id="ov-0"><span class="old">0</span><span class="new">0</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="activity-card" id="activityCard"><div class="loading">Loading...</div></div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="resetModal">
-  <div class="modal">
-    <div class="modal-title">Reset counter?</div>
-    <div class="modal-body">This resets your stats display to zero from today. Your data stays saved — you can still look back at previous periods using the arrows.</div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeResetModal()">Cancel</button>
-      <button class="btn-confirm" onclick="confirmReset()">Reset</button>
-    </div>
-  </div>
-</div>
-
-<script>
-const SUPABASE_URL = 'https://iskvvnhacqdxybpmwuni.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
-const { createClient } = supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-var currentClient = null;
-var viewMode = 'week';
-var offset = 0;
-var lastSmsOdom = 0;
-var lastOverageOdom = 0;
-
-function togglePassword() {
-  var input = document.getElementById('passwordInput');
-  var btn = document.getElementById('eyeBtn');
-  if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
-  else { input.type = 'password'; btn.textContent = '👁'; }
+:root {
+  --bg: #0d0d0d;
+  --surface: #161616;
+  --surface2: #1e1e1e;
+  --border: #2a2a2a;
+  --border2: #333;
+  --text: #f0f0f0;
+  --muted: #888;
+  --dim: #555;
+  --accent: #191970;
+  --accent-dim: #19197022;
+  --accent-contrast: #fff;
+  --amber: #f5a623;
+  --amber-dim: #f5a62322;
+  --red: #ff4d4d;
+  --red-dim: #ff4d4d18;
+  --mono: 'DM Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
 }
 
-var ptrStartY = 0;
-var ptrActive = false;
-var PTR_THRESHOLD = 80;
+body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; font-size: 14px; line-height: 1.5; -webkit-text-size-adjust: 100%; font-weight: 600; overflow-x: hidden; }
 
-document.addEventListener('touchstart', function(e) {
-  if (window.scrollY === 0) { ptrStartY = e.touches[0].clientY; ptrActive = true; }
-}, { passive: true });
+.star-pulse { color: var(--accent); animation: pulse 2s infinite; display: inline-block; flex-shrink: 0; line-height: 1; }
+@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
 
-document.addEventListener('touchmove', function(e) {
-  if (!ptrActive) return;
-  var pd = e.touches[0].clientY - ptrStartY;
-  if (pd > 20 && window.scrollY === 0) {
-    document.getElementById('ptrIndicator').classList.add('visible');
-    document.getElementById('ptrText').textContent = pd > PTR_THRESHOLD ? 'Release to refresh' : 'Pull down to refresh';
-  }
-}, { passive: true });
+.ptr-indicator { position: fixed; top: 0; left: 0; width: 100%; height: 50px; display: flex; align-items: center; justify-content: center; background: var(--bg); z-index: 50; transform: translateY(-50px); transition: transform 0.2s ease; font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; }
+.ptr-indicator.visible { transform: translateY(0); }
+.ptr-spinner { width: 16px; height: 16px; border: 2px solid var(--accent-dim); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-document.addEventListener('touchend', function(e) {
-  if (!ptrActive) return;
-  var pd = e.changedTouches[0].clientY - ptrStartY;
-  var ind = document.getElementById('ptrIndicator');
-  var spn = document.getElementById('ptrSpinner');
-  var txt = document.getElementById('ptrText');
-  if (pd > PTR_THRESHOLD && window.scrollY === 0 && currentClient) {
-    txt.textContent = 'Refreshing...';
-    spn.style.display = 'block';
-    loadData().then(function() {
-      setTimeout(function() {
-        ind.classList.remove('visible');
-        spn.style.display = 'none';
-        txt.textContent = 'Pull down to refresh';
-      }, 600);
-    });
-  } else { ind.classList.remove('visible'); }
-  ptrActive = false;
-}, { passive: true });
+.login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; background: var(--bg); }
+.login-box { width: 100%; max-width: 380px; }
+.login-logo { font-family: var(--mono); font-size: 20px; letter-spacing: 0.15em; color: var(--accent); text-transform: uppercase; margin-bottom: 2.5rem; display: flex; align-items: center; gap: 10px; font-weight: 700; }
+.login-logo .star-pulse { font-size: 20px; }
+.login-heading { font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+.login-sub { font-size: 13px; color: var(--muted); margin-bottom: 2rem; font-weight: 600; }
+.field { margin-bottom: 1rem; }
+.field label { display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); margin-bottom: 6px; font-family: var(--mono); font-weight: 700; }
+.field input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; color: var(--text); font-family: var(--sans); font-size: 14px; outline: none; transition: border-color 0.2s; font-weight: 600; }
+.field input:focus { border-color: var(--accent); }
+.password-wrap { position: relative; }
+.password-wrap input { padding-right: 44px; }
+.eye-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--dim); font-size: 16px; padding: 4px; line-height: 1; transition: color 0.2s; }
+.eye-btn:hover { color: var(--accent); }
+.remember-row { display: flex; align-items: center; gap: 8px; margin-bottom: 0.5rem; }
+.remember-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+.remember-row label { font-size: 13px; color: var(--muted); cursor: pointer; font-weight: 600; }
+.forgot-link { font-size: 12px; color: var(--accent); font-family: var(--mono); cursor: pointer; text-decoration: underline; margin-bottom: 1rem; display: block; font-weight: 700; letter-spacing: 0.03em; }
+.forgot-link:hover { opacity: 0.7; }
+.btn-primary { width: 100%; background: var(--accent); color: var(--accent-contrast); border: none; border-radius: 6px; padding: 11px; font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 0.5rem; transition: opacity 0.2s; }
+.btn-primary:hover { opacity: 0.85; }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.error-msg { background: var(--red-dim); border: 1px solid var(--red); color: var(--red); border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-top: 1rem; display: none; font-weight: 600; }
+.success-msg { background: var(--accent-dim); border: 1px solid var(--accent); color: var(--accent); border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-top: 1rem; display: none; font-weight: 600; }
 
-function setOdomDigit(id, digit, animate) {
-  var cell = document.getElementById(id);
-  if (!cell) return;
-  var oldEl = cell.querySelector('.old');
-  var newEl = cell.querySelector('.new');
-  var cur = oldEl ? oldEl.textContent : '0';
-  var d = String(digit);
-  if (newEl) newEl.textContent = d;
-  if (animate && cur !== d) {
-    cell.classList.remove('rolling');
-    void cell.offsetWidth;
-    cell.classList.add('rolling');
-    setTimeout(function() {
-      if (oldEl) oldEl.textContent = d;
-      cell.classList.remove('rolling');
-    }, 400);
-  } else {
-    if (oldEl) oldEl.textContent = d;
-  }
+.forgot-screen { min-height: 100vh; display: none; align-items: center; justify-content: center; padding: 2rem; background: var(--bg); }
+.forgot-screen.active { display: flex; }
+.back-link { font-size: 12px; color: var(--accent); font-family: var(--mono); cursor: pointer; text-decoration: underline; margin-bottom: 1.5rem; display: block; font-weight: 700; letter-spacing: 0.03em; }
+.back-link:hover { opacity: 0.7; }
+
+.dash { display: none; min-height: 100vh; background: var(--bg); }
+
+/* SUSPENSION BANNER */
+.suspension-banner { display: none; background: var(--red-dim); border-bottom: 2px solid var(--red); padding: 14px 1.5rem; font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--red); letter-spacing: 0.03em; text-align: center; }
+.suspension-banner.active { display: block; }
+
+.topbar { display: flex; justify-content: space-between; align-items: flex-end; padding: 1.2rem 1.5rem 0.8rem 1.5rem; position: sticky; top: 0; background: var(--bg); z-index: 20; overflow: visible; }
+.topbar::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%); background-size: 200% 100%; animation: lineSweep 3s ease-in-out infinite; }
+@keyframes lineSweep { 0% { background-position: -100% 0; } 100% { background-position: 200% 0; } }
+.topbar-logo { font-family: var(--mono); font-size: 27px; letter-spacing: 0.15em; color: var(--accent); text-transform: uppercase; display: flex; align-items: center; gap: 12px; font-weight: 700; line-height: 1; padding-bottom: 4px; }
+.topbar-logo .star-pulse { font-size: 27px; }
+.topbar-right { display: flex; align-items: center; gap: 8px; position: relative; padding-bottom: 4px; }
+.settings-btn { background: none; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 5px 10px; font-size: 13px; cursor: pointer; transition: all 0.2s; line-height: 1; font-weight: 700; }
+.settings-btn:hover { background: var(--accent); color: var(--accent-contrast); }
+.settings-btn.active { background: var(--accent); color: var(--accent-contrast); }
+.logout-btn { background: none; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 5px 12px; font-size: 12px; font-family: var(--mono); cursor: pointer; transition: all 0.2s; font-weight: 700; letter-spacing: 0.05em; }
+.logout-btn:hover { background: var(--accent); color: var(--accent-contrast); }
+
+.settings-panel { position: absolute; top: calc(100% + 8px); right: 0; width: 270px; background: #ffffff; border: 1px solid #dddddd; border-radius: 10px; padding: 1rem; z-index: 100; box-shadow: 0 8px 32px rgba(0,0,0,0.3); display: none; animation: slideDown 0.15s ease; }
+.settings-panel.open { display: block; }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+.settings-section { margin-bottom: 1rem; }
+.settings-section:last-child { margin-bottom: 0; }
+.settings-section-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #111111; margin-bottom: 10px; font-weight: 700; }
+.swatch-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.s-swatch { width: 28px; height: 28px; border-radius: 6px; border: 2px solid transparent; cursor: pointer; transition: transform 0.15s, border-color 0.15s; position: relative; }
+.s-swatch:hover { transform: scale(1.15); }
+.s-swatch.selected { border-color: #111111; }
+.s-swatch.selected::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: rgba(0,0,0,0.6); }
+.s-swatch.dark-check.selected::after { color: rgba(255,255,255,0.8); }
+.settings-divider { height: 1px; background: #dddddd; margin: 0.75rem 0; }
+
+.main { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+.biz-header { margin-bottom: 1.5rem; }
+.biz-name-large { font-size: 36px; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; line-height: 1.1; }
+.biz-tagline { font-family: var(--mono); font-size: 12px; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 6px; font-weight: 700; }
+.demo-banner { background: var(--amber-dim); border: 1px solid var(--amber); border-radius: 8px; padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--amber); margin-bottom: 1.5rem; font-family: var(--mono); letter-spacing: 0.03em; display: none; }
+
+.period-controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem; }
+.period-nav { display: flex; align-items: center; gap: 0.5rem; }
+.nav-btn { background: var(--surface); border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 5px 12px; font-size: 14px; cursor: pointer; transition: all 0.2s; font-family: var(--mono); font-weight: 700; }
+.nav-btn:hover { background: var(--accent); color: var(--accent-contrast); }
+.nav-btn:disabled { opacity: 0.3; cursor: not-allowed; background: var(--surface); color: var(--dim); border-color: var(--border); }
+.period-label-text { font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--accent); letter-spacing: 0.05em; min-width: 180px; text-align: center; }
+.toggle-row { display: flex; background: var(--surface); border: 1px solid var(--accent); border-radius: 6px; overflow: hidden; }
+.toggle-btn { padding: 6px 18px; font-size: 13px; font-family: var(--mono); letter-spacing: 0.05em; background: none; border: none; color: var(--accent); cursor: pointer; transition: all 0.2s; font-weight: 700; }
+.toggle-btn.active { background: var(--accent); color: var(--accent-contrast); font-weight: 700; }
+
+.hero { background: var(--accent-dim); border: 1px solid var(--accent); border-radius: 10px; padding: 1.5rem; margin-bottom: 1rem; }
+.hero-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; font-weight: 700; }
+.hero-value { font-size: 56px; font-weight: 300; color: var(--accent); letter-spacing: -0.03em; line-height: 1; }
+.hero-sub { font-size: 13px; font-weight: 700; color: var(--accent); opacity: 0.8; margin-top: 8px; }
+
+.metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 1rem; }
+.metric { background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; padding: 1rem; }
+.metric-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; font-weight: 700; }
+.metric-value { font-size: 32px; font-weight: 300; color: var(--accent); letter-spacing: -0.02em; }
+.metric-sub { font-size: 11px; font-weight: 700; color: var(--muted); margin-top: 4px; }
+
+.reset-row { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+.reset-btn { background: none; border: 2px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 6px 14px; font-size: 12px; font-family: var(--mono); letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s; font-weight: 700; }
+.reset-btn:hover { background: var(--accent); color: var(--accent-contrast); }
+
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center; padding: 2rem; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; padding: 1.5rem; max-width: 340px; width: 100%; }
+.modal-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 0.5rem; }
+.modal-body { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.6; }
+.modal-actions { display: flex; gap: 0.75rem; }
+.btn-cancel { flex: 1; background: none; border: 1px solid var(--border2); color: var(--muted); border-radius: 6px; padding: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--sans); }
+.btn-confirm { flex: 1; background: var(--red); border: none; color: #fff; border-radius: 6px; padding: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--sans); }
+
+.renewal-strip { display: flex; align-items: center; margin-bottom: 0.75rem; padding: 10px 14px; background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; }
+.renewal-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); font-weight: 700; opacity: 0.7; }
+.renewal-value { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent); }
+.renewal-thanks { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--accent); }
+
+.section-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
+.section-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-weight: 700; padding-top: 4px; }
+
+.sms-counter-block { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.call-count-badge { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent); border-radius: 20px; padding: 2px 10px; }
+
+.odometer { display: flex; align-items: stretch; border: 1px solid var(--accent); border-radius: 4px; overflow: hidden; background: var(--surface); }
+.odometer-cell { width: 22px; height: 26px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--accent); position: relative; overflow: hidden; }
+.odometer-cell .old { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; }
+.odometer-cell .new { position: absolute; top: 100%; left: 0; right: 0; height: 100%; display: flex; align-items: center; justify-content: center; }
+.odometer-cell.rolling .old { animation: rollOut 0.35s ease forwards; }
+.odometer-cell.rolling .new { animation: rollIn 0.35s ease forwards; }
+@keyframes rollOut { to { transform: translateY(-100%); opacity: 0; } }
+@keyframes rollIn { to { transform: translateY(-100%); } }
+.odometer-sep { width: 1px; background: var(--accent); opacity: 0.3; }
+.odometer-prefix { width: 20px; height: 26px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent); background: var(--surface); border-right: 1px solid var(--accent); opacity: 0.6; }
+
+.sms-odom-row { display: flex; align-items: center; gap: 6px; }
+.sms-month-label { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--accent); letter-spacing: 0.05em; opacity: 0.8; }
+.overage-row { display: flex; align-items: center; gap: 6px; }
+.overage-label { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--red); letter-spacing: 0.05em; }
+
+.activity-card { background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; overflow: hidden; }
+.activity-summary { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; cursor: pointer; transition: background 0.15s; }
+.activity-summary:hover { background: var(--surface2); }
+.activity-summary-left { display: flex; align-items: center; gap: 10px; }
+.dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; background: var(--accent); }
+.activity-summary-text { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent); }
+.activity-summary-sub { font-size: 11px; font-weight: 600; color: var(--muted); margin-top: 2px; }
+.expand-icon { font-size: 11px; color: var(--accent); font-family: var(--mono); transition: transform 0.2s; }
+.expand-icon.open { transform: rotate(180deg); }
+.activity-dropdown { display: none; border-top: 1px solid var(--border); }
+.activity-dropdown.open { display: block; }
+.activity-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--border); }
+.activity-row:last-child { border-bottom: none; }
+.activity-number { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--text); }
+.activity-time { font-size: 11px; font-weight: 600; color: var(--dim); margin-top: 1px; }
+.status-pill { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); }
+.empty-state { padding: 2rem; text-align: center; color: var(--dim); font-size: 13px; font-weight: 600; }
+.loading { padding: 2rem; text-align: center; color: var(--dim); font-family: var(--mono); font-size: 12px; font-weight: 700; }
+
+@media (max-width: 600px) {
+  .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hero-value { font-size: 40px; }
+  .biz-name-large { font-size: 26px; }
+  .topbar-logo { font-size: 20px; }
+  .topbar-logo .star-pulse { font-size: 20px; }
+  .period-controls { flex-direction: column; align-items: flex-start; }
+  .settings-panel { width: 230px; }
 }
-
-function updateSmsOdometer(count) {
-  var padded = String(Math.min(count, 999)).padStart(3, '0');
-  var anim = count !== lastSmsOdom;
-  setOdomDigit('odom-2', padded[0], anim);
-  setOdomDigit('odom-1', padded[1], anim);
-  setOdomDigit('odom-0', padded[2], anim);
-  lastSmsOdom = count;
-}
-
-function updateOverageOdometer(count) {
-  var included = currentClient ? (currentClient.sms_included || 50) : 50;
-  var overageRow = document.getElementById('overageRow');
-  if (count > included) {
-    overageRow.style.display = 'flex';
-    var over = count - included;
-    var cents = Math.round(over * 10);
-    var dollars = Math.floor(cents / 100);
-    var rem = cents % 100;
-    var anim = count !== lastOverageOdom;
-    setOdomDigit('ov-3', Math.floor(dollars / 10), anim);
-    setOdomDigit('ov-2', dollars % 10, anim);
-    setOdomDigit('ov-1', Math.floor(rem / 10), anim);
-    setOdomDigit('ov-0', rem % 10, anim);
-    lastOverageOdom = count;
-  } else {
-    overageRow.style.display = 'none';
-    lastOverageOdom = 0;
-  }
-}
-
-async function updateCountdown() {
-  if (!currentClient || !currentClient.subscription_start) return;
-  var subStart = new Date(currentClient.subscription_start);
-  var now = new Date();
-  var totalDays = Math.floor((now - subStart) / 86400000);
-  var cycleDay = totalDays % 30;
-  var daysLeft = 30 - cycleDay;
-  var content = document.getElementById('renewalContent');
-
-  // Check if last_renewal_date within 24 hours
-  var showThanks = false;
-  if (currentClient.last_renewal_date) {
-    var lastRenewal = new Date(currentClient.last_renewal_date);
-    var hoursSince = (now - lastRenewal) / 3600000;
-    if (hoursSince < 24) showThanks = true;
-  }
-
-  // If cycle just flipped and thank you not yet written for this cycle
-  if (cycleDay === 0 && totalDays > 0 && !showThanks) {
-    var cycleStartTime = new Date(now);
-    cycleStartTime.setHours(0, 0, 0, 0);
-    var lastRenewalDate = currentClient.last_renewal_date ? new Date(currentClient.last_renewal_date) : null;
-    if (!lastRenewalDate || lastRenewalDate < cycleStartTime) {
-      await db.from('clients').update({ last_renewal_date: now.toISOString() }).eq('id', currentClient.id);
-      currentClient.last_renewal_date = now.toISOString();
-      showThanks = true;
-    }
-  }
-
-  if (showThanks) {
-    content.innerHTML = '<div class="renewal-thanks">Thank you for your payment, ' + (currentClient.business_name || '') + '!</div>';
-  } else {
-    content.innerHTML = '<div class="renewal-label">Renewal in</div><div class="renewal-value">' + daysLeft + ' day' + (daysLeft !== 1 ? 's' : '') + '</div>';
-  }
-}
-
-function showLogin() {
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('forgotScreen').classList.remove('active');
-}
-function showForgot() {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('forgotScreen').classList.add('active');
-}
-
-async function handleReset() {
-  var email = document.getElementById('resetEmailInput').value.trim();
-  var btn = document.getElementById('resetBtn');
-  var err = document.getElementById('resetErrorMsg');
-  var suc = document.getElementById('resetSuccessMsg');
-  err.style.display = 'none'; suc.style.display = 'none';
-  if (!email) { err.textContent = 'Please enter your email.'; err.style.display = 'block'; return; }
-  btn.disabled = true; btn.textContent = 'Sending...';
-  var res = await db.auth.resetPasswordForEmail(email, { redirectTo: 'https://callmagnet.com.au' });
-  if (res.error) { err.textContent = res.error.message; err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Send reset link'; return; }
-  suc.style.display = 'block'; btn.disabled = false; btn.textContent = 'Send reset link';
-}
-
-function toggleSettings() {
-  document.getElementById('settingsPanel').classList.toggle('open');
-  document.getElementById('settingsBtn').classList.toggle('active');
-}
-document.addEventListener('click', function(e) {
-  var p = document.getElementById('settingsPanel');
-  var b = document.getElementById('settingsBtn');
-  if (p && !p.contains(e.target) && !b.contains(e.target)) {
-    p.classList.remove('open'); b.classList.remove('active');
-  }
-});
-
-async function setAccent(idx, accent, accentDim, accentContrast) {
-  document.documentElement.style.setProperty('--accent', accent);
-  document.documentElement.style.setProperty('--accent-dim', accentDim);
-  document.documentElement.style.setProperty('--accent-contrast', accentContrast);
-  var val = JSON.stringify({ idx: idx, accent: accent, accentDim: accentDim, accentContrast: accentContrast });
-  localStorage.setItem('cm_accent', val);
-  for (var i = 0; i < 8; i++) { var el = document.getElementById('acc-' + i); if (el) el.classList.toggle('selected', i === idx); }
-  if (currentClient) await db.from('clients').update({ accent_preference: val }).eq('id', currentClient.id);
-}
-
-async function setBg(idx, bg, surface, surface2, border, text, muted, dim) {
-  document.documentElement.style.setProperty('--bg', bg);
-  document.documentElement.style.setProperty('--surface', surface);
-  document.documentElement.style.setProperty('--surface2', surface2);
-  document.documentElement.style.setProperty('--border', border);
-  document.documentElement.style.setProperty('--text', text);
-  document.documentElement.style.setProperty('--muted', muted);
-  document.documentElement.style.setProperty('--dim', dim);
-  var val = JSON.stringify({ idx: idx, bg: bg, surface: surface, surface2: surface2, border: border, text: text, muted: muted, dim: dim });
-  localStorage.setItem('cm_bg', val);
-  for (var i = 0; i < 8; i++) { var el = document.getElementById('bg-' + i); if (el) el.classList.toggle('selected', i === idx); }
-  if (currentClient) await db.from('clients').update({ bg_preference: val }).eq('id', currentClient.id);
-}
-
-function applyTheme(aRaw, bRaw) {
-  try {
-    if (aRaw) {
-      var a = JSON.parse(aRaw);
-      document.documentElement.style.setProperty('--accent', a.accent);
-      document.documentElement.style.setProperty('--accent-dim', a.accentDim);
-      document.documentElement.style.setProperty('--accent-contrast', a.accentContrast || '#fff');
-      for (var i = 0; i < 8; i++) { var el = document.getElementById('acc-' + i); if (el) el.classList.toggle('selected', i === a.idx); }
-    }
-    if (bRaw) {
-      var b = JSON.parse(bRaw);
-      document.documentElement.style.setProperty('--bg', b.bg);
-      document.documentElement.style.setProperty('--surface', b.surface);
-      document.documentElement.style.setProperty('--surface2', b.surface2);
-      document.documentElement.style.setProperty('--border', b.border);
-      document.documentElement.style.setProperty('--text', b.text);
-      document.documentElement.style.setProperty('--muted', b.muted);
-      document.documentElement.style.setProperty('--dim', b.dim);
-      for (var i = 0; i < 8; i++) { var el = document.getElementById('bg-' + i); if (el) el.classList.toggle('selected', i === b.idx); }
-    }
-  } catch(e) {}
-}
-
-function loadSavedTheme() {
-  applyTheme(localStorage.getItem('cm_accent'), localStorage.getItem('cm_bg'));
-}
-
-function setMode(mode) {
-  viewMode = mode; offset = 0;
-  document.getElementById('toggleWeek').classList.toggle('active', mode === 'week');
-  document.getElementById('toggleMonth').classList.toggle('active', mode === 'month');
-  document.getElementById('nextBtn').disabled = true;
-  loadData();
-}
-function navigate(dir) {
-  offset += dir;
-  document.getElementById('nextBtn').disabled = offset >= 0;
-  loadData();
-}
-
-function getDateRange() {
-  var now = new Date();
-  var tzOffset = 11 * 60;
-  var localNow = new Date(now.getTime() + tzOffset * 60000);
-  var start, end, label;
-  if (viewMode === 'week') {
-    var day = localNow.getUTCDay();
-    var monday = new Date(localNow);
-    monday.setUTCDate(localNow.getUTCDate() - ((day + 6) % 7) + (offset * 7));
-    monday.setUTCHours(0, 0, 0, 0);
-    var sunday = new Date(monday);
-    sunday.setUTCDate(monday.getUTCDate() + 7);
-    var adjStart = new Date(monday.getTime() - tzOffset * 60000);
-    var adjEnd = new Date(sunday.getTime() - tzOffset * 60000);
-    start = adjStart.toISOString();
-    end = adjEnd.toISOString();
-    var opts = { day: 'numeric', month: 'short' };
-    label = monday.toLocaleDateString('en-AU', opts) + ' \u2013 ' + new Date(sunday.getTime() - 86400000).toLocaleDateString('en-AU', opts);
-  } else {
-    var d = new Date(localNow.getUTCFullYear(), localNow.getUTCMonth() + offset, 1);
-    start = new Date(d.getFullYear(), d.getMonth(), 1).toISOString();
-    end = new Date(d.getFullYear(), d.getMonth() + 1, 1).toISOString();
-    label = d.toLocaleString('default', { month: 'long', year: 'numeric' });
-  }
-  return { start: start, end: end, label: label };
-}
-
-function showResetModal() { document.getElementById('resetModal').classList.add('open'); }
-function closeResetModal() { document.getElementById('resetModal').classList.remove('open'); }
-async function confirmReset() {
-  if (!currentClient) return;
-  var resetDate = new Date().toISOString();
-  await db.from('clients').update({ reset_date: resetDate }).eq('id', currentClient.id);
-  currentClient.reset_date = resetDate;
-  closeResetModal();
-  loadData();
-}
-
-async function handleLogin() {
-  var email = document.getElementById('emailInput').value.trim();
-  var password = document.getElementById('passwordInput').value;
-  var remember = document.getElementById('rememberMe').checked;
-  var btn = document.getElementById('loginBtn');
-  var err = document.getElementById('errorMsg');
-  err.style.display = 'none'; btn.disabled = true; btn.textContent = 'Signing in...';
-  var res = await db.auth.signInWithPassword({ email: email, password: password });
-  if (res.error) {
-    err.textContent = res.error.message; err.style.display = 'block';
-    btn.disabled = false; btn.textContent = 'Sign in'; return;
-  }
-  if (remember) localStorage.setItem('cm_remember', '1');
-  else localStorage.removeItem('cm_remember');
-  await loadDashboard(res.data.user);
-}
-
-async function loadDashboard(user) {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('forgotScreen').classList.remove('active');
-  document.getElementById('dash').style.display = 'block';
-  var res = await db.from('clients').select('*').eq('email', user.email).single();
-  currentClient = res.data;
-  document.getElementById('bizNameLarge').textContent = currentClient ? currentClient.business_name : user.email;
-  if (currentClient) {
-    if (currentClient.accent_preference || currentClient.bg_preference) {
-      applyTheme(currentClient.accent_preference, currentClient.bg_preference);
-    }
-    await updateCountdown();
-    loadData();
-  } else {
-    showDemoState();
-  }
-}
-
-async function loadData() {
-  if (!currentClient) return;
-  var range = getDateRange();
-  document.getElementById('periodLabelText').textContent = range.label;
-  var resetDate = currentClient.reset_date || null;
-  var effectiveStart = resetDate && resetDate > range.start ? resetDate : range.start;
-
-  var smsRes = await db.from('sms_events').select('*')
-    .eq('client_id', currentClient.id)
-    .gte('received_at', effectiveStart)
-    .lt('received_at', range.end)
-    .order('received_at', { ascending: false });
-
-  var bookRes = await db.from('bookings').select('*')
-    .eq('client_id', currentClient.id)
-    .gte('booked_at', effectiveStart)
-    .lt('booked_at', range.end)
-    .order('booked_at', { ascending: false });
-
-  var subStart = currentClient.subscription_start ? new Date(currentClient.subscription_start) : new Date();
-  var now = new Date();
-  var totalDays = Math.floor((now - subStart) / 86400000);
-  var cycleDay = totalDays % 30;
-  var cycleStart = new Date(now.getTime() - cycleDay * 86400000);
-  cycleStart.setHours(0, 0, 0, 0);
-
-  var cycleRes = await db.from('sms_events').select('id')
-    .eq('client_id', currentClient.id)
-    .gte('received_at', cycleStart.toISOString());
-
-  var cycleSms = cycleRes.data ? cycleRes.data.length : 0;
-  updateSmsOdometer(cycleSms);
-  updateOverageOdometer(cycleSms);
-
-  var smsData = smsRes.data || [];
-  var bookData = bookRes.data || [];
-  var smsCount = smsData.length;
-  var bookCount = bookData.length;
-  var avgJob = currentClient.avg_job_value || 0;
-  var recovered = bookCount * avgJob;
-  var rate = smsCount > 0 ? Math.round((bookCount / smsCount) * 100) : 0;
-
-  document.getElementById('smsCount').textContent = smsCount;
-  document.getElementById('bookingCount').textContent = bookCount;
-  document.getElementById('convRate').textContent = rate + '%';
-  document.getElementById('heroValue').textContent = '$' + recovered.toLocaleString();
-  document.getElementById('heroSub').textContent = bookCount + ' bookings \xd7 $' + avgJob.toLocaleString() + ' avg job';
-  document.getElementById('demoBanner').style.display = (smsCount === 0 && bookCount === 0) ? 'block' : 'none';
-  document.getElementById('callCountBadge').textContent = smsCount + ' call' + (smsCount !== 1 ? 's' : '');
-  renderActivity(smsData);
-  await updateCountdown();
-}
-
-function renderActivity(smsEvents) {
-  var card = document.getElementById('activityCard');
-  if (!smsEvents || smsEvents.length === 0) {
-    card.innerHTML = '<div class="empty-state">No activity this period.</div>';
-    return;
-  }
-  var rows = smsEvents.slice(0, 50).map(function(e) {
-    return '<div class="activity-row"><div><div class="activity-number">' + maskNumber(e.customer_number || 'Unknown') + '</div><div class="activity-time">' + formatTime(e.received_at) + '</div></div><span class="status-pill">SMS sent</span></div>';
-  }).join('');
-  card.innerHTML = '<div class="activity-summary" onclick="toggleDropdown()"><div class="activity-summary-left"><div class="dot"></div><div><div class="activity-summary-text">' + smsEvents.length + ' missed call' + (smsEvents.length !== 1 ? 's' : '') + ' caught</div><div class="activity-summary-sub">Tap to see caller details</div></div></div><span class="expand-icon" id="expandIcon">&#9660;</span></div><div class="activity-dropdown" id="activityDropdown">' + rows + '</div>';
-}
-
-function toggleDropdown() {
-  document.getElementById('activityDropdown').classList.toggle('open');
-  document.getElementById('expandIcon').classList.toggle('open');
-}
-
-function showDemoState() {
-  document.getElementById('demoBanner').style.display = 'block';
-  document.getElementById('activityCard').innerHTML = '<div class="empty-state">No client record found. Contact CallMagnet support on 0415 961 752.</div>';
-}
-
-function maskNumber(num) {
-  if (!num || num.length < 6) return num;
-  return num.slice(0, 4) + ' *** ' + num.slice(-3);
-}
-
-function formatTime(iso) {
-  if (!iso) return '';
-  var d = new Date(iso);
-  var now = new Date();
-  var yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  var time = d.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true });
-  if (d.toDateString() === now.toDateString()) return 'Today ' + time;
-  if (d.toDateString() === yesterday.toDateString()) return 'Yesterday ' + time;
-  return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' }) + ' ' + time;
-}
-
-async function handleLogout() {
-  await db.auth.signOut();
-  localStorage.removeItem('cm_remember');
-  document.getElementById('dash').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('loginBtn').disabled = false;
-  document.getElementById('loginBtn').textContent = 'Sign in';
-}
-
-setInterval(function() { if (currentClient) loadData(); }, 30000);
-
-window.addEventListener('load', async function() {
-  loadSavedTheme();
-  var sessionRes = await db.auth.getSession();
-  if (sessionRes.data.session && localStorage.getItem('cm_remember')) {
-    await loadDashboard(sessionRes.data.session.user);
-  }
-});
-
-document.getElementById('passwordInput').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') handleLogin();
-});
-document.getElementById('resetEmailInput').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') handleReset();
-});
-
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').then(function(reg) {
-    reg.addEventListener('updatefound', function() {
-      var newWorker = reg.installing;
-      newWorker.addEventListener('statechange', function() {
-        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          var banner = document.createElement('div');
-          banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:var(--accent);color:var(--accent-contrast);text-align:center;padding:14px;font-family:var(--mono);font-size:13px;font-weight:700;z-index:999;cursor:pointer;letter-spacing:0.05em;';
-          banner.textContent = 'Update available — tap to refresh';
-          banner.onclick = function() {
-            newWorker.postMessage('skipWaiting');
-            window.location.reload();
-          };
-          document.body.appendChild(banner);
-        }
-      });
-    });
-  });
-}
-</script>
-</body>
-</html>
+</style>
+</head>
+<body>
