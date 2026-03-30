@@ -167,7 +167,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 
 .sms-odom-row { display: flex; align-items: center; gap: 6px; }
 .sms-month-label { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--accent); letter-spacing: 0.05em; opacity: 0.8; }
-
 .overage-row { display: flex; align-items: center; gap: 6px; }
 .overage-label { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--red); letter-spacing: 0.05em; }
 
@@ -342,7 +341,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
       <div class="sms-counter-block">
         <div class="call-count-badge" id="callCountBadge">0 calls</div>
         <div class="sms-odom-row">
-          <div class="odometer" id="smsOdometer">
+          <div class="odometer">
             <div class="odometer-cell" id="odom-2"><span class="old">0</span><span class="new">0</span></div>
             <div class="odometer-sep"></div>
             <div class="odometer-cell" id="odom-1"><span class="old">0</span><span class="new">0</span></div>
@@ -353,7 +352,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
         <div class="sms-month-label">Messages sent this month</div>
         <div class="overage-row" id="overageRow" style="display:none">
           <div class="overage-label">SMS Overage</div>
-          <div class="odometer" id="overageOdometer">
+          <div class="odometer">
             <div class="odometer-prefix">$</div>
             <div class="odometer-cell" id="ov-3"><span class="old">0</span><span class="new">0</span></div>
             <div class="odometer-sep"></div>
@@ -476,15 +475,11 @@ function updateOverageOdometer(count) {
     var cents = Math.round(over * 10);
     var dollars = Math.floor(cents / 100);
     var rem = cents % 100;
-    var d1 = Math.floor(dollars / 10);
-    var d2 = dollars % 10;
-    var d3 = Math.floor(rem / 10);
-    var d4 = rem % 10;
     var anim = count !== lastOverageOdom;
-    setOdomDigit('ov-3', d1, anim);
-    setOdomDigit('ov-2', d2, anim);
-    setOdomDigit('ov-1', d3, anim);
-    setOdomDigit('ov-0', d4, anim);
+    setOdomDigit('ov-3', Math.floor(dollars / 10), anim);
+    setOdomDigit('ov-2', dollars % 10, anim);
+    setOdomDigit('ov-1', Math.floor(rem / 10), anim);
+    setOdomDigit('ov-0', rem % 10, anim);
     lastOverageOdom = count;
   } else {
     overageRow.style.display = 'none';
@@ -492,7 +487,7 @@ function updateOverageOdometer(count) {
   }
 }
 
-function updateCountdown() {
+async function updateCountdown() {
   if (!currentClient || !currentClient.subscription_start) return;
   var subStart = new Date(currentClient.subscription_start);
   var now = new Date();
@@ -500,7 +495,28 @@ function updateCountdown() {
   var cycleDay = totalDays % 30;
   var daysLeft = 30 - cycleDay;
   var content = document.getElementById('renewalContent');
-  if (cycleDay === 0 && totalDays > 0) {
+
+  // Check if last_renewal_date was within the last 24 hours
+  var showThanks = false;
+  if (currentClient.last_renewal_date) {
+    var lastRenewal = new Date(currentClient.last_renewal_date);
+    var hoursSince = (now - lastRenewal) / 3600000;
+    if (hoursSince < 24) showThanks = true;
+  }
+
+  // If cycle just flipped and no renewal recorded yet — write it now
+  if (cycleDay === 0 && totalDays > 0 && !showThanks) {
+    var lastRenewalCheck = currentClient.last_renewal_date ? new Date(currentClient.last_renewal_date) : null;
+    var cycleStartTime = new Date(now.getTime() - cycleDay * 86400000);
+    cycleStartTime.setHours(0, 0, 0, 0);
+    if (!lastRenewalCheck || lastRenewalCheck < cycleStartTime) {
+      await db.from('clients').update({ last_renewal_date: now.toISOString() }).eq('id', currentClient.id);
+      currentClient.last_renewal_date = now.toISOString();
+      showThanks = true;
+    }
+  }
+
+  if (showThanks) {
     content.innerHTML = '<div class="renewal-thanks">Thank you for your payment, ' + (currentClient.business_name || '') + '!</div>';
   } else {
     content.innerHTML = '<div class="renewal-label">Renewal in</div><div class="renewal-value">' + daysLeft + ' day' + (daysLeft !== 1 ? 's' : '') + '</div>';
@@ -671,7 +687,7 @@ async function loadDashboard(user) {
     if (currentClient.accent_preference || currentClient.bg_preference) {
       applyTheme(currentClient.accent_preference, currentClient.bg_preference);
     }
-    updateCountdown();
+    await updateCountdown();
     loadData();
   } else {
     showDemoState();
@@ -728,7 +744,7 @@ async function loadData() {
   document.getElementById('demoBanner').style.display = (smsCount === 0 && bookCount === 0) ? 'block' : 'none';
   document.getElementById('callCountBadge').textContent = smsCount + ' call' + (smsCount !== 1 ? 's' : '');
   renderActivity(smsData);
-  updateCountdown();
+  await updateCountdown();
 }
 
 function renderActivity(smsEvents) {
