@@ -496,7 +496,7 @@ async function updateCountdown() {
   var daysLeft = 30 - cycleDay;
   var content = document.getElementById('renewalContent');
 
-  // Check if last_renewal_date was within the last 24 hours
+  // Check if last_renewal_date within 24 hours
   var showThanks = false;
   if (currentClient.last_renewal_date) {
     var lastRenewal = new Date(currentClient.last_renewal_date);
@@ -504,12 +504,12 @@ async function updateCountdown() {
     if (hoursSince < 24) showThanks = true;
   }
 
-  // If cycle just flipped and no renewal recorded yet — write it now
+  // If cycle just flipped and thank you not yet written for this cycle
   if (cycleDay === 0 && totalDays > 0 && !showThanks) {
-    var lastRenewalCheck = currentClient.last_renewal_date ? new Date(currentClient.last_renewal_date) : null;
-    var cycleStartTime = new Date(now.getTime() - cycleDay * 86400000);
+    var cycleStartTime = new Date(now);
     cycleStartTime.setHours(0, 0, 0, 0);
-    if (!lastRenewalCheck || lastRenewalCheck < cycleStartTime) {
+    var lastRenewalDate = currentClient.last_renewal_date ? new Date(currentClient.last_renewal_date) : null;
+    if (!lastRenewalDate || lastRenewalDate < cycleStartTime) {
       await db.from('clients').update({ last_renewal_date: now.toISOString() }).eq('id', currentClient.id);
       currentClient.last_renewal_date = now.toISOString();
       showThanks = true;
