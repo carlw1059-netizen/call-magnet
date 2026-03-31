@@ -7,7 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CallMagnet">
-<meta name="theme-color" content="#0d0d0d"><link rel="icon" href="/favicon-32x32.png" type="image/png">
+<meta name="theme-color" content="#0d0d0d">
+<link rel="icon" href="/favicon-32x32.png" type="image/png">
 <link rel="manifest" href="manifest.json">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -107,6 +108,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .settings-divider { height: 1px; background: #dddddd; margin: 0.75rem 0; }
 </style>
 </head>
+<body>
 <style>
 .main { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
 .biz-header { margin-bottom: 1.5rem; }
@@ -204,7 +206,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
   .settings-panel { width: 230px; }
 }
 </style>
-<body>
 
 <div class="ptr-indicator" id="ptrIndicator">
   <div class="ptr-spinner" id="ptrSpinner" style="display:none"></div>
@@ -255,7 +256,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 
 <div class="dash" id="dash">
   <div class="suspension-banner" id="suspensionBanner">
-    ⚠️ Your CallMagnet subscription is paused due to a failed payment. Please update your payment details to reactivate. Call us on 0415 961 752.
+    ⚠️ Your CallMagnet subscription is paused due to a failed payment. Please email us at hello@callmagnet.com.au to reactivate.
   </div>
   <div class="topbar">
     <div class="topbar-logo"><span class="star-pulse">★</span>CallMagnet</div>
@@ -777,7 +778,7 @@ function toggleDropdown() {
 
 function showDemoState() {
   document.getElementById('demoBanner').style.display = 'block';
-  document.getElementById('activityCard').innerHTML = '<div class="empty-state">No client record found. Contact CallMagnet support on 0415 961 752.</div>';
+  document.getElementById('activityCard').innerHTML = '<div class="empty-state">No client record found. Contact CallMagnet support at hello@callmagnet.com.au</div>';
 }
 
 function maskNumber(num) {
@@ -822,7 +823,6 @@ document.getElementById('passwordInput').addEventListener('keydown', function(e)
 document.getElementById('resetEmailInput').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') handleReset();
 });
-
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').then(function(reg) {
     reg.addEventListener('updatefound', function() {
