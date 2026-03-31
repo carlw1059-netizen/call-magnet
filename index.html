@@ -408,14 +408,18 @@ var ptrStartY = 0;
 var ptrActive = false;
 var PTR_THRESHOLD = 80;
 
+function isAtTop() {
+  return (window.scrollY === 0 || document.documentElement.scrollTop === 0 || document.body.scrollTop === 0);
+}
+
 document.addEventListener('touchstart', function(e) {
-  if (window.scrollY === 0) { ptrStartY = e.touches[0].clientY; ptrActive = true; }
+  if (isAtTop()) { ptrStartY = e.touches[0].clientY; ptrActive = true; }
 }, { passive: true });
 
 document.addEventListener('touchmove', function(e) {
   if (!ptrActive) return;
   var pd = e.touches[0].clientY - ptrStartY;
-  if (pd > 20 && window.scrollY === 0) {
+  if (pd > 20 && isAtTop()) {
     document.getElementById('ptrIndicator').classList.add('visible');
     document.getElementById('ptrText').textContent = pd > PTR_THRESHOLD ? 'Release to refresh' : 'Pull down to refresh';
   }
@@ -427,7 +431,7 @@ document.addEventListener('touchend', function(e) {
   var ind = document.getElementById('ptrIndicator');
   var spn = document.getElementById('ptrSpinner');
   var txt = document.getElementById('ptrText');
-  if (pd > PTR_THRESHOLD && window.scrollY === 0 && currentClient) {
+  if (pd > PTR_THRESHOLD && isAtTop() && currentClient) {
     txt.textContent = 'Refreshing...';
     spn.style.display = 'block';
     loadData().then(function() {
