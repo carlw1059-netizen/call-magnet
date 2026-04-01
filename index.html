@@ -16,6 +16,8 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+html { overscroll-behavior-y: contain; }
+
 :root {
   --bg: #0d0d0d;
   --surface: #161616;
@@ -36,7 +38,7 @@
   --sans: 'DM Sans', sans-serif;
 }
 
-body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; font-size: 14px; line-height: 1.5; -webkit-text-size-adjust: 100%; font-weight: 600; overflow-x: hidden; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; font-size: 14px; line-height: 1.5; -webkit-text-size-adjust: 100%; font-weight: 600; overflow-x: hidden; overscroll-behavior-y: contain; }
 
 .star-pulse { color: var(--accent); animation: pulse 2s infinite; display: inline-block; flex-shrink: 0; line-height: 1; }
 @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
@@ -173,7 +175,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .odometer-prefix { width: 20px; height: 26px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent); background: var(--surface); border-right: 1px solid var(--accent); opacity: 0.6; }
 
 .sms-odom-row { display: flex; align-items: center; gap: 6px; }
-.sms-month-label { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--accent); letter-spacing: 0.05em; opacity: 0.8; }
+.sms-month-label { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: 0.05em; opacity: 0.8; }
 .overage-row { display: flex; align-items: center; gap: 6px; }
 .overage-label { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--red); letter-spacing: 0.05em; }
 
@@ -394,8 +396,8 @@ const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 var currentClient = null;
 var viewMode = 'week';
 var offset = 0;
-var lastSmsOdom = 0;
-var lastOverageOdom = 0;
+var lastSmsOdom = -1;
+var lastOverageOdom = -1;
 
 function togglePassword() {
   var input = document.getElementById('passwordInput');
@@ -450,7 +452,7 @@ function setOdomDigit(id, digit, animate) {
   if (!cell) return;
   var oldEl = cell.querySelector('.old');
   var newEl = cell.querySelector('.new');
-  var cur = oldEl ? oldEl.textContent : '0';
+  var cur = oldEl ? oldEl.textContent : '';
   var d = String(digit);
   if (newEl) newEl.textContent = d;
   if (animate && cur !== d) {
@@ -463,15 +465,16 @@ function setOdomDigit(id, digit, animate) {
     }, 400);
   } else {
     if (oldEl) oldEl.textContent = d;
+    if (newEl) newEl.textContent = d;
   }
 }
 
 function updateSmsOdometer(count) {
   var padded = String(Math.min(count, 999)).padStart(3, '0');
-  var anim = count !== lastSmsOdom;
-  setOdomDigit('odom-2', padded[0], anim);
-  setOdomDigit('odom-1', padded[1], anim);
-  setOdomDigit('odom-0', padded[2], anim);
+  var prevPadded = lastSmsOdom >= 0 ? String(Math.min(lastSmsOdom, 999)).padStart(3, '0') : null;
+  setOdomDigit('odom-2', padded[0], prevPadded !== null && prevPadded[0] !== padded[0]);
+  setOdomDigit('odom-1', padded[1], prevPadded !== null && prevPadded[1] !== padded[1]);
+  setOdomDigit('odom-0', padded[2], prevPadded !== null && prevPadded[2] !== padded[2]);
   lastSmsOdom = count;
 }
 
@@ -484,15 +487,18 @@ function updateOverageOdometer(count) {
     var cents = Math.round(over * 10);
     var dollars = Math.floor(cents / 100);
     var rem = cents % 100;
-    var anim = count !== lastOverageOdom;
-    setOdomDigit('ov-3', Math.floor(dollars / 10), anim);
-    setOdomDigit('ov-2', dollars % 10, anim);
-    setOdomDigit('ov-1', Math.floor(rem / 10), anim);
-    setOdomDigit('ov-0', rem % 10, anim);
+    var prevOver = lastOverageOdom > included ? lastOverageOdom - included : -1;
+    var prevCents = prevOver >= 0 ? Math.round(prevOver * 10) : -1;
+    var prevDollars = prevCents >= 0 ? Math.floor(prevCents / 100) : -1;
+    var prevRem = prevCents >= 0 ? prevCents % 100 : -1;
+    setOdomDigit('ov-3', Math.floor(dollars / 10), prevDollars >= 0 && Math.floor(prevDollars / 10) !== Math.floor(dollars / 10));
+    setOdomDigit('ov-2', dollars % 10, prevDollars >= 0 && prevDollars % 10 !== dollars % 10);
+    setOdomDigit('ov-1', Math.floor(rem / 10), prevRem >= 0 && Math.floor(prevRem / 10) !== Math.floor(rem / 10));
+    setOdomDigit('ov-0', rem % 10, prevRem >= 0 && prevRem % 10 !== rem % 10);
     lastOverageOdom = count;
   } else {
     overageRow.style.display = 'none';
-    lastOverageOdom = 0;
+    lastOverageOdom = -1;
   }
 }
 
@@ -634,7 +640,6 @@ function navigate(dir) {
   document.getElementById('nextBtn').disabled = offset >= 0;
   loadData();
 }
-
 function getDateRange() {
   var now = new Date();
   var tzOffset = 11 * 60;
@@ -709,6 +714,7 @@ async function loadDashboard(user) {
     showDemoState();
   }
 }
+
 async function loadData() {
   if (!currentClient) return;
   var range = getDateRange();
@@ -762,7 +768,6 @@ async function loadData() {
   await updateCountdown();
   checkSuspension();
 }
-
 function renderActivity(smsEvents) {
   var card = document.getElementById('activityCard');
   if (!smsEvents || smsEvents.length === 0) {
