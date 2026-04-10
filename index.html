@@ -421,6 +421,7 @@ function switchToSignin() {
   document.getElementById('bizNameField').style.display = 'none';
   document.getElementById('rememberRow').style.display = 'flex';
   document.getElementById('forgotLinkBtn').style.display = 'block';
+  document.getElementById('loginBtn').disabled = false;
   document.getElementById('loginBtn').textContent = 'Sign in';
   document.getElementById('authToggle').innerHTML = 'Don\'t have an account? <span onclick="switchToSignup()">Sign up</span>';
   document.getElementById('errorMsg').style.display = 'none';
@@ -457,7 +458,6 @@ async function handleSignup() {
     btn.textContent = 'Create account';
     return;
   }
-  // Option 2 — auto-create clients row with business name
   await db.from('clients').insert({
     email: email,
     business_name: bizName,
@@ -891,6 +891,8 @@ async function handleLogout() {
   currentClient = null;
   document.getElementById('dash').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginBtn').disabled = false;
+  document.getElementById('loginBtn').textContent = 'Sign in';
   switchToSignin();
 }
 
