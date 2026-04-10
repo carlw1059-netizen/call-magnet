@@ -59,6 +59,9 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .btn-primary { width: 100%; background: var(--accent); color: var(--accent-contrast); border: none; border-radius: 6px; padding: 11px; font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 0.5rem; transition: opacity 0.2s; }
 .btn-primary:hover { opacity: 0.85; }
 .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.auth-toggle { text-align: center; margin-top: 1.25rem; font-size: 13px; color: var(--muted); font-weight: 600; }
+.auth-toggle span { color: var(--accent); font-family: var(--mono); cursor: pointer; text-decoration: underline; font-weight: 700; letter-spacing: 0.03em; }
+.auth-toggle span:hover { opacity: 0.7; }
 .error-msg { background: var(--red-dim); border: 1px solid var(--red); color: var(--red); border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-top: 1rem; display: none; font-weight: 600; }
 .success-msg { background: var(--accent-dim); border: 1px solid var(--accent); color: var(--accent); border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-top: 1rem; display: none; font-weight: 600; }
 .forgot-screen { min-height: 100vh; display: none; align-items: center; justify-content: center; padding: 2rem; background: var(--bg); }
@@ -192,11 +195,16 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 }
 </style>
 
+<!-- LOGIN SCREEN -->
 <div class="login-screen" id="loginScreen">
   <div class="login-box">
     <div class="login-logo"><span class="star-pulse">★</span>CallMagnet</div>
-    <h1 class="login-heading">Welcome back.</h1>
-    <p class="login-sub">Sign in to view your recovery stats.</p>
+    <h1 class="login-heading" id="authHeading">Welcome back.</h1>
+    <p class="login-sub" id="authSub">Sign in to view your recovery stats.</p>
+    <div class="field" id="bizNameField" style="display:none">
+      <label>Business Name</label>
+      <input type="text" id="bizNameInput" placeholder="e.g. Brunswick Barber" />
+    </div>
     <div class="field">
       <label>Email</label>
       <input type="email" id="emailInput" placeholder="you@example.com" />
@@ -208,16 +216,21 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
         <button class="eye-btn" type="button" onclick="togglePassword()" id="eyeBtn">👁</button>
       </div>
     </div>
-    <div class="remember-row">
+    <div class="remember-row" id="rememberRow">
       <input type="checkbox" id="rememberMe" checked />
       <label for="rememberMe">Keep me signed in</label>
     </div>
-    <span class="forgot-link" onclick="showForgot()">Forgot password?</span>
-    <button class="btn-primary" id="loginBtn" onclick="handleLogin()">Sign in</button>
+    <span class="forgot-link" id="forgotLinkBtn" onclick="showForgot()">Forgot password?</span>
+    <button class="btn-primary" id="loginBtn" onclick="handleAuth()">Sign in</button>
     <div class="error-msg" id="errorMsg"></div>
+    <div class="success-msg" id="signupSuccessMsg">Account created! Check your email to confirm, then sign in.</div>
+    <div class="auth-toggle" id="authToggle">
+      Don't have an account? <span onclick="switchToSignup()">Sign up</span>
+    </div>
   </div>
 </div>
 
+<!-- FORGOT SCREEN -->
 <div class="forgot-screen" id="forgotScreen">
   <div class="login-box">
     <div class="login-logo"><span class="star-pulse">★</span>CallMagnet</div>
@@ -233,7 +246,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
     <div class="success-msg" id="resetSuccessMsg">Reset link sent. Check your email.</div>
   </div>
 </div>
-
 <div class="dash" id="dash">
   <div class="suspension-banner" id="suspensionBanner">
     ⚠️ Your CallMagnet subscription is paused due to a failed payment. Please email us at hello@callmagnet.com.au to reactivate.
@@ -385,6 +397,93 @@ var viewMode = 'week';
 var offset = 0;
 var lastSmsOdom = -1;
 var lastOverageOdom = -1;
+var authMode = 'signin';
+
+// ── AUTH MODE SWITCHING ───────────────────────────────────────────────────────
+
+function switchToSignup() {
+  authMode = 'signup';
+  document.getElementById('authHeading').textContent = 'Create account.';
+  document.getElementById('authSub').textContent = 'Start catching your missed calls today.';
+  document.getElementById('bizNameField').style.display = 'block';
+  document.getElementById('rememberRow').style.display = 'none';
+  document.getElementById('forgotLinkBtn').style.display = 'none';
+  document.getElementById('loginBtn').textContent = 'Create account';
+  document.getElementById('authToggle').innerHTML = 'Already have an account? <span onclick="switchToSignin()">Sign in</span>';
+  document.getElementById('errorMsg').style.display = 'none';
+  document.getElementById('signupSuccessMsg').style.display = 'none';
+}
+
+function switchToSignin() {
+  authMode = 'signin';
+  document.getElementById('authHeading').textContent = 'Welcome back.';
+  document.getElementById('authSub').textContent = 'Sign in to view your recovery stats.';
+  document.getElementById('bizNameField').style.display = 'none';
+  document.getElementById('rememberRow').style.display = 'flex';
+  document.getElementById('forgotLinkBtn').style.display = 'block';
+  document.getElementById('loginBtn').textContent = 'Sign in';
+  document.getElementById('authToggle').innerHTML = 'Don\'t have an account? <span onclick="switchToSignup()">Sign up</span>';
+  document.getElementById('errorMsg').style.display = 'none';
+  document.getElementById('signupSuccessMsg').style.display = 'none';
+}
+
+async function handleAuth() {
+  if (authMode === 'signup') {
+    await handleSignup();
+  } else {
+    await handleLogin();
+  }
+}
+
+async function handleSignup() {
+  var bizName = document.getElementById('bizNameInput').value.trim();
+  var email = document.getElementById('emailInput').value.trim();
+  var password = document.getElementById('passwordInput').value;
+  var btn = document.getElementById('loginBtn');
+  var err = document.getElementById('errorMsg');
+  var suc = document.getElementById('signupSuccessMsg');
+  err.style.display = 'none';
+  suc.style.display = 'none';
+  if (!bizName) { err.textContent = 'Please enter your business name.'; err.style.display = 'block'; return; }
+  if (!email) { err.textContent = 'Please enter your email.'; err.style.display = 'block'; return; }
+  if (password.length < 6) { err.textContent = 'Password must be at least 6 characters.'; err.style.display = 'block'; return; }
+  btn.disabled = true;
+  btn.textContent = 'Creating account...';
+  var res = await db.auth.signUp({ email: email, password: password });
+  if (res.error) {
+    err.textContent = res.error.message;
+    err.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Create account';
+    return;
+  }
+  suc.style.display = 'block';
+  btn.disabled = false;
+  btn.textContent = 'Create account';
+  setTimeout(function() { switchToSignin(); }, 3000);
+}
+
+async function handleLogin() {
+  var email = document.getElementById('emailInput').value.trim();
+  var password = document.getElementById('passwordInput').value;
+  var remember = document.getElementById('rememberMe').checked;
+  var btn = document.getElementById('loginBtn');
+  var err = document.getElementById('errorMsg');
+  err.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Signing in...';
+  var res = await db.auth.signInWithPassword({ email: email, password: password });
+  if (res.error) {
+    err.textContent = res.error.message;
+    err.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Sign in';
+    return;
+  }
+  if (remember) localStorage.setItem('cm_remember', '1');
+  else localStorage.removeItem('cm_remember');
+  await loadDashboard(res.data.user);
+}
 
 function togglePassword() {
   var input = document.getElementById('passwordInput');
@@ -392,6 +491,31 @@ function togglePassword() {
   if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
   else { input.type = 'password'; btn.textContent = '👁'; }
 }
+
+function showLogin() {
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('forgotScreen').classList.remove('active');
+}
+
+function showForgot() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('forgotScreen').classList.add('active');
+}
+
+async function handleReset() {
+  var email = document.getElementById('resetEmailInput').value.trim();
+  var btn = document.getElementById('resetBtn');
+  var err = document.getElementById('resetErrorMsg');
+  var suc = document.getElementById('resetSuccessMsg');
+  err.style.display = 'none'; suc.style.display = 'none';
+  if (!email) { err.textContent = 'Please enter your email.'; err.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = 'Sending...';
+  var res = await db.auth.resetPasswordForEmail(email, { redirectTo: 'https://callmagnet.com.au' });
+  if (res.error) { err.textContent = res.error.message; err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Send reset link'; return; }
+  suc.style.display = 'block'; btn.disabled = false; btn.textContent = 'Send reset link';
+}
+
+// ── ODOMETER ─────────────────────────────────────────────────────────────────
 
 function setOdomDigit(id, digit, animate) {
   var cell = document.getElementById(id);
@@ -447,88 +571,7 @@ function updateOverageOdometer(count) {
     lastOverageOdom = -1;
   }
 }
-
-async function updateCountdown() {
-  if (!currentClient || !currentClient.subscription_start) return;
-  var subStart = new Date(currentClient.subscription_start);
-  var now = new Date();
-  var totalDays = Math.floor((now - subStart) / 86400000);
-  var cycleDay = totalDays % 30;
-  var daysLeft = 30 - cycleDay;
-  var content = document.getElementById('renewalContent');
-  var showThanks = false;
-  if (currentClient.last_renewal_date) {
-    var lastRenewal = new Date(currentClient.last_renewal_date);
-    var hoursSince = (now - lastRenewal) / 3600000;
-    if (hoursSince < 24) showThanks = true;
-  }
-  if (cycleDay === 0 && totalDays > 0 && !showThanks) {
-    var cycleStartTime = new Date(now);
-    cycleStartTime.setHours(0, 0, 0, 0);
-    var lastRenewalDate = currentClient.last_renewal_date ? new Date(currentClient.last_renewal_date) : null;
-    if (!lastRenewalDate || lastRenewalDate < cycleStartTime) {
-      await db.from('clients').update({ last_renewal_date: now.toISOString() }).eq('id', currentClient.id);
-      currentClient.last_renewal_date = now.toISOString();
-      showThanks = true;
-    }
-  }
-  if (showThanks) {
-    content.innerHTML = '<div class="renewal-thanks">Thank you for your payment, ' + (currentClient.business_name || '') + '!</div>';
-  } else {
-    content.innerHTML = '<div class="renewal-label">Renewal in</div><div class="renewal-value">' + daysLeft + ' day' + (daysLeft !== 1 ? 's' : '') + '</div>';
-  }
-}
-
-function checkBirthday() {
-  if (!currentClient || !currentClient.date_of_birth) return;
-  var userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  var now = new Date();
-  var todayDay = now.toLocaleDateString('en-AU', { timeZone: userTZ, day: '2-digit' });
-  var todayMonth = now.toLocaleDateString('en-AU', { timeZone: userTZ, month: '2-digit' });
-  var dob = new Date(currentClient.date_of_birth);
-  var dobDay = String(dob.getUTCDate()).padStart(2, '0');
-  var dobMonth = String(dob.getUTCMonth() + 1).padStart(2, '0');
-  var banner = document.getElementById('birthdayBanner');
-  var bizName = document.getElementById('birthdayBizName');
-  if (todayDay === dobDay && todayMonth === dobMonth) {
-    bizName.textContent = currentClient.business_name || '';
-    banner.style.display = 'block';
-  } else {
-    banner.style.display = 'none';
-  }
-}
-
-function checkSuspension() {
-  var banner = document.getElementById('suspensionBanner');
-  if (currentClient && currentClient.account_status === 'suspended') {
-    banner.classList.add('active');
-  } else {
-    banner.classList.remove('active');
-  }
-}
-
-function showLogin() {
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('forgotScreen').classList.remove('active');
-}
-
-function showForgot() {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('forgotScreen').classList.add('active');
-}
-
-async function handleReset() {
-  var email = document.getElementById('resetEmailInput').value.trim();
-  var btn = document.getElementById('resetBtn');
-  var err = document.getElementById('resetErrorMsg');
-  var suc = document.getElementById('resetSuccessMsg');
-  err.style.display = 'none'; suc.style.display = 'none';
-  if (!email) { err.textContent = 'Please enter your email.'; err.style.display = 'block'; return; }
-  btn.disabled = true; btn.textContent = 'Sending...';
-  var res = await db.auth.resetPasswordForEmail(email, { redirectTo: 'https://callmagnet.com.au' });
-  if (res.error) { err.textContent = res.error.message; err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Send reset link'; return; }
-  suc.style.display = 'block'; btn.disabled = false; btn.textContent = 'Send reset link';
-}
+// ── SETTINGS ─────────────────────────────────────────────────────────────────
 
 function toggleSettings() {
   document.getElementById('settingsPanel').classList.toggle('open');
@@ -595,6 +638,8 @@ function loadSavedTheme() {
   applyTheme(localStorage.getItem('cm_accent'), localStorage.getItem('cm_bg'));
 }
 
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+
 function setMode(mode) {
   viewMode = mode; offset = 0;
   document.getElementById('toggleWeek').classList.toggle('active', mode === 'week');
@@ -620,6 +665,7 @@ async function handleRefresh() {
     btn.disabled = false;
   }, 650);
 }
+
 function getDateRange() {
   var userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
   var now = new Date();
@@ -663,21 +709,63 @@ async function confirmReset() {
   loadData();
 }
 
-async function handleLogin() {
-  var email = document.getElementById('emailInput').value.trim();
-  var password = document.getElementById('passwordInput').value;
-  var remember = document.getElementById('rememberMe').checked;
-  var btn = document.getElementById('loginBtn');
-  var err = document.getElementById('errorMsg');
-  err.style.display = 'none'; btn.disabled = true; btn.textContent = 'Signing in...';
-  var res = await db.auth.signInWithPassword({ email: email, password: password });
-  if (res.error) {
-    err.textContent = res.error.message; err.style.display = 'block';
-    btn.disabled = false; btn.textContent = 'Sign in'; return;
+async function updateCountdown() {
+  if (!currentClient || !currentClient.subscription_start) return;
+  var subStart = new Date(currentClient.subscription_start);
+  var now = new Date();
+  var totalDays = Math.floor((now - subStart) / 86400000);
+  var cycleDay = totalDays % 30;
+  var daysLeft = 30 - cycleDay;
+  var content = document.getElementById('renewalContent');
+  var showThanks = false;
+  if (currentClient.last_renewal_date) {
+    var lastRenewal = new Date(currentClient.last_renewal_date);
+    var hoursSince = (now - lastRenewal) / 3600000;
+    if (hoursSince < 24) showThanks = true;
   }
-  if (remember) localStorage.setItem('cm_remember', '1');
-  else localStorage.removeItem('cm_remember');
-  await loadDashboard(res.data.user);
+  if (cycleDay === 0 && totalDays > 0 && !showThanks) {
+    var cycleStartTime = new Date(now);
+    cycleStartTime.setHours(0, 0, 0, 0);
+    var lastRenewalDate = currentClient.last_renewal_date ? new Date(currentClient.last_renewal_date) : null;
+    if (!lastRenewalDate || lastRenewalDate < cycleStartTime) {
+      await db.from('clients').update({ last_renewal_date: now.toISOString() }).eq('id', currentClient.id);
+      currentClient.last_renewal_date = now.toISOString();
+      showThanks = true;
+    }
+  }
+  if (showThanks) {
+    content.innerHTML = '<div class="renewal-thanks">Thank you for your payment, ' + (currentClient.business_name || '') + '!</div>';
+  } else {
+    content.innerHTML = '<div class="renewal-label">Renewal in</div><div class="renewal-value">' + daysLeft + ' day' + (daysLeft !== 1 ? 's' : '') + '</div>';
+  }
+}
+
+function checkBirthday() {
+  if (!currentClient || !currentClient.date_of_birth) return;
+  var userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  var now = new Date();
+  var todayDay = now.toLocaleDateString('en-AU', { timeZone: userTZ, day: '2-digit' });
+  var todayMonth = now.toLocaleDateString('en-AU', { timeZone: userTZ, month: '2-digit' });
+  var dob = new Date(currentClient.date_of_birth);
+  var dobDay = String(dob.getUTCDate()).padStart(2, '0');
+  var dobMonth = String(dob.getUTCMonth() + 1).padStart(2, '0');
+  var banner = document.getElementById('birthdayBanner');
+  var bizName = document.getElementById('birthdayBizName');
+  if (todayDay === dobDay && todayMonth === dobMonth) {
+    bizName.textContent = currentClient.business_name || '';
+    banner.style.display = 'block';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+function checkSuspension() {
+  var banner = document.getElementById('suspensionBanner');
+  if (currentClient && currentClient.account_status === 'suspended') {
+    banner.classList.add('active');
+  } else {
+    banner.classList.remove('active');
+  }
 }
 
 async function loadDashboard(user) {
@@ -706,34 +794,28 @@ async function loadData() {
   document.getElementById('periodLabelText').textContent = range.label;
   var resetDate = currentClient.reset_date || null;
   var effectiveStart = resetDate && resetDate > range.start ? resetDate : range.start;
-
   var smsRes = await db.from('sms_events').select('*')
     .eq('client_id', currentClient.id)
     .gte('received_at', effectiveStart)
     .lt('received_at', range.end)
     .order('received_at', { ascending: false });
-
   var bookRes = await db.from('bookings').select('*')
     .eq('client_id', currentClient.id)
     .gte('booked_at', effectiveStart)
     .lt('booked_at', range.end)
     .order('booked_at', { ascending: false });
-
   var subStart = currentClient.subscription_start ? new Date(currentClient.subscription_start) : new Date();
   var now = new Date();
   var totalDays = Math.floor((now - subStart) / 86400000);
   var cycleDay = totalDays % 30;
   var cycleStart = new Date(now.getTime() - cycleDay * 86400000);
   cycleStart.setHours(0, 0, 0, 0);
-
   var cycleRes = await db.from('sms_events').select('id')
     .eq('client_id', currentClient.id)
     .gte('received_at', cycleStart.toISOString());
-
   var cycleSms = cycleRes.data ? cycleRes.data.length : 0;
   updateSmsOdometer(cycleSms);
   updateOverageOdometer(cycleSms);
-
   var smsData = smsRes.data || [];
   var bookData = bookRes.data || [];
   var smsCount = smsData.length;
@@ -741,7 +823,6 @@ async function loadData() {
   var avgJob = currentClient.avg_job_value || 0;
   var recovered = bookCount * avgJob;
   var rate = smsCount > 0 ? Math.round((bookCount / smsCount) * 100) : 0;
-
   document.getElementById('smsCount').textContent = smsCount;
   document.getElementById('bookingCount').textContent = bookCount;
   document.getElementById('convRate').textContent = rate + '%';
@@ -754,6 +835,7 @@ async function loadData() {
   checkSuspension();
   checkBirthday();
 }
+
 function renderActivity(smsEvents) {
   var card = document.getElementById('activityCard');
   if (!smsEvents || smsEvents.length === 0) {
@@ -800,10 +882,10 @@ function formatTime(iso) {
 async function handleLogout() {
   await db.auth.signOut();
   localStorage.removeItem('cm_remember');
+  currentClient = null;
   document.getElementById('dash').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('loginBtn').disabled = false;
-  document.getElementById('loginBtn').textContent = 'Sign in';
+  switchToSignin();
 }
 
 setInterval(function() { if (currentClient) loadData(); }, 30000);
@@ -817,12 +899,13 @@ window.addEventListener('load', async function() {
 });
 
 document.getElementById('passwordInput').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') handleLogin();
+  if (e.key === 'Enter') handleAuth();
 });
 
 document.getElementById('resetEmailInput').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') handleReset();
 });
+
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').then(function(reg) {
     reg.addEventListener('updatefound', function() {
@@ -845,4 +928,5 @@ if ('serviceWorker' in navigator) {
 </script>
 </body>
 </html>
+
 
