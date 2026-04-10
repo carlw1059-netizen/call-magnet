@@ -457,6 +457,12 @@ async function handleSignup() {
     btn.textContent = 'Create account';
     return;
   }
+  // Option 2 — auto-create clients row with business name
+  await db.from('clients').insert({
+    email: email,
+    business_name: bizName,
+    account_status: 'active'
+  });
   suc.style.display = 'block';
   btn.disabled = false;
   btn.textContent = 'Create account';
@@ -928,5 +934,3 @@ if ('serviceWorker' in navigator) {
 </script>
 </body>
 </html>
-
-
