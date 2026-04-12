@@ -71,6 +71,8 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .dash { display: none; min-height: 100vh; background: var(--bg); }
 .suspension-banner { display: none; background: var(--red-dim); border-bottom: 2px solid var(--red); padding: 14px 1.5rem; font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--red); letter-spacing: 0.03em; text-align: center; }
 .suspension-banner.active { display: block; }
+.cancellation-banner { display: none; background: #2a1a00; border-bottom: 2px solid var(--amber); padding: 14px 1.5rem; font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--amber); letter-spacing: 0.03em; text-align: center; }
+.cancellation-banner.active { display: block; }
 .topbar { display: flex; justify-content: space-between; align-items: flex-end; padding: 1.2rem 1.5rem 0.8rem 1.5rem; position: sticky; top: 0; background: var(--bg); z-index: 20; overflow: visible; }
 .topbar::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%); background-size: 200% 100%; animation: lineSweep 3s ease-in-out infinite; }
 @keyframes lineSweep { 0% { background-position: -100% 0; } 100% { background-position: 200% 0; } }
@@ -256,6 +258,9 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 <div class="dash" id="dash">
   <div class="suspension-banner" id="suspensionBanner">
     ⚠️ Your CallMagnet subscription is paused due to a failed payment. Please email us at hello@callmagnet.com.au to reactivate.
+  </div>
+  <div class="cancellation-banner" id="cancellationBanner">
+    Your CallMagnet subscription has been cancelled. You have access until <span id="cancellationEndDate"></span>. You're always welcome back — email hello@callmagnet.com.au to reactivate.
   </div>
   <div class="topbar">
     <div class="topbar-logo"><span class="star-pulse">★</span>CallMagnet</div>
@@ -794,6 +799,24 @@ function checkSuspension() {
   }
 }
 
+// ── CANCELLATION ──────────────────────────────────────────────────────────────
+
+function checkCancellation() {
+  var banner = document.getElementById('cancellationBanner');
+  var endDateEl = document.getElementById('cancellationEndDate');
+  if (currentClient && currentClient.cancellation_scheduled) {
+    var cancelledAt = new Date(currentClient.cancelled_at);
+    var accessEnd = new Date(cancelledAt.getTime() + 30 * 86400000);
+    var userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    endDateEl.textContent = accessEnd.toLocaleDateString('en-AU', {
+      day: 'numeric', month: 'long', year: 'numeric', timeZone: userTZ
+    });
+    banner.classList.add('active');
+  } else {
+    banner.classList.remove('active');
+  }
+}
+
 // ── LOAD DASHBOARD ────────────────────────────────────────────────────────────
 
 async function loadDashboard(user) {
@@ -808,6 +831,7 @@ async function loadDashboard(user) {
       applyTheme(currentClient.accent_preference, currentClient.bg_preference);
     }
     checkSuspension();
+    checkCancellation();
     checkBirthday();
     await updateCountdown();
     loadData();
@@ -896,6 +920,7 @@ async function loadData() {
   renderActivity(smsData, bookData, clickData);
   await updateCountdown();
   checkSuspension();
+  checkCancellation();
   checkBirthday();
 }
 
@@ -903,7 +928,6 @@ async function loadData() {
 
 function renderActivity(smsData, bookData, clickData) {
   var card = document.getElementById('activityCard');
-
   var allActivity = [];
   smsData.forEach(function(e) { allActivity.push({ type: 'sms', time: e.received_at, number: e.customer_number }); });
   bookData.forEach(function(b) { allActivity.push({ type: 'book', time: b.booked_at, name: b.customer_name, amount: b.deposit_amount, source: b.source }); });
