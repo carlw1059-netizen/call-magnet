@@ -834,17 +834,30 @@ async function loadData() {
   var bookCount = bookData.length;
   var clickCount = clickData.length;
   var avgJob = currentClient.avg_job_value || 0;
-  var recovered = clickCount > 0 ? Math.round(clickCount * avgJob * 0.7) : bookCount * avgJob;
-  var rate = smsCount > 0 ? Math.round((clickCount / smsCount) * 100) : 0;
+
+  // Real conversion rate — uses actual bookings ÷ clicks if both exist
+  // Falls back to 70% assumption if no bookings logged yet
+  var conversionRate = (clickCount > 0 && bookCount > 0)
+    ? bookCount / clickCount
+    : 0.7;
+
+  var recovered = clickCount > 0
+    ? Math.round(clickCount * avgJob * conversionRate)
+    : bookCount * avgJob;
+
+  var smsClickRate = smsCount > 0 ? Math.round((clickCount / smsCount) * 100) : 0;
 
   document.getElementById('smsCount').textContent = smsCount;
   document.getElementById('clickCount').textContent = clickCount;
   document.getElementById('bookingCount').textContent = bookCount;
-  document.getElementById('convRate').textContent = rate + '%';
+  document.getElementById('convRate').textContent = smsClickRate + '%';
   document.getElementById('heroValue').textContent = '$' + recovered.toLocaleString();
 
-  if (clickCount > 0) {
-    document.getElementById('heroSub').textContent = clickCount + ' clicks × $' + avgJob.toLocaleString() + ' avg job × 70% conversion';
+  var convPct = Math.round(conversionRate * 100);
+  if (clickCount > 0 && bookCount > 0) {
+    document.getElementById('heroSub').textContent = clickCount + ' clicks × $' + avgJob.toLocaleString() + ' avg job × ' + convPct + '% real conversion';
+  } else if (clickCount > 0) {
+    document.getElementById('heroSub').textContent = clickCount + ' clicks × $' + avgJob.toLocaleString() + ' avg job × 70% estimated conversion';
   } else {
     document.getElementById('heroSub').textContent = bookCount + ' bookings × $' + avgJob.toLocaleString() + ' avg job';
   }
@@ -963,5 +976,3 @@ if ('serviceWorker' in navigator) {
 </script>
 </body>
 </html>
-
-
