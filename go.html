@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Redirecting...</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 body { background: #0d0d0d; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; font-family: Arial, sans-serif; }
 .msg { text-align: center; color: #f0f0f0; }
@@ -18,11 +17,6 @@ body { background: #0d0d0d; display: flex; align-items: center; justify-content:
   <div class="sub">Taking you to your booking...</div>
 </div>
 <script>
-const SUPABASE_URL = 'https://iskvvnhacqdxybpmwuni.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
-const { createClient } = supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 async function redirect() {
   const params = new URLSearchParams(window.location.search);
   const clientId = params.get('id');
@@ -32,36 +26,26 @@ async function redirect() {
     return;
   }
 
-  // Get client booking URL and postcode
-  const { data: client } = await db
-    .from('clients')
-    .select('booking_url, id')
-    .eq('id', clientId)
-    .single();
+  try {
+    const res = await fetch(
+      `https://iskvvnhacqdxybpmwuni.supabase.co/functions/v1/get-booking-url?id=${clientId}`,
+      {
+        headers: {
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8'
+        }
+      }
+    );
 
-  if (!client || !client.booking_url) {
-    document.querySelector('.sub').textContent = 'Booking link not found.';
-    return;
+    const data = await res.json();
+
+    if (data.booking_url) {
+      window.location.href = data.booking_url;
+    } else {
+      document.querySelector('.sub').textContent = 'Booking link not found.';
+    }
+  } catch (error) {
+    document.querySelector('.sub').textContent = 'Something went wrong. Please try again.';
   }
-
-  // Calculate day of week and hour of day in Melbourne time
-  const now = new Date();
-  const melbTime = new Date(now.toLocaleString('en-AU', { timeZone: 'Australia/Melbourne' }));
-  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const dayOfWeek = days[melbTime.getDay()];
-  const hourOfDay = melbTime.getHours();
-
-  // Log the click
-  await db.from('link_clicks').insert({
-    client_id: clientId,
-    clicked_at: now.toISOString(),
-    day_of_week: dayOfWeek,
-    hour_of_day: hourOfDay,
-    converted: false
-  });
-
-  // Redirect to booking URL
-  window.location.href = client.booking_url;
 }
 
 redirect();
