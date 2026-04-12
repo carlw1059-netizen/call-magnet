@@ -132,6 +132,11 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .metric-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; font-weight: 700; }
 .metric-value { font-size: 32px; font-weight: 300; color: var(--accent); letter-spacing: -0.02em; }
 .metric-sub { font-size: 11px; font-weight: 700; color: var(--muted); margin-top: 4px; }
+.log-booking-row { display: flex; justify-content: flex-end; gap: 0.75rem; margin-bottom: 1rem; }
+.log-booking-btn { background: #1a3a1a; border: 2px solid #4caf50; color: #4caf50; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-family: var(--mono); letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s; font-weight: 700; }
+.log-booking-btn:hover { background: #4caf50; color: #fff; }
+.log-booking-btn:active { transform: scale(0.95); }
+.log-booking-confirm { font-family: var(--mono); font-size: 11px; font-weight: 700; color: #4caf50; display: none; align-items: center; padding-top: 4px; }
 .reset-row { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
 .reset-btn { background: none; border: 2px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 6px 14px; font-size: 12px; font-family: var(--mono); letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s; font-weight: 700; }
 .reset-btn:hover { background: var(--accent); color: var(--accent-contrast); }
@@ -277,14 +282,13 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
         <div class="settings-section">
           <div class="settings-section-title">Background</div>
           <div class="swatch-grid">
-            <div class="s-swatch selected dark-check" id="bg-0" style="background:#0d0d0d;border:2px solid #666" onclick="setBg(0,'#0d0d0d','#161616','#1e1e1e','#2a2a2a','#f0f0f0','#888','#555')"></div>
-            <div class="s-swatch" id="bg-1" style="background:#FAF9F6;border:2px solid #ddd" onclick="setBg(1,'#FAF9F6','#ffffff','#f0efe8','#e0dfd8','#111111','#444444','#777777')"></div>
-            <div class="s-swatch" id="bg-2" style="background:#C8C8C8;border:1px solid #aaa" onclick="setBg(2,'#C8C8C8','#d8d8d8','#e8e8e8','#b8b8b8','#111111','#333333','#555555')"></div>
-            <div class="s-swatch dark-check" id="bg-3" style="background:#4a4a4a" onclick="setBg(3,'#4a4a4a','#5a5a5a','#6a6a6a','#3a3a3a','#f0f0f0','#aaaaaa','#777777')"></div>
-            <div class="s-swatch dark-check" id="bg-4" style="background:#1a1a2e" onclick="setBg(4,'#1a1a2e','#222244','#2a2a55','#333366','#f0eeff','#c8c8ff','#9898dd')"></div>
-            <div class="s-swatch dark-check" id="bg-5" style="background:#2d1b2e" onclick="setBg(5,'#2d1b2e','#3d2b3e','#4d3b4e','#1d0b1e','#f0eaff','#c8b8f0','#9070d0')"></div>
-            <div class="s-swatch dark-check" id="bg-6" style="background:#1a0a0a" onclick="setBg(6,'#1a0a0a','#2a1a1a','#3a2a2a','#0a0000','#f0e8e8','#ccaaaa','#aa8888')"></div>
-            <div class="s-swatch" id="bg-7" style="background:#fce4ec;border:1px solid #f8bbd9" onclick="setBg(7,'#fce4ec','#ffffff','#fce4ec','#f8bbd9','#880044','#cc0066','#ff4499')"></div>
+            <div class="s-swatch dark-check" id="bg-0" style="background:#FF5C00" onclick="setBg(0,'#FF5C00','#cc4900','#aa3d00','#ff7722','#fff5ee','#ffccaa','#ff9966')"></div>
+            <div class="s-swatch" id="bg-1" style="background:#A2A2A2;border:1px solid #888" onclick="setBg(1,'#A2A2A2','#b5b5b5','#c8c8c8','#8f8f8f','#111111','#333333','#555555')"></div>
+            <div class="s-swatch dark-check" id="bg-2" style="background:#2F2F68" onclick="setBg(2,'#2F2F68','#3d3d80','#4b4b99','#222255','#eeeeff','#aaaadd','#8888bb')"></div>
+            <div class="s-swatch" id="bg-3" style="background:#FAFFFA;border:1px solid #ddd" onclick="setBg(3,'#FAFFFA','#ffffff','#f0fff0','#e0ffe0','#111111','#444444','#777777')"></div>
+            <div class="s-swatch" id="bg-4" style="background:#80FFBF;border:1px solid #44dd88" onclick="setBg(4,'#80FFBF','#aaffdd','#ccffee','#55ddaa','#003322','#005533','#007744')"></div>
+            <div class="s-swatch dark-check" id="bg-5" style="background:#252525" onclick="setBg(5,'#252525','#333333','#404040','#181818','#f0f0f0','#aaaaaa','#666666')"></div>
+            <div class="s-swatch dark-check" id="bg-6" style="background:#C11C84" onclick="setBg(6,'#C11C84','#d42090','#e8249d','#a01870','#fff0f8','#ffaadd','#ff55bb')"></div>
           </div>
         </div>
       </div>
@@ -341,6 +345,10 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
         <div class="metric-value" id="convRate">0%</div>
         <div class="metric-sub">SMS → click</div>
       </div>
+    </div>
+    <div class="log-booking-row">
+      <div class="log-booking-confirm" id="logBookingConfirm">✓ Booking logged</div>
+      <button class="log-booking-btn" onclick="logBooking()">+ Log a booking</button>
     </div>
     <div class="reset-row">
       <button class="reset-btn" onclick="showResetModal()">Reset counter to zero</button>
@@ -543,7 +551,7 @@ async function setBg(idx, bg, surface, surface2, border, text, muted, dim) {
   document.documentElement.style.setProperty('--dim', dim);
   var val = JSON.stringify({ idx: idx, bg: bg, surface: surface, surface2: surface2, border: border, text: text, muted: muted, dim: dim });
   localStorage.setItem('cm_bg', val);
-  for (var i = 0; i < 8; i++) { var el = document.getElementById('bg-' + i); if (el) el.classList.toggle('selected', i === idx); }
+  for (var i = 0; i < 7; i++) { var el = document.getElementById('bg-' + i); if (el) el.classList.toggle('selected', i === idx); }
   if (currentClient) await db.from('clients').update({ bg_preference: val }).eq('id', currentClient.id);
 }
 
@@ -565,7 +573,7 @@ function applyTheme(aRaw, bRaw) {
       document.documentElement.style.setProperty('--text', b.text);
       document.documentElement.style.setProperty('--muted', b.muted);
       document.documentElement.style.setProperty('--dim', b.dim);
-      for (var i = 0; i < 8; i++) { var el = document.getElementById('bg-' + i); if (el) el.classList.toggle('selected', i === b.idx); }
+      for (var i = 0; i < 7; i++) { var el = document.getElementById('bg-' + i); if (el) el.classList.toggle('selected', i === b.idx); }
     }
   } catch(e) {}
 }
@@ -697,6 +705,28 @@ async function confirmReset() {
   currentClient.reset_date = resetDate;
   closeResetModal();
   loadData();
+}
+
+// ── LOG BOOKING ───────────────────────────────────────────────────────────────
+
+async function logBooking() {
+  if (!currentClient) return;
+  var btn = document.querySelector('.log-booking-btn');
+  var confirm = document.getElementById('logBookingConfirm');
+  btn.disabled = true;
+  btn.textContent = 'Logging...';
+  var { error } = await db.from('bookings').insert({
+    client_id: currentClient.id,
+    booked_at: new Date().toISOString(),
+    source: 'manual'
+  });
+  btn.disabled = false;
+  btn.textContent = '+ Log a booking';
+  if (!error) {
+    confirm.style.display = 'flex';
+    setTimeout(function() { confirm.style.display = 'none'; }, 3000);
+    loadData();
+  }
 }
 
 // ── RENEWAL ───────────────────────────────────────────────────────────────────
@@ -835,8 +865,6 @@ async function loadData() {
   var clickCount = clickData.length;
   var avgJob = currentClient.avg_job_value || 0;
 
-  // Real conversion rate — uses actual bookings ÷ clicks if both exist
-  // Falls back to 70% assumption if no bookings logged yet
   var conversionRate = (clickCount > 0 && bookCount > 0)
     ? bookCount / clickCount
     : 0.7;
@@ -878,7 +906,7 @@ function renderActivity(smsData, bookData, clickData) {
 
   var allActivity = [];
   smsData.forEach(function(e) { allActivity.push({ type: 'sms', time: e.received_at, number: e.customer_number }); });
-  bookData.forEach(function(b) { allActivity.push({ type: 'book', time: b.booked_at, name: b.customer_name, amount: b.deposit_amount }); });
+  bookData.forEach(function(b) { allActivity.push({ type: 'book', time: b.booked_at, name: b.customer_name, amount: b.deposit_amount, source: b.source }); });
   clickData.forEach(function(c) { allActivity.push({ type: 'click', time: c.clicked_at, day: c.day_of_week, clickedTime: c.clicked_time }); });
   allActivity.sort(function(a, b) { return new Date(b.time) - new Date(a.time); });
 
@@ -892,7 +920,8 @@ function renderActivity(smsData, bookData, clickData) {
     if (item.type === 'sms') {
       return '<div class="activity-row"><div><div class="activity-number">' + maskNumber(item.number || 'Unknown') + '</div><div class="activity-time">' + timeStr + '</div></div><span class="status-pill">SMS sent</span></div>';
     } else if (item.type === 'book') {
-      return '<div class="activity-row"><div><div class="activity-number">Booking' + (item.name ? ' — ' + item.name : '') + '</div><div class="activity-time">' + timeStr + (item.amount ? ' · $' + item.amount + ' deposit' : '') + '</div></div><span class="status-pill pill-book">BOOKED</span></div>';
+      var label = item.source === 'manual' ? 'Booking logged manually' : 'Booking confirmed' + (item.name ? ' — ' + item.name : '');
+      return '<div class="activity-row"><div><div class="activity-number">' + label + '</div><div class="activity-time">' + timeStr + (item.amount ? ' · $' + item.amount + ' deposit' : '') + '</div></div><span class="status-pill pill-book">BOOKED</span></div>';
     } else {
       return '<div class="activity-row"><div><div class="activity-number">Booking link tapped</div><div class="activity-time">' + (item.day || '') + (item.clickedTime ? ' · ' + item.clickedTime : '') + ' · ' + timeStr + '</div></div><span class="status-pill pill-click">CLICK</span></div>';
     }
