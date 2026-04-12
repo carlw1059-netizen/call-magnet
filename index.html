@@ -127,7 +127,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .hero-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; font-weight: 700; }
 .hero-value { font-size: 56px; font-weight: 300; color: var(--accent); letter-spacing: -0.03em; line-height: 1; }
 .hero-sub { font-size: 13px; font-weight: 700; color: var(--accent); opacity: 0.8; margin-top: 8px; }
-.metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 1rem; }
+.metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 1rem; }
 .metric { background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; padding: 1rem; }
 .metric-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; font-weight: 700; }
 .metric-value { font-size: 32px; font-weight: 300; color: var(--accent); letter-spacing: -0.02em; }
@@ -181,6 +181,8 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .activity-number { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--text); }
 .activity-time { font-size: 11px; font-weight: 600; color: var(--dim); margin-top: 1px; }
 .status-pill { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); }
+.pill-click { background: #2a1a3a; color: #9c6fdc; border: 1px solid #9c6fdc; }
+.pill-book { background: #1a3a1a; color: #4caf50; border: 1px solid #4caf50; }
 .empty-state { padding: 2rem; text-align: center; color: var(--dim); font-size: 13px; font-weight: 600; }
 .loading { padding: 2rem; text-align: center; color: var(--dim); font-family: var(--mono); font-size: 12px; font-weight: 700; }
 @media (max-width: 600px) {
@@ -234,7 +236,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 <div class="forgot-screen" id="forgotScreen">
   <div class="login-box">
     <div class="login-logo"><span class="star-pulse">★</span>CallMagnet</div>
-    <span class="back-link" onclick="showLogin()">&#8592; Back to sign in</span>
+    <span class="back-link" onclick="showLogin()">← Back to sign in</span>
     <h1 class="login-heading">Reset password.</h1>
     <p class="login-sub">Enter your email and we'll send you a reset link.</p>
     <div class="field">
@@ -253,7 +255,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
   <div class="topbar">
     <div class="topbar-logo"><span class="star-pulse">★</span>CallMagnet</div>
     <div class="topbar-right">
-      <button class="settings-btn" id="settingsBtn" onclick="toggleSettings()">&#9881;</button>
+      <button class="settings-btn" id="settingsBtn" onclick="toggleSettings()">⚙</button>
       <button class="logout-btn" onclick="handleLogout()">Sign out</button>
       <div class="settings-panel" id="settingsPanel">
         <div class="settings-section">
@@ -304,9 +306,9 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
     <div class="demo-banner" id="demoBanner">No data yet — your CallMagnet system will start showing live stats once your first call comes in.</div>
     <div class="period-controls">
       <div class="period-nav">
-        <button class="nav-btn" id="prevBtn" onclick="navigate(-1)">&#8592;</button>
+        <button class="nav-btn" id="prevBtn" onclick="navigate(-1)">←</button>
         <div class="period-label-text" id="periodLabelText"></div>
-        <button class="nav-btn" id="nextBtn" onclick="navigate(1)" disabled>&#8594;</button>
+        <button class="nav-btn" id="nextBtn" onclick="navigate(1)" disabled>→</button>
       </div>
       <div class="toggle-row">
         <button class="toggle-btn active" id="toggleWeek" onclick="setMode('week')">Week</button>
@@ -325,6 +327,11 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
         <div class="metric-sub">This period</div>
       </div>
       <div class="metric">
+        <div class="metric-label">Link clicks</div>
+        <div class="metric-value" id="clickCount">0</div>
+        <div class="metric-sub">Booking link tapped</div>
+      </div>
+      <div class="metric">
         <div class="metric-label">Bookings created</div>
         <div class="metric-value" id="bookingCount">0</div>
         <div class="metric-sub">This period</div>
@@ -332,7 +339,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
       <div class="metric">
         <div class="metric-label">Conversion rate</div>
         <div class="metric-value" id="convRate">0%</div>
-        <div class="metric-sub">SMS → booking</div>
+        <div class="metric-sub">SMS → click</div>
       </div>
     </div>
     <div class="reset-row">
@@ -392,19 +399,36 @@ const SUPABASE_URL = 'https://iskvvnhacqdxybpmwuni.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-var currentClient = null;
-var viewMode = 'week';
-var offset = 0;
-var lastSmsOdom = -1;
-var lastOverageOdom = -1;
-var authMode = 'signin';
 
-// ── AUTH MODE SWITCHING ───────────────────────────────────────────────────────
+let currentClient = null;
+let viewMode = 'week';
+let offset = 0;
+let isSignup = false;
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+
+function togglePassword() {
+  var inp = document.getElementById('passwordInput');
+  var btn = document.getElementById('eyeBtn');
+  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+  else { inp.type = 'password'; btn.textContent = '👁'; }
+}
+
+function showLogin() {
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('forgotScreen').classList.remove('active');
+  document.getElementById('dash').style.display = 'none';
+}
+
+function showForgot() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('forgotScreen').classList.add('active');
+}
 
 function switchToSignup() {
-  authMode = 'signup';
+  isSignup = true;
   document.getElementById('authHeading').textContent = 'Create account.';
-  document.getElementById('authSub').textContent = 'Start catching your missed calls today.';
+  document.getElementById('authSub').textContent = 'Start catching missed calls today.';
   document.getElementById('bizNameField').style.display = 'block';
   document.getElementById('rememberRow').style.display = 'none';
   document.getElementById('forgotLinkBtn').style.display = 'none';
@@ -415,169 +439,75 @@ function switchToSignup() {
 }
 
 function switchToSignin() {
-  authMode = 'signin';
+  isSignup = false;
   document.getElementById('authHeading').textContent = 'Welcome back.';
   document.getElementById('authSub').textContent = 'Sign in to view your recovery stats.';
   document.getElementById('bizNameField').style.display = 'none';
   document.getElementById('rememberRow').style.display = 'flex';
   document.getElementById('forgotLinkBtn').style.display = 'block';
-  document.getElementById('loginBtn').disabled = false;
   document.getElementById('loginBtn').textContent = 'Sign in';
+  document.getElementById('loginBtn').disabled = false;
   document.getElementById('authToggle').innerHTML = 'Don\'t have an account? <span onclick="switchToSignup()">Sign up</span>';
   document.getElementById('errorMsg').style.display = 'none';
   document.getElementById('signupSuccessMsg').style.display = 'none';
 }
 
 async function handleAuth() {
-  if (authMode === 'signup') {
-    await handleSignup();
+  var email = document.getElementById('emailInput').value.trim();
+  var password = document.getElementById('passwordInput').value;
+  var errEl = document.getElementById('errorMsg');
+  var btn = document.getElementById('loginBtn');
+  errEl.style.display = 'none';
+  if (!email || !password) { errEl.textContent = 'Please fill in all fields.'; errEl.style.display = 'block'; return; }
+  btn.disabled = true;
+  if (isSignup) {
+    var bizName = document.getElementById('bizNameInput').value.trim();
+    if (!bizName) { errEl.textContent = 'Please enter your business name.'; errEl.style.display = 'block'; btn.disabled = false; return; }
+    btn.textContent = 'Creating account...';
+    var { data, error } = await db.auth.signUp({ email, password });
+    if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Create account'; return; }
+    if (data.user) {
+      await db.from('clients').insert({ email: email, business_name: bizName, account_status: 'active' });
+    }
+    btn.disabled = false; btn.textContent = 'Create account';
+    document.getElementById('signupSuccessMsg').style.display = 'block';
+    setTimeout(function() { switchToSignin(); }, 3000);
   } else {
-    await handleLogin();
+    btn.textContent = 'Signing in...';
+    var { error: signInError } = await db.auth.signInWithPassword({ email, password });
+    if (signInError) { errEl.textContent = signInError.message; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Sign in'; return; }
+    if (document.getElementById('rememberMe').checked) { localStorage.setItem('cm_remember', '1'); }
+    btn.disabled = false; btn.textContent = 'Sign in';
+    await loadDashboard((await db.auth.getUser()).data.user);
   }
-}
-
-async function handleSignup() {
-  var bizName = document.getElementById('bizNameInput').value.trim();
-  var email = document.getElementById('emailInput').value.trim();
-  var password = document.getElementById('passwordInput').value;
-  var btn = document.getElementById('loginBtn');
-  var err = document.getElementById('errorMsg');
-  var suc = document.getElementById('signupSuccessMsg');
-  err.style.display = 'none';
-  suc.style.display = 'none';
-  if (!bizName) { err.textContent = 'Please enter your business name.'; err.style.display = 'block'; return; }
-  if (!email) { err.textContent = 'Please enter your email.'; err.style.display = 'block'; return; }
-  if (password.length < 6) { err.textContent = 'Password must be at least 6 characters.'; err.style.display = 'block'; return; }
-  btn.disabled = true;
-  btn.textContent = 'Creating account...';
-  var res = await db.auth.signUp({ email: email, password: password });
-  if (res.error) {
-    err.textContent = res.error.message;
-    err.style.display = 'block';
-    btn.disabled = false;
-    btn.textContent = 'Create account';
-    return;
-  }
-  await db.from('clients').insert({
-    email: email,
-    business_name: bizName,
-    account_status: 'active'
-  });
-  suc.style.display = 'block';
-  btn.disabled = false;
-  btn.textContent = 'Create account';
-  setTimeout(function() { switchToSignin(); }, 3000);
-}
-
-async function handleLogin() {
-  var email = document.getElementById('emailInput').value.trim();
-  var password = document.getElementById('passwordInput').value;
-  var remember = document.getElementById('rememberMe').checked;
-  var btn = document.getElementById('loginBtn');
-  var err = document.getElementById('errorMsg');
-  err.style.display = 'none';
-  btn.disabled = true;
-  btn.textContent = 'Signing in...';
-  var res = await db.auth.signInWithPassword({ email: email, password: password });
-  if (res.error) {
-    err.textContent = res.error.message;
-    err.style.display = 'block';
-    btn.disabled = false;
-    btn.textContent = 'Sign in';
-    return;
-  }
-  if (remember) localStorage.setItem('cm_remember', '1');
-  else localStorage.removeItem('cm_remember');
-  await loadDashboard(res.data.user);
-}
-
-function togglePassword() {
-  var input = document.getElementById('passwordInput');
-  var btn = document.getElementById('eyeBtn');
-  if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
-  else { input.type = 'password'; btn.textContent = '👁'; }
-}
-
-function showLogin() {
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('forgotScreen').classList.remove('active');
-}
-
-function showForgot() {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('forgotScreen').classList.add('active');
 }
 
 async function handleReset() {
   var email = document.getElementById('resetEmailInput').value.trim();
+  var errEl = document.getElementById('resetErrorMsg');
+  var sucEl = document.getElementById('resetSuccessMsg');
   var btn = document.getElementById('resetBtn');
-  var err = document.getElementById('resetErrorMsg');
-  var suc = document.getElementById('resetSuccessMsg');
-  err.style.display = 'none'; suc.style.display = 'none';
-  if (!email) { err.textContent = 'Please enter your email.'; err.style.display = 'block'; return; }
+  errEl.style.display = 'none'; sucEl.style.display = 'none';
+  if (!email) { errEl.textContent = 'Please enter your email.'; errEl.style.display = 'block'; return; }
   btn.disabled = true; btn.textContent = 'Sending...';
-  var res = await db.auth.resetPasswordForEmail(email, { redirectTo: 'https://callmagnet.com.au' });
-  if (res.error) { err.textContent = res.error.message; err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Send reset link'; return; }
-  suc.style.display = 'block'; btn.disabled = false; btn.textContent = 'Send reset link';
+  var { error } = await db.auth.resetPasswordForEmail(email, { redirectTo: 'https://callmagnet.com.au' });
+  btn.disabled = false; btn.textContent = 'Send reset link';
+  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+  sucEl.style.display = 'block';
 }
 
-// ── ODOMETER ─────────────────────────────────────────────────────────────────
-
-function setOdomDigit(id, digit, animate) {
-  var cell = document.getElementById(id);
-  if (!cell) return;
-  var oldEl = cell.querySelector('.old');
-  var newEl = cell.querySelector('.new');
-  var cur = oldEl ? oldEl.textContent : '';
-  var d = String(digit);
-  if (newEl) newEl.textContent = d;
-  if (animate && cur !== d) {
-    cell.classList.remove('rolling');
-    void cell.offsetWidth;
-    cell.classList.add('rolling');
-    setTimeout(function() {
-      if (oldEl) oldEl.textContent = d;
-      cell.classList.remove('rolling');
-    }, 400);
-  } else {
-    if (oldEl) oldEl.textContent = d;
-    if (newEl) newEl.textContent = d;
-  }
+async function handleLogout() {
+  await db.auth.signOut();
+  localStorage.removeItem('cm_remember');
+  currentClient = null;
+  document.getElementById('dash').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginBtn').disabled = false;
+  document.getElementById('loginBtn').textContent = 'Sign in';
+  switchToSignin();
 }
 
-function updateSmsOdometer(count) {
-  var padded = String(Math.min(count, 999)).padStart(3, '0');
-  var prevPadded = lastSmsOdom >= 0 ? String(Math.min(lastSmsOdom, 999)).padStart(3, '0') : null;
-  setOdomDigit('odom-2', padded[0], prevPadded !== null && prevPadded[0] !== padded[0]);
-  setOdomDigit('odom-1', padded[1], prevPadded !== null && prevPadded[1] !== padded[1]);
-  setOdomDigit('odom-0', padded[2], prevPadded !== null && prevPadded[2] !== padded[2]);
-  lastSmsOdom = count;
-}
-
-function updateOverageOdometer(count) {
-  var included = currentClient ? (currentClient.sms_included || 50) : 50;
-  var overageRow = document.getElementById('overageRow');
-  if (count > included) {
-    overageRow.style.display = 'flex';
-    var over = count - included;
-    var cents = Math.round(over * 10);
-    var dollars = Math.floor(cents / 100);
-    var rem = cents % 100;
-    var prevOver = lastOverageOdom > included ? lastOverageOdom - included : -1;
-    var prevCents = prevOver >= 0 ? Math.round(prevOver * 10) : -1;
-    var prevDollars = prevCents >= 0 ? Math.floor(prevCents / 100) : -1;
-    var prevRem = prevCents >= 0 ? prevCents % 100 : -1;
-    setOdomDigit('ov-3', Math.floor(dollars / 10), prevDollars >= 0 && Math.floor(prevDollars / 10) !== Math.floor(dollars / 10));
-    setOdomDigit('ov-2', dollars % 10, prevDollars >= 0 && prevDollars % 10 !== dollars % 10);
-    setOdomDigit('ov-1', Math.floor(rem / 10), prevRem >= 0 && Math.floor(prevRem / 10) !== Math.floor(rem / 10));
-    setOdomDigit('ov-0', rem % 10, prevRem >= 0 && prevRem % 10 !== rem % 10);
-    lastOverageOdom = count;
-  } else {
-    overageRow.style.display = 'none';
-    lastOverageOdom = -1;
-  }
-}
-// ── SETTINGS ─────────────────────────────────────────────────────────────────
+// ── SETTINGS ──────────────────────────────────────────────────────────────────
 
 function toggleSettings() {
   document.getElementById('settingsPanel').classList.toggle('open');
@@ -643,8 +573,94 @@ function applyTheme(aRaw, bRaw) {
 function loadSavedTheme() {
   applyTheme(localStorage.getItem('cm_accent'), localStorage.getItem('cm_bg'));
 }
+</script>
+<script>
+// ── ODOMETER ──────────────────────────────────────────────────────────────────
 
-// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+function updateSmsOdometer(count) {
+  var str = String(count).padStart(3, '0');
+  for (var i = 0; i < 3; i++) {
+    var cell = document.getElementById('odom-' + i);
+    if (!cell) continue;
+    var oldEl = cell.querySelector('.old');
+    var newEl = cell.querySelector('.new');
+    var newDigit = str[2 - i];
+    if (oldEl.textContent !== newDigit) {
+      newEl.textContent = newDigit;
+      cell.classList.add('rolling');
+      setTimeout((function(c, d) { return function() {
+        c.classList.remove('rolling');
+        c.querySelector('.old').textContent = d;
+        c.querySelector('.new').textContent = d;
+      }; })(cell, newDigit), 400);
+    }
+  }
+}
+
+function updateOverageOdometer(cycleSms) {
+  var limit = currentClient ? (currentClient.sms_included || 50) : 50;
+  var overage = Math.max(0, cycleSms - limit);
+  var overageCost = overage * 0.10;
+  var overageRow = document.getElementById('overageRow');
+  if (overage > 0) {
+    overageRow.style.display = 'flex';
+    var cents = Math.round(overageCost * 100);
+    var str = String(cents).padStart(4, '0');
+    for (var i = 0; i < 4; i++) {
+      var cell = document.getElementById('ov-' + i);
+      if (!cell) continue;
+      var oldEl = cell.querySelector('.old');
+      var newEl = cell.querySelector('.new');
+      var newDigit = str[3 - i];
+      if (oldEl.textContent !== newDigit) {
+        newEl.textContent = newDigit;
+        cell.classList.add('rolling');
+        setTimeout((function(c, d) { return function() {
+          c.classList.remove('rolling');
+          c.querySelector('.old').textContent = d;
+          c.querySelector('.new').textContent = d;
+        }; })(cell, newDigit), 400);
+      }
+    }
+  } else {
+    overageRow.style.display = 'none';
+  }
+}
+
+// ── DATE RANGE ────────────────────────────────────────────────────────────────
+
+function getDateRange() {
+  var userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  var now = new Date();
+  var start, end, label;
+  if (viewMode === 'week') {
+    var localDate = new Date(now.toLocaleString('en-US', { timeZone: userTZ }));
+    var day = localDate.getDay();
+    var mondayOffset = (day + 6) % 7;
+    var monday = new Date(now);
+    monday.setDate(now.getDate() - mondayOffset + (offset * 7));
+    monday.setHours(0, 0, 0, 0);
+    var sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 7);
+    start = monday.toISOString();
+    end = sunday.toISOString();
+    var opts = { day: 'numeric', month: 'short', timeZone: userTZ };
+    var sundayDisplay = new Date(sunday.getTime() - 86400000);
+    label = monday.toLocaleDateString('en-AU', opts) + ' – ' + sundayDisplay.toLocaleDateString('en-AU', opts);
+  } else {
+    var localDate2 = new Date(now.toLocaleString('en-US', { timeZone: userTZ }));
+    var year = localDate2.getFullYear();
+    var month = localDate2.getMonth() + offset;
+    var firstDay = new Date(year, month, 1);
+    var lastDay = new Date(year, month + 1, 1);
+    start = firstDay.toISOString();
+    end = lastDay.toISOString();
+    label = firstDay.toLocaleString('en-AU', { month: 'long', year: 'numeric', timeZone: userTZ });
+  }
+  return { start: start, end: end, label: label };
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
 
 function setMode(mode) {
   viewMode = mode; offset = 0;
@@ -666,42 +682,10 @@ async function handleRefresh() {
   btn.disabled = true;
   icon.classList.add('spinning');
   await loadData();
-  setTimeout(function() {
-    icon.classList.remove('spinning');
-    btn.disabled = false;
-  }, 650);
+  setTimeout(function() { icon.classList.remove('spinning'); btn.disabled = false; }, 650);
 }
 
-function getDateRange() {
-  var userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  var now = new Date();
-  var start, end, label;
-  if (viewMode === 'week') {
-    var localDate = new Date(now.toLocaleString('en-US', { timeZone: userTZ }));
-    var day = localDate.getDay();
-    var mondayOffset = (day + 6) % 7;
-    var monday = new Date(now);
-    monday.setDate(now.getDate() - mondayOffset + (offset * 7));
-    monday.setHours(0, 0, 0, 0);
-    var sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 7);
-    start = monday.toISOString();
-    end = sunday.toISOString();
-    var opts = { day: 'numeric', month: 'short', timeZone: userTZ };
-    var sundayDisplay = new Date(sunday.getTime() - 86400000);
-    label = monday.toLocaleDateString('en-AU', opts) + ' \u2013 ' + sundayDisplay.toLocaleDateString('en-AU', opts);
-  } else {
-    var localDate2 = new Date(now.toLocaleString('en-US', { timeZone: userTZ }));
-    var year = localDate2.getFullYear();
-    var month = localDate2.getMonth() + offset;
-    var firstDay = new Date(year, month, 1);
-    var lastDay = new Date(year, month + 1, 1);
-    start = firstDay.toISOString();
-    end = lastDay.toISOString();
-    label = firstDay.toLocaleString('en-AU', { month: 'long', year: 'numeric', timeZone: userTZ });
-  }
-  return { start: start, end: end, label: label };
-}
+// ── RESET ─────────────────────────────────────────────────────────────────────
 
 function showResetModal() { document.getElementById('resetModal').classList.add('open'); }
 function closeResetModal() { document.getElementById('resetModal').classList.remove('open'); }
@@ -714,6 +698,8 @@ async function confirmReset() {
   closeResetModal();
   loadData();
 }
+
+// ── RENEWAL ───────────────────────────────────────────────────────────────────
 
 async function updateCountdown() {
   if (!currentClient || !currentClient.subscription_start) return;
@@ -746,6 +732,8 @@ async function updateCountdown() {
   }
 }
 
+// ── BIRTHDAY ──────────────────────────────────────────────────────────────────
+
 function checkBirthday() {
   if (!currentClient || !currentClient.date_of_birth) return;
   var userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -765,6 +753,8 @@ function checkBirthday() {
   }
 }
 
+// ── SUSPENSION ────────────────────────────────────────────────────────────────
+
 function checkSuspension() {
   var banner = document.getElementById('suspensionBanner');
   if (currentClient && currentClient.account_status === 'suspended') {
@@ -773,6 +763,8 @@ function checkSuspension() {
     banner.classList.remove('active');
   }
 }
+
+// ── LOAD DASHBOARD ────────────────────────────────────────────────────────────
 
 async function loadDashboard(user) {
   document.getElementById('loginScreen').style.display = 'none';
@@ -794,22 +786,33 @@ async function loadDashboard(user) {
   }
 }
 
+// ── LOAD DATA ─────────────────────────────────────────────────────────────────
+
 async function loadData() {
   if (!currentClient) return;
   var range = getDateRange();
   document.getElementById('periodLabelText').textContent = range.label;
   var resetDate = currentClient.reset_date || null;
   var effectiveStart = resetDate && resetDate > range.start ? resetDate : range.start;
+
   var smsRes = await db.from('sms_events').select('*')
     .eq('client_id', currentClient.id)
     .gte('received_at', effectiveStart)
     .lt('received_at', range.end)
     .order('received_at', { ascending: false });
+
   var bookRes = await db.from('bookings').select('*')
     .eq('client_id', currentClient.id)
     .gte('booked_at', effectiveStart)
     .lt('booked_at', range.end)
     .order('booked_at', { ascending: false });
+
+  var clickRes = await db.from('link_clicks').select('*')
+    .eq('client_id', currentClient.id)
+    .gte('clicked_at', effectiveStart)
+    .lt('clicked_at', range.end)
+    .order('clicked_at', { ascending: false });
+
   var subStart = currentClient.subscription_start ? new Date(currentClient.subscription_start) : new Date();
   var now = new Date();
   var totalDays = Math.floor((now - subStart) / 86400000);
@@ -822,36 +825,68 @@ async function loadData() {
   var cycleSms = cycleRes.data ? cycleRes.data.length : 0;
   updateSmsOdometer(cycleSms);
   updateOverageOdometer(cycleSms);
+
   var smsData = smsRes.data || [];
   var bookData = bookRes.data || [];
+  var clickData = clickRes.data || [];
+
   var smsCount = smsData.length;
   var bookCount = bookData.length;
+  var clickCount = clickData.length;
   var avgJob = currentClient.avg_job_value || 0;
-  var recovered = bookCount * avgJob;
-  var rate = smsCount > 0 ? Math.round((bookCount / smsCount) * 100) : 0;
+  var recovered = clickCount > 0 ? Math.round(clickCount * avgJob * 0.7) : bookCount * avgJob;
+  var rate = smsCount > 0 ? Math.round((clickCount / smsCount) * 100) : 0;
+
   document.getElementById('smsCount').textContent = smsCount;
+  document.getElementById('clickCount').textContent = clickCount;
   document.getElementById('bookingCount').textContent = bookCount;
   document.getElementById('convRate').textContent = rate + '%';
   document.getElementById('heroValue').textContent = '$' + recovered.toLocaleString();
-  document.getElementById('heroSub').textContent = bookCount + ' bookings \xd7 $' + avgJob.toLocaleString() + ' avg job';
-  document.getElementById('demoBanner').style.display = (smsCount === 0 && bookCount === 0) ? 'block' : 'none';
+
+  if (clickCount > 0) {
+    document.getElementById('heroSub').textContent = clickCount + ' clicks × $' + avgJob.toLocaleString() + ' avg job × 70% conversion';
+  } else {
+    document.getElementById('heroSub').textContent = bookCount + ' bookings × $' + avgJob.toLocaleString() + ' avg job';
+  }
+
+  document.getElementById('demoBanner').style.display = (smsCount === 0 && bookCount === 0 && clickCount === 0) ? 'block' : 'none';
   document.getElementById('callCountBadge').textContent = smsCount + ' call' + (smsCount !== 1 ? 's' : '');
-  renderActivity(smsData);
+
+  renderActivity(smsData, bookData, clickData);
   await updateCountdown();
   checkSuspension();
   checkBirthday();
 }
 
-function renderActivity(smsEvents) {
+// ── ACTIVITY ──────────────────────────────────────────────────────────────────
+
+function renderActivity(smsData, bookData, clickData) {
   var card = document.getElementById('activityCard');
-  if (!smsEvents || smsEvents.length === 0) {
+
+  var allActivity = [];
+  smsData.forEach(function(e) { allActivity.push({ type: 'sms', time: e.received_at, number: e.customer_number }); });
+  bookData.forEach(function(b) { allActivity.push({ type: 'book', time: b.booked_at, name: b.customer_name, amount: b.deposit_amount }); });
+  clickData.forEach(function(c) { allActivity.push({ type: 'click', time: c.clicked_at, day: c.day_of_week, clickedTime: c.clicked_time }); });
+  allActivity.sort(function(a, b) { return new Date(b.time) - new Date(a.time); });
+
+  if (allActivity.length === 0) {
     card.innerHTML = '<div class="empty-state">No activity this period.</div>';
     return;
   }
-  var rows = smsEvents.slice(0, 50).map(function(e) {
-    return '<div class="activity-row"><div><div class="activity-number">' + maskNumber(e.customer_number || 'Unknown') + '</div><div class="activity-time">' + formatTime(e.received_at) + '</div></div><span class="status-pill">SMS sent</span></div>';
+
+  var rows = allActivity.slice(0, 50).map(function(item) {
+    var timeStr = formatTime(item.time);
+    if (item.type === 'sms') {
+      return '<div class="activity-row"><div><div class="activity-number">' + maskNumber(item.number || 'Unknown') + '</div><div class="activity-time">' + timeStr + '</div></div><span class="status-pill">SMS sent</span></div>';
+    } else if (item.type === 'book') {
+      return '<div class="activity-row"><div><div class="activity-number">Booking' + (item.name ? ' — ' + item.name : '') + '</div><div class="activity-time">' + timeStr + (item.amount ? ' · $' + item.amount + ' deposit' : '') + '</div></div><span class="status-pill pill-book">BOOKED</span></div>';
+    } else {
+      return '<div class="activity-row"><div><div class="activity-number">Booking link tapped</div><div class="activity-time">' + (item.day || '') + (item.clickedTime ? ' · ' + item.clickedTime : '') + ' · ' + timeStr + '</div></div><span class="status-pill pill-click">CLICK</span></div>';
+    }
   }).join('');
-  card.innerHTML = '<div class="activity-summary" onclick="toggleDropdown()"><div class="activity-summary-left"><div class="dot"></div><div><div class="activity-summary-text">' + smsEvents.length + ' missed call' + (smsEvents.length !== 1 ? 's' : '') + ' caught</div><div class="activity-summary-sub">Tap to see caller details</div></div></div><span class="expand-icon" id="expandIcon">&#9660;</span></div><div class="activity-dropdown" id="activityDropdown">' + rows + '</div>';
+
+  var total = smsData.length + bookData.length + clickData.length;
+  card.innerHTML = '<div class="activity-summary" onclick="toggleDropdown()"><div class="activity-summary-left"><div class="dot"></div><div><div class="activity-summary-text">' + total + ' event' + (total !== 1 ? 's' : '') + ' this period</div><div class="activity-summary-sub">Tap to see details</div></div></div><span class="expand-icon" id="expandIcon">▼</span></div><div class="activity-dropdown" id="activityDropdown">' + rows + '</div>';
 }
 
 function toggleDropdown() {
@@ -884,17 +919,9 @@ function formatTime(iso) {
   if (dateStr === yesterdayStr) return 'Yesterday ' + time;
   return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', timeZone: userTZ }) + ' ' + time;
 }
-
-async function handleLogout() {
-  await db.auth.signOut();
-  localStorage.removeItem('cm_remember');
-  currentClient = null;
-  document.getElementById('dash').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('loginBtn').disabled = false;
-  document.getElementById('loginBtn').textContent = 'Sign in';
-  switchToSignin();
-}
+</script>
+<script>
+// ── INIT ──────────────────────────────────────────────────────────────────────
 
 setInterval(function() { if (currentClient) loadData(); }, 30000);
 
@@ -936,3 +963,5 @@ if ('serviceWorker' in navigator) {
 </script>
 </body>
 </html>
+
+
