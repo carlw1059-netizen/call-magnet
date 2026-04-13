@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>CallMagnet</title>
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CallMagnet">
 <meta name="theme-color" content="#0d0d0d">
 <link rel="icon" href="/favicon-32x32.png" type="image/png">
 <link rel="manifest" href="manifest.json">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -40,7 +40,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; background: var(--bg); }
 .login-box { width: 100%; max-width: 380px; }
 .login-logo { font-family: var(--mono); font-size: 20px; letter-spacing: 0.15em; color: var(--accent); text-transform: uppercase; margin-bottom: 2.5rem; display: flex; align-items: center; gap: 10px; font-weight: 700; }
-.login-logo .star-pulse { font-size: 20px; }
 .login-heading { font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 0.5rem; letter-spacing: -0.02em; }
 .login-sub { font-size: 13px; color: var(--muted); margin-bottom: 2rem; font-weight: 600; }
 .field { margin-bottom: 1rem; }
@@ -61,13 +60,11 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 .auth-toggle { text-align: center; margin-top: 1.25rem; font-size: 13px; color: var(--muted); font-weight: 600; }
 .auth-toggle span { color: var(--accent); font-family: var(--mono); cursor: pointer; text-decoration: underline; font-weight: 700; letter-spacing: 0.03em; }
-.auth-toggle span:hover { opacity: 0.7; }
 .error-msg { background: var(--red-dim); border: 1px solid var(--red); color: var(--red); border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-top: 1rem; display: none; font-weight: 600; }
 .success-msg { background: var(--accent-dim); border: 1px solid var(--accent); color: var(--accent); border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-top: 1rem; display: none; font-weight: 600; }
 .forgot-screen { min-height: 100vh; display: none; align-items: center; justify-content: center; padding: 2rem; background: var(--bg); }
 .forgot-screen.active { display: flex; }
 .back-link { font-size: 12px; color: var(--accent); font-family: var(--mono); cursor: pointer; text-decoration: underline; margin-bottom: 1.5rem; display: block; font-weight: 700; letter-spacing: 0.03em; }
-.back-link:hover { opacity: 0.7; }
 .dash { display: none; min-height: 100vh; background: var(--bg); }
 .suspension-banner { display: none; background: var(--red-dim); border-bottom: 2px solid var(--red); padding: 14px 1.5rem; font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--red); letter-spacing: 0.03em; text-align: center; }
 .suspension-banner.active { display: block; }
@@ -77,10 +74,8 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .topbar::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%); background-size: 200% 100%; animation: lineSweep 3s ease-in-out infinite; }
 @keyframes lineSweep { 0% { background-position: -100% 0; } 100% { background-position: 200% 0; } }
 .topbar-logo { font-family: var(--mono); font-size: 27px; letter-spacing: 0.15em; color: var(--accent); text-transform: uppercase; display: flex; align-items: center; gap: 12px; font-weight: 700; line-height: 1; padding-bottom: 4px; }
-.topbar-logo .star-pulse { font-size: 27px; }
 .topbar-right { display: flex; align-items: center; gap: 8px; position: relative; padding-bottom: 4px; }
 .settings-btn { background: none; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 5px 10px; font-size: 13px; cursor: pointer; transition: all 0.2s; line-height: 1; font-weight: 700; }
-.settings-btn:hover { background: var(--accent); color: var(--accent-contrast); }
 .settings-btn.active { background: var(--accent); color: var(--accent-contrast); }
 .logout-btn { background: none; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 5px 12px; font-size: 12px; font-family: var(--mono); cursor: pointer; transition: all 0.2s; font-weight: 700; letter-spacing: 0.05em; }
 .logout-btn:hover { background: var(--accent); color: var(--accent-contrast); }
@@ -89,14 +84,14 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 @keyframes slideDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
 .settings-section { margin-bottom: 1rem; }
 .settings-section:last-child { margin-bottom: 0; }
-.settings-section-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #111111; margin-bottom: 10px; font-weight: 700; }
+.settings-section-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #111; margin-bottom: 10px; font-weight: 700; }
 .swatch-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .s-swatch { width: 28px; height: 28px; border-radius: 6px; border: 2px solid transparent; cursor: pointer; transition: transform 0.15s, border-color 0.15s; position: relative; }
 .s-swatch:hover { transform: scale(1.15); }
-.s-swatch.selected { border-color: #111111; }
+.s-swatch.selected { border-color: #111; }
 .s-swatch.selected::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: rgba(0,0,0,0.6); }
 .s-swatch.dark-check.selected::after { color: rgba(255,255,255,0.8); }
-.settings-divider { height: 1px; background: #dddddd; margin: 0.75rem 0; }
+.settings-divider { height: 1px; background: #ddd; margin: 0.75rem 0; }
 .terms-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; align-items: center; justify-content: center; padding: 2rem; }
 .terms-modal-overlay.open { display: flex; }
 .terms-modal { background: var(--surface); border: 1px solid var(--accent); border-radius: 10px; padding: 2rem; max-width: 420px; width: 100%; }
@@ -141,7 +136,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .period-label-text { font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--accent); letter-spacing: 0.05em; min-width: 180px; text-align: center; }
 .toggle-row { display: flex; background: var(--surface); border: 1px solid var(--accent); border-radius: 6px; overflow: hidden; }
 .toggle-btn { padding: 6px 18px; font-size: 13px; font-family: var(--mono); letter-spacing: 0.05em; background: none; border: none; color: var(--accent); cursor: pointer; transition: all 0.2s; font-weight: 700; }
-.toggle-btn.active { background: var(--accent); color: var(--accent-contrast); font-weight: 700; }
+.toggle-btn.active { background: var(--accent); color: var(--accent-contrast); }
 .hero { background: var(--accent-dim); border: 1px solid var(--accent); border-radius: 10px; padding: 1.5rem; margin-bottom: 1rem; }
 .hero-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; font-weight: 700; }
 .hero-value { font-size: 56px; font-weight: 300; color: var(--accent); letter-spacing: -0.03em; line-height: 1; }
@@ -170,7 +165,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .renewal-strip { display: flex; align-items: center; margin-bottom: 0.75rem; padding: 10px 14px; background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; }
 .renewal-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); font-weight: 700; opacity: 0.7; }
 .renewal-value { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent); }
-.renewal-thanks { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--accent); }
 .section-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
 .section-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-weight: 700; padding-top: 4px; }
 .sms-counter-block { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
@@ -214,7 +208,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
   .hero-value { font-size: 40px; }
   .biz-name-large { font-size: 26px; }
   .topbar-logo { font-size: 20px; }
-  .topbar-logo .star-pulse { font-size: 20px; }
   .period-controls { flex-direction: column; align-items: flex-start; }
   .settings-panel { width: 250px; }
   .refresh-btn { padding: 6px 12px; font-size: 11px; }
@@ -239,7 +232,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
       <label>Password</label>
       <div class="password-wrap">
         <input type="password" id="passwordInput" placeholder="••••••••" />
-        <button class="eye-btn" type="button" onclick="togglePassword()" id="eyeBtn">👁</button>
+        <button class="eye-btn" type="button" onclick="togglePassword()">👁</button>
       </div>
     </div>
     <div class="remember-row" id="rememberRow">
@@ -449,11 +442,12 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
     </div>
   </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = 'https://iskvvnhacqdxybpmwuni.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeXlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
 
+let sb;
 let currentClient = null;
 let currentMode = 'week';
 let currentOffset = 0;
@@ -580,19 +574,16 @@ async function acceptTerms() {
   const btn = document.getElementById('acceptTermsBtn');
   btn.disabled = true;
   btn.textContent = 'Saving...';
-
   const now = new Date().toISOString();
   const { error } = await sb
     .from('clients')
     .update({ terms_accepted: true, terms_accepted_at: now })
     .eq('id', currentClient.id);
-
   if (error) {
     btn.disabled = false;
     btn.textContent = 'I agree — continue to dashboard';
     return;
   }
-
   currentClient.terms_accepted = true;
   currentClient.terms_accepted_at = now;
   hideTermsModal();
@@ -613,16 +604,13 @@ async function loadDashboard(user) {
   }
 
   currentClient = clients[0];
-
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('dash').style.display = 'block';
 
-  // Check terms acceptance
   if (!currentClient.terms_accepted) {
     showTermsModal();
   }
 
-  // Banners
   if (currentClient.account_status === 'suspended') {
     document.getElementById('suspensionBanner').classList.add('active');
   }
@@ -633,11 +621,9 @@ async function loadDashboard(user) {
     document.getElementById('cancellationBanner').classList.add('active');
   }
 
-  // Business name
   document.getElementById('bizNameLarge').textContent = currentClient.business_name;
   document.title = currentClient.business_name + ' — CallMagnet';
 
-  // Birthday
   if (currentClient.date_of_birth) {
     const dob = new Date(currentClient.date_of_birth);
     const today = new Date();
@@ -647,7 +633,6 @@ async function loadDashboard(user) {
     }
   }
 
-  // Renewal
   if (currentClient.subscription_start) {
     const start = new Date(currentClient.subscription_start);
     const today = new Date();
@@ -658,7 +643,6 @@ async function loadDashboard(user) {
     document.getElementById('renewalValue').textContent = days === 1 ? 'Tomorrow' : days + ' days';
   }
 
-  // Preferences
   applyPreferences();
   await loadStats();
 }
@@ -674,7 +658,7 @@ function toggleSettings() {
 document.addEventListener('click', (e) => {
   const panel = document.getElementById('settingsPanel');
   const btn = document.getElementById('settingsBtn');
-  if (panel && !panel.contains(e.target) && !btn.contains(e.target)) {
+  if (panel && !panel.contains(e.target) && btn && !btn.contains(e.target)) {
     panel.classList.remove('open');
     btn.classList.remove('active');
   }
@@ -1015,6 +999,8 @@ async function confirmReset() {
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
   document.getElementById('passwordInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') handleAuth();
   });
