@@ -97,6 +97,23 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .s-swatch.selected::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: rgba(0,0,0,0.6); }
 .s-swatch.dark-check.selected::after { color: rgba(255,255,255,0.8); }
 .settings-divider { height: 1px; background: #dddddd; margin: 0.75rem 0; }
+.terms-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; align-items: center; justify-content: center; padding: 2rem; }
+.terms-modal-overlay.open { display: flex; }
+.terms-modal { background: var(--surface); border: 1px solid var(--accent); border-radius: 10px; padding: 2rem; max-width: 420px; width: 100%; }
+.terms-modal-logo { font-family: var(--mono); font-size: 16px; letter-spacing: 0.15em; color: var(--accent); text-transform: uppercase; font-weight: 700; margin-bottom: 1.5rem; }
+.terms-modal-title { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 0.75rem; }
+.terms-modal-body { font-size: 13px; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.7; font-weight: 600; }
+.terms-modal-body a { color: var(--accent); }
+.terms-modal-actions { display: flex; flex-direction: column; gap: 0.75rem; }
+.btn-accept { background: var(--accent); color: var(--accent-contrast); border: none; border-radius: 6px; padding: 12px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: var(--sans); transition: opacity 0.2s; }
+.btn-accept:hover { opacity: 0.85; }
+.btn-accept:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-view-terms { background: none; border: 1px solid var(--accent); color: var(--accent); border-radius: 6px; padding: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--mono); letter-spacing: 0.05em; text-align: center; text-decoration: none; display: block; transition: all 0.2s; }
+.btn-view-terms:hover { background: var(--accent); color: var(--accent-contrast); }
+.dash-footer { text-align: center; padding: 2rem 1.5rem; border-top: 1px solid var(--border); margin-top: 2rem; }
+.dash-footer a { font-family: var(--mono); font-size: 11px; color: var(--dim); text-decoration: none; letter-spacing: 0.08em; }
+.dash-footer a:hover { color: var(--accent); }
+.dash-footer span { color: var(--dim); font-family: var(--mono); font-size: 11px; margin: 0 8px; }
 </style>
 </head>
 <body>
@@ -255,6 +272,22 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
     <div class="success-msg" id="resetSuccessMsg">Reset link sent. Check your email.</div>
   </div>
 </div>
+<!-- TERMS MODAL -->
+<div class="terms-modal-overlay" id="termsModal">
+  <div class="terms-modal">
+    <div class="terms-modal-logo">★ CallMagnet</div>
+    <div class="terms-modal-title">Before you continue</div>
+    <div class="terms-modal-body">
+      Please review and accept our Terms of Service and Privacy Policy before using your dashboard.<br><br>
+      By continuing you agree to our terms including how we collect, store, and use your data. Your individual data is never sold. Anonymised aggregate data may be used for industry intelligence purposes.
+    </div>
+    <div class="terms-modal-actions">
+      <button class="btn-accept" id="acceptTermsBtn" onclick="acceptTerms()">I agree — continue to dashboard</button>
+      <a class="btn-view-terms" href="/legal.html" target="_blank">View Terms of Service and Privacy Policy</a>
+    </div>
+  </div>
+</div>
+
 <div class="dash" id="dash">
   <div class="suspension-banner" id="suspensionBanner">
     ⚠️ Your CallMagnet subscription is paused due to a failed payment. Please email us at hello@callmagnet.com.au to reactivate.
@@ -395,6 +428,15 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
     </div>
     <div class="activity-card" id="activityCard"><div class="loading">Loading...</div></div>
   </div>
+
+  <!-- FOOTER -->
+  <div class="dash-footer">
+    <a href="/legal.html" target="_blank">Terms of Service</a>
+    <span>·</span>
+    <a href="/legal.html#privacy" target="_blank">Privacy Policy</a>
+    <span>·</span>
+    <a href="mailto:hello@callmagnet.com.au">hello@callmagnet.com.au</a>
+  </div>
 </div>
 
 <div class="modal-overlay" id="resetModal">
@@ -409,49 +451,28 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 </div>
 <script>
 const SUPABASE_URL = 'https://iskvvnhacqdxybpmwuni.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
-const { createClient } = supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeXlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentClient = null;
-let viewMode = 'week';
-let offset = 0;
+let currentMode = 'week';
+let currentOffset = 0;
 let isSignup = false;
 
-// ── AUTH ──────────────────────────────────────────────────────────────────────
-
-function togglePassword() {
-  var inp = document.getElementById('passwordInput');
-  var btn = document.getElementById('eyeBtn');
-  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
-  else { inp.type = 'password'; btn.textContent = '👁'; }
-}
-
-function showLogin() {
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('forgotScreen').classList.remove('active');
-  document.getElementById('dash').style.display = 'none';
-}
-
-function showForgot() {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('forgotScreen').classList.add('active');
-}
-
+// ── AUTH ─────────────────────────────────────────────────────────────────────
 function switchToSignup() {
   isSignup = true;
   document.getElementById('authHeading').textContent = 'Create account.';
-  document.getElementById('authSub').textContent = 'Start catching missed calls today.';
+  document.getElementById('authSub').textContent = 'Start recovering missed revenue today.';
   document.getElementById('bizNameField').style.display = 'block';
   document.getElementById('rememberRow').style.display = 'none';
   document.getElementById('forgotLinkBtn').style.display = 'none';
   document.getElementById('loginBtn').textContent = 'Create account';
-  document.getElementById('authToggle').innerHTML = 'Already have an account? <span onclick="switchToSignin()">Sign in</span>';
+  document.getElementById('authToggle').innerHTML = 'Already have an account? <span onclick="switchToLogin()">Sign in</span>';
   document.getElementById('errorMsg').style.display = 'none';
-  document.getElementById('signupSuccessMsg').style.display = 'none';
 }
 
-function switchToSignin() {
+function switchToLogin() {
   isSignup = false;
   document.getElementById('authHeading').textContent = 'Welcome back.';
   document.getElementById('authSub').textContent = 'Sign in to view your recovery stats.';
@@ -459,94 +480,221 @@ function switchToSignin() {
   document.getElementById('rememberRow').style.display = 'flex';
   document.getElementById('forgotLinkBtn').style.display = 'block';
   document.getElementById('loginBtn').textContent = 'Sign in';
-  document.getElementById('loginBtn').disabled = false;
   document.getElementById('authToggle').innerHTML = 'Don\'t have an account? <span onclick="switchToSignup()">Sign up</span>';
   document.getElementById('errorMsg').style.display = 'none';
-  document.getElementById('signupSuccessMsg').style.display = 'none';
+}
+
+function showForgot() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('forgotScreen').classList.add('active');
+}
+
+function showLogin() {
+  document.getElementById('forgotScreen').classList.remove('active');
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+function togglePassword() {
+  const input = document.getElementById('passwordInput');
+  input.type = input.type === 'password' ? 'text' : 'password';
 }
 
 async function handleAuth() {
-  var email = document.getElementById('emailInput').value.trim();
-  var password = document.getElementById('passwordInput').value;
-  var errEl = document.getElementById('errorMsg');
-  var btn = document.getElementById('loginBtn');
-  errEl.style.display = 'none';
-  if (!email || !password) { errEl.textContent = 'Please fill in all fields.'; errEl.style.display = 'block'; return; }
+  const email = document.getElementById('emailInput').value.trim();
+  const password = document.getElementById('passwordInput').value;
+  const btn = document.getElementById('loginBtn');
+  const errDiv = document.getElementById('errorMsg');
+  errDiv.style.display = 'none';
   btn.disabled = true;
+  btn.textContent = isSignup ? 'Creating...' : 'Signing in...';
+
   if (isSignup) {
-    var bizName = document.getElementById('bizNameInput').value.trim();
-    if (!bizName) { errEl.textContent = 'Please enter your business name.'; errEl.style.display = 'block'; btn.disabled = false; return; }
-    btn.textContent = 'Creating account...';
-    var { data, error } = await db.auth.signUp({ email, password });
-    if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Create account'; return; }
-    if (data.user) {
-      await db.from('clients').insert({ email: email, business_name: bizName, account_status: 'active' });
+    const bizName = document.getElementById('bizNameInput').value.trim();
+    if (!bizName) {
+      errDiv.textContent = 'Please enter your business name.';
+      errDiv.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Create account';
+      return;
     }
-    btn.disabled = false; btn.textContent = 'Create account';
-    document.getElementById('signupSuccessMsg').style.display = 'block';
-    setTimeout(function() { switchToSignin(); }, 3000);
+    const { error } = await sb.auth.signUp({ email, password, options: { data: { business_name: bizName } } });
+    if (error) {
+      errDiv.textContent = error.message;
+      errDiv.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Create account';
+    } else {
+      document.getElementById('signupSuccessMsg').style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Create account';
+    }
   } else {
-    btn.textContent = 'Signing in...';
-    var { error: signInError } = await db.auth.signInWithPassword({ email, password });
-    if (signInError) { errEl.textContent = signInError.message; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Sign in'; return; }
-    if (document.getElementById('rememberMe').checked) { localStorage.setItem('cm_remember', '1'); }
-    btn.disabled = false; btn.textContent = 'Sign in';
-    await loadDashboard((await db.auth.getUser()).data.user);
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) {
+      errDiv.textContent = error.message;
+      errDiv.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Sign in';
+    } else {
+      await loadDashboard(data.user);
+    }
   }
 }
 
 async function handleReset() {
-  var email = document.getElementById('resetEmailInput').value.trim();
-  var errEl = document.getElementById('resetErrorMsg');
-  var sucEl = document.getElementById('resetSuccessMsg');
-  var btn = document.getElementById('resetBtn');
-  errEl.style.display = 'none'; sucEl.style.display = 'none';
-  if (!email) { errEl.textContent = 'Please enter your email.'; errEl.style.display = 'block'; return; }
-  btn.disabled = true; btn.textContent = 'Sending...';
-  var { error } = await db.auth.resetPasswordForEmail(email, { redirectTo: 'https://callmagnet.com.au' });
-  btn.disabled = false; btn.textContent = 'Send reset link';
-  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
-  sucEl.style.display = 'block';
+  const email = document.getElementById('resetEmailInput').value.trim();
+  const btn = document.getElementById('resetBtn');
+  const errDiv = document.getElementById('resetErrorMsg');
+  errDiv.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://callmagnet.com.au' });
+  if (error) {
+    errDiv.textContent = error.message;
+    errDiv.style.display = 'block';
+  } else {
+    document.getElementById('resetSuccessMsg').style.display = 'block';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Send reset link';
 }
 
 async function handleLogout() {
-  await db.auth.signOut();
-  localStorage.removeItem('cm_remember');
+  await sb.auth.signOut();
   currentClient = null;
   document.getElementById('dash').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('loginBtn').disabled = false;
-  document.getElementById('loginBtn').textContent = 'Sign in';
-  switchToSignin();
+  switchToLogin();
 }
 
-// ── SETTINGS ──────────────────────────────────────────────────────────────────
+// ── TERMS MODAL ──────────────────────────────────────────────────────────────
+function showTermsModal() {
+  document.getElementById('termsModal').classList.add('open');
+}
 
+function hideTermsModal() {
+  document.getElementById('termsModal').classList.remove('open');
+}
+
+async function acceptTerms() {
+  const btn = document.getElementById('acceptTermsBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  const now = new Date().toISOString();
+  const { error } = await sb
+    .from('clients')
+    .update({ terms_accepted: true, terms_accepted_at: now })
+    .eq('id', currentClient.id);
+
+  if (error) {
+    btn.disabled = false;
+    btn.textContent = 'I agree — continue to dashboard';
+    return;
+  }
+
+  currentClient.terms_accepted = true;
+  currentClient.terms_accepted_at = now;
+  hideTermsModal();
+}
+
+// ── LOAD DASHBOARD ───────────────────────────────────────────────────────────
+async function loadDashboard(user) {
+  const { data: clients, error } = await sb
+    .from('clients')
+    .select('*')
+    .eq('email', user.email)
+    .limit(1);
+
+  if (error || !clients || clients.length === 0) {
+    document.getElementById('errorMsg').textContent = 'No client record found. Contact hello@callmagnet.com.au';
+    document.getElementById('errorMsg').style.display = 'block';
+    return;
+  }
+
+  currentClient = clients[0];
+
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('dash').style.display = 'block';
+
+  // Check terms acceptance
+  if (!currentClient.terms_accepted) {
+    showTermsModal();
+  }
+
+  // Banners
+  if (currentClient.account_status === 'suspended') {
+    document.getElementById('suspensionBanner').classList.add('active');
+  }
+  if (currentClient.cancellation_scheduled) {
+    const endDate = new Date(currentClient.cancelled_at);
+    endDate.setDate(endDate.getDate() + 30);
+    document.getElementById('cancellationEndDate').textContent = endDate.toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
+    document.getElementById('cancellationBanner').classList.add('active');
+  }
+
+  // Business name
+  document.getElementById('bizNameLarge').textContent = currentClient.business_name;
+  document.title = currentClient.business_name + ' — CallMagnet';
+
+  // Birthday
+  if (currentClient.date_of_birth) {
+    const dob = new Date(currentClient.date_of_birth);
+    const today = new Date();
+    if (dob.getDate() === today.getDate() && dob.getMonth() === today.getMonth()) {
+      document.getElementById('birthdayBizName').textContent = currentClient.business_name;
+      document.getElementById('birthdayBanner').style.display = 'block';
+    }
+  }
+
+  // Renewal
+  if (currentClient.subscription_start) {
+    const start = new Date(currentClient.subscription_start);
+    const today = new Date();
+    const dayOfMonth = start.getDate();
+    let renewal = new Date(today.getFullYear(), today.getMonth(), dayOfMonth);
+    if (renewal <= today) renewal.setMonth(renewal.getMonth() + 1);
+    const days = Math.ceil((renewal - today) / 86400000);
+    document.getElementById('renewalValue').textContent = days === 1 ? 'Tomorrow' : days + ' days';
+  }
+
+  // Preferences
+  applyPreferences();
+  await loadStats();
+}
+
+// ── SETTINGS ─────────────────────────────────────────────────────────────────
 function toggleSettings() {
-  document.getElementById('settingsPanel').classList.toggle('open');
-  document.getElementById('settingsBtn').classList.toggle('active');
+  const panel = document.getElementById('settingsPanel');
+  const btn = document.getElementById('settingsBtn');
+  panel.classList.toggle('open');
+  btn.classList.toggle('active');
 }
 
-document.addEventListener('click', function(e) {
-  var p = document.getElementById('settingsPanel');
-  var b = document.getElementById('settingsBtn');
-  if (p && !p.contains(e.target) && !b.contains(e.target)) {
-    p.classList.remove('open');
-    b.classList.remove('active');
+document.addEventListener('click', (e) => {
+  const panel = document.getElementById('settingsPanel');
+  const btn = document.getElementById('settingsBtn');
+  if (panel && !panel.contains(e.target) && !btn.contains(e.target)) {
+    panel.classList.remove('open');
+    btn.classList.remove('active');
   }
 });
 
-async function setAccent(idx, accent, accentDim, accentContrast) {
-  document.documentElement.style.setProperty('--accent', accent);
-  document.documentElement.style.setProperty('--accent-dim', accentDim);
-  document.documentElement.style.setProperty('--accent-contrast', accentContrast);
-  var val = JSON.stringify({ idx: idx, accent: accent, accentDim: accentDim, accentContrast: accentContrast });
-  localStorage.setItem('cm_accent', val);
-  for (var i = 0; i < 10; i++) { var el = document.getElementById('acc-' + i); if (el) el.classList.toggle('selected', i === idx); }
-  if (currentClient) await db.from('clients').update({ accent_preference: val }).eq('id', currentClient.id);
+async function setAccent(idx, color, dimColor, contrast) {
+  document.querySelectorAll('[id^="acc-"]').forEach(el => el.classList.remove('selected'));
+  document.getElementById('acc-' + idx).classList.add('selected');
+  document.documentElement.style.setProperty('--accent', color);
+  document.documentElement.style.setProperty('--accent-dim', dimColor);
+  document.documentElement.style.setProperty('--accent-contrast', contrast);
+  if (currentClient) {
+    await sb.from('clients').update({ accent_preference: idx }).eq('id', currentClient.id);
+    currentClient.accent_preference = idx;
+  }
 }
 
 async function setBg(idx, bg, surface, surface2, border, text, muted, dim) {
+  document.querySelectorAll('[id^="bg-"]').forEach(el => el.classList.remove('selected'));
+  document.getElementById('bg-' + idx).classList.add('selected');
   document.documentElement.style.setProperty('--bg', bg);
   document.documentElement.style.setProperty('--surface', surface);
   document.documentElement.style.setProperty('--surface2', surface2);
@@ -554,478 +702,341 @@ async function setBg(idx, bg, surface, surface2, border, text, muted, dim) {
   document.documentElement.style.setProperty('--text', text);
   document.documentElement.style.setProperty('--muted', muted);
   document.documentElement.style.setProperty('--dim', dim);
-  var val = JSON.stringify({ idx: idx, bg: bg, surface: surface, surface2: surface2, border: border, text: text, muted: muted, dim: dim });
-  localStorage.setItem('cm_bg', val);
-  for (var i = 0; i < 7; i++) { var el = document.getElementById('bg-' + i); if (el) el.classList.toggle('selected', i === idx); }
-  if (currentClient) await db.from('clients').update({ bg_preference: val }).eq('id', currentClient.id);
+  if (currentClient) {
+    await sb.from('clients').update({ bg_preference: idx }).eq('id', currentClient.id);
+    currentClient.bg_preference = idx;
+  }
 }
 
-function applyTheme(aRaw, bRaw) {
-  try {
-    if (aRaw) {
-      var a = JSON.parse(aRaw);
-      document.documentElement.style.setProperty('--accent', a.accent);
-      document.documentElement.style.setProperty('--accent-dim', a.accentDim);
-      document.documentElement.style.setProperty('--accent-contrast', a.accentContrast || '#fff');
-      for (var i = 0; i < 10; i++) { var el = document.getElementById('acc-' + i); if (el) el.classList.toggle('selected', i === a.idx); }
-    }
-    if (bRaw) {
-      var b = JSON.parse(bRaw);
-      document.documentElement.style.setProperty('--bg', b.bg);
-      document.documentElement.style.setProperty('--surface', b.surface);
-      document.documentElement.style.setProperty('--surface2', b.surface2);
-      document.documentElement.style.setProperty('--border', b.border);
-      document.documentElement.style.setProperty('--text', b.text);
-      document.documentElement.style.setProperty('--muted', b.muted);
-      document.documentElement.style.setProperty('--dim', b.dim);
-      for (var i = 0; i < 7; i++) { var el = document.getElementById('bg-' + i); if (el) el.classList.toggle('selected', i === b.idx); }
-    }
-  } catch(e) {}
-}
+function applyPreferences() {
+  const accents = [
+    ['#191970','#19197022','#fff'],
+    ['#ffffff','#ffffff18','#0d0d0d'],
+    ['#111111','#11111122','#fff'],
+    ['#888888','#88888822','#fff'],
+    ['#e91e8c','#e91e8c22','#fff'],
+    ['#ff6b6b','#ff6b6b22','#fff'],
+    ['#f5a623','#f5a62322','#000'],
+    ['#ff4500','#ff450022','#fff'],
+    ['#3ecf8e','#3ecf8e22','#000'],
+    ['#7b2fff','#7b2fff22','#fff']
+  ];
+  const bgs = [
+    ['#FF5C00','#cc4900','#aa3d00','#ff7722','#fff5ee','#ffccaa','#ff9966'],
+    ['#A2A2A2','#b5b5b5','#c8c8c8','#8f8f8f','#111111','#333333','#555555'],
+    ['#2F2F68','#3d3d80','#4b4b99','#222255','#eeeeff','#aaaadd','#8888bb'],
+    ['#FAFFFA','#ffffff','#f0fff0','#e0ffe0','#111111','#444444','#777777'],
+    ['#80FFBF','#aaffdd','#ccffee','#55ddaa','#003322','#005533','#007744'],
+    ['#252525','#333333','#404040','#181818','#f0f0f0','#aaaaaa','#666666'],
+    ['#C11C84','#d42090','#e8249d','#a01870','#fff0f8','#ffaadd','#ff55bb']
+  ];
 
-function loadSavedTheme() {
-  applyTheme(localStorage.getItem('cm_accent'), localStorage.getItem('cm_bg'));
+  const ai = currentClient.accent_preference || 0;
+  const bi = currentClient.bg_preference || 0;
+
+  document.querySelectorAll('[id^="acc-"]').forEach(el => el.classList.remove('selected'));
+  document.getElementById('acc-' + ai)?.classList.add('selected');
+  document.documentElement.style.setProperty('--accent', accents[ai][0]);
+  document.documentElement.style.setProperty('--accent-dim', accents[ai][1]);
+  document.documentElement.style.setProperty('--accent-contrast', accents[ai][2]);
+
+  document.querySelectorAll('[id^="bg-"]').forEach(el => el.classList.remove('selected'));
+  document.getElementById('bg-' + bi)?.classList.add('selected');
+  document.documentElement.style.setProperty('--bg', bgs[bi][0]);
+  document.documentElement.style.setProperty('--surface', bgs[bi][1]);
+  document.documentElement.style.setProperty('--surface2', bgs[bi][2]);
+  document.documentElement.style.setProperty('--border', bgs[bi][3]);
+  document.documentElement.style.setProperty('--text', bgs[bi][4]);
+  document.documentElement.style.setProperty('--muted', bgs[bi][5]);
+  document.documentElement.style.setProperty('--dim', bgs[bi][6]);
 }
 </script>
 <script>
-// ── ODOMETER ──────────────────────────────────────────────────────────────────
-
-function updateSmsOdometer(count) {
-  var str = String(count).padStart(3, '0');
-  for (var i = 0; i < 3; i++) {
-    var cell = document.getElementById('odom-' + i);
-    if (!cell) continue;
-    var oldEl = cell.querySelector('.old');
-    var newEl = cell.querySelector('.new');
-    var newDigit = str[2 - i];
-    if (oldEl.textContent !== newDigit) {
-      newEl.textContent = newDigit;
-      cell.classList.add('rolling');
-      setTimeout((function(c, d) { return function() {
-        c.classList.remove('rolling');
-        c.querySelector('.old').textContent = d;
-        c.querySelector('.new').textContent = d;
-      }; })(cell, newDigit), 400);
-    }
-  }
-}
-
-function updateOverageOdometer(cycleSms) {
-  var limit = currentClient ? (currentClient.sms_included || 50) : 50;
-  var overage = Math.max(0, cycleSms - limit);
-  var overageCost = overage * 0.10;
-  var overageRow = document.getElementById('overageRow');
-  if (overage > 0) {
-    overageRow.style.display = 'flex';
-    var cents = Math.round(overageCost * 100);
-    var str = String(cents).padStart(4, '0');
-    for (var i = 0; i < 4; i++) {
-      var cell = document.getElementById('ov-' + i);
-      if (!cell) continue;
-      var oldEl = cell.querySelector('.old');
-      var newEl = cell.querySelector('.new');
-      var newDigit = str[3 - i];
-      if (oldEl.textContent !== newDigit) {
-        newEl.textContent = newDigit;
-        cell.classList.add('rolling');
-        setTimeout((function(c, d) { return function() {
-          c.classList.remove('rolling');
-          c.querySelector('.old').textContent = d;
-          c.querySelector('.new').textContent = d;
-        }; })(cell, newDigit), 400);
-      }
-    }
-  } else {
-    overageRow.style.display = 'none';
-  }
-}
-
-// ── DATE RANGE ────────────────────────────────────────────────────────────────
-
-function getDateRange() {
-  var userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  var now = new Date();
-  var start, end, label;
-  if (viewMode === 'week') {
-    var localDate = new Date(now.toLocaleString('en-US', { timeZone: userTZ }));
-    var day = localDate.getDay();
-    var mondayOffset = (day + 6) % 7;
-    var monday = new Date(now);
-    monday.setDate(now.getDate() - mondayOffset + (offset * 7));
+// ── DATE HELPERS ─────────────────────────────────────────────────────────────
+function getPeriodBounds(mode, offset) {
+  const now = new Date();
+  let start, end, label;
+  if (mode === 'week') {
+    const day = now.getDay();
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - ((day + 6) % 7) + (offset * 7));
     monday.setHours(0, 0, 0, 0);
-    var sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 7);
-    start = monday.toISOString();
-    end = sunday.toISOString();
-    var opts = { day: 'numeric', month: 'short', timeZone: userTZ };
-    var sundayDisplay = new Date(sunday.getTime() - 86400000);
-    label = monday.toLocaleDateString('en-AU', opts) + ' – ' + sundayDisplay.toLocaleDateString('en-AU', opts);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+    start = monday;
+    end = sunday;
+    const opts = { day: 'numeric', month: 'short' };
+    label = monday.toLocaleDateString('en-AU', opts) + ' — ' + sunday.toLocaleDateString('en-AU', opts);
   } else {
-    var localDate2 = new Date(now.toLocaleString('en-US', { timeZone: userTZ }));
-    var year = localDate2.getFullYear();
-    var month = localDate2.getMonth() + offset;
-    var firstDay = new Date(year, month, 1);
-    var lastDay = new Date(year, month + 1, 1);
-    start = firstDay.toISOString();
-    end = lastDay.toISOString();
-    label = firstDay.toLocaleString('en-AU', { month: 'long', year: 'numeric', timeZone: userTZ });
+    const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+    start = new Date(d.getFullYear(), d.getMonth(), 1);
+    start.setHours(0, 0, 0, 0);
+    end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+    end.setHours(23, 59, 59, 999);
+    label = d.toLocaleDateString('en-AU', { month: 'long', year: 'numeric' });
   }
-  return { start: start, end: end, label: label };
+  return { start, end, label };
 }
-
-// ── NAVIGATION ────────────────────────────────────────────────────────────────
 
 function setMode(mode) {
-  viewMode = mode; offset = 0;
+  currentMode = mode;
+  currentOffset = 0;
   document.getElementById('toggleWeek').classList.toggle('active', mode === 'week');
   document.getElementById('toggleMonth').classList.toggle('active', mode === 'month');
   document.getElementById('nextBtn').disabled = true;
-  loadData();
+  loadStats();
 }
 
 function navigate(dir) {
-  offset += dir;
-  document.getElementById('nextBtn').disabled = offset >= 0;
-  loadData();
+  currentOffset += dir;
+  document.getElementById('nextBtn').disabled = currentOffset >= 0;
+  loadStats();
 }
 
 async function handleRefresh() {
-  var btn = document.getElementById('refreshBtn');
-  var icon = document.getElementById('refreshIcon');
+  const btn = document.getElementById('refreshBtn');
+  const icon = document.getElementById('refreshIcon');
   btn.disabled = true;
   icon.classList.add('spinning');
-  await loadData();
-  setTimeout(function() { icon.classList.remove('spinning'); btn.disabled = false; }, 650);
+  await loadStats();
+  setTimeout(() => {
+    btn.disabled = false;
+    icon.classList.remove('spinning');
+  }, 600);
 }
 
-// ── RESET ─────────────────────────────────────────────────────────────────────
-
-function showResetModal() { document.getElementById('resetModal').classList.add('open'); }
-function closeResetModal() { document.getElementById('resetModal').classList.remove('open'); }
-
-async function confirmReset() {
+// ── LOAD STATS ───────────────────────────────────────────────────────────────
+async function loadStats() {
   if (!currentClient) return;
-  var resetDate = new Date().toISOString();
-  await db.from('clients').update({ reset_date: resetDate }).eq('id', currentClient.id);
-  currentClient.reset_date = resetDate;
-  closeResetModal();
-  loadData();
-}
+  const { start, end, label } = getPeriodBounds(currentMode, currentOffset);
+  document.getElementById('periodLabelText').textContent = label;
 
-// ── LOG BOOKING ───────────────────────────────────────────────────────────────
+  const clientId = currentClient.id;
+  const startIso = start.toISOString();
+  const endIso = end.toISOString();
 
-async function logBooking() {
-  if (!currentClient) return;
-  var btn = document.querySelector('.log-booking-btn');
-  var confirm = document.getElementById('logBookingConfirm');
-  btn.disabled = true;
-  btn.textContent = 'Logging...';
-  var { error } = await db.from('bookings').insert({
-    client_id: currentClient.id,
-    booked_at: new Date().toISOString(),
-    source: 'manual'
-  });
-  btn.disabled = false;
-  btn.textContent = '+ Log a booking';
-  if (!error) {
-    confirm.style.display = 'flex';
-    setTimeout(function() { confirm.style.display = 'none'; }, 3000);
-    loadData();
+  // Reset date override
+  let effectiveStart = startIso;
+  if (currentClient.reset_date) {
+    const rd = new Date(currentClient.reset_date);
+    if (rd > start) effectiveStart = rd.toISOString();
   }
-}
 
-// ── RENEWAL ───────────────────────────────────────────────────────────────────
+  // Fetch all data in parallel
+  const [smsRes, clickRes, bookRes, monthSmsRes] = await Promise.all([
+    sb.from('sms_events').select('id', { count: 'exact' })
+      .eq('client_id', clientId)
+      .gte('created_at', effectiveStart)
+      .lte('created_at', endIso),
+    sb.from('link_clicks').select('id', { count: 'exact' })
+      .eq('client_id', clientId)
+      .gte('created_at', effectiveStart)
+      .lte('created_at', endIso),
+    sb.from('bookings').select('id', { count: 'exact' })
+      .eq('client_id', clientId)
+      .gte('created_at', effectiveStart)
+      .lte('created_at', endIso),
+    sb.from('sms_events').select('id', { count: 'exact' })
+      .eq('client_id', clientId)
+      .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
+  ]);
 
-async function updateCountdown() {
-  if (!currentClient || !currentClient.subscription_start) return;
-  var subStart = new Date(currentClient.subscription_start);
-  var now = new Date();
-  var totalDays = Math.floor((now - subStart) / 86400000);
-  var cycleDay = totalDays % 30;
-  var daysLeft = 30 - cycleDay;
-  var content = document.getElementById('renewalContent');
-  var showThanks = false;
-  if (currentClient.last_renewal_date) {
-    var lastRenewal = new Date(currentClient.last_renewal_date);
-    var hoursSince = (now - lastRenewal) / 3600000;
-    if (hoursSince < 24) showThanks = true;
-  }
-  if (cycleDay === 0 && totalDays > 0 && !showThanks) {
-    var cycleStartTime = new Date(now);
-    cycleStartTime.setHours(0, 0, 0, 0);
-    var lastRenewalDate = currentClient.last_renewal_date ? new Date(currentClient.last_renewal_date) : null;
-    if (!lastRenewalDate || lastRenewalDate < cycleStartTime) {
-      await db.from('clients').update({ last_renewal_date: now.toISOString() }).eq('id', currentClient.id);
-      currentClient.last_renewal_date = now.toISOString();
-      showThanks = true;
-    }
-  }
-  if (showThanks) {
-    content.innerHTML = '<div class="renewal-thanks">Thank you for your payment, ' + (currentClient.business_name || '') + '!</div>';
-  } else {
-    content.innerHTML = '<div class="renewal-label">Renewal in</div><div class="renewal-value">' + daysLeft + ' day' + (daysLeft !== 1 ? 's' : '') + '</div>';
-  }
-}
+  const smsCount = smsRes.count || 0;
+  const clickCount = clickRes.count || 0;
+  const bookCount = bookRes.count || 0;
+  const monthSms = monthSmsRes.count || 0;
 
-// ── BIRTHDAY ──────────────────────────────────────────────────────────────────
-
-function checkBirthday() {
-  if (!currentClient || !currentClient.date_of_birth) return;
-  var userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  var now = new Date();
-  var todayDay = now.toLocaleDateString('en-AU', { timeZone: userTZ, day: '2-digit' });
-  var todayMonth = now.toLocaleDateString('en-AU', { timeZone: userTZ, month: '2-digit' });
-  var dob = new Date(currentClient.date_of_birth);
-  var dobDay = String(dob.getUTCDate()).padStart(2, '0');
-  var dobMonth = String(dob.getUTCMonth() + 1).padStart(2, '0');
-  var banner = document.getElementById('birthdayBanner');
-  var bizName = document.getElementById('birthdayBizName');
-  if (todayDay === dobDay && todayMonth === dobMonth) {
-    bizName.textContent = currentClient.business_name || '';
-    banner.style.display = 'block';
-  } else {
-    banner.style.display = 'none';
-  }
-}
-
-// ── SUSPENSION ────────────────────────────────────────────────────────────────
-
-function checkSuspension() {
-  var banner = document.getElementById('suspensionBanner');
-  if (currentClient && currentClient.account_status === 'suspended') {
-    banner.classList.add('active');
-  } else {
-    banner.classList.remove('active');
-  }
-}
-
-// ── CANCELLATION ──────────────────────────────────────────────────────────────
-
-function checkCancellation() {
-  var banner = document.getElementById('cancellationBanner');
-  var endDateEl = document.getElementById('cancellationEndDate');
-  if (currentClient && currentClient.cancellation_scheduled) {
-    var cancelledAt = new Date(currentClient.cancelled_at);
-    var accessEnd = new Date(cancelledAt.getTime() + 30 * 86400000);
-    var userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    endDateEl.textContent = accessEnd.toLocaleDateString('en-AU', {
-      day: 'numeric', month: 'long', year: 'numeric', timeZone: userTZ
-    });
-    banner.classList.add('active');
-  } else {
-    banner.classList.remove('active');
-  }
-}
-
-// ── LOAD DASHBOARD ────────────────────────────────────────────────────────────
-
-async function loadDashboard(user) {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('forgotScreen').classList.remove('active');
-  document.getElementById('dash').style.display = 'block';
-  var res = await db.from('clients').select('*').eq('email', user.email).single();
-  currentClient = res.data;
-  document.getElementById('bizNameLarge').textContent = currentClient ? currentClient.business_name : user.email;
-  if (currentClient) {
-    if (currentClient.accent_preference || currentClient.bg_preference) {
-      applyTheme(currentClient.accent_preference, currentClient.bg_preference);
-    }
-    checkSuspension();
-    checkCancellation();
-    checkBirthday();
-    await updateCountdown();
-    loadData();
-  } else {
-    showDemoState();
-  }
-}
-
-// ── LOAD DATA ─────────────────────────────────────────────────────────────────
-
-async function loadData() {
-  if (!currentClient) return;
-  var range = getDateRange();
-  document.getElementById('periodLabelText').textContent = range.label;
-  var resetDate = currentClient.reset_date || null;
-  var effectiveStart = resetDate && resetDate > range.start ? resetDate : range.start;
-
-  var smsRes = await db.from('sms_events').select('*')
-    .eq('client_id', currentClient.id)
-    .gte('received_at', effectiveStart)
-    .lt('received_at', range.end)
-    .order('received_at', { ascending: false });
-
-  var bookRes = await db.from('bookings').select('*')
-    .eq('client_id', currentClient.id)
-    .gte('booked_at', effectiveStart)
-    .lt('booked_at', range.end)
-    .order('booked_at', { ascending: false });
-
-  var clickRes = await db.from('link_clicks').select('*')
-    .eq('client_id', currentClient.id)
-    .gte('clicked_at', effectiveStart)
-    .lt('clicked_at', range.end)
-    .order('clicked_at', { ascending: false });
-
-  var subStart = currentClient.subscription_start ? new Date(currentClient.subscription_start) : new Date();
-  var now = new Date();
-  var totalDays = Math.floor((now - subStart) / 86400000);
-  var cycleDay = totalDays % 30;
-  var cycleStart = new Date(now.getTime() - cycleDay * 86400000);
-  cycleStart.setHours(0, 0, 0, 0);
-  var cycleRes = await db.from('sms_events').select('id')
-    .eq('client_id', currentClient.id)
-    .gte('received_at', cycleStart.toISOString());
-  var cycleSms = cycleRes.data ? cycleRes.data.length : 0;
-  updateSmsOdometer(cycleSms);
-  updateOverageOdometer(cycleSms);
-
-  var smsData = smsRes.data || [];
-  var bookData = bookRes.data || [];
-  var clickData = clickRes.data || [];
-
-  var smsCount = smsData.length;
-  var bookCount = bookData.length;
-  var clickCount = clickData.length;
-  var avgJob = currentClient.avg_job_value || 0;
-
-  var conversionRate = (clickCount > 0 && bookCount > 0)
-    ? bookCount / clickCount
-    : 0.7;
-
-  var recovered = clickCount > 0
-    ? Math.round(clickCount * avgJob * conversionRate)
-    : bookCount * avgJob;
-
-  var smsClickRate = smsCount > 0 ? Math.round((clickCount / smsCount) * 100) : 0;
-
+  // Update metric cards
   document.getElementById('smsCount').textContent = smsCount;
   document.getElementById('clickCount').textContent = clickCount;
   document.getElementById('bookingCount').textContent = bookCount;
-  document.getElementById('convRate').textContent = smsClickRate + '%';
-  document.getElementById('heroValue').textContent = '$' + recovered.toLocaleString();
 
-  var convPct = Math.round(conversionRate * 100);
+  // Conversion rate — SMS → click
+  const conv = smsCount > 0 ? Math.round((clickCount / smsCount) * 100) : 0;
+  document.getElementById('convRate').textContent = conv + '%';
+
+  // Revenue calc
+  const avgJob = currentClient.avg_job_value || 0;
+  let revenue = 0;
+  let heroSub = '';
   if (clickCount > 0 && bookCount > 0) {
-    document.getElementById('heroSub').textContent = clickCount + ' clicks × $' + avgJob.toLocaleString() + ' avg job × ' + convPct + '% real conversion';
+    const realConv = bookCount / clickCount;
+    revenue = Math.round(clickCount * avgJob * realConv);
+    heroSub = 'Real conversion rate: ' + Math.round(realConv * 100) + '%';
   } else if (clickCount > 0) {
-    document.getElementById('heroSub').textContent = clickCount + ' clicks × $' + avgJob.toLocaleString() + ' avg job × 70% estimated conversion';
+    revenue = Math.round(clickCount * avgJob * 0.7);
+    heroSub = 'Estimated conversion (70%)';
+  } else if (bookCount > 0) {
+    revenue = Math.round(bookCount * avgJob);
+    heroSub = bookCount + ' bookings × $' + avgJob + ' avg';
+  } else if (smsCount > 0) {
+    revenue = Math.round(smsCount * avgJob * 0.3);
+    heroSub = 'Estimated at 30% SMS conversion';
+  }
+  document.getElementById('heroValue').textContent = '$' + revenue.toLocaleString();
+  document.getElementById('heroSub').textContent = heroSub;
+
+  // Demo banner
+  document.getElementById('demoBanner').style.display = smsCount === 0 ? 'block' : 'none';
+
+  // Monthly SMS odometer + overage
+  updateOdometer(monthSms);
+  document.getElementById('callCountBadge').textContent = monthSms + ' calls';
+  const smsIncluded = currentClient.sms_included || 50;
+  const overage = Math.max(0, monthSms - smsIncluded);
+  const overageCost = (overage * 0.10).toFixed(2).replace('.', '').padStart(4, '0');
+  if (overage > 0) {
+    document.getElementById('overageRow').style.display = 'flex';
+    updateOdometerCells(['ov-3','ov-2','ov-1','ov-0'], overageCost);
   } else {
-    document.getElementById('heroSub').textContent = bookCount + ' bookings × $' + avgJob.toLocaleString() + ' avg job';
+    document.getElementById('overageRow').style.display = 'none';
   }
 
-  document.getElementById('demoBanner').style.display = (smsCount === 0 && bookCount === 0 && clickCount === 0) ? 'block' : 'none';
-  document.getElementById('callCountBadge').textContent = smsCount + ' call' + (smsCount !== 1 ? 's' : '');
-
-  renderActivity(smsData, bookData, clickData);
-  await updateCountdown();
-  checkSuspension();
-  checkCancellation();
-  checkBirthday();
+  // Activity feed
+  await loadActivity(clientId, effectiveStart, endIso);
 }
 
-// ── ACTIVITY ──────────────────────────────────────────────────────────────────
+// ── ODOMETER ─────────────────────────────────────────────────────────────────
+function updateOdometer(count) {
+  const str = String(count).padStart(3, '0');
+  ['odom-2','odom-1','odom-0'].forEach((id, i) => {
+    const cell = document.getElementById(id);
+    const newDigit = str[i];
+    const oldSpan = cell.querySelector('.old');
+    const newSpan = cell.querySelector('.new');
+    if (oldSpan.textContent !== newDigit) {
+      newSpan.textContent = newDigit;
+      cell.classList.add('rolling');
+      setTimeout(() => {
+        oldSpan.textContent = newDigit;
+        cell.classList.remove('rolling');
+      }, 350);
+    }
+  });
+}
 
-function renderActivity(smsData, bookData, clickData) {
-  var card = document.getElementById('activityCard');
-  var allActivity = [];
-  smsData.forEach(function(e) { allActivity.push({ type: 'sms', time: e.received_at, number: e.customer_number }); });
-  bookData.forEach(function(b) { allActivity.push({ type: 'book', time: b.booked_at, name: b.customer_name, amount: b.deposit_amount, source: b.source }); });
-  clickData.forEach(function(c) { allActivity.push({ type: 'click', time: c.clicked_at, day: c.day_of_week, clickedTime: c.clicked_time }); });
-  allActivity.sort(function(a, b) { return new Date(b.time) - new Date(a.time); });
+function updateOdometerCells(ids, str) {
+  ids.forEach((id, i) => {
+    const cell = document.getElementById(id);
+    if (!cell) return;
+    const newDigit = str[i] || '0';
+    const oldSpan = cell.querySelector('.old');
+    const newSpan = cell.querySelector('.new');
+    if (oldSpan && newSpan && oldSpan.textContent !== newDigit) {
+      newSpan.textContent = newDigit;
+      cell.classList.add('rolling');
+      setTimeout(() => {
+        oldSpan.textContent = newDigit;
+        cell.classList.remove('rolling');
+      }, 350);
+    }
+  });
+}
 
-  if (allActivity.length === 0) {
+// ── ACTIVITY FEED ────────────────────────────────────────────────────────────
+async function loadActivity(clientId, startIso, endIso) {
+  const card = document.getElementById('activityCard');
+
+  const [smsRes, clickRes, bookRes] = await Promise.all([
+    sb.from('sms_events').select('customer_number,created_at').eq('client_id', clientId).gte('created_at', startIso).lte('created_at', endIso).order('created_at', { ascending: false }).limit(30),
+    sb.from('link_clicks').select('customer_number,created_at').eq('client_id', clientId).gte('created_at', startIso).lte('created_at', endIso).order('created_at', { ascending: false }).limit(30),
+    sb.from('bookings').select('id,created_at,source').eq('client_id', clientId).gte('created_at', startIso).lte('created_at', endIso).order('created_at', { ascending: false }).limit(30)
+  ]);
+
+  const events = [];
+
+  (smsRes.data || []).forEach(e => events.push({ type: 'sms', number: e.customer_number, time: new Date(e.created_at) }));
+  (clickRes.data || []).forEach(e => events.push({ type: 'click', number: e.customer_number, time: new Date(e.created_at) }));
+  (bookRes.data || []).forEach(e => events.push({ type: 'book', number: e.id, time: new Date(e.created_at), source: e.source }));
+
+  events.sort((a, b) => b.time - a.time);
+
+  if (events.length === 0) {
     card.innerHTML = '<div class="empty-state">No activity this period.</div>';
     return;
   }
 
-  var rows = allActivity.slice(0, 50).map(function(item) {
-    var timeStr = formatTime(item.time);
-    if (item.type === 'sms') {
-      return '<div class="activity-row"><div><div class="activity-number">' + maskNumber(item.number || 'Unknown') + '</div><div class="activity-time">' + timeStr + '</div></div><span class="status-pill">SMS sent</span></div>';
-    } else if (item.type === 'book') {
-      var label = item.source === 'manual' ? 'Booking logged manually' : 'Booking confirmed' + (item.name ? ' — ' + item.name : '');
-      return '<div class="activity-row"><div><div class="activity-number">' + label + '</div><div class="activity-time">' + timeStr + (item.amount ? ' · $' + item.amount + ' deposit' : '') + '</div></div><span class="status-pill pill-book">BOOKED</span></div>';
-    } else {
-      return '<div class="activity-row"><div><div class="activity-number">Booking link tapped</div><div class="activity-time">' + (item.day || '') + (item.clickedTime ? ' · ' + item.clickedTime : '') + ' · ' + timeStr + '</div></div><span class="status-pill pill-click">CLICK</span></div>';
-    }
-  }).join('');
+  const latest = events[0];
+  const latestLabel = latest.type === 'sms' ? 'SMS sent to ' + maskNumber(latest.number) :
+    latest.type === 'click' ? 'Link tapped by ' + maskNumber(latest.number) : 'Booking logged';
+  const latestTime = latest.time.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }) + ' · ' + latest.time.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
 
-  var total = smsData.length + bookData.length + clickData.length;
-  card.innerHTML = '<div class="activity-summary" onclick="toggleDropdown()"><div class="activity-summary-left"><div class="dot"></div><div><div class="activity-summary-text">' + total + ' event' + (total !== 1 ? 's' : '') + ' this period</div><div class="activity-summary-sub">Tap to see details</div></div></div><span class="expand-icon" id="expandIcon">▼</span></div><div class="activity-dropdown" id="activityDropdown">' + rows + '</div>';
+  let rows = '';
+  events.slice(0, 20).forEach(e => {
+    const pill = e.type === 'sms' ? '<span class="status-pill">SMS</span>' :
+      e.type === 'click' ? '<span class="status-pill pill-click">CLICK</span>' :
+      '<span class="status-pill pill-book">BOOKED</span>';
+    const label = e.type === 'book'
+      ? (e.source === 'manual' ? 'Booking logged manually' : 'Booking confirmed')
+      : maskNumber(e.number);
+    const timeStr = e.time.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }) + ' · ' + e.time.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+    rows += `<div class="activity-row"><div><div class="activity-number">${label}</div><div class="activity-time">${timeStr}</div></div>${pill}</div>`;
+  });
+
+  card.innerHTML = `
+    <div class="activity-summary" onclick="toggleActivity()">
+      <div class="activity-summary-left">
+        <div class="dot"></div>
+        <div>
+          <div class="activity-summary-text">${latestLabel}</div>
+          <div class="activity-summary-sub">${latestTime}</div>
+        </div>
+      </div>
+      <div class="expand-icon" id="expandIcon">▾</div>
+    </div>
+    <div class="activity-dropdown" id="activityDropdown">${rows}</div>
+  `;
 }
 
-function toggleDropdown() {
-  document.getElementById('activityDropdown').classList.toggle('open');
-  document.getElementById('expandIcon').classList.toggle('open');
-}
-
-function showDemoState() {
-  document.getElementById('demoBanner').style.display = 'block';
-  document.getElementById('activityCard').innerHTML = '<div class="empty-state">No client record found. Contact CallMagnet support at hello@callmagnet.com.au</div>';
+function toggleActivity() {
+  document.getElementById('activityDropdown')?.classList.toggle('open');
+  document.getElementById('expandIcon')?.classList.toggle('open');
 }
 
 function maskNumber(num) {
-  if (!num || num.length < 6) return num;
-  return num.slice(0, 4) + ' *** ' + num.slice(-3);
+  if (!num) return 'Unknown';
+  const s = String(num).replace(/\D/g, '');
+  if (s.length >= 6) return s.slice(0, 4) + ' *** ' + s.slice(-3);
+  return '***';
 }
 
-function formatTime(iso) {
-  if (!iso) return '';
-  var userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  var d = new Date(iso);
-  var now = new Date();
-  var todayStr = now.toLocaleDateString('en-AU', { timeZone: userTZ });
-  var dateStr = d.toLocaleDateString('en-AU', { timeZone: userTZ });
-  var yesterdayDate = new Date(now);
-  yesterdayDate.setDate(now.getDate() - 1);
-  var yesterdayStr = yesterdayDate.toLocaleDateString('en-AU', { timeZone: userTZ });
-  var time = d.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: userTZ });
-  if (dateStr === todayStr) return 'Today ' + time;
-  if (dateStr === yesterdayStr) return 'Yesterday ' + time;
-  return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', timeZone: userTZ }) + ' ' + time;
+// ── LOG BOOKING ───────────────────────────────────────────────────────────────
+async function logBooking() {
+  if (!currentClient) return;
+  await sb.from('bookings').insert({ client_id: currentClient.id, source: 'manual' });
+  const confirm = document.getElementById('logBookingConfirm');
+  confirm.style.display = 'flex';
+  setTimeout(() => confirm.style.display = 'none', 2500);
+  await loadStats();
 }
-</script>
-<script>
+
+// ── RESET COUNTER ────────────────────────────────────────────────────────────
+function showResetModal() { document.getElementById('resetModal').classList.add('open'); }
+function closeResetModal() { document.getElementById('resetModal').classList.remove('open'); }
+async function confirmReset() {
+  if (!currentClient) return;
+  const now = new Date().toISOString();
+  await sb.from('clients').update({ reset_date: now }).eq('id', currentClient.id);
+  currentClient.reset_date = now;
+  closeResetModal();
+  await loadStats();
+}
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  document.getElementById('passwordInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleAuth();
+  });
+  document.getElementById('emailInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleAuth();
+  });
 
-setInterval(function() { if (currentClient) loadData(); }, 30000);
-
-window.addEventListener('load', async function() {
-  loadSavedTheme();
-  var sessionRes = await db.auth.getSession();
-  if (sessionRes.data.session && localStorage.getItem('cm_remember')) {
-    await loadDashboard(sessionRes.data.session.user);
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user) {
+    await loadDashboard(session.user);
   }
 });
-
-document.getElementById('passwordInput').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') handleAuth();
-});
-
-document.getElementById('resetEmailInput').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') handleReset();
-});
-
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').then(function(reg) {
-    reg.addEventListener('updatefound', function() {
-      var newWorker = reg.installing;
-      newWorker.addEventListener('statechange', function() {
-        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          var banner = document.createElement('div');
-          banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:var(--accent);color:var(--accent-contrast);text-align:center;padding:14px;font-family:var(--mono);font-size:13px;font-weight:700;z-index:999;cursor:pointer;letter-spacing:0.05em;';
-          banner.textContent = 'Update available — tap to refresh';
-          banner.onclick = function() {
-            newWorker.postMessage('skipWaiting');
-            window.location.reload();
-          };
-          document.body.appendChild(banner);
-        }
-      });
-    });
-  });
-}
 </script>
 </body>
 </html>
