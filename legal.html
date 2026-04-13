@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Legal — CallMagnet</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;700&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0d0d0d;
+  --surface: #161616;
+  --border: #2a2a2a;
+  --text: #f0f0f0;
+  --muted: #888;
+  --dim: #555;
+  --accent: #191970;
+  --mono: 'DM Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+}
+body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 15px; line-height: 1.7; padding: 0; margin: 0; }
+.topbar { background: var(--bg); border-bottom: 1px solid var(--border); padding: 1rem 2rem; position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; }
+.topbar-logo { font-family: var(--mono); font-size: 18px; letter-spacing: 0.15em; color: var(--accent); text-transform: uppercase; font-weight: 700; text-decoration: none; }
+.topbar-back { font-family: var(--mono); font-size: 12px; color: var(--accent); text-decoration: none; letter-spacing: 0.05em; font-weight: 700; }
+.topbar-back:hover { opacity: 0.7; }
+.container { max-width: 780px; margin: 0 auto; padding: 3rem 2rem 6rem 2rem; }
+.toc { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem 2rem; margin-bottom: 3rem; }
+.toc-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 1rem; font-weight: 700; }
+.toc a { display: block; color: var(--accent); text-decoration: none; font-size: 14px; font-family: var(--mono); padding: 3px 0; font-weight: 700; letter-spacing: 0.03em; }
+.toc a:hover { opacity: 0.7; }
+.toc-divider { height: 1px; background: var(--border); margin: 0.75rem 0; }
+h1 { font-size: 32px; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; margin-bottom: 0.5rem; margin-top: 3rem; }
+h1:first-of-type { margin-top: 0; }
+h2 { font-size: 20px; font-weight: 700; color: var(--accent); margin-top: 2.5rem; margin-bottom: 0.75rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+h3 { font-size: 16px; font-weight: 700; color: #c8d8f0; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+p { margin-bottom: 1rem; color: var(--text); }
+ul { padding-left: 1.5rem; margin-bottom: 1rem; }
+li { margin-bottom: 0.4rem; color: var(--text); }
+li strong { color: #c8d8f0; }
+.meta { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-bottom: 0.25rem; letter-spacing: 0.03em; }
+.section-divider { border: none; border-top: 2px solid var(--accent); margin: 4rem 0; opacity: 0.3; }
+.info-box { background: #0d1b3a; border: 1px solid var(--accent); border-radius: 6px; padding: 1rem 1.25rem; margin: 1.5rem 0; }
+.info-box p { color: #a8c0e8; font-size: 14px; margin-bottom: 0; }
+.warning-box { background: #1a1200; border: 1px solid #f5a623; border-radius: 6px; padding: 1rem 1.25rem; margin: 1.5rem 0; }
+.warning-box p { color: #f5c842; font-size: 14px; margin-bottom: 0; }
+.effective-date { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+.footer { text-align: center; margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border); font-family: var(--mono); font-size: 12px; color: var(--dim); letter-spacing: 0.05em; }
+@media (max-width: 600px) {
+  .container { padding: 2rem 1.25rem 4rem 1.25rem; }
+  h1 { font-size: 26px; }
+  .topbar { padding: 1rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="topbar-logo" href="/">★ CallMagnet</a>
+  <a class="topbar-back" href="/">← Back to dashboard</a>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <div class="toc-title">Contents</div>
+    <a href="#terms">Terms of Service</a>
+    <a href="#t1">1. About These Terms</a>
+    <a href="#t2">2. What the Service Does</a>
+    <a href="#t3">3. Eligibility</a>
+    <a href="#t4">4. Your Account</a>
+    <a href="#t5">5. Fees and Billing</a>
+    <a href="#t6">6. Cancellation</a>
+    <a href="#t7">7. Acceptable Use</a>
+    <a href="#t8">8. SMS Compliance</a>
+    <a href="#t9">9. Data and Privacy</a>
+    <a href="#t10">10. Intellectual Property</a>
+    <a href="#t11">11. Data Ownership — Aggregated Data</a>
+    <a href="#t12">12. Limitation of Liability</a>
+    <a href="#t13">13. Termination</a>
+    <a href="#t14">14. Changes to the Service</a>
+    <a href="#t15">15. Contact</a>
+    <div class="toc-divider"></div>
+    <a href="#privacy">Privacy Policy</a>
+    <a href="#p1">1. Our Commitment</a>
+    <a href="#p2">2. What Information We Collect</a>
+    <a href="#p3">3. Why We Collect This Information</a>
+    <a href="#p4">4. How We Store and Protect Information</a>
+    <a href="#p5">5. How Long We Retain Information</a>
+    <a href="#p6">6. Disclosure of Information</a>
+    <a href="#p7">7. Your Rights</a>
+    <a href="#p8">8. Caller Rights</a>
+    <a href="#p9">9. Complaints</a>
+    <a href="#p10">10. Changes to This Policy</a>
+    <a href="#p11">11. Contact</a>
+  </div>
+
+  <h1 id="terms">Terms of Service</h1>
+  <div class="effective-date">
+    <span>Effective: April 2026</span> &nbsp;·&nbsp;
+    <span>Operator: CallMagnet</span> &nbsp;·&nbsp;
+    <span>Contact: hello@callmagnet.com.au</span>
+  </div>
+
+  <h2 id="t1">1. About These Terms</h2>
+  <p>These Terms of Service ("Terms") govern your access to and use of the CallMagnet service ("Service"), operated by CallMagnet and accessible at callmagnet.com.au.</p>
+  <p>By signing up for, paying for, or using the Service, you agree to these Terms. If you do not agree, do not use the Service.</p>
+  <p>These Terms are governed by the laws of Victoria, Australia. Any disputes will be subject to the exclusive jurisdiction of the courts of Victoria.</p>
+
+  <h2 id="t2">2. What the Service Does</h2>
+  <p>CallMagnet is a missed call recovery service for Australian small businesses. When a call to your registered business number goes unanswered, the Service automatically sends an SMS to the caller containing a link to your online booking page.</p>
+  <p>The Service includes:</p>
+  <ul>
+    <li><strong>Automatic SMS dispatch</strong> — sent to callers who do not connect when calling your registered business number</li>
+    <li><strong>Client dashboard</strong> — accessible at callmagnet.com.au, showing SMS events, link clicks, bookings logged, and estimated revenue recovered</li>
+    <li><strong>Booking link tracking</strong> — recording whether callers tapped the booking link in the SMS</li>
+    <li><strong>Billing management</strong> — automated monthly subscription billing via Stripe</li>
+  </ul>
+
+  <h2 id="t3">3. Eligibility</h2>
+  <p>The Service is available to Australian businesses only. By signing up you confirm that you are operating a legitimate business in Australia, you are authorised to enter into these Terms on behalf of that business, the business number you register is a number used for your business, and you are 18 years of age or older.</p>
+
+  <h2 id="t4">4. Your Account</h2>
+  <p>You are responsible for maintaining the confidentiality of your login credentials and for all activity that occurs under your account. You must notify us immediately at hello@callmagnet.com.au if you suspect unauthorised access. You must provide accurate and complete information when creating your account and keep it up to date.</p>
+
+  <h2 id="t5">5. Fees and Billing</h2>
+  <h3>5.1 Pricing</h3>
+  <ul>
+    <li><strong>Setup fee:</strong> $249 AUD (one-time, non-refundable)</li>
+    <li><strong>Bronze plan:</strong> $99 AUD per month, including 50 SMS per billing cycle</li>
+    <li><strong>SMS overage:</strong> $0.10 AUD per SMS sent in excess of the included 50 per billing cycle</li>
+  </ul>
+  <h3>5.2 Billing cycle</h3>
+  <p>Your billing cycle commences on the date your subscription begins. Billing is monthly and recurring. All prices are in Australian dollars and include GST where applicable.</p>
+  <h3>5.3 Payment</h3>
+  <p>Payment is processed by Stripe. By providing your payment details you authorise CallMagnet to charge your nominated payment method on a recurring monthly basis.</p>
+  <h3>5.4 Failed payments</h3>
+  <p>If a payment fails your account will be suspended. Access is automatically restored when payment is successfully processed.</p>
+  <h3>5.5 Price changes</h3>
+  <p>We reserve the right to change our pricing with 30 days written notice to your registered email address.</p>
+
+  <h2 id="t6">6. Cancellation</h2>
+  <h3>6.1 How to cancel</h3>
+  <p>You may cancel your subscription at any time by contacting us at hello@callmagnet.com.au. Cancellation requests will be processed within 2 business days.</p>
+  <h3>6.2 Access after cancellation</h3>
+  <p>Following cancellation, you will retain access to the Service for the remainder of your current paid billing period, up to a maximum of 30 days from the date of cancellation. No refund is provided for the unused portion of your billing period.</p>
+  <h3>6.3 Data after cancellation</h3>
+  <p>Your data is retained for 3 years following account cancellation, after which it is permanently deleted. You may request earlier deletion by contacting hello@callmagnet.com.au.</p>
+
+  <h2 id="t7">7. Acceptable Use</h2>
+  <p>You agree to use the Service only for lawful purposes. You must not use the Service to send SMS messages for any purpose other than responding to genuine missed calls, register a number that does not belong to your business, use the Service to harass or harm any person, attempt to reverse engineer any part of the Service, or use the Service in any way that violates Australian law including the Spam Act 2003, the Privacy Act 1988, or the Australian Consumer Law.</p>
+
+  <h2 id="t8">8. SMS Compliance</h2>
+  <h3>8.1 Nature of the SMS</h3>
+  <p>The SMS sent by CallMagnet is a service notification sent in direct response to an initiated contact — a caller who dialled your registered business number and did not connect. CallMagnet operates on the basis that this constitutes a transactional or service-related message responding to an existing commercial relationship or initiated contact.</p>
+  <h3>8.2 Your responsibilities</h3>
+  <p>As a subscriber, you are the sender of record for the SMS messages sent to your missed callers. You are responsible for ensuring the booking link in the SMS is accurate, the SMS content is not false or misleading, and you respond promptly to any unsubscribe requests.</p>
+  <h3>8.3 Unsubscribe</h3>
+  <p>Callers who do not wish to receive further SMS messages may reply STOP. You are responsible for actioning any such requests within 5 business days in accordance with the Spam Act 2003.</p>
+  <div class="info-box">
+    <p>The missed call SMS is positioned as a service notification responding to an initiated contact rather than a commercial marketing message. This is the strongest available compliance position under the Spam Act 2003. We recommend you obtain independent legal advice from a telecommunications lawyer before scaling the Service.</p>
+  </div>
+
+  <h2 id="t9">9. Data and Privacy</h2>
+  <p>Your use of the Service is also governed by our Privacy Policy below. Anonymised and aggregated data generated by your use of the Service may be used by CallMagnet for industry analysis and reporting purposes. Individual client data is never sold to third parties.</p>
+
+  <h2 id="t10">10. Intellectual Property</h2>
+  <p>CallMagnet owns all intellectual property rights in the Service including the software, dashboard, data models, and any aggregated or anonymised datasets derived from the Service. You retain ownership of your business information. You grant CallMagnet a limited licence to use your business information solely to provide the Service.</p>
+
+  <h2 id="t11">11. Data Ownership — Aggregated Data</h2>
+  <p>When you use the Service, your usage contributes to an anonymised aggregate dataset capturing patterns such as missed call frequency, time of day, day of week, click-through rates, and conversion rates across the CallMagnet client network.</p>
+  <p>Individual data about your callers is private and protected. Anonymised and aggregated data — from which no individual business or caller can be identified — is owned by CallMagnet. CallMagnet may use, publish, license, or commercialise anonymised aggregate data for industry intelligence purposes. No individual caller data, no individual business data, and no identifying information will ever be included in any licensed or published dataset.</p>
+
+  <h2 id="t12">12. Limitation of Liability</h2>
+  <p>To the maximum extent permitted by Australian law, CallMagnet is not liable for any missed bookings, lost revenue, or business losses arising from the use or non-use of the Service. CallMagnet's total liability for any claim is limited to the fees paid in the 3 months preceding the claim.</p>
+  <p>Nothing in these Terms excludes any consumer guarantee, right, or remedy that cannot be excluded under the Australian Consumer Law.</p>
+
+  <h2 id="t13">13. Termination</h2>
+  <p>We may suspend or terminate your access immediately if you breach these Terms, we reasonably believe your use violates Australian law, or you fail to pay fees and payment is not recovered within 30 days.</p>
+
+  <h2 id="t14">14. Changes to the Service</h2>
+  <p>We reserve the right to modify any part of the Service with 30 days notice. We will not make changes that materially reduce core functionality without providing a pro-rata refund for the affected period.</p>
+
+  <h2 id="t15">15. Contact</h2>
+  <p>For any questions about these Terms, contact us at <a href="mailto:hello@callmagnet.com.au" style="color: var(--accent);">hello@callmagnet.com.au</a>.</p>
+
+  <hr class="section-divider">
+
+  <h1 id="privacy">Privacy Policy</h1>
+  <div class="effective-date">
+    <span>Effective: April 2026</span> &nbsp;·&nbsp;
+    <span>Operator: CallMagnet</span> &nbsp;·&nbsp;
+    <span>Contact: hello@callmagnet.com.au</span>
+  </div>
+
+  <div class="info-box">
+    <p>We will never sell your data. This is a firm commitment. Individual client data and individual caller data will never be sold, transferred, or disclosed to any third party for commercial purposes.</p>
+  </div>
+
+  <h2 id="p1">1. Our Commitment</h2>
+  <p>CallMagnet is committed to protecting the privacy of individuals whose information we handle. This Privacy Policy explains how we collect, use, store, and protect personal information in connection with our Service.</p>
+  <p>This Privacy Policy is prepared in accordance with the Privacy Act 1988 (Cth) and the 13 Australian Privacy Principles (APPs).</p>
+
+  <h2 id="p2">2. What Information We Collect</h2>
+  <h3>Information you provide</h3>
+  <ul>
+    <li><strong>Business name</strong> — collected during signup</li>
+    <li><strong>Email address</strong> — used for login and service communications</li>
+    <li><strong>Password</strong> — stored in encrypted form, never readable by CallMagnet</li>
+    <li><strong>Booking URL</strong> — your online booking page, provided during onboarding</li>
+    <li><strong>Average job value</strong> — used to calculate estimated revenue recovered on your dashboard</li>
+    <li><strong>Date of birth</strong> — optional, used only for a birthday acknowledgement on your dashboard</li>
+  </ul>
+  <h3>Information collected automatically</h3>
+  <ul>
+    <li><strong>Caller phone numbers</strong> — captured when a missed call occurs, stored to enable SMS dispatch and activity tracking</li>
+    <li><strong>SMS events</strong> — date, time, and caller number for each SMS sent</li>
+    <li><strong>Link clicks</strong> — whether and when a caller tapped the booking link, including day of week and time of day</li>
+    <li><strong>Bookings logged</strong> — bookings you manually record using the Log a Booking button</li>
+    <li><strong>Dashboard settings</strong> — theme preferences you configure in your dashboard</li>
+  </ul>
+  <h3>What we do not collect</h3>
+  <ul>
+    <li><strong>Call content</strong> — we do not record or store the content of any phone calls</li>
+    <li><strong>Payment card details</strong> — handled entirely by Stripe, never stored by CallMagnet</li>
+    <li><strong>Caller names or addresses</strong> — we collect only the caller's phone number</li>
+  </ul>
+
+  <h2 id="p3">3. Why We Collect This Information</h2>
+  <p>We collect personal information only for purposes directly related to providing the Service — to send the missed call SMS, to populate your dashboard, to configure and operate your account, and to send service communications.</p>
+  <p>We do not use personal information for direct marketing to your callers.</p>
+
+  <h2 id="p4">4. How We Store and Protect Information</h2>
+  <p>All data is stored in Supabase, a managed database platform with servers in the Asia-Pacific region. Security measures include encryption at rest and in transit, Row Level Security ensuring each client can only access their own data, and hashed password storage.</p>
+
+  <h2 id="p5">5. How Long We Retain Information</h2>
+  <ul>
+    <li><strong>Active account data</strong> — retained while your account is active</li>
+    <li><strong>Data after cancellation</strong> — retained for 3 years, then permanently deleted</li>
+    <li><strong>Earlier deletion</strong> — available on request by emailing hello@callmagnet.com.au</li>
+  </ul>
+
+  <h2 id="p6">6. Disclosure of Information</h2>
+  <h3>Third party service providers</h3>
+  <ul>
+    <li><strong>Twilio</strong> — receives caller phone numbers and your business number to send SMS</li>
+    <li><strong>Stripe</strong> — receives your email address and payment details for billing</li>
+    <li><strong>Resend</strong> — receives your email address to deliver service emails</li>
+    <li><strong>Netlify</strong> — hosts the dashboard, does not receive personal data</li>
+    <li><strong>Supabase</strong> — database platform where all personal data is stored</li>
+  </ul>
+  <h3>What we never disclose</h3>
+  <p>We will never sell individual client data or caller data to any third party. We will never disclose your information to advertisers. We will not disclose your information to government authorities unless required by law.</p>
+  <h3>Anonymised aggregate data</h3>
+  <p>CallMagnet may publish or license anonymised aggregate data derived from the collective use of the Service. This data captures industry-level patterns and is processed to ensure no individual business, caller, or identifying information can be derived from it. This data does not constitute personal information under the Privacy Act 1988.</p>
+
+  <h2 id="p7">7. Your Rights</h2>
+  <p>Under the Privacy Act 1988 you have the right to access your personal information, correct inaccurate information, request deletion of your data, and opt out of service communications. Contact us at hello@callmagnet.com.au. We will respond within 30 days.</p>
+
+  <h2 id="p8">8. Caller Rights</h2>
+  <p>Callers who receive an SMS through CallMagnet may reply STOP to opt out of further SMS messages from that business number, contact us at hello@callmagnet.com.au to enquire about information collected, or request deletion of their phone number from our records.</p>
+
+  <h2 id="p9">9. Complaints</h2>
+  <p>Contact us first at hello@callmagnet.com.au. If you are not satisfied, you may lodge a complaint with the Office of the Australian Information Commissioner (OAIC) at <a href="https://www.oaic.gov.au" style="color: var(--accent);">www.oaic.gov.au</a> or by calling 1300 363 992.</p>
+
+  <h2 id="p10">10. Changes to This Policy</h2>
+  <p>We will notify you of material changes by email at least 30 days before they take effect. Your continued use of the Service after that period constitutes acceptance.</p>
+
+  <h2 id="p11">11. Contact</h2>
+  <p>For any privacy-related enquiries, contact us at <a href="mailto:hello@callmagnet.com.au" style="color: var(--accent);">hello@callmagnet.com.au</a>.</p>
+
+  <div class="footer">
+    CallMagnet &nbsp;·&nbsp; callmagnet.com.au &nbsp;·&nbsp; hello@callmagnet.com.au &nbsp;·&nbsp; April 2026
+  </div>
+
+</div>
+</body>
+</html>
