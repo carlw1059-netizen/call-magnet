@@ -816,14 +816,12 @@ async function loadStats() {
   const startIso = start.toISOString();
   const endIso = end.toISOString();
 
-  // Reset date override
   let effectiveStart = startIso;
   if (currentClient.reset_date) {
     const rd = new Date(currentClient.reset_date);
     if (rd > start) effectiveStart = rd.toISOString();
   }
 
-  // Fetch all data in parallel
   const [smsRes, clickRes, bookRes, monthSmsRes] = await Promise.all([
     sb.from('sms_events').select('id', { count: 'exact' })
       .eq('client_id', clientId)
@@ -847,16 +845,13 @@ async function loadStats() {
   const bookCount = bookRes.count || 0;
   const monthSms = monthSmsRes.count || 0;
 
-  // Update metric cards
   document.getElementById('smsCount').textContent = smsCount;
   document.getElementById('clickCount').textContent = clickCount;
   document.getElementById('bookingCount').textContent = bookCount;
 
-  // Conversion rate — SMS → click
   const conv = smsCount > 0 ? Math.round((clickCount / smsCount) * 100) : 0;
   document.getElementById('convRate').textContent = conv + '%';
 
-  // Revenue calc
   const avgJob = currentClient.avg_job_value || 0;
   let revenue = 0;
   let heroSub = '';
@@ -877,10 +872,8 @@ async function loadStats() {
   document.getElementById('heroValue').textContent = '$' + revenue.toLocaleString();
   document.getElementById('heroSub').textContent = heroSub;
 
-  // Demo banner
   document.getElementById('demoBanner').style.display = smsCount === 0 ? 'block' : 'none';
 
-  // Monthly SMS odometer + overage
   updateOdometer(monthSms);
   document.getElementById('callCountBadge').textContent = monthSms + ' calls';
   const smsIncluded = currentClient.sms_included || 50;
@@ -893,7 +886,6 @@ async function loadStats() {
     document.getElementById('overageRow').style.display = 'none';
   }
 
-  // Activity feed
   await loadActivity(clientId, effectiveStart, endIso);
 }
 
@@ -945,11 +937,9 @@ async function loadActivity(clientId, startIso, endIso) {
   ]);
 
   const events = [];
-
   (smsRes.data || []).forEach(e => events.push({ type: 'sms', number: e.customer_number, time: new Date(e.created_at) }));
   (clickRes.data || []).forEach(e => events.push({ type: 'click', number: e.customer_number, time: new Date(e.created_at) }));
   (bookRes.data || []).forEach(e => events.push({ type: 'book', number: e.id, time: new Date(e.created_at), source: e.source }));
-
   events.sort((a, b) => b.time - a.time);
 
   if (events.length === 0) {
