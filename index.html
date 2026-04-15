@@ -68,7 +68,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .forgot-screen.active { display: flex; }
 .back-link { font-size: 12px; color: var(--accent); font-family: var(--mono); cursor: pointer; text-decoration: underline; margin-bottom: 1.5rem; display: block; font-weight: 700; letter-spacing: 0.03em; }
 
-/* ── DASHBOARD — dark theme unchanged ───────────────────────────────────── */
+/* ── DASHBOARD — dark theme ─────────────────────────────────────────────── */
 .dash { display: none; min-height: 100vh; background: var(--bg); }
 .suspension-banner { display: none; background: var(--red-dim); border-bottom: 2px solid var(--red); padding: 14px 1.5rem; font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--red); letter-spacing: 0.03em; text-align: center; }
 .suspension-banner.active { display: block; }
@@ -814,8 +814,8 @@ async function loadStats() {
       .lte('created_at', endIso),
     sb.from('bookings').select('id', { count: 'exact' })
       .eq('client_id', clientId)
-      .gte('created_at', effectiveStart)
-      .lte('created_at', endIso),
+      .gte('booked_at', effectiveStart)
+      .lte('booked_at', endIso),
     sb.from('sms_events').select('id', { count: 'exact' })
       .eq('client_id', clientId)
       .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
@@ -912,13 +912,13 @@ async function loadActivity(clientId, startIso, endIso) {
   const [smsRes, clickRes, bookRes] = await Promise.all([
     sb.from('sms_events').select('customer_number,created_at').eq('client_id', clientId).gte('created_at', startIso).lte('created_at', endIso).order('created_at', { ascending: false }).limit(30),
     sb.from('link_clicks').select('customer_number,created_at').eq('client_id', clientId).gte('created_at', startIso).lte('created_at', endIso).order('created_at', { ascending: false }).limit(30),
-    sb.from('bookings').select('id,created_at,source').eq('client_id', clientId).gte('created_at', startIso).lte('created_at', endIso).order('created_at', { ascending: false }).limit(30)
+    sb.from('bookings').select('id,booked_at,source').eq('client_id', clientId).gte('booked_at', startIso).lte('booked_at', endIso).order('booked_at', { ascending: false }).limit(30)
   ]);
 
   const events = [];
   (smsRes.data || []).forEach(e => events.push({ type: 'sms', number: e.customer_number, time: new Date(e.created_at) }));
   (clickRes.data || []).forEach(e => events.push({ type: 'click', number: e.customer_number, time: new Date(e.created_at) }));
-  (bookRes.data || []).forEach(e => events.push({ type: 'book', number: e.id, time: new Date(e.created_at), source: e.source }));
+  (bookRes.data || []).forEach(e => events.push({ type: 'book', number: e.id, time: new Date(e.booked_at), source: e.source }));
   events.sort((a, b) => b.time - a.time);
 
   if (events.length === 0) {
@@ -972,7 +972,8 @@ function maskNumber(num) {
 
 async function logBooking() {
   if (!currentClient) return;
-  await sb.from('bookings').insert({ client_id: currentClient.id, source: 'manual' });
+  const now = new Date().toISOString();
+  await sb.from('bookings').insert({ client_id: currentClient.id, source: 'manual', booked_at: now });
   const confirm = document.getElementById('logBookingConfirm');
   confirm.style.display = 'flex';
   setTimeout(() => confirm.style.display = 'none', 2500);
