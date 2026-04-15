@@ -37,34 +37,38 @@ html { overscroll-behavior-y: contain; }
 body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; font-size: 14px; line-height: 1.5; -webkit-text-size-adjust: 100%; font-weight: 600; overflow-x: hidden; overscroll-behavior-y: contain; }
 .star-pulse { color: var(--accent); animation: pulse 2s infinite; display: inline-block; flex-shrink: 0; line-height: 1; }
 @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
-.login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; background: var(--bg); }
-.login-box { width: 100%; max-width: 380px; }
-.login-logo { font-family: var(--mono); font-size: 20px; letter-spacing: 0.15em; color: var(--accent); text-transform: uppercase; margin-bottom: 2.5rem; display: flex; align-items: center; gap: 10px; font-weight: 700; }
-.login-heading { font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 0.5rem; letter-spacing: -0.02em; }
-.login-sub { font-size: 13px; color: var(--muted); margin-bottom: 2rem; font-weight: 600; }
+
+/* ── LOGIN SCREEN — light theme ─────────────────────────────────────────── */
+.login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; background: #f5f5f5; }
+.login-box { width: 100%; max-width: 380px; background: #ffffff; border: 1px solid #dddddd; border-radius: 12px; padding: 2.5rem 2rem; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+.login-logo { font-family: var(--mono); font-size: 20px; letter-spacing: 0.15em; color: var(--accent); text-transform: uppercase; margin-bottom: 2rem; display: flex; align-items: center; gap: 10px; font-weight: 700; }
+.login-heading { font-size: 26px; font-weight: 700; color: #111111; margin-bottom: 0.4rem; letter-spacing: -0.02em; }
+.login-sub { font-size: 13px; color: #666666; margin-bottom: 1.75rem; font-weight: 600; }
 .field { margin-bottom: 1rem; }
-.field label { display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); margin-bottom: 6px; font-family: var(--mono); font-weight: 700; }
-.field input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; color: var(--text); font-family: var(--sans); font-size: 14px; outline: none; transition: border-color 0.2s; font-weight: 600; }
-.field input:focus { border-color: var(--accent); }
+.field label { display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #888888; margin-bottom: 6px; font-family: var(--mono); font-weight: 700; }
+.field input { width: 100%; background: #f9f9f9; border: 1px solid #dddddd; border-radius: 6px; padding: 10px 14px; color: #111111; font-family: var(--sans); font-size: 14px; outline: none; transition: border-color 0.2s; font-weight: 600; }
+.field input:focus { border-color: var(--accent); background: #ffffff; }
 .password-wrap { position: relative; }
 .password-wrap input { padding-right: 44px; }
-.eye-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--dim); font-size: 16px; padding: 4px; line-height: 1; transition: color 0.2s; }
+.eye-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #888; font-size: 16px; padding: 4px; line-height: 1; transition: color 0.2s; }
 .eye-btn:hover { color: var(--accent); }
 .remember-row { display: flex; align-items: center; gap: 8px; margin-bottom: 0.5rem; }
 .remember-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
-.remember-row label { font-size: 13px; color: var(--muted); cursor: pointer; font-weight: 600; }
+.remember-row label { font-size: 13px; color: #666; cursor: pointer; font-weight: 600; }
 .forgot-link { font-size: 12px; color: var(--accent); font-family: var(--mono); cursor: pointer; text-decoration: underline; margin-bottom: 1rem; display: block; font-weight: 700; letter-spacing: 0.03em; }
 .forgot-link:hover { opacity: 0.7; }
-.btn-primary { width: 100%; background: var(--accent); color: var(--accent-contrast); border: none; border-radius: 6px; padding: 11px; font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 0.5rem; transition: opacity 0.2s; }
+.btn-primary { width: 100%; background: var(--accent); color: #ffffff; border: none; border-radius: 6px; padding: 11px; font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 0.5rem; transition: opacity 0.2s; }
 .btn-primary:hover { opacity: 0.85; }
 .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
-.auth-toggle { text-align: center; margin-top: 1.25rem; font-size: 13px; color: var(--muted); font-weight: 600; }
+.auth-toggle { text-align: center; margin-top: 1.25rem; font-size: 13px; color: #666; font-weight: 600; }
 .auth-toggle span { color: var(--accent); font-family: var(--mono); cursor: pointer; text-decoration: underline; font-weight: 700; letter-spacing: 0.03em; }
-.error-msg { background: var(--red-dim); border: 1px solid var(--red); color: var(--red); border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-top: 1rem; display: none; font-weight: 600; }
-.success-msg { background: var(--accent-dim); border: 1px solid var(--accent); color: var(--accent); border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-top: 1rem; display: none; font-weight: 600; }
-.forgot-screen { min-height: 100vh; display: none; align-items: center; justify-content: center; padding: 2rem; background: var(--bg); }
+.error-msg { background: #fff0f0; border: 1px solid #ff4d4d; color: #cc0000; border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-top: 1rem; display: none; font-weight: 600; }
+.success-msg { background: #f0f4ff; border: 1px solid var(--accent); color: var(--accent); border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-top: 1rem; display: none; font-weight: 600; }
+.forgot-screen { min-height: 100vh; display: none; align-items: center; justify-content: center; padding: 2rem; background: #f5f5f5; }
 .forgot-screen.active { display: flex; }
 .back-link { font-size: 12px; color: var(--accent); font-family: var(--mono); cursor: pointer; text-decoration: underline; margin-bottom: 1.5rem; display: block; font-weight: 700; letter-spacing: 0.03em; }
+
+/* ── DASHBOARD — dark theme unchanged ───────────────────────────────────── */
 .dash { display: none; min-height: 100vh; background: var(--bg); }
 .suspension-banner { display: none; background: var(--red-dim); border-bottom: 2px solid var(--red); padding: 14px 1.5rem; font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--red); letter-spacing: 0.03em; text-align: center; }
 .suspension-banner.active { display: block; }
@@ -422,7 +426,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
     <div class="activity-card" id="activityCard"><div class="loading">Loading...</div></div>
   </div>
 
-  <!-- FOOTER -->
   <div class="dash-footer">
     <a href="/legal.html" target="_blank">Terms of Service</a>
     <span>·</span>
@@ -453,7 +456,6 @@ let currentMode = 'week';
 let currentOffset = 0;
 let isSignup = false;
 
-// ── AUTH ─────────────────────────────────────────────────────────────────────
 function switchToSignup() {
   isSignup = true;
   document.getElementById('authHeading').textContent = 'Create account.';
@@ -561,7 +563,6 @@ async function handleLogout() {
   switchToLogin();
 }
 
-// ── TERMS MODAL ──────────────────────────────────────────────────────────────
 function showTermsModal() {
   document.getElementById('termsModal').classList.add('open');
 }
@@ -589,7 +590,6 @@ async function acceptTerms() {
   hideTermsModal();
 }
 
-// ── LOAD DASHBOARD ───────────────────────────────────────────────────────────
 async function loadDashboard(user) {
   const { data: clients, error } = await sb
     .from('clients')
@@ -647,7 +647,6 @@ async function loadDashboard(user) {
   await loadStats();
 }
 
-// ── SETTINGS ─────────────────────────────────────────────────────────────────
 function toggleSettings() {
   const panel = document.getElementById('settingsPanel');
   const btn = document.getElementById('settingsBtn');
@@ -736,7 +735,6 @@ function applyPreferences() {
 }
 </script>
 <script>
-// ── DATE HELPERS ─────────────────────────────────────────────────────────────
 function getPeriodBounds(mode, offset) {
   const now = new Date();
   let start, end, label;
@@ -790,7 +788,6 @@ async function handleRefresh() {
   }, 600);
 }
 
-// ── LOAD STATS ───────────────────────────────────────────────────────────────
 async function loadStats() {
   if (!currentClient) return;
   const { start, end, label } = getPeriodBounds(currentMode, currentOffset);
@@ -873,7 +870,6 @@ async function loadStats() {
   await loadActivity(clientId, effectiveStart, endIso);
 }
 
-// ── ODOMETER ─────────────────────────────────────────────────────────────────
 function updateOdometer(count) {
   const str = String(count).padStart(3, '0');
   ['odom-2','odom-1','odom-0'].forEach((id, i) => {
@@ -910,7 +906,6 @@ function updateOdometerCells(ids, str) {
   });
 }
 
-// ── ACTIVITY FEED ────────────────────────────────────────────────────────────
 async function loadActivity(clientId, startIso, endIso) {
   const card = document.getElementById('activityCard');
 
@@ -975,7 +970,6 @@ function maskNumber(num) {
   return '***';
 }
 
-// ── LOG BOOKING ───────────────────────────────────────────────────────────────
 async function logBooking() {
   if (!currentClient) return;
   await sb.from('bookings').insert({ client_id: currentClient.id, source: 'manual' });
@@ -985,7 +979,6 @@ async function logBooking() {
   await loadStats();
 }
 
-// ── RESET COUNTER ────────────────────────────────────────────────────────────
 function showResetModal() { document.getElementById('resetModal').classList.add('open'); }
 function closeResetModal() { document.getElementById('resetModal').classList.remove('open'); }
 async function confirmReset() {
@@ -997,7 +990,6 @@ async function confirmReset() {
   await loadStats();
 }
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
