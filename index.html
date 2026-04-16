@@ -38,6 +38,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .star-pulse { color: var(--accent); animation: pulse 2s infinite; display: inline-block; flex-shrink: 0; line-height: 1; }
 @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
 
+
 /* ── LOGIN SCREEN — light theme ─────────────────────────────────────────── */
 .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; background: #f5f5f5; }
 .login-box { width: 100%; max-width: 380px; background: #ffffff; border: 1px solid #dddddd; border-radius: 12px; padding: 2.5rem 2rem; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
@@ -67,6 +68,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .forgot-screen { min-height: 100vh; display: none; align-items: center; justify-content: center; padding: 2rem; background: #f5f5f5; }
 .forgot-screen.active { display: flex; }
 .back-link { font-size: 12px; color: var(--accent); font-family: var(--mono); cursor: pointer; text-decoration: underline; margin-bottom: 1.5rem; display: block; font-weight: 700; letter-spacing: 0.03em; }
+
 
 /* ── DASHBOARD — dark theme ─────────────────────────────────────────────── */
 .dash { display: none; min-height: 100vh; background: var(--bg); }
@@ -218,6 +220,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 }
 </style>
 
+
 <!-- LOGIN SCREEN -->
 <div class="login-screen" id="loginScreen">
   <div class="login-box">
@@ -253,6 +256,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
   </div>
 </div>
 
+
 <!-- FORGOT SCREEN -->
 <div class="forgot-screen" id="forgotScreen">
   <div class="login-box">
@@ -284,6 +288,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
     </div>
   </div>
 </div>
+
 
 <div class="dash" id="dash">
   <div class="suspension-banner" id="suspensionBanner">
@@ -426,6 +431,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
     <div class="activity-card" id="activityCard"><div class="loading">Loading...</div></div>
   </div>
 
+
   <div class="dash-footer">
     <a href="/legal.html" target="_blank">Terms of Service</a>
     <span>·</span>
@@ -434,6 +440,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
     <a href="mailto:hello@callmagnet.com.au">hello@callmagnet.com.au</a>
   </div>
 </div>
+
 
 <div class="modal-overlay" id="resetModal">
   <div class="modal">
@@ -450,11 +457,13 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 const SUPABASE_URL = 'https://iskvvnhacqdxybpmwuni.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
 
+
 let sb;
 let currentClient = null;
 let currentMode = 'week';
 let currentOffset = 0;
 let isSignup = false;
+
 
 function switchToSignup() {
   isSignup = true;
@@ -468,6 +477,7 @@ function switchToSignup() {
   document.getElementById('errorMsg').style.display = 'none';
 }
 
+
 function switchToLogin() {
   isSignup = false;
   document.getElementById('authHeading').textContent = 'Welcome back.';
@@ -480,20 +490,24 @@ function switchToLogin() {
   document.getElementById('errorMsg').style.display = 'none';
 }
 
+
 function showForgot() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('forgotScreen').classList.add('active');
 }
+
 
 function showLogin() {
   document.getElementById('forgotScreen').classList.remove('active');
   document.getElementById('loginScreen').style.display = 'flex';
 }
 
+
 function togglePassword() {
   const input = document.getElementById('passwordInput');
   input.type = input.type === 'password' ? 'text' : 'password';
 }
+
 
 async function handleAuth() {
   const email = document.getElementById('emailInput').value.trim();
@@ -503,6 +517,7 @@ async function handleAuth() {
   errDiv.style.display = 'none';
   btn.disabled = true;
   btn.textContent = isSignup ? 'Creating...' : 'Signing in...';
+
 
   if (isSignup) {
     const bizName = document.getElementById('bizNameInput').value.trim();
@@ -537,6 +552,7 @@ async function handleAuth() {
   }
 }
 
+
 async function handleReset() {
   const email = document.getElementById('resetEmailInput').value.trim();
   const btn = document.getElementById('resetBtn');
@@ -555,6 +571,7 @@ async function handleReset() {
   btn.textContent = 'Send reset link';
 }
 
+
 async function handleLogout() {
   await sb.auth.signOut();
   currentClient = null;
@@ -563,13 +580,16 @@ async function handleLogout() {
   switchToLogin();
 }
 
+
 function showTermsModal() {
   document.getElementById('termsModal').classList.add('open');
 }
 
+
 function hideTermsModal() {
   document.getElementById('termsModal').classList.remove('open');
 }
+
 
 async function acceptTerms() {
   const btn = document.getElementById('acceptTermsBtn');
@@ -590,6 +610,7 @@ async function acceptTerms() {
   hideTermsModal();
 }
 
+
 async function loadDashboard(user) {
   const { data: clients, error } = await sb
     .from('clients')
@@ -597,19 +618,23 @@ async function loadDashboard(user) {
     .eq('email', user.email)
     .limit(1);
 
+
   if (error || !clients || clients.length === 0) {
     document.getElementById('errorMsg').textContent = 'No client record found. Contact hello@callmagnet.com.au';
     document.getElementById('errorMsg').style.display = 'block';
     return;
   }
 
+
   currentClient = clients[0];
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('dash').style.display = 'block';
 
+
   if (!currentClient.terms_accepted) {
     showTermsModal();
   }
+
 
   if (currentClient.account_status === 'suspended') {
     document.getElementById('suspensionBanner').classList.add('active');
@@ -621,8 +646,10 @@ async function loadDashboard(user) {
     document.getElementById('cancellationBanner').classList.add('active');
   }
 
+
   document.getElementById('bizNameLarge').textContent = currentClient.business_name;
   document.title = currentClient.business_name + ' — CallMagnet';
+
 
   if (currentClient.date_of_birth) {
     const dob = new Date(currentClient.date_of_birth);
@@ -632,6 +659,7 @@ async function loadDashboard(user) {
       document.getElementById('birthdayBanner').style.display = 'block';
     }
   }
+
 
   if (currentClient.subscription_start) {
     const start = new Date(currentClient.subscription_start);
@@ -643,9 +671,11 @@ async function loadDashboard(user) {
     document.getElementById('renewalValue').textContent = days === 1 ? 'Tomorrow' : days + ' days';
   }
 
+
   applyPreferences();
   await loadStats();
 }
+
 
 function toggleSettings() {
   const panel = document.getElementById('settingsPanel');
@@ -653,6 +683,7 @@ function toggleSettings() {
   panel.classList.toggle('open');
   btn.classList.toggle('active');
 }
+
 
 document.addEventListener('click', (e) => {
   const panel = document.getElementById('settingsPanel');
@@ -662,6 +693,7 @@ document.addEventListener('click', (e) => {
     btn.classList.remove('active');
   }
 });
+
 
 async function setAccent(idx, color, dimColor, contrast) {
   document.querySelectorAll('[id^="acc-"]').forEach(el => el.classList.remove('selected'));
@@ -674,6 +706,7 @@ async function setAccent(idx, color, dimColor, contrast) {
     currentClient.accent_preference = idx;
   }
 }
+
 
 async function setBg(idx, bg, surface, surface2, border, text, muted, dim) {
   document.querySelectorAll('[id^="bg-"]').forEach(el => el.classList.remove('selected'));
@@ -690,6 +723,7 @@ async function setBg(idx, bg, surface, surface2, border, text, muted, dim) {
     currentClient.bg_preference = idx;
   }
 }
+
 
 function applyPreferences() {
   const accents = [
@@ -714,14 +748,17 @@ function applyPreferences() {
     ['#C11C84','#d42090','#e8249d','#a01870','#fff0f8','#ffaadd','#ff55bb']
   ];
 
+
   const ai = currentClient.accent_preference || 0;
   const bi = currentClient.bg_preference || 0;
+
 
   document.querySelectorAll('[id^="acc-"]').forEach(el => el.classList.remove('selected'));
   document.getElementById('acc-' + ai)?.classList.add('selected');
   document.documentElement.style.setProperty('--accent', accents[ai][0]);
   document.documentElement.style.setProperty('--accent-dim', accents[ai][1]);
   document.documentElement.style.setProperty('--accent-contrast', accents[ai][2]);
+
 
   document.querySelectorAll('[id^="bg-"]').forEach(el => el.classList.remove('selected'));
   document.getElementById('bg-' + bi)?.classList.add('selected');
@@ -761,6 +798,7 @@ function getPeriodBounds(mode, offset) {
   return { start, end, label };
 }
 
+
 function setMode(mode) {
   currentMode = mode;
   currentOffset = 0;
@@ -770,11 +808,13 @@ function setMode(mode) {
   loadStats();
 }
 
+
 function navigate(dir) {
   currentOffset += dir;
   document.getElementById('nextBtn').disabled = currentOffset >= 0;
   loadStats();
 }
+
 
 async function handleRefresh() {
   const btn = document.getElementById('refreshBtn');
@@ -788,14 +828,17 @@ async function handleRefresh() {
   }, 600);
 }
 
+
 async function loadStats() {
   if (!currentClient) return;
   const { start, end, label } = getPeriodBounds(currentMode, currentOffset);
   document.getElementById('periodLabelText').textContent = label;
 
+
   const clientId = currentClient.id;
   const startIso = start.toISOString();
   const endIso = end.toISOString();
+
 
   let effectiveStart = startIso;
   if (currentClient.reset_date) {
@@ -803,11 +846,12 @@ async function loadStats() {
     if (rd > start) effectiveStart = rd.toISOString();
   }
 
+
   const [smsRes, clickRes, bookRes, monthSmsRes] = await Promise.all([
     sb.from('sms_events').select('id', { count: 'exact' })
       .eq('client_id', clientId)
-      .gte('created_at', effectiveStart)
-      .lte('created_at', endIso),
+      .gte('received_at', effectiveStart)
+      .lte('received_at', endIso),
     sb.from('link_clicks').select('id', { count: 'exact' })
       .eq('client_id', clientId)
       .gte('created_at', effectiveStart)
@@ -818,20 +862,24 @@ async function loadStats() {
       .lte('booked_at', endIso),
     sb.from('sms_events').select('id', { count: 'exact' })
       .eq('client_id', clientId)
-      .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
+      .gte('received_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
   ]);
+
 
   const smsCount = smsRes.count || 0;
   const clickCount = clickRes.count || 0;
   const bookCount = bookRes.count || 0;
   const monthSms = monthSmsRes.count || 0;
 
+
   document.getElementById('smsCount').textContent = smsCount;
   document.getElementById('clickCount').textContent = clickCount;
   document.getElementById('bookingCount').textContent = bookCount;
 
+
   const conv = smsCount > 0 ? Math.round((clickCount / smsCount) * 100) : 0;
   document.getElementById('convRate').textContent = conv + '%';
+
 
   const avgJob = currentClient.avg_job_value || 0;
   let revenue = 0;
@@ -853,7 +901,9 @@ async function loadStats() {
   document.getElementById('heroValue').textContent = '$' + revenue.toLocaleString();
   document.getElementById('heroSub').textContent = heroSub;
 
+
   document.getElementById('demoBanner').style.display = smsCount === 0 ? 'block' : 'none';
+
 
   updateOdometer(monthSms);
   document.getElementById('callCountBadge').textContent = monthSms + ' calls';
@@ -867,8 +917,10 @@ async function loadStats() {
     document.getElementById('overageRow').style.display = 'none';
   }
 
+
   await loadActivity(clientId, effectiveStart, endIso);
 }
+
 
 function updateOdometer(count) {
   const str = String(count).padStart(3, '0');
@@ -888,6 +940,7 @@ function updateOdometer(count) {
   });
 }
 
+
 function updateOdometerCells(ids, str) {
   ids.forEach((id, i) => {
     const cell = document.getElementById(id);
@@ -906,30 +959,36 @@ function updateOdometerCells(ids, str) {
   });
 }
 
+
 async function loadActivity(clientId, startIso, endIso) {
   const card = document.getElementById('activityCard');
 
+
   const [smsRes, clickRes, bookRes] = await Promise.all([
-    sb.from('sms_events').select('customer_number,created_at').eq('client_id', clientId).gte('created_at', startIso).lte('created_at', endIso).order('created_at', { ascending: false }).limit(30),
+    sb.from('sms_events').select('customer_number,received_at').eq('client_id', clientId).gte('received_at', startIso).lte('received_at', endIso).order('received_at', { ascending: false }).limit(30),
     sb.from('link_clicks').select('customer_number,created_at').eq('client_id', clientId).gte('created_at', startIso).lte('created_at', endIso).order('created_at', { ascending: false }).limit(30),
     sb.from('bookings').select('id,booked_at,source').eq('client_id', clientId).gte('booked_at', startIso).lte('booked_at', endIso).order('booked_at', { ascending: false }).limit(30)
   ]);
 
+
   const events = [];
-  (smsRes.data || []).forEach(e => events.push({ type: 'sms', number: e.customer_number, time: new Date(e.created_at) }));
+  (smsRes.data || []).forEach(e => events.push({ type: 'sms', number: e.customer_number, time: new Date(e.received_at) }));
   (clickRes.data || []).forEach(e => events.push({ type: 'click', number: e.customer_number, time: new Date(e.created_at) }));
   (bookRes.data || []).forEach(e => events.push({ type: 'book', number: e.id, time: new Date(e.booked_at), source: e.source }));
   events.sort((a, b) => b.time - a.time);
+
 
   if (events.length === 0) {
     card.innerHTML = '<div class="empty-state">No activity this period.</div>';
     return;
   }
 
+
   const latest = events[0];
   const latestLabel = latest.type === 'sms' ? 'SMS sent to ' + maskNumber(latest.number) :
     latest.type === 'click' ? 'Link tapped by ' + maskNumber(latest.number) : 'Booking logged';
   const latestTime = latest.time.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }) + ' · ' + latest.time.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+
 
   let rows = '';
   events.slice(0, 20).forEach(e => {
@@ -942,6 +1001,7 @@ async function loadActivity(clientId, startIso, endIso) {
     const timeStr = e.time.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }) + ' · ' + e.time.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
     rows += `<div class="activity-row"><div><div class="activity-number">${label}</div><div class="activity-time">${timeStr}</div></div>${pill}</div>`;
   });
+
 
   card.innerHTML = `
     <div class="activity-summary" onclick="toggleActivity()">
@@ -958,10 +1018,12 @@ async function loadActivity(clientId, startIso, endIso) {
   `;
 }
 
+
 function toggleActivity() {
   document.getElementById('activityDropdown')?.classList.toggle('open');
   document.getElementById('expandIcon')?.classList.toggle('open');
 }
+
 
 function maskNumber(num) {
   if (!num) return 'Unknown';
@@ -969,6 +1031,7 @@ function maskNumber(num) {
   if (s.length >= 6) return s.slice(0, 4) + ' *** ' + s.slice(-3);
   return '***';
 }
+
 
 async function logBooking() {
   if (!currentClient) return;
@@ -979,6 +1042,7 @@ async function logBooking() {
   setTimeout(() => confirm.style.display = 'none', 2500);
   await loadStats();
 }
+
 
 function showResetModal() { document.getElementById('resetModal').classList.add('open'); }
 function closeResetModal() { document.getElementById('resetModal').classList.remove('open'); }
@@ -991,8 +1055,10 @@ async function confirmReset() {
   await loadStats();
 }
 
+
 document.addEventListener('DOMContentLoaded', async () => {
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 
   document.getElementById('passwordInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') handleAuth();
@@ -1000,6 +1066,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('emailInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') handleAuth();
   });
+
 
   const { data: { session } } = await sb.auth.getSession();
   if (session?.user) {
