@@ -34,12 +34,23 @@ html { overscroll-behavior-y: contain; }
   --mono: 'DM Mono', monospace;
   --sans: 'DM Sans', sans-serif;
 }
-body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; font-size: 14px; line-height: 1.5; -webkit-text-size-adjust: 100%; font-weight: 600; overflow-x: hidden; overscroll-behavior-y: contain; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  font-weight: 600;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  -webkit-tap-highlight-color: transparent;
+}
 .star-pulse { color: var(--accent); animation: pulse 2s infinite; display: inline-block; flex-shrink: 0; line-height: 1; }
 @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
-
-
-/* ── LOGIN SCREEN — light theme ─────────────────────────────────────────── */
+</style>
+<style>
 .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; background: #f5f5f5; }
 .login-box { width: 100%; max-width: 380px; background: #ffffff; border: 1px solid #dddddd; border-radius: 12px; padding: 2.5rem 2rem; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
 .login-logo { font-family: var(--mono); font-size: 20px; letter-spacing: 0.15em; color: var(--accent); text-transform: uppercase; margin-bottom: 2rem; display: flex; align-items: center; gap: 10px; font-weight: 700; }
@@ -51,14 +62,14 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .field input:focus { border-color: var(--accent); background: #ffffff; }
 .password-wrap { position: relative; }
 .password-wrap input { padding-right: 44px; }
-.eye-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #888; font-size: 16px; padding: 4px; line-height: 1; transition: color 0.2s; }
+.eye-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #888; font-size: 16px; padding: 4px; line-height: 1; transition: color 0.2s; -webkit-tap-highlight-color: transparent; }
 .eye-btn:hover { color: var(--accent); }
 .remember-row { display: flex; align-items: center; gap: 8px; margin-bottom: 0.5rem; }
 .remember-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
 .remember-row label { font-size: 13px; color: #666; cursor: pointer; font-weight: 600; }
 .forgot-link { font-size: 12px; color: var(--accent); font-family: var(--mono); cursor: pointer; text-decoration: underline; margin-bottom: 1rem; display: block; font-weight: 700; letter-spacing: 0.03em; }
 .forgot-link:hover { opacity: 0.7; }
-.btn-primary { width: 100%; background: var(--accent); color: #ffffff; border: none; border-radius: 6px; padding: 11px; font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 0.5rem; transition: opacity 0.2s; }
+.btn-primary { width: 100%; background: var(--accent); color: #ffffff; border: none; border-radius: 6px; padding: 11px; font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 0.5rem; transition: opacity 0.2s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .btn-primary:hover { opacity: 0.85; }
 .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 .auth-toggle { text-align: center; margin-top: 1.25rem; font-size: 13px; color: #666; font-weight: 600; }
@@ -68,9 +79,8 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .forgot-screen { min-height: 100vh; display: none; align-items: center; justify-content: center; padding: 2rem; background: #f5f5f5; }
 .forgot-screen.active { display: flex; }
 .back-link { font-size: 12px; color: var(--accent); font-family: var(--mono); cursor: pointer; text-decoration: underline; margin-bottom: 1.5rem; display: block; font-weight: 700; letter-spacing: 0.03em; }
-
-
-/* ── DASHBOARD — dark theme ─────────────────────────────────────────────── */
+</style>
+<style>
 .dash { display: none; min-height: 100vh; background: var(--bg); }
 .suspension-banner { display: none; background: var(--red-dim); border-bottom: 2px solid var(--red); padding: 14px 1.5rem; font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--red); letter-spacing: 0.03em; text-align: center; }
 .suspension-banner.active { display: block; }
@@ -81,9 +91,9 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 @keyframes lineSweep { 0% { background-position: -100% 0; } 100% { background-position: 200% 0; } }
 .topbar-logo { font-family: var(--mono); font-size: 27px; letter-spacing: 0.15em; color: var(--accent); text-transform: uppercase; display: flex; align-items: center; gap: 12px; font-weight: 700; line-height: 1; padding-bottom: 4px; }
 .topbar-right { display: flex; align-items: center; gap: 8px; position: relative; padding-bottom: 4px; }
-.settings-btn { background: none; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 5px 10px; font-size: 13px; cursor: pointer; transition: all 0.2s; line-height: 1; font-weight: 700; }
+.settings-btn { background: none; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 5px 10px; font-size: 13px; cursor: pointer; transition: all 0.2s; line-height: 1; font-weight: 700; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .settings-btn.active { background: var(--accent); color: var(--accent-contrast); }
-.logout-btn { background: none; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 5px 12px; font-size: 12px; font-family: var(--mono); cursor: pointer; transition: all 0.2s; font-weight: 700; letter-spacing: 0.05em; }
+.logout-btn { background: none; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 5px 12px; font-size: 12px; font-family: var(--mono); cursor: pointer; transition: all 0.2s; font-weight: 700; letter-spacing: 0.05em; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .logout-btn:hover { background: var(--accent); color: var(--accent-contrast); }
 .settings-panel { position: absolute; top: calc(100% + 8px); right: 0; width: 290px; background: #ffffff; border: 1px solid #dddddd; border-radius: 10px; padding: 1rem; z-index: 100; box-shadow: 0 8px 32px rgba(0,0,0,0.3); display: none; animation: slideDown 0.15s ease; }
 .settings-panel.open { display: block; }
@@ -92,7 +102,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .settings-section:last-child { margin-bottom: 0; }
 .settings-section-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #111; margin-bottom: 10px; font-weight: 700; }
 .swatch-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-.s-swatch { width: 28px; height: 28px; border-radius: 6px; border: 2px solid transparent; cursor: pointer; transition: transform 0.15s, border-color 0.15s; position: relative; }
+.s-swatch { width: 28px; height: 28px; border-radius: 6px; border: 2px solid transparent; cursor: pointer; transition: transform 0.15s, border-color 0.15s; position: relative; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .s-swatch:hover { transform: scale(1.15); }
 .s-swatch.selected { border-color: #111; }
 .s-swatch.selected::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: rgba(0,0,0,0.6); }
@@ -106,7 +116,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .terms-modal-body { font-size: 13px; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.7; font-weight: 600; }
 .terms-modal-body a { color: var(--accent); }
 .terms-modal-actions { display: flex; flex-direction: column; gap: 0.75rem; }
-.btn-accept { background: var(--accent); color: var(--accent-contrast); border: none; border-radius: 6px; padding: 12px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: var(--sans); transition: opacity 0.2s; }
+.btn-accept { background: var(--accent); color: var(--accent-contrast); border: none; border-radius: 6px; padding: 12px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: var(--sans); transition: opacity 0.2s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .btn-accept:hover { opacity: 0.85; }
 .btn-accept:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-view-terms { background: none; border: 1px solid var(--accent); color: var(--accent); border-radius: 6px; padding: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--mono); letter-spacing: 0.05em; text-align: center; text-decoration: none; display: block; transition: all 0.2s; }
@@ -116,8 +126,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .dash-footer a:hover { color: var(--accent); }
 .dash-footer span { color: var(--dim); font-family: var(--mono); font-size: 11px; margin: 0 8px; }
 </style>
-</head>
-<body>
 <style>
 .main { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
 .biz-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem; gap: 1rem; }
@@ -125,7 +133,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .biz-name-large { font-size: 36px; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; line-height: 1.1; }
 .biz-tagline { font-family: var(--mono); font-size: 12px; color: var(--accent); letter-spacing: 0.04em; text-transform: uppercase; margin-top: 4px; font-weight: 700; }
 .biz-header-right { display: flex; align-items: flex-end; flex-shrink: 0; }
-.refresh-btn { background: var(--surface); border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 6px 16px; font-size: 12px; font-family: var(--mono); font-weight: 700; letter-spacing: 0.08em; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; white-space: nowrap; -webkit-tap-highlight-color: transparent; }
+.refresh-btn { background: var(--surface); border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 6px 16px; font-size: 12px; font-family: var(--mono); font-weight: 700; letter-spacing: 0.08em; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; white-space: nowrap; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .refresh-btn:hover { background: var(--accent); color: var(--accent-contrast); }
 .refresh-btn:active { background: var(--accent); color: var(--accent-contrast); transform: scale(0.95); }
 .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
@@ -136,12 +144,12 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .demo-banner { background: var(--amber-dim); border: 1px solid var(--amber); border-radius: 8px; padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--amber); margin-bottom: 1.5rem; font-family: var(--mono); letter-spacing: 0.03em; display: none; }
 .period-controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem; }
 .period-nav { display: flex; align-items: center; gap: 0.5rem; }
-.nav-btn { background: var(--surface); border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 5px 12px; font-size: 14px; cursor: pointer; transition: all 0.2s; font-family: var(--mono); font-weight: 700; }
+.nav-btn { background: var(--surface); border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 5px 12px; font-size: 14px; cursor: pointer; transition: all 0.2s; font-family: var(--mono); font-weight: 700; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .nav-btn:hover { background: var(--accent); color: var(--accent-contrast); }
 .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; background: var(--surface); color: var(--dim); border-color: var(--border); }
 .period-label-text { font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--accent); letter-spacing: 0.05em; min-width: 180px; text-align: center; }
 .toggle-row { display: flex; background: var(--surface); border: 1px solid var(--accent); border-radius: 6px; overflow: hidden; }
-.toggle-btn { padding: 6px 18px; font-size: 13px; font-family: var(--mono); letter-spacing: 0.05em; background: none; border: none; color: var(--accent); cursor: pointer; transition: all 0.2s; font-weight: 700; }
+.toggle-btn { padding: 6px 18px; font-size: 13px; font-family: var(--mono); letter-spacing: 0.05em; background: none; border: none; color: var(--accent); cursor: pointer; transition: all 0.2s; font-weight: 700; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .toggle-btn.active { background: var(--accent); color: var(--accent-contrast); }
 .hero { background: var(--accent-dim); border: 1px solid var(--accent); border-radius: 10px; padding: 1.5rem; margin-bottom: 1rem; }
 .hero-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; font-weight: 700; }
@@ -153,12 +161,12 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .metric-value { font-size: 32px; font-weight: 300; color: var(--accent); letter-spacing: -0.02em; }
 .metric-sub { font-size: 11px; font-weight: 700; color: var(--muted); margin-top: 4px; }
 .log-booking-row { display: flex; justify-content: flex-end; gap: 0.75rem; margin-bottom: 1rem; }
-.log-booking-btn { background: #1a3a1a; border: 2px solid #4caf50; color: #4caf50; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-family: var(--mono); letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s; font-weight: 700; }
+.log-booking-btn { background: #1a3a1a; border: 2px solid #4caf50; color: #4caf50; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-family: var(--mono); letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s; font-weight: 700; -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 .log-booking-btn:hover { background: #4caf50; color: #fff; }
-.log-booking-btn:active { transform: scale(0.95); }
+.log-booking-btn:active { background: #4caf50; color: #fff; transform: scale(0.95); }
 .log-booking-confirm { font-family: var(--mono); font-size: 11px; font-weight: 700; color: #4caf50; display: none; align-items: center; padding-top: 4px; }
 .reset-row { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
-.reset-btn { background: none; border: 2px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 6px 14px; font-size: 12px; font-family: var(--mono); letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s; font-weight: 700; }
+.reset-btn { background: none; border: 2px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 6px 14px; font-size: 12px; font-family: var(--mono); letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s; font-weight: 700; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .reset-btn:hover { background: var(--accent); color: var(--accent-contrast); }
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center; padding: 2rem; }
 .modal-overlay.open { display: flex; }
@@ -166,8 +174,8 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .modal-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 0.5rem; }
 .modal-body { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.6; }
 .modal-actions { display: flex; gap: 0.75rem; }
-.btn-cancel { flex: 1; background: none; border: 1px solid var(--border2); color: var(--muted); border-radius: 6px; padding: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--sans); }
-.btn-confirm { flex: 1; background: var(--red); border: none; color: #fff; border-radius: 6px; padding: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--sans); }
+.btn-cancel { flex: 1; background: none; border: 1px solid var(--border2); color: var(--muted); border-radius: 6px; padding: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--sans); -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.btn-confirm { flex: 1; background: var(--red); border: none; color: #fff; border-radius: 6px; padding: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--sans); -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .renewal-strip { display: flex; align-items: center; margin-bottom: 0.75rem; padding: 10px 14px; background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; }
 .renewal-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); font-weight: 700; opacity: 0.7; }
 .renewal-value { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent); }
@@ -190,7 +198,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 .overage-row { display: flex; align-items: center; gap: 6px; }
 .overage-label { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--red); letter-spacing: 0.05em; }
 .activity-card { background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; overflow: hidden; }
-.activity-summary { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; cursor: pointer; transition: background 0.15s; }
+.activity-summary { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; cursor: pointer; transition: background 0.15s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .activity-summary:hover { background: var(--surface2); }
 .activity-summary-left { display: flex; align-items: center; gap: 10px; }
 .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; background: var(--accent); }
@@ -219,8 +227,8 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
   .refresh-btn { padding: 6px 12px; font-size: 11px; }
 }
 </style>
-
-
+</head>
+<body>
 <!-- LOGIN SCREEN -->
 <div class="login-screen" id="loginScreen">
   <div class="login-box">
@@ -233,12 +241,12 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
     </div>
     <div class="field">
       <label>Email</label>
-      <input type="email" id="emailInput" placeholder="you@example.com" />
+      <input type="email" id="emailInput" placeholder="you@example.com" autocomplete="email" />
     </div>
     <div class="field">
       <label>Password</label>
       <div class="password-wrap">
-        <input type="password" id="passwordInput" placeholder="••••••••" />
+        <input type="password" id="passwordInput" placeholder="••••••••" autocomplete="current-password" />
         <button class="eye-btn" type="button" onclick="togglePassword()">👁</button>
       </div>
     </div>
@@ -256,7 +264,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
   </div>
 </div>
 
-
 <!-- FORGOT SCREEN -->
 <div class="forgot-screen" id="forgotScreen">
   <div class="login-box">
@@ -273,6 +280,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
     <div class="success-msg" id="resetSuccessMsg">Reset link sent. Check your email.</div>
   </div>
 </div>
+
 <!-- TERMS MODAL -->
 <div class="terms-modal-overlay" id="termsModal">
   <div class="terms-modal">
@@ -289,7 +297,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
   </div>
 </div>
 
-
+<!-- DASHBOARD -->
 <div class="dash" id="dash">
   <div class="suspension-banner" id="suspensionBanner">
     ⚠️ Your CallMagnet subscription is paused due to a failed payment. Please email us at hello@callmagnet.com.au to reactivate.
@@ -334,6 +342,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
       </div>
     </div>
   </div>
+
   <div class="main">
     <div class="biz-header">
       <div class="biz-header-left">
@@ -388,7 +397,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
     </div>
     <div class="log-booking-row">
       <div class="log-booking-confirm" id="logBookingConfirm">✓ Booking logged</div>
-      <button class="log-booking-btn" onclick="logBooking()">+ Log a booking</button>
+      <button class="log-booking-btn" id="logBookingBtn">+ Log a booking</button>
     </div>
     <div class="reset-row">
       <button class="reset-btn" onclick="showResetModal()">Reset counter to zero</button>
@@ -431,7 +440,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
     <div class="activity-card" id="activityCard"><div class="loading">Loading...</div></div>
   </div>
 
-
   <div class="dash-footer">
     <a href="/legal.html" target="_blank">Terms of Service</a>
     <span>·</span>
@@ -441,7 +449,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
   </div>
 </div>
 
-
+<!-- RESET MODAL -->
 <div class="modal-overlay" id="resetModal">
   <div class="modal">
     <div class="modal-title">Reset counter?</div>
@@ -457,13 +465,12 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 const SUPABASE_URL = 'https://iskvvnhacqdxybpmwuni.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
 
-
 let sb;
 let currentClient = null;
 let currentMode = 'week';
 let currentOffset = 0;
 let isSignup = false;
-
+let autoRefreshTimer = null;
 
 function switchToSignup() {
   isSignup = true;
@@ -477,7 +484,6 @@ function switchToSignup() {
   document.getElementById('errorMsg').style.display = 'none';
 }
 
-
 function switchToLogin() {
   isSignup = false;
   document.getElementById('authHeading').textContent = 'Welcome back.';
@@ -485,29 +491,30 @@ function switchToLogin() {
   document.getElementById('bizNameField').style.display = 'none';
   document.getElementById('rememberRow').style.display = 'flex';
   document.getElementById('forgotLinkBtn').style.display = 'block';
-  document.getElementById('loginBtn').textContent = 'Sign in';
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = false;
+  btn.textContent = 'Sign in';
   document.getElementById('authToggle').innerHTML = 'Don\'t have an account? <span onclick="switchToSignup()">Sign up</span>';
   document.getElementById('errorMsg').style.display = 'none';
 }
-
 
 function showForgot() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('forgotScreen').classList.add('active');
 }
 
-
 function showLogin() {
   document.getElementById('forgotScreen').classList.remove('active');
   document.getElementById('loginScreen').style.display = 'flex';
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = false;
+  btn.textContent = isSignup ? 'Create account' : 'Sign in';
 }
-
 
 function togglePassword() {
   const input = document.getElementById('passwordInput');
   input.type = input.type === 'password' ? 'text' : 'password';
 }
-
 
 async function handleAuth() {
   const email = document.getElementById('emailInput').value.trim();
@@ -517,7 +524,6 @@ async function handleAuth() {
   errDiv.style.display = 'none';
   btn.disabled = true;
   btn.textContent = isSignup ? 'Creating...' : 'Signing in...';
-
 
   if (isSignup) {
     const bizName = document.getElementById('bizNameInput').value.trim();
@@ -532,13 +538,11 @@ async function handleAuth() {
     if (error) {
       errDiv.textContent = error.message;
       errDiv.style.display = 'block';
-      btn.disabled = false;
-      btn.textContent = 'Create account';
     } else {
       document.getElementById('signupSuccessMsg').style.display = 'block';
-      btn.disabled = false;
-      btn.textContent = 'Create account';
     }
+    btn.disabled = false;
+    btn.textContent = 'Create account';
   } else {
     const { data, error } = await sb.auth.signInWithPassword({ email, password });
     if (error) {
@@ -551,7 +555,6 @@ async function handleAuth() {
     }
   }
 }
-
 
 async function handleReset() {
   const email = document.getElementById('resetEmailInput').value.trim();
@@ -571,35 +574,28 @@ async function handleReset() {
   btn.textContent = 'Send reset link';
 }
 
-
 async function handleLogout() {
+  stopAutoRefresh();
   await sb.auth.signOut();
   currentClient = null;
   document.getElementById('dash').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = false;
+  btn.textContent = 'Sign in';
+  isSignup = false;
   switchToLogin();
 }
 
-
-function showTermsModal() {
-  document.getElementById('termsModal').classList.add('open');
-}
-
-
-function hideTermsModal() {
-  document.getElementById('termsModal').classList.remove('open');
-}
-
+function showTermsModal() { document.getElementById('termsModal').classList.add('open'); }
+function hideTermsModal() { document.getElementById('termsModal').classList.remove('open'); }
 
 async function acceptTerms() {
   const btn = document.getElementById('acceptTermsBtn');
   btn.disabled = true;
   btn.textContent = 'Saving...';
   const now = new Date().toISOString();
-  const { error } = await sb
-    .from('clients')
-    .update({ terms_accepted: true, terms_accepted_at: now })
-    .eq('id', currentClient.id);
+  const { error } = await sb.from('clients').update({ terms_accepted: true, terms_accepted_at: now }).eq('id', currentClient.id);
   if (error) {
     btn.disabled = false;
     btn.textContent = 'I agree — continue to dashboard';
@@ -610,7 +606,6 @@ async function acceptTerms() {
   hideTermsModal();
 }
 
-
 async function loadDashboard(user) {
   const { data: clients, error } = await sb
     .from('clients')
@@ -618,23 +613,20 @@ async function loadDashboard(user) {
     .eq('email', user.email)
     .limit(1);
 
-
   if (error || !clients || clients.length === 0) {
     document.getElementById('errorMsg').textContent = 'No client record found. Contact hello@callmagnet.com.au';
     document.getElementById('errorMsg').style.display = 'block';
+    const btn = document.getElementById('loginBtn');
+    btn.disabled = false;
+    btn.textContent = 'Sign in';
     return;
   }
-
 
   currentClient = clients[0];
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('dash').style.display = 'block';
 
-
-  if (!currentClient.terms_accepted) {
-    showTermsModal();
-  }
-
+  if (!currentClient.terms_accepted) showTermsModal();
 
   if (currentClient.account_status === 'suspended') {
     document.getElementById('suspensionBanner').classList.add('active');
@@ -646,10 +638,8 @@ async function loadDashboard(user) {
     document.getElementById('cancellationBanner').classList.add('active');
   }
 
-
   document.getElementById('bizNameLarge').textContent = currentClient.business_name;
   document.title = currentClient.business_name + ' — CallMagnet';
-
 
   if (currentClient.date_of_birth) {
     const dob = new Date(currentClient.date_of_birth);
@@ -659,7 +649,6 @@ async function loadDashboard(user) {
       document.getElementById('birthdayBanner').style.display = 'block';
     }
   }
-
 
   if (currentClient.subscription_start) {
     const start = new Date(currentClient.subscription_start);
@@ -671,11 +660,32 @@ async function loadDashboard(user) {
     document.getElementById('renewalValue').textContent = days === 1 ? 'Tomorrow' : days + ' days';
   }
 
-
   applyPreferences();
   await loadStats();
+  startAutoRefresh();
 }
 
+function startAutoRefresh() {
+  stopAutoRefresh();
+  autoRefreshTimer = setInterval(async () => {
+    if (currentClient && document.visibilityState === 'visible') {
+      await loadStats();
+    }
+  }, 30000);
+}
+
+function stopAutoRefresh() {
+  if (autoRefreshTimer) {
+    clearInterval(autoRefreshTimer);
+    autoRefreshTimer = null;
+  }
+}
+
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState === 'visible' && currentClient) {
+    await loadStats();
+  }
+});
 
 function toggleSettings() {
   const panel = document.getElementById('settingsPanel');
@@ -683,7 +693,6 @@ function toggleSettings() {
   panel.classList.toggle('open');
   btn.classList.toggle('active');
 }
-
 
 document.addEventListener('click', (e) => {
   const panel = document.getElementById('settingsPanel');
@@ -693,7 +702,6 @@ document.addEventListener('click', (e) => {
     btn.classList.remove('active');
   }
 });
-
 
 async function setAccent(idx, color, dimColor, contrast) {
   document.querySelectorAll('[id^="acc-"]').forEach(el => el.classList.remove('selected'));
@@ -706,7 +714,6 @@ async function setAccent(idx, color, dimColor, contrast) {
     currentClient.accent_preference = idx;
   }
 }
-
 
 async function setBg(idx, bg, surface, surface2, border, text, muted, dim) {
   document.querySelectorAll('[id^="bg-"]').forEach(el => el.classList.remove('selected'));
@@ -724,18 +731,11 @@ async function setBg(idx, bg, surface, surface2, border, text, muted, dim) {
   }
 }
 
-
 function applyPreferences() {
   const accents = [
-    ['#191970','#19197022','#fff'],
-    ['#ffffff','#ffffff18','#0d0d0d'],
-    ['#111111','#11111122','#fff'],
-    ['#888888','#88888822','#fff'],
-    ['#e91e8c','#e91e8c22','#fff'],
-    ['#ff6b6b','#ff6b6b22','#fff'],
-    ['#f5a623','#f5a62322','#000'],
-    ['#ff4500','#ff450022','#fff'],
-    ['#3ecf8e','#3ecf8e22','#000'],
+    ['#191970','#19197022','#fff'],['#ffffff','#ffffff18','#0d0d0d'],['#111111','#11111122','#fff'],
+    ['#888888','#88888822','#fff'],['#e91e8c','#e91e8c22','#fff'],['#ff6b6b','#ff6b6b22','#fff'],
+    ['#f5a623','#f5a62322','#000'],['#ff4500','#ff450022','#fff'],['#3ecf8e','#3ecf8e22','#000'],
     ['#7b2fff','#7b2fff22','#fff']
   ];
   const bgs = [
@@ -747,19 +747,13 @@ function applyPreferences() {
     ['#252525','#333333','#404040','#181818','#f0f0f0','#aaaaaa','#666666'],
     ['#C11C84','#d42090','#e8249d','#a01870','#fff0f8','#ffaadd','#ff55bb']
   ];
-
-
   const ai = currentClient.accent_preference || 0;
   const bi = currentClient.bg_preference || 0;
-
-
   document.querySelectorAll('[id^="acc-"]').forEach(el => el.classList.remove('selected'));
   document.getElementById('acc-' + ai)?.classList.add('selected');
   document.documentElement.style.setProperty('--accent', accents[ai][0]);
   document.documentElement.style.setProperty('--accent-dim', accents[ai][1]);
   document.documentElement.style.setProperty('--accent-contrast', accents[ai][2]);
-
-
   document.querySelectorAll('[id^="bg-"]').forEach(el => el.classList.remove('selected'));
   document.getElementById('bg-' + bi)?.classList.add('selected');
   document.documentElement.style.setProperty('--bg', bgs[bi][0]);
@@ -770,8 +764,7 @@ function applyPreferences() {
   document.documentElement.style.setProperty('--muted', bgs[bi][5]);
   document.documentElement.style.setProperty('--dim', bgs[bi][6]);
 }
-</script>
-<script>
+
 function getPeriodBounds(mode, offset) {
   const now = new Date();
   let start, end, label;
@@ -783,21 +776,17 @@ function getPeriodBounds(mode, offset) {
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
     sunday.setHours(23, 59, 59, 999);
-    start = monday;
-    end = sunday;
+    start = monday; end = sunday;
     const opts = { day: 'numeric', month: 'short' };
     label = monday.toLocaleDateString('en-AU', opts) + ' — ' + sunday.toLocaleDateString('en-AU', opts);
   } else {
     const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
-    start = new Date(d.getFullYear(), d.getMonth(), 1);
-    start.setHours(0, 0, 0, 0);
-    end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-    end.setHours(23, 59, 59, 999);
+    start = new Date(d.getFullYear(), d.getMonth(), 1); start.setHours(0, 0, 0, 0);
+    end = new Date(d.getFullYear(), d.getMonth() + 1, 0); end.setHours(23, 59, 59, 999);
     label = d.toLocaleDateString('en-AU', { month: 'long', year: 'numeric' });
   }
   return { start, end, label };
 }
-
 
 function setMode(mode) {
   currentMode = mode;
@@ -808,13 +797,11 @@ function setMode(mode) {
   loadStats();
 }
 
-
 function navigate(dir) {
   currentOffset += dir;
   document.getElementById('nextBtn').disabled = currentOffset >= 0;
   loadStats();
 }
-
 
 async function handleRefresh() {
   const btn = document.getElementById('refreshBtn');
@@ -822,23 +809,17 @@ async function handleRefresh() {
   btn.disabled = true;
   icon.classList.add('spinning');
   await loadStats();
-  setTimeout(() => {
-    btn.disabled = false;
-    icon.classList.remove('spinning');
-  }, 600);
+  setTimeout(() => { btn.disabled = false; icon.classList.remove('spinning'); }, 600);
 }
-
 
 async function loadStats() {
   if (!currentClient) return;
   const { start, end, label } = getPeriodBounds(currentMode, currentOffset);
   document.getElementById('periodLabelText').textContent = label;
 
-
   const clientId = currentClient.id;
   const startIso = start.toISOString();
   const endIso = end.toISOString();
-
 
   let effectiveStart = startIso;
   if (currentClient.reset_date) {
@@ -846,44 +827,27 @@ async function loadStats() {
     if (rd > start) effectiveStart = rd.toISOString();
   }
 
-
   const [smsRes, clickRes, bookRes, monthSmsRes] = await Promise.all([
-    sb.from('sms_events').select('id', { count: 'exact' })
-      .eq('client_id', clientId)
-      .gte('received_at', effectiveStart)
-      .lte('received_at', endIso),
-    sb.from('link_clicks').select('id', { count: 'exact' })
-      .eq('client_id', clientId)
-      .gte('created_at', effectiveStart)
-      .lte('created_at', endIso),
-    sb.from('bookings').select('id', { count: 'exact' })
-      .eq('client_id', clientId)
-      .gte('booked_at', effectiveStart)
-      .lte('booked_at', endIso),
-    sb.from('sms_events').select('id', { count: 'exact' })
-      .eq('client_id', clientId)
-      .gte('received_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
+    sb.from('sms_events').select('id', { count: 'exact' }).eq('client_id', clientId).gte('received_at', effectiveStart).lte('received_at', endIso),
+    sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).gte('created_at', effectiveStart).lte('created_at', endIso),
+    sb.from('bookings').select('id', { count: 'exact' }).eq('client_id', clientId).gte('booked_at', effectiveStart).lte('booked_at', endIso),
+    sb.from('sms_events').select('id', { count: 'exact' }).eq('client_id', clientId).gte('received_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
   ]);
-
 
   const smsCount = smsRes.count || 0;
   const clickCount = clickRes.count || 0;
   const bookCount = bookRes.count || 0;
   const monthSms = monthSmsRes.count || 0;
 
-
   document.getElementById('smsCount').textContent = smsCount;
   document.getElementById('clickCount').textContent = clickCount;
   document.getElementById('bookingCount').textContent = bookCount;
 
-
   const conv = smsCount > 0 ? Math.round((clickCount / smsCount) * 100) : 0;
   document.getElementById('convRate').textContent = conv + '%';
 
-
   const avgJob = currentClient.avg_job_value || 0;
-  let revenue = 0;
-  let heroSub = '';
+  let revenue = 0, heroSub = '';
   if (clickCount > 0 && bookCount > 0) {
     const realConv = bookCount / clickCount;
     revenue = Math.round(clickCount * avgJob * realConv);
@@ -900,10 +864,7 @@ async function loadStats() {
   }
   document.getElementById('heroValue').textContent = '$' + revenue.toLocaleString();
   document.getElementById('heroSub').textContent = heroSub;
-
-
   document.getElementById('demoBanner').style.display = smsCount === 0 ? 'block' : 'none';
-
 
   updateOdometer(monthSms);
   document.getElementById('callCountBadge').textContent = monthSms + ' calls';
@@ -917,10 +878,8 @@ async function loadStats() {
     document.getElementById('overageRow').style.display = 'none';
   }
 
-
   await loadActivity(clientId, effectiveStart, endIso);
 }
-
 
 function updateOdometer(count) {
   const str = String(count).padStart(3, '0');
@@ -932,14 +891,10 @@ function updateOdometer(count) {
     if (oldSpan.textContent !== newDigit) {
       newSpan.textContent = newDigit;
       cell.classList.add('rolling');
-      setTimeout(() => {
-        oldSpan.textContent = newDigit;
-        cell.classList.remove('rolling');
-      }, 350);
+      setTimeout(() => { oldSpan.textContent = newDigit; cell.classList.remove('rolling'); }, 350);
     }
   });
 }
-
 
 function updateOdometerCells(ids, str) {
   ids.forEach((id, i) => {
@@ -951,25 +906,18 @@ function updateOdometerCells(ids, str) {
     if (oldSpan && newSpan && oldSpan.textContent !== newDigit) {
       newSpan.textContent = newDigit;
       cell.classList.add('rolling');
-      setTimeout(() => {
-        oldSpan.textContent = newDigit;
-        cell.classList.remove('rolling');
-      }, 350);
+      setTimeout(() => { oldSpan.textContent = newDigit; cell.classList.remove('rolling'); }, 350);
     }
   });
 }
 
-
 async function loadActivity(clientId, startIso, endIso) {
   const card = document.getElementById('activityCard');
-
-
   const [smsRes, clickRes, bookRes] = await Promise.all([
     sb.from('sms_events').select('customer_number,received_at').eq('client_id', clientId).gte('received_at', startIso).lte('received_at', endIso).order('received_at', { ascending: false }).limit(30),
     sb.from('link_clicks').select('customer_number,created_at').eq('client_id', clientId).gte('created_at', startIso).lte('created_at', endIso).order('created_at', { ascending: false }).limit(30),
     sb.from('bookings').select('id,booked_at,source').eq('client_id', clientId).gte('booked_at', startIso).lte('booked_at', endIso).order('booked_at', { ascending: false }).limit(30)
   ]);
-
 
   const events = [];
   (smsRes.data || []).forEach(e => events.push({ type: 'sms', number: e.customer_number, time: new Date(e.received_at) }));
@@ -977,31 +925,22 @@ async function loadActivity(clientId, startIso, endIso) {
   (bookRes.data || []).forEach(e => events.push({ type: 'book', number: e.id, time: new Date(e.booked_at), source: e.source }));
   events.sort((a, b) => b.time - a.time);
 
-
-  if (events.length === 0) {
-    card.innerHTML = '<div class="empty-state">No activity this period.</div>';
-    return;
-  }
-
+  if (events.length === 0) { card.innerHTML = '<div class="empty-state">No activity this period.</div>'; return; }
 
   const latest = events[0];
   const latestLabel = latest.type === 'sms' ? 'SMS sent to ' + maskNumber(latest.number) :
     latest.type === 'click' ? 'Link tapped by ' + maskNumber(latest.number) : 'Booking logged';
   const latestTime = latest.time.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }) + ' · ' + latest.time.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
 
-
   let rows = '';
   events.slice(0, 20).forEach(e => {
     const pill = e.type === 'sms' ? '<span class="status-pill">SMS</span>' :
       e.type === 'click' ? '<span class="status-pill pill-click">CLICK</span>' :
       '<span class="status-pill pill-book">BOOKED</span>';
-    const label = e.type === 'book'
-      ? (e.source === 'manual' ? 'Booking logged manually' : 'Booking confirmed')
-      : maskNumber(e.number);
+    const label = e.type === 'book' ? (e.source === 'manual' ? 'Booking logged manually' : 'Booking confirmed') : maskNumber(e.number);
     const timeStr = e.time.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }) + ' · ' + e.time.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
     rows += `<div class="activity-row"><div><div class="activity-number">${label}</div><div class="activity-time">${timeStr}</div></div>${pill}</div>`;
   });
-
 
   card.innerHTML = `
     <div class="activity-summary" onclick="toggleActivity()">
@@ -1018,12 +957,10 @@ async function loadActivity(clientId, startIso, endIso) {
   `;
 }
 
-
 function toggleActivity() {
   document.getElementById('activityDropdown')?.classList.toggle('open');
   document.getElementById('expandIcon')?.classList.toggle('open');
 }
-
 
 function maskNumber(num) {
   if (!num) return 'Unknown';
@@ -1032,20 +969,29 @@ function maskNumber(num) {
   return '***';
 }
 
-
 async function logBooking() {
   if (!currentClient) return;
+  const btn = document.getElementById('logBookingBtn');
+  btn.disabled = true;
   const now = new Date().toISOString();
-  await sb.from('bookings').insert({ client_id: currentClient.id, source: 'manual', booked_at: now });
-  const confirm = document.getElementById('logBookingConfirm');
-  confirm.style.display = 'flex';
-  setTimeout(() => confirm.style.display = 'none', 2500);
-  await loadStats();
+  try {
+    const { error } = await sb.from('bookings').insert({ client_id: currentClient.id, source: 'manual', booked_at: now });
+    if (!error) {
+      const confirm = document.getElementById('logBookingConfirm');
+      confirm.style.display = 'flex';
+      setTimeout(() => { confirm.style.display = 'none'; }, 2500);
+      await loadStats();
+    }
+  } catch (e) {
+    console.error('logBooking error:', e);
+  } finally {
+    btn.disabled = false;
+  }
 }
-
 
 function showResetModal() { document.getElementById('resetModal').classList.add('open'); }
 function closeResetModal() { document.getElementById('resetModal').classList.remove('open'); }
+
 async function confirmReset() {
   if (!currentClient) return;
   const now = new Date().toISOString();
@@ -1055,10 +1001,27 @@ async function confirmReset() {
   await loadStats();
 }
 
-
 document.addEventListener('DOMContentLoaded', async () => {
-  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      persistSession: true,
+      storage: window.localStorage,
+      storageKey: 'callmagnet-auth-token',
+      autoRefreshToken: true,
+      detectSessionInUrl: false
+    }
+  });
 
+  const logBtn = document.getElementById('logBookingBtn');
+  logBtn.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    logBooking();
+  });
+  logBtn.addEventListener('click', (e) => {
+    if (!e.sourceCapabilities || !e.sourceCapabilities.firesTouchEvents) {
+      logBooking();
+    }
+  });
 
   document.getElementById('passwordInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') handleAuth();
@@ -1066,7 +1029,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('emailInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') handleAuth();
   });
-
 
   const { data: { session } } = await sb.auth.getSession();
   if (session?.user) {
