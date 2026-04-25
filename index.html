@@ -814,6 +814,16 @@ async function handleRefresh() {
 
 async function loadStats() {
   if (!currentClient) return;
+
+  // BUG 7 FIX: re-fetch client row on every refresh so reset_date,
+  // avg_job_value, account_status etc stay in sync across two devices
+  const { data: fresh } = await sb
+    .from('clients')
+    .select('*')
+    .eq('id', currentClient.id)
+    .single();
+  if (fresh) currentClient = fresh;
+
   const { start, end, label } = getPeriodBounds(currentMode, currentOffset);
   document.getElementById('periodLabelText').textContent = label;
 
@@ -856,12 +866,12 @@ async function loadStats() {
     revenue = Math.round(clickCount * avgJob * 0.7);
     heroSub = 'Estimated conversion (70%)';
   } else if (bookCount > 0) {
+    // BUG 6 FIX: revenue only shows when bookings are logged
     revenue = Math.round(bookCount * avgJob);
     heroSub = bookCount + ' bookings × $' + avgJob + ' avg';
-  } else if (smsCount > 0) {
-    revenue = Math.round(smsCount * avgJob * 0.3);
-    heroSub = 'Estimated at 30% SMS conversion';
   }
+  // SMS only = $0 — revenue cannot be estimated from SMS alone
+
   document.getElementById('heroValue').textContent = '$' + revenue.toLocaleString();
   document.getElementById('heroSub').textContent = heroSub;
   document.getElementById('demoBanner').style.display = smsCount === 0 ? 'block' : 'none';
@@ -1012,6 +1022,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // BUG 3 FIX: listen for auth state changes including token refresh
+  // This handles iOS PWA session restore without hitting the login screen
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session?.user) {
+      if (!currentClient) await loadDashboard(session.user);
+    }
+    if (event === 'SIGNED_OUT') {
+      stopAutoRefresh();
+      currentClient = null;
+      document.getElementById('dash').style.display = 'none';
+      document.getElementById('loginScreen').style.display = 'flex';
+      const btn = document.getElementById('loginBtn');
+      btn.disabled = false;
+      btn.textContent = 'Sign in';
+    }
+    if (event === 'TOKEN_REFRESHED' && session?.user) {
+      if (!currentClient) await loadDashboard(session.user);
+    }
+  });
+
+  // BUG 4 FIX: touchend fires more reliably than click on PWA
   const logBtn = document.getElementById('logBookingBtn');
   logBtn.addEventListener('touchend', (e) => {
     e.preventDefault();
@@ -1030,6 +1061,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.key === 'Enter') handleAuth();
   });
 
+  // Check for existing session on load
   const { data: { session } } = await sb.auth.getSession();
   if (session?.user) {
     await loadDashboard(session.user);
