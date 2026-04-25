@@ -160,11 +160,13 @@ body {
 .metric-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; font-weight: 700; }
 .metric-value { font-size: 32px; font-weight: 300; color: var(--accent); letter-spacing: -0.02em; }
 .metric-sub { font-size: 11px; font-weight: 700; color: var(--muted); margin-top: 4px; }
-.log-booking-row { display: flex; justify-content: flex-end; gap: 0.75rem; margin-bottom: 1rem; }
+.log-booking-row { display: flex; justify-content: flex-end; gap: 0.75rem; margin-bottom: 1rem; align-items: center; }
 .log-booking-btn { background: #1a3a1a; border: 2px solid #4caf50; color: #4caf50; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-family: var(--mono); letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s; font-weight: 700; -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 .log-booking-btn:hover { background: #4caf50; color: #fff; }
 .log-booking-btn:active { background: #4caf50; color: #fff; transform: scale(0.95); }
-.log-booking-confirm { font-family: var(--mono); font-size: 11px; font-weight: 700; color: #4caf50; display: none; align-items: center; padding-top: 4px; }
+.log-booking-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.log-booking-confirm { font-family: var(--mono); font-size: 11px; font-weight: 700; color: #4caf50; display: none; align-items: center; }
+.log-booking-error { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--red); display: none; align-items: center; }
 .reset-row { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
 .reset-btn { background: none; border: 2px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 6px 14px; font-size: 12px; font-family: var(--mono); letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s; font-weight: 700; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .reset-btn:hover { background: var(--accent); color: var(--accent-contrast); }
@@ -194,6 +196,8 @@ body {
 .odometer-sep { width: 1px; background: var(--accent); opacity: 0.3; }
 .odometer-prefix { width: 20px; height: 26px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent); background: var(--surface); border-right: 1px solid var(--accent); opacity: 0.6; }
 .sms-odom-row { display: flex; align-items: center; gap: 6px; }
+.sms-overflow { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--accent); padding: 2px 4px; border: 1px solid var(--accent); border-radius: 4px; background: var(--surface); }
+.overage-overflow { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--red); padding: 4px 10px; border: 1px solid var(--red); border-radius: 4px; background: var(--surface); }
 .sms-month-label { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: 0.05em; opacity: 0.8; }
 .overage-row { display: flex; align-items: center; gap: 6px; }
 .overage-label { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--red); letter-spacing: 0.05em; }
@@ -247,7 +251,7 @@ body {
       <label>Password</label>
       <div class="password-wrap">
         <input type="password" id="passwordInput" placeholder="••••••••" autocomplete="current-password" />
-        <button class="eye-btn" type="button" onclick="togglePassword()">👁</button>
+        <button class="eye-btn" type="button" aria-label="Show or hide password" onclick="togglePassword()">👁</button>
       </div>
     </div>
     <div class="remember-row" id="rememberRow">
@@ -294,6 +298,7 @@ body {
       <button class="btn-accept" id="acceptTermsBtn" onclick="acceptTerms()">I agree — continue to dashboard</button>
       <a class="btn-view-terms" href="/legal.html" target="_blank">View Terms of Service and Privacy Policy</a>
     </div>
+    <div class="error-msg" id="termsErrorMsg" style="margin-top:1rem"></div>
   </div>
 </div>
 
@@ -308,7 +313,7 @@ body {
   <div class="topbar">
     <div class="topbar-logo"><span class="star-pulse">★</span>CallMagnet</div>
     <div class="topbar-right">
-      <button class="settings-btn" id="settingsBtn" onclick="toggleSettings()">⚙</button>
+      <button class="settings-btn" id="settingsBtn" aria-label="Settings" onclick="toggleSettings()">⚙</button>
       <button class="logout-btn" onclick="handleLogout()">Sign out</button>
       <div class="settings-panel" id="settingsPanel">
         <div class="settings-section">
@@ -397,6 +402,7 @@ body {
     </div>
     <div class="log-booking-row">
       <div class="log-booking-confirm" id="logBookingConfirm">✓ Booking logged</div>
+      <div class="log-booking-error" id="logBookingError"></div>
       <button class="log-booking-btn" id="logBookingBtn">+ Log a booking</button>
     </div>
     <div class="reset-row">
@@ -412,7 +418,7 @@ body {
       <div class="section-title">Recent activity</div>
       <div class="sms-counter-block">
         <div class="call-count-badge" id="callCountBadge">0 calls</div>
-        <div class="sms-odom-row">
+        <div class="sms-odom-row" id="smsOdomRow">
           <div class="odometer">
             <div class="odometer-cell" id="odom-2"><span class="old">0</span><span class="new">0</span></div>
             <div class="odometer-sep"></div>
@@ -424,7 +430,7 @@ body {
         <div class="sms-month-label">Messages sent this month</div>
         <div class="overage-row" id="overageRow" style="display:none">
           <div class="overage-label">SMS Overage</div>
-          <div class="odometer">
+          <div class="odometer" id="overageOdom">
             <div class="odometer-prefix">$</div>
             <div class="odometer-cell" id="ov-3"><span class="old">0</span><span class="new">0</span></div>
             <div class="odometer-sep"></div>
@@ -462,6 +468,11 @@ body {
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+// ============================================================
+// CallMagnet dashboard — optimised release
+// Combines all fixes from both development sessions
+// ============================================================
+
 const SUPABASE_URL = 'https://iskvvnhacqdxybpmwuni.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
 
@@ -471,6 +482,15 @@ let currentMode = 'week';
 let currentOffset = 0;
 let isSignup = false;
 let autoRefreshTimer = null;
+let bookingInFlight = false;
+let statsRequestId = 0;
+
+function isAccountReadOnly() {
+  if (!currentClient) return true;
+  if (currentClient.account_status === 'suspended') return true;
+  if (currentClient.cancellation_scheduled) return true;
+  return false;
+}
 
 function switchToSignup() {
   isSignup = true;
@@ -482,6 +502,7 @@ function switchToSignup() {
   document.getElementById('loginBtn').textContent = 'Create account';
   document.getElementById('authToggle').innerHTML = 'Already have an account? <span onclick="switchToLogin()">Sign in</span>';
   document.getElementById('errorMsg').style.display = 'none';
+  document.getElementById('passwordInput').value = '';
 }
 
 function switchToLogin() {
@@ -496,6 +517,7 @@ function switchToLogin() {
   btn.textContent = 'Sign in';
   document.getElementById('authToggle').innerHTML = 'Don\'t have an account? <span onclick="switchToSignup()">Sign up</span>';
   document.getElementById('errorMsg').style.display = 'none';
+  document.getElementById('passwordInput').value = '';
 }
 
 function showForgot() {
@@ -525,34 +547,41 @@ async function handleAuth() {
   btn.disabled = true;
   btn.textContent = isSignup ? 'Creating...' : 'Signing in...';
 
-  if (isSignup) {
-    const bizName = document.getElementById('bizNameInput').value.trim();
-    if (!bizName) {
-      errDiv.textContent = 'Please enter your business name.';
-      errDiv.style.display = 'block';
+  try {
+    if (isSignup) {
+      const bizName = document.getElementById('bizNameInput').value.trim();
+      if (!bizName) {
+        errDiv.textContent = 'Please enter your business name.';
+        errDiv.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Create account';
+        return;
+      }
+      const { error } = await sb.auth.signUp({ email, password, options: { data: { business_name: bizName } } });
+      if (error) {
+        errDiv.textContent = error.message;
+        errDiv.style.display = 'block';
+      } else {
+        document.getElementById('signupSuccessMsg').style.display = 'block';
+      }
       btn.disabled = false;
       btn.textContent = 'Create account';
-      return;
-    }
-    const { error } = await sb.auth.signUp({ email, password, options: { data: { business_name: bizName } } });
-    if (error) {
-      errDiv.textContent = error.message;
-      errDiv.style.display = 'block';
     } else {
-      document.getElementById('signupSuccessMsg').style.display = 'block';
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) {
+        errDiv.textContent = error.message;
+        errDiv.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Sign in';
+      } else {
+        await loadDashboard(data.user);
+      }
     }
+  } catch (e) {
+    errDiv.textContent = 'Network error. Check your connection and try again.';
+    errDiv.style.display = 'block';
     btn.disabled = false;
-    btn.textContent = 'Create account';
-  } else {
-    const { data, error } = await sb.auth.signInWithPassword({ email, password });
-    if (error) {
-      errDiv.textContent = error.message;
-      errDiv.style.display = 'block';
-      btn.disabled = false;
-      btn.textContent = 'Sign in';
-    } else {
-      await loadDashboard(data.user);
-    }
+    btn.textContent = isSignup ? 'Create account' : 'Sign in';
   }
 }
 
@@ -563,12 +592,17 @@ async function handleReset() {
   errDiv.style.display = 'none';
   btn.disabled = true;
   btn.textContent = 'Sending...';
-  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://callmagnet.com.au' });
-  if (error) {
-    errDiv.textContent = error.message;
+  try {
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://callmagnet.com.au' });
+    if (error) {
+      errDiv.textContent = error.message;
+      errDiv.style.display = 'block';
+    } else {
+      document.getElementById('resetSuccessMsg').style.display = 'block';
+    }
+  } catch (e) {
+    errDiv.textContent = 'Network error. Try again.';
     errDiv.style.display = 'block';
-  } else {
-    document.getElementById('resetSuccessMsg').style.display = 'block';
   }
   btn.disabled = false;
   btn.textContent = 'Send reset link';
@@ -576,10 +610,10 @@ async function handleReset() {
 
 async function handleLogout() {
   stopAutoRefresh();
-  await sb.auth.signOut();
   currentClient = null;
   document.getElementById('dash').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
+  try { await sb.auth.signOut(); } catch (e) { console.warn('signOut error:', e); }
   const btn = document.getElementById('loginBtn');
   btn.disabled = false;
   btn.textContent = 'Sign in';
@@ -592,18 +626,31 @@ function hideTermsModal() { document.getElementById('termsModal').classList.remo
 
 async function acceptTerms() {
   const btn = document.getElementById('acceptTermsBtn');
+  const errDiv = document.getElementById('termsErrorMsg');
+  errDiv.style.display = 'none';
   btn.disabled = true;
   btn.textContent = 'Saving...';
-  const now = new Date().toISOString();
-  const { error } = await sb.from('clients').update({ terms_accepted: true, terms_accepted_at: now }).eq('id', currentClient.id);
-  if (error) {
+  try {
+    const now = new Date().toISOString();
+    const { error } = await sb.from('clients')
+      .update({ terms_accepted: true, terms_accepted_at: now })
+      .eq('id', currentClient.id);
+    if (error) {
+      errDiv.textContent = 'Could not save. Try again or email hello@callmagnet.com.au';
+      errDiv.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'I agree — continue to dashboard';
+      return;
+    }
+    currentClient.terms_accepted = true;
+    currentClient.terms_accepted_at = now;
+    hideTermsModal();
+  } catch (e) {
+    errDiv.textContent = 'Network error. Try again.';
+    errDiv.style.display = 'block';
     btn.disabled = false;
     btn.textContent = 'I agree — continue to dashboard';
-    return;
   }
-  currentClient.terms_accepted = true;
-  currentClient.terms_accepted_at = now;
-  hideTermsModal();
 }
 
 async function loadDashboard(user) {
@@ -634,7 +681,8 @@ async function loadDashboard(user) {
   if (currentClient.cancellation_scheduled) {
     const endDate = new Date(currentClient.cancelled_at);
     endDate.setDate(endDate.getDate() + 30);
-    document.getElementById('cancellationEndDate').textContent = endDate.toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
+    document.getElementById('cancellationEndDate').textContent =
+      endDate.toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
     document.getElementById('cancellationBanner').classList.add('active');
   }
 
@@ -642,11 +690,15 @@ async function loadDashboard(user) {
   document.title = currentClient.business_name + ' — CallMagnet';
 
   if (currentClient.date_of_birth) {
-    const dob = new Date(currentClient.date_of_birth);
-    const today = new Date();
-    if (dob.getDate() === today.getDate() && dob.getMonth() === today.getMonth()) {
-      document.getElementById('birthdayBizName').textContent = currentClient.business_name;
-      document.getElementById('birthdayBanner').style.display = 'block';
+    const parts = String(currentClient.date_of_birth).split('-');
+    if (parts.length >= 3) {
+      const dobMonth = parseInt(parts[1], 10) - 1;
+      const dobDay = parseInt(parts[2].slice(0, 2), 10);
+      const today = new Date();
+      if (dobDay === today.getDate() && dobMonth === today.getMonth()) {
+        document.getElementById('birthdayBizName').textContent = currentClient.business_name;
+        document.getElementById('birthdayBanner').style.display = 'block';
+      }
     }
   }
 
@@ -709,9 +761,11 @@ async function setAccent(idx, color, dimColor, contrast) {
   document.documentElement.style.setProperty('--accent', color);
   document.documentElement.style.setProperty('--accent-dim', dimColor);
   document.documentElement.style.setProperty('--accent-contrast', contrast);
-  if (currentClient) {
-    await sb.from('clients').update({ accent_preference: idx }).eq('id', currentClient.id);
-    currentClient.accent_preference = idx;
+  if (currentClient && !isAccountReadOnly()) {
+    try {
+      await sb.from('clients').update({ accent_preference: idx }).eq('id', currentClient.id);
+      currentClient.accent_preference = idx;
+    } catch (e) { console.warn('accent save failed', e); }
   }
 }
 
@@ -725,9 +779,11 @@ async function setBg(idx, bg, surface, surface2, border, text, muted, dim) {
   document.documentElement.style.setProperty('--text', text);
   document.documentElement.style.setProperty('--muted', muted);
   document.documentElement.style.setProperty('--dim', dim);
-  if (currentClient) {
-    await sb.from('clients').update({ bg_preference: idx }).eq('id', currentClient.id);
-    currentClient.bg_preference = idx;
+  if (currentClient && !isAccountReadOnly()) {
+    try {
+      await sb.from('clients').update({ bg_preference: idx }).eq('id', currentClient.id);
+      currentClient.bg_preference = idx;
+    } catch (e) { console.warn('bg save failed', e); }
   }
 }
 
@@ -806,23 +862,34 @@ function navigate(dir) {
 async function handleRefresh() {
   const btn = document.getElementById('refreshBtn');
   const icon = document.getElementById('refreshIcon');
+  if (btn.disabled) return;
   btn.disabled = true;
   icon.classList.add('spinning');
-  await loadStats();
-  setTimeout(() => { btn.disabled = false; icon.classList.remove('spinning'); }, 600);
+  try {
+    await loadStats();
+  } finally {
+    icon.classList.remove('spinning');
+    btn.disabled = false;
+  }
 }
 
 async function loadStats() {
   if (!currentClient) return;
 
-  // BUG 7 FIX: re-fetch client row on every refresh — syncs reset_date
-  // and all other fields across multiple devices automatically
-  const { data: fresh } = await sb
-    .from('clients')
-    .select('*')
-    .eq('id', currentClient.id)
-    .single();
-  if (fresh) currentClient = fresh;
+  const myRequestId = ++statsRequestId;
+
+  try {
+    const { data: fresh } = await sb
+      .from('clients')
+      .select('*')
+      .eq('id', currentClient.id)
+      .single();
+    if (fresh && myRequestId === statsRequestId) currentClient = fresh;
+  } catch (e) {
+    console.warn('client refresh failed, using cached', e);
+  }
+
+  if (myRequestId !== statsRequestId) return;
 
   const { start, end, label } = getPeriodBounds(currentMode, currentOffset);
   document.getElementById('periodLabelText').textContent = label;
@@ -837,12 +904,22 @@ async function loadStats() {
     if (rd > start) effectiveStart = rd.toISOString();
   }
 
-  const [smsRes, clickRes, bookRes, monthSmsRes] = await Promise.all([
-    sb.from('sms_events').select('id', { count: 'exact' }).eq('client_id', clientId).gte('received_at', effectiveStart).lte('received_at', endIso),
-    sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).gte('created_at', effectiveStart).lte('created_at', endIso),
-    sb.from('bookings').select('id', { count: 'exact' }).eq('client_id', clientId).gte('booked_at', effectiveStart).lte('booked_at', endIso),
-    sb.from('sms_events').select('id', { count: 'exact' }).eq('client_id', clientId).gte('received_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
-  ]);
+  const monthStartIso = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+
+  let smsRes, clickRes, bookRes, monthSmsRes;
+  try {
+    [smsRes, clickRes, bookRes, monthSmsRes] = await Promise.all([
+      sb.from('sms_events').select('id', { count: 'exact' }).eq('client_id', clientId).gte('received_at', effectiveStart).lte('received_at', endIso),
+      sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).gte('created_at', effectiveStart).lte('created_at', endIso),
+      sb.from('bookings').select('id', { count: 'exact' }).eq('client_id', clientId).gte('booked_at', effectiveStart).lte('booked_at', endIso),
+      sb.from('sms_events').select('id', { count: 'exact' }).eq('client_id', clientId).gte('received_at', monthStartIso)
+    ]);
+  } catch (e) {
+    console.error('stats load failed', e);
+    return;
+  }
+
+  if (myRequestId !== statsRequestId) return;
 
   const smsCount = smsRes.count || 0;
   const clickCount = clickRes.count || 0;
@@ -858,6 +935,7 @@ async function loadStats() {
 
   const avgJob = currentClient.avg_job_value || 0;
   let revenue = 0, heroSub = '';
+
   if (clickCount > 0 && bookCount > 0) {
     const realConv = bookCount / clickCount;
     revenue = Math.round(clickCount * avgJob * realConv);
@@ -866,38 +944,57 @@ async function loadStats() {
     revenue = Math.round(clickCount * avgJob * 0.7);
     heroSub = 'Estimated conversion (70%)';
   } else if (bookCount > 0) {
-    // BUG 6 FIX: revenue only shows when bookings logged — SMS alone = $0
     revenue = Math.round(bookCount * avgJob);
     heroSub = bookCount + ' bookings × $' + avgJob + ' avg';
+  }
+
+  if (avgJob === 0 && (smsCount > 0 || bookCount > 0)) {
+    heroSub = 'Set your average job value to see revenue';
   }
 
   document.getElementById('heroValue').textContent = '$' + revenue.toLocaleString();
   document.getElementById('heroSub').textContent = heroSub;
   document.getElementById('demoBanner').style.display = smsCount === 0 ? 'block' : 'none';
 
-  updateOdometer(monthSms);
+  updateSmsCounter(monthSms);
   document.getElementById('callCountBadge').textContent = monthSms + ' calls';
+
   const smsIncluded = currentClient.sms_included || 50;
   const overage = Math.max(0, monthSms - smsIncluded);
-  const overageCost = (overage * 0.10).toFixed(2).replace('.', '').padStart(4, '0');
   if (overage > 0) {
     document.getElementById('overageRow').style.display = 'flex';
-    updateOdometerCells(['ov-3','ov-2','ov-1','ov-0'], overageCost);
+    renderOverageDisplay((overage * 0.10).toFixed(2));
   } else {
     document.getElementById('overageRow').style.display = 'none';
   }
 
-  await loadActivity(clientId, effectiveStart, endIso);
+  await loadActivity(clientId, effectiveStart, endIso, myRequestId);
 }
 
-function updateOdometer(count) {
+function updateSmsCounter(count) {
+  const row = document.getElementById('smsOdomRow');
+  if (count > 999) {
+    row.innerHTML = '<div class="sms-overflow">' + count.toLocaleString() + '</div>';
+    return;
+  }
+  if (!document.getElementById('odom-2')) {
+    row.innerHTML =
+      '<div class="odometer">' +
+      '<div class="odometer-cell" id="odom-2"><span class="old">0</span><span class="new">0</span></div>' +
+      '<div class="odometer-sep"></div>' +
+      '<div class="odometer-cell" id="odom-1"><span class="old">0</span><span class="new">0</span></div>' +
+      '<div class="odometer-sep"></div>' +
+      '<div class="odometer-cell" id="odom-0"><span class="old">0</span><span class="new">0</span></div>' +
+      '</div>';
+  }
   const str = String(count).padStart(3, '0');
   ['odom-2','odom-1','odom-0'].forEach((id, i) => {
     const cell = document.getElementById(id);
+    if (!cell) return;
     const newDigit = str[i];
     const oldSpan = cell.querySelector('.old');
     const newSpan = cell.querySelector('.new');
-    if (oldSpan.textContent !== newDigit) {
+    if (oldSpan && oldSpan.textContent !== newDigit) {
       newSpan.textContent = newDigit;
       cell.classList.add('rolling');
       setTimeout(() => { oldSpan.textContent = newDigit; cell.classList.remove('rolling'); }, 350);
@@ -905,11 +1002,30 @@ function updateOdometer(count) {
   });
 }
 
-function updateOdometerCells(ids, str) {
-  ids.forEach((id, i) => {
+function renderOverageDisplay(dollarStr) {
+  const overageOdom = document.getElementById('overageOdom');
+  const numericValue = parseFloat(dollarStr);
+  if (numericValue > 99.99) {
+    overageOdom.innerHTML = '<div class="overage-overflow">$' + dollarStr + '</div>';
+    return;
+  }
+  if (!document.getElementById('ov-3')) {
+    overageOdom.innerHTML =
+      '<div class="odometer-prefix">$</div>' +
+      '<div class="odometer-cell" id="ov-3"><span class="old">0</span><span class="new">0</span></div>' +
+      '<div class="odometer-sep"></div>' +
+      '<div class="odometer-cell" id="ov-2"><span class="old">0</span><span class="new">0</span></div>' +
+      '<div class="odometer-sep"></div>' +
+      '<div class="odometer-cell" id="ov-1"><span class="old">0</span><span class="new">0</span></div>' +
+      '<div class="odometer-sep"></div>' +
+      '<div class="odometer-cell" id="ov-0"><span class="old">0</span><span class="new">0</span></div>';
+    overageOdom.className = 'odometer';
+  }
+  const cleaned = dollarStr.replace('.', '').padStart(4, '0');
+  ['ov-3','ov-2','ov-1','ov-0'].forEach((id, i) => {
     const cell = document.getElementById(id);
     if (!cell) return;
-    const newDigit = str[i] || '0';
+    const newDigit = cleaned[i] || '0';
     const oldSpan = cell.querySelector('.old');
     const newSpan = cell.querySelector('.new');
     if (oldSpan && newSpan && oldSpan.textContent !== newDigit) {
@@ -920,13 +1036,21 @@ function updateOdometerCells(ids, str) {
   });
 }
 
-async function loadActivity(clientId, startIso, endIso) {
+async function loadActivity(clientId, startIso, endIso, parentRequestId) {
   const card = document.getElementById('activityCard');
-  const [smsRes, clickRes, bookRes] = await Promise.all([
-    sb.from('sms_events').select('customer_number,received_at').eq('client_id', clientId).gte('received_at', startIso).lte('received_at', endIso).order('received_at', { ascending: false }).limit(30),
-    sb.from('link_clicks').select('customer_number,created_at').eq('client_id', clientId).gte('created_at', startIso).lte('created_at', endIso).order('created_at', { ascending: false }).limit(30),
-    sb.from('bookings').select('id,booked_at,source').eq('client_id', clientId).gte('booked_at', startIso).lte('booked_at', endIso).order('booked_at', { ascending: false }).limit(30)
-  ]);
+  let smsRes, clickRes, bookRes;
+  try {
+    [smsRes, clickRes, bookRes] = await Promise.all([
+      sb.from('sms_events').select('customer_number,received_at').eq('client_id', clientId).gte('received_at', startIso).lte('received_at', endIso).order('received_at', { ascending: false }).limit(30),
+      sb.from('link_clicks').select('customer_number,created_at').eq('client_id', clientId).gte('created_at', startIso).lte('created_at', endIso).order('created_at', { ascending: false }).limit(30),
+      sb.from('bookings').select('id,booked_at,source').eq('client_id', clientId).gte('booked_at', startIso).lte('booked_at', endIso).order('booked_at', { ascending: false }).limit(30)
+    ]);
+  } catch (e) {
+    console.error('activity load failed', e);
+    return;
+  }
+
+  if (parentRequestId !== undefined && parentRequestId !== statsRequestId) return;
 
   const events = [];
   (smsRes.data || []).forEach(e => events.push({ type: 'sms', number: e.customer_number, time: new Date(e.received_at) }));
@@ -948,22 +1072,21 @@ async function loadActivity(clientId, startIso, endIso) {
       '<span class="status-pill pill-book">BOOKED</span>';
     const label = e.type === 'book' ? (e.source === 'manual' ? 'Booking logged manually' : 'Booking confirmed') : maskNumber(e.number);
     const timeStr = e.time.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }) + ' · ' + e.time.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
-    rows += `<div class="activity-row"><div><div class="activity-number">${label}</div><div class="activity-time">${timeStr}</div></div>${pill}</div>`;
+    rows += '<div class="activity-row"><div><div class="activity-number">' + label + '</div><div class="activity-time">' + timeStr + '</div></div>' + pill + '</div>';
   });
 
-  card.innerHTML = `
-    <div class="activity-summary" onclick="toggleActivity()">
-      <div class="activity-summary-left">
-        <div class="dot"></div>
-        <div>
-          <div class="activity-summary-text">${latestLabel}</div>
-          <div class="activity-summary-sub">${latestTime}</div>
-        </div>
-      </div>
-      <div class="expand-icon" id="expandIcon">▾</div>
-    </div>
-    <div class="activity-dropdown" id="activityDropdown">${rows}</div>
-  `;
+  card.innerHTML =
+    '<div class="activity-summary" onclick="toggleActivity()">' +
+      '<div class="activity-summary-left">' +
+        '<div class="dot"></div>' +
+        '<div>' +
+          '<div class="activity-summary-text">' + latestLabel + '</div>' +
+          '<div class="activity-summary-sub">' + latestTime + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="expand-icon" id="expandIcon">▾</div>' +
+    '</div>' +
+    '<div class="activity-dropdown" id="activityDropdown">' + rows + '</div>';
 }
 
 function toggleActivity() {
@@ -980,12 +1103,27 @@ function maskNumber(num) {
 
 async function logBooking() {
   if (!currentClient) return;
+  if (bookingInFlight) return;
+  if (isAccountReadOnly()) {
+    showLogBookingError('Account paused. Email hello@callmagnet.com.au');
+    return;
+  }
+
+  bookingInFlight = true;
   const btn = document.getElementById('logBookingBtn');
   btn.disabled = true;
+
   const now = new Date().toISOString();
   try {
-    const { error } = await sb.from('bookings').insert({ client_id: currentClient.id, source: 'manual', booked_at: now });
-    if (!error) {
+    const { error } = await sb.from('bookings').insert({
+      client_id: currentClient.id,
+      source: 'manual',
+      booked_at: now
+    });
+    if (error) {
+      console.error('booking insert error:', error);
+      showLogBookingError('Failed — try again');
+    } else {
       const confirm = document.getElementById('logBookingConfirm');
       confirm.style.display = 'flex';
       setTimeout(() => { confirm.style.display = 'none'; }, 2500);
@@ -993,9 +1131,21 @@ async function logBooking() {
     }
   } catch (e) {
     console.error('logBooking error:', e);
+    showLogBookingError('Network error');
   } finally {
-    btn.disabled = false;
+    setTimeout(() => {
+      bookingInFlight = false;
+      btn.disabled = false;
+    }, 800);
   }
+}
+
+function showLogBookingError(text) {
+  const el = document.getElementById('logBookingError');
+  if (!el) return;
+  el.textContent = '✗ ' + text;
+  el.style.display = 'flex';
+  setTimeout(() => { el.style.display = 'none'; }, 3000);
 }
 
 function showResetModal() { document.getElementById('resetModal').classList.add('open'); }
@@ -1003,9 +1153,12 @@ function closeResetModal() { document.getElementById('resetModal').classList.rem
 
 async function confirmReset() {
   if (!currentClient) return;
+  if (isAccountReadOnly()) { closeResetModal(); return; }
   const now = new Date().toISOString();
-  await sb.from('clients').update({ reset_date: now }).eq('id', currentClient.id);
-  currentClient.reset_date = now;
+  try {
+    await sb.from('clients').update({ reset_date: now }).eq('id', currentClient.id);
+    currentClient.reset_date = now;
+  } catch (e) { console.error('reset failed', e); }
   closeResetModal();
   await loadStats();
 }
@@ -1017,20 +1170,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       storage: window.localStorage,
       storageKey: 'callmagnet-auth-token',
       autoRefreshToken: true,
-      detectSessionInUrl: false
+      detectSessionInUrl: true
     }
   });
 
-  // BUG 4 FIX: touchend fires reliably on PWA — no 300ms delay
-  const logBtn = document.getElementById('logBookingBtn');
-  logBtn.addEventListener('touchend', (e) => {
+  document.getElementById('logBookingBtn').addEventListener('click', (e) => {
     e.preventDefault();
     logBooking();
-  });
-  logBtn.addEventListener('click', (e) => {
-    if (!e.sourceCapabilities || !e.sourceCapabilities.firesTouchEvents) {
-      logBooking();
-    }
   });
 
   document.getElementById('passwordInput').addEventListener('keydown', e => {
@@ -1040,13 +1186,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.key === 'Enter') handleAuth();
   });
 
-  // BUG 3 FIX: getSession restores existing session on PWA reopen
-  // onAuthStateChange removed — caused iOS sign-in button to grey out
   const { data: { session } } = await sb.auth.getSession();
   if (session?.user) {
     await loadDashboard(session.user);
   }
+
+  sb.auth.onAuthStateChange((event, recoverySession) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      const newPass = window.prompt('Enter your new password (minimum 6 characters):');
+      if (newPass && newPass.length >= 6) {
+        sb.auth.updateUser({ password: newPass }).then(({ error }) => {
+          if (error) {
+            alert('Could not update password: ' + error.message);
+          } else {
+            alert('Password updated. You are now signed in.');
+            if (recoverySession?.user) loadDashboard(recoverySession.user);
+          }
+        });
+      }
+    }
+  });
 });
 </script>
 </body>
 </html>
+
