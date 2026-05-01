@@ -74,7 +74,7 @@ body {
 @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
 </style>
 <style>
-.login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; background: #f5f5f5; }
+.login-screen { --accent: #3ecf8e; --accent-dim: #3ecf8e22; --accent-contrast: #ffffff; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; background: #f7f7f5; }
 .login-box { width: 100%; max-width: 380px; background: #ffffff; border: 1px solid #dddddd; border-radius: 12px; padding: 2.5rem 2rem; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
 .login-logo { font-family: var(--mono); font-size: 20px; letter-spacing: 0.15em; color: var(--accent); text-transform: uppercase; margin-bottom: 2rem; display: flex; align-items: center; gap: 10px; font-weight: 700; }
 .login-heading { font-size: 26px; font-weight: 700; color: #111111; margin-bottom: 0.4rem; letter-spacing: -0.02em; }
@@ -82,7 +82,7 @@ body {
 .field { margin-bottom: 1rem; }
 .field label { display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #888888; margin-bottom: 6px; font-family: var(--mono); font-weight: 700; }
 .field input { width: 100%; background: #f9f9f9; border: 1px solid #dddddd; border-radius: 6px; padding: 10px 14px; color: #111111; font-family: var(--sans); font-size: 14px; outline: none; transition: border-color 0.2s; font-weight: 600; }
-.field input:focus { border-color: var(--accent); background: #ffffff; }
+.field input:focus { border-color: var(--accent); border-width: 2px; background: #ffffff; }
 .password-wrap { position: relative; }
 .password-wrap input { padding-right: 44px; }
 .eye-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #888; font-size: 16px; padding: 4px; line-height: 1; transition: color 0.2s; -webkit-tap-highlight-color: transparent; }
@@ -99,7 +99,7 @@ body {
 .auth-toggle span { color: var(--accent); font-family: var(--mono); cursor: pointer; text-decoration: underline; font-weight: 700; letter-spacing: 0.03em; }
 .error-msg { background: #fff0f0; border: 1px solid #ff4d4d; color: #cc0000; border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-top: 1rem; display: none; font-weight: 600; }
 .success-msg { background: #f0f4ff; border: 1px solid var(--accent); color: var(--accent); border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-top: 1rem; display: none; font-weight: 600; }
-.forgot-screen { min-height: 100vh; display: none; align-items: center; justify-content: center; padding: 2rem; background: #f5f5f5; }
+.forgot-screen { --accent: #3ecf8e; --accent-dim: #3ecf8e22; --accent-contrast: #ffffff; min-height: 100vh; display: none; align-items: center; justify-content: center; padding: 2rem; background: #f7f7f5; }
 .forgot-screen.active { display: flex; }
 .back-link { font-size: 12px; color: var(--accent); font-family: var(--mono); cursor: pointer; text-decoration: underline; margin-bottom: 1.5rem; display: block; font-weight: 700; letter-spacing: 0.03em; }
 </style>
@@ -175,12 +175,12 @@ body {
 .toggle-btn.active { background: var(--accent); color: var(--accent-contrast); }
 .hero { background: linear-gradient(135deg, var(--accent-dim) 0%, transparent 140%); border: 2px solid var(--accent); border-radius: 12px; padding: 1.75rem 1.5rem; margin-bottom: 1rem; box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 24px rgba(0,0,0,0.12); }
 .hero-label { font-family: var(--sans); font-size: 11px; letter-spacing: 0.02em; color: var(--accent); margin-bottom: 8px; font-weight: 700; }
-.hero-value { font-size: 56px; font-weight: 300; color: var(--accent); letter-spacing: -0.03em; line-height: 1; }
+.hero-value { font-size: 56px; font-weight: 300; color: var(--accent); letter-spacing: -0.03em; line-height: 1; text-shadow: 0 1px 2px rgba(0,0,0,0.04); }
 .hero-sub { font-size: 13px; font-weight: 700; color: var(--accent); opacity: 0.8; margin-top: 8px; }
 .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 1rem; }
-.metric { background: var(--surface); border: 1px solid var(--accent); border-radius: 10px; padding: 1rem; }
+.metric { background: var(--surface); border: 1.5px solid var(--accent); border-radius: 10px; padding: 1rem; }
 .metric-label { font-family: var(--sans); font-size: 10px; letter-spacing: 0.02em; color: var(--accent); margin-bottom: 8px; font-weight: 700; }
-.metric-value { font-size: 32px; font-weight: 300; color: var(--accent); letter-spacing: -0.02em; }
+.metric-value { font-size: 32px; font-weight: 400; color: var(--accent); letter-spacing: -0.02em; }
 .metric-sub { font-size: 11px; font-weight: 700; color: var(--muted); margin-top: 4px; }
 .log-booking-row { display: flex; justify-content: flex-end; gap: 0.75rem; margin-bottom: 1rem; align-items: center; }
 .log-booking-btn { background: #1a3a1a; border: 2px solid #4caf50; color: #4caf50; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-family: var(--mono); letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s; font-weight: 700; -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
@@ -223,7 +223,7 @@ body {
 .sms-month-label { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: 0.05em; opacity: 0.8; }
 .overage-row { display: flex; align-items: center; gap: 6px; }
 .overage-label { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--red); letter-spacing: 0.05em; }
-.activity-card { background: var(--surface); border: 1px solid var(--accent); border-radius: 10px; overflow: hidden; }
+.activity-card { background: var(--surface); border: 1.5px solid var(--accent); border-radius: 10px; overflow: hidden; }
 .activity-summary { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; cursor: pointer; transition: background 0.15s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .activity-summary:hover { background: var(--surface2); }
 .activity-summary-left { display: flex; align-items: center; gap: 10px; }
@@ -373,29 +373,31 @@ body {
         <div class="settings-section">
           <div class="settings-section-title">Accent colour</div>
           <div class="swatch-grid">
-            <div class="s-swatch selected dark-check" id="acc-0" style="background:#191970" onclick="setAccent(0,'#191970','#19197022','#fff')"></div>
-            <div class="s-swatch dark-check" id="acc-1" style="background:#ffffff;border:2px solid #ccc" onclick="setAccent(1,'#ffffff','#ffffff18','#0d0d0d')"></div>
-            <div class="s-swatch dark-check" id="acc-2" style="background:#111111" onclick="setAccent(2,'#111111','#11111122','#fff')"></div>
-            <div class="s-swatch" id="acc-3" style="background:#888888" onclick="setAccent(3,'#888888','#88888822','#fff')"></div>
-            <div class="s-swatch" id="acc-4" style="background:#e91e8c" onclick="setAccent(4,'#e91e8c','#e91e8c22','#fff')"></div>
-            <div class="s-swatch" id="acc-5" style="background:#ff6b6b" onclick="setAccent(5,'#ff6b6b','#ff6b6b22','#fff')"></div>
-            <div class="s-swatch" id="acc-6" style="background:#f5a623" onclick="setAccent(6,'#f5a623','#f5a62322','#000')"></div>
-            <div class="s-swatch" id="acc-7" style="background:#ff4500" onclick="setAccent(7,'#ff4500','#ff450022','#fff')"></div>
-            <div class="s-swatch" id="acc-8" style="background:#3ecf8e" onclick="setAccent(8,'#3ecf8e','#3ecf8e22','#000')"></div>
-            <div class="s-swatch" id="acc-9" style="background:#7b2fff" onclick="setAccent(9,'#7b2fff','#7b2fff22','#fff')"></div>
+            <div class="s-swatch selected dark-check" id="acc-0" style="background:#16a34a" onclick="setAccent(0,'#16a34a','#16a34a22','#ffffff')"></div>
+            <div class="s-swatch dark-check" id="acc-1" style="background:#2563eb" onclick="setAccent(1,'#2563eb','#2563eb22','#ffffff')"></div>
+            <div class="s-swatch dark-check" id="acc-2" style="background:#db2777" onclick="setAccent(2,'#db2777','#db277722','#ffffff')"></div>
+            <div class="s-swatch dark-check" id="acc-3" style="background:#ea580c" onclick="setAccent(3,'#ea580c','#ea580c22','#ffffff')"></div>
+            <div class="s-swatch dark-check" id="acc-4" style="background:#7c3aed" onclick="setAccent(4,'#7c3aed','#7c3aed22','#ffffff')"></div>
+            <div class="s-swatch dark-check" id="acc-5" style="background:#dc2626" onclick="setAccent(5,'#dc2626','#dc262622','#ffffff')"></div>
+            <div class="s-swatch dark-check" id="acc-6" style="background:#0891b2" onclick="setAccent(6,'#0891b2','#0891b222','#ffffff')"></div>
+            <div class="s-swatch dark-check" id="acc-7" style="background:#b45309" onclick="setAccent(7,'#b45309','#b4530922','#ffffff')"></div>
+            <div class="s-swatch dark-check" id="acc-8" style="background:#4338ca" onclick="setAccent(8,'#4338ca','#4338ca22','#ffffff')"></div>
           </div>
         </div>
         <div class="settings-divider"></div>
         <div class="settings-section">
           <div class="settings-section-title">Background</div>
           <div class="swatch-grid">
-            <div class="s-swatch dark-check" id="bg-0" style="background:#FF5C00" onclick="setBg(0,'#FF5C00','#cc4900','#aa3d00','#ff7722','#fff5ee','#ffccaa','#ff9966')"></div>
-            <div class="s-swatch" id="bg-1" style="background:#A2A2A2;border:1px solid #888" onclick="setBg(1,'#A2A2A2','#b5b5b5','#c8c8c8','#8f8f8f','#111111','#333333','#555555')"></div>
-            <div class="s-swatch dark-check" id="bg-2" style="background:#2F2F68" onclick="setBg(2,'#2F2F68','#3d3d80','#4b4b99','#222255','#eeeeff','#aaaadd','#8888bb')"></div>
-            <div class="s-swatch" id="bg-3" style="background:#FAFFFA;border:1px solid #ddd" onclick="setBg(3,'#FAFFFA','#ffffff','#f0fff0','#e0ffe0','#111111','#444444','#777777')"></div>
-            <div class="s-swatch" id="bg-4" style="background:#80FFBF;border:1px solid #44dd88" onclick="setBg(4,'#80FFBF','#aaffdd','#ccffee','#55ddaa','#003322','#005533','#007744')"></div>
-            <div class="s-swatch dark-check" id="bg-5" style="background:#252525" onclick="setBg(5,'#252525','#333333','#404040','#181818','#f0f0f0','#aaaaaa','#666666')"></div>
-            <div class="s-swatch dark-check" id="bg-6" style="background:#C11C84" onclick="setBg(6,'#C11C84','#d42090','#e8249d','#a01870','#fff0f8','#ffaadd','#ff55bb')"></div>
+            <div class="s-swatch" id="bg-0" style="background:#f7f7f5;border:1px solid #e5e5e0" onclick="setBg(0,'#f7f7f5','#ffffff','#f0f0eb','#e5e5e0','#1a1a1a','#666666','#9a9a95')"></div>
+            <div class="s-swatch" id="bg-1" style="background:#fafaf7;border:1px solid #e8e8e3" onclick="setBg(1,'#fafaf7','#ffffff','#f3f3ee','#e8e8e3','#1a1a1a','#666666','#9a9a95')"></div>
+            <div class="s-swatch" id="bg-2" style="background:#f5f7fa;border:1px solid #dde2e8" onclick="setBg(2,'#f5f7fa','#ffffff','#eef1f5','#dde2e8','#1a1f2e','#5c6675','#8d96a3')"></div>
+            <div class="s-swatch" id="bg-3" style="background:#f8f5f0;border:1px solid #e6dccc" onclick="setBg(3,'#f8f5f0','#ffffff','#f1ebe0','#e6dccc','#2a2419','#6e6353','#a39785')"></div>
+            <div class="s-swatch" id="bg-4" style="background:#f4f3f0;border:1px solid #dcdbd5" onclick="setBg(4,'#f4f3f0','#fbfaf7','#ecebe6','#dcdbd5','#1f1d1a','#666259','#9a9690')"></div>
+            <div class="s-swatch" id="bg-5" style="background:#fcfcfa;border:1px solid #eaeae5" onclick="setBg(5,'#fcfcfa','#ffffff','#f5f5f1','#eaeae5','#1a1a1a','#5e5e5e','#9a9a95')"></div>
+            <div class="s-swatch dark-check" id="bg-6" style="background:#1f2329" onclick="setBg(6,'#1f2329','#262b32','#2d333b','#3a4049','#e8eaed','#9aa0a8','#6b7280')"></div>
+            <div class="s-swatch dark-check" id="bg-7" style="background:#0d0d0d" onclick="setBg(7,'#0d0d0d','#1a1a1a','#222222','#2e2e2e','#f0f0f0','#9a9a9a','#6a6a6a')"></div>
+            <div class="s-swatch dark-check" id="bg-8" style="background:#11151b" onclick="setBg(8,'#11151b','#1a1f28','#232932','#323943','#e8eaed','#94a0b0','#647080')"></div>
+            <div class="s-swatch dark-check" id="bg-9" style="background:#0f1815" onclick="setBg(9,'#0f1815','#172420','#1f302a','#2c4039','#e8e9e6','#8fa098','#5e6f67')"></div>
           </div>
         </div>
       </div>
@@ -804,6 +806,18 @@ async function loadDashboard(user) {
   }
 
   currentClient = clients[0];
+
+  // One-off palette reset — runs once per client, then never again
+  if (!currentClient.palette_v2_reset) {
+    await sb.from('clients').update({
+      accent_preference: 0,
+      bg_preference: 0,
+      palette_v2_reset: true
+    }).eq('id', currentClient.id);
+    currentClient.accent_preference = 0;
+    currentClient.bg_preference = 0;
+    currentClient.palette_v2_reset = true;
+  }
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('dash').style.display = 'block';
 
@@ -924,22 +938,30 @@ async function setBg(idx, bg, surface, surface2, border, text, muted, dim) {
 
 function applyPreferences() {
   const accents = [
-    ['#191970','#19197022','#fff'],['#ffffff','#ffffff18','#0d0d0d'],['#111111','#11111122','#fff'],
-    ['#888888','#88888822','#fff'],['#e91e8c','#e91e8c22','#fff'],['#ff6b6b','#ff6b6b22','#fff'],
-    ['#f5a623','#f5a62322','#000'],['#ff4500','#ff450022','#fff'],['#3ecf8e','#3ecf8e22','#000'],
-    ['#7b2fff','#7b2fff22','#fff']
+    ['#16a34a', '#16a34a22', '#ffffff'],
+    ['#2563eb', '#2563eb22', '#ffffff'],
+    ['#db2777', '#db277722', '#ffffff'],
+    ['#ea580c', '#ea580c22', '#ffffff'],
+    ['#7c3aed', '#7c3aed22', '#ffffff'],
+    ['#dc2626', '#dc262622', '#ffffff'],
+    ['#0891b2', '#0891b222', '#ffffff'],
+    ['#b45309', '#b4530922', '#ffffff'],
+    ['#4338ca', '#4338ca22', '#ffffff']
   ];
   const bgs = [
-    ['#FF5C00','#cc4900','#aa3d00','#ff7722','#fff5ee','#ffccaa','#ff9966'],
-    ['#A2A2A2','#b5b5b5','#c8c8c8','#8f8f8f','#111111','#333333','#555555'],
-    ['#2F2F68','#3d3d80','#4b4b99','#222255','#eeeeff','#aaaadd','#8888bb'],
-    ['#FAFFFA','#ffffff','#f0fff0','#e0ffe0','#111111','#444444','#777777'],
-    ['#80FFBF','#aaffdd','#ccffee','#55ddaa','#003322','#005533','#007744'],
-    ['#252525','#333333','#404040','#181818','#f0f0f0','#aaaaaa','#666666'],
-    ['#C11C84','#d42090','#e8249d','#a01870','#fff0f8','#ffaadd','#ff55bb']
+    ['#f7f7f5', '#ffffff', '#f0f0eb', '#e5e5e0', '#1a1a1a', '#666666', '#9a9a95'],
+    ['#fafaf7', '#ffffff', '#f3f3ee', '#e8e8e3', '#1a1a1a', '#666666', '#9a9a95'],
+    ['#f5f7fa', '#ffffff', '#eef1f5', '#dde2e8', '#1a1f2e', '#5c6675', '#8d96a3'],
+    ['#f8f5f0', '#ffffff', '#f1ebe0', '#e6dccc', '#2a2419', '#6e6353', '#a39785'],
+    ['#f4f3f0', '#fbfaf7', '#ecebe6', '#dcdbd5', '#1f1d1a', '#666259', '#9a9690'],
+    ['#fcfcfa', '#ffffff', '#f5f5f1', '#eaeae5', '#1a1a1a', '#5e5e5e', '#9a9a95'],
+    ['#1f2329', '#262b32', '#2d333b', '#3a4049', '#e8eaed', '#9aa0a8', '#6b7280'],
+    ['#0d0d0d', '#1a1a1a', '#222222', '#2e2e2e', '#f0f0f0', '#9a9a9a', '#6a6a6a'],
+    ['#11151b', '#1a1f28', '#232932', '#323943', '#e8eaed', '#94a0b0', '#647080'],
+    ['#0f1815', '#172420', '#1f302a', '#2c4039', '#e8e9e6', '#8fa098', '#5e6f67']
   ];
-  const ai = currentClient.accent_preference || 0;
-  const bi = currentClient.bg_preference || 0;
+  const ai = Math.min(currentClient.accent_preference || 0, accents.length - 1);
+  const bi = Math.min(currentClient.bg_preference || 0, bgs.length - 1);
   document.querySelectorAll('[id^="acc-"]').forEach(el => el.classList.remove('selected'));
   document.getElementById('acc-' + ai)?.classList.add('selected');
   document.documentElement.style.setProperty('--accent', accents[ai][0]);
