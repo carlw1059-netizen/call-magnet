@@ -258,6 +258,39 @@ body {
 .install-banner-close { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 16px; padding: 4px 8px; opacity: 0.6; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .install-banner-close:hover { opacity: 1; }
 .install-banner.ios-mode .install-banner-btn { display: none; }
+
+.screen-fade-out {
+  opacity: 0;
+  transition: opacity 350ms ease-out;
+  pointer-events: none;
+}
+.screen-fade-in {
+  opacity: 0;
+  animation: fadeIn 350ms ease-out forwards;
+}
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--border) 0%, var(--surface-elevated, #fff) 50%, var(--border) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 6px;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.skeleton-line { height: 14px; margin: 6px 0; }
+.skeleton-line.short { width: 40%; }
+.skeleton-line.medium { width: 65%; }
+.skeleton-line.long { width: 90%; }
+.skeleton-tile {
+  height: 80px;
+  margin-bottom: 12px;
+}
+.dashboard-skeleton { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
 </style>
 </head>
 <body>
@@ -402,6 +435,16 @@ body {
         </div>
       </div>
     </div>
+  </div>
+
+  <div class="dashboard-skeleton" style="display:none">
+    <div class="skeleton skeleton-line long"></div>
+    <div class="skeleton skeleton-line short"></div>
+    <div class="skeleton skeleton-tile"></div>
+    <div class="skeleton skeleton-tile"></div>
+    <div class="skeleton skeleton-tile"></div>
+    <div class="skeleton skeleton-line medium"></div>
+    <div class="skeleton skeleton-line long"></div>
   </div>
 
   <div class="main">
@@ -599,7 +642,10 @@ function showRecovery() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('forgotScreen').classList.remove('active');
   document.getElementById('dash').style.display = 'none';
-  document.getElementById('recoveryScreen').classList.add('active');
+  const recoveryScreen = document.getElementById('recoveryScreen');
+  recoveryScreen.style.display = '';
+  recoveryScreen.classList.remove('screen-fade-out');
+  recoveryScreen.classList.add('active');
   document.getElementById('recoveryErrorMsg').style.display = 'none';
   document.getElementById('recoverySuccessMsg').style.display = 'none';
   document.getElementById('recoveryPassInput').value = '';
@@ -650,8 +696,7 @@ async function handleRecovery() {
     const { data: { user } } = await sb.auth.getUser();
     if (user) {
       setTimeout(async () => {
-        document.getElementById('recoveryScreen').classList.remove('active');
-        await loadDashboard(user);
+        await crossFadeToDashboard(user, document.getElementById('recoveryScreen'));
       }, 900);
     } else {
       errDiv.textContent = 'Password updated. Please sign in again.';
@@ -710,7 +755,7 @@ async function handleAuth() {
         btn.disabled = false;
         btn.textContent = 'Sign in';
       } else {
-        await loadDashboard(data.user);
+        await crossFadeToDashboard(data.user, document.getElementById('loginScreen'));
       }
     }
   } catch (e) {
@@ -789,7 +834,60 @@ async function acceptTerms() {
   }
 }
 
-async function loadDashboard(user) {
+async function crossFadeToDashboard(user, fromEl) {
+  const dashEl = document.getElementById('dash');
+  const skeletonEl = document.querySelector('.dashboard-skeleton');
+  const mainEl = dashEl.querySelector('.main');
+  const fromHadActive = fromEl ? fromEl.classList.contains('active') : false;
+  let hideFromTimer = null;
+
+  const revert = () => {
+    if (hideFromTimer) clearTimeout(hideFromTimer);
+    if (fromEl) {
+      fromEl.classList.remove('screen-fade-out');
+      fromEl.style.display = '';
+      if (fromHadActive) fromEl.classList.add('active');
+    }
+    dashEl.style.display = 'none';
+    dashEl.classList.remove('screen-fade-in');
+    if (skeletonEl) skeletonEl.style.display = 'none';
+    if (mainEl) mainEl.style.display = '';
+  };
+
+  if (fromEl) fromEl.classList.add('screen-fade-out');
+
+  setTimeout(() => {
+    if (mainEl) mainEl.style.display = 'none';
+    if (skeletonEl) skeletonEl.style.display = 'block';
+    dashEl.classList.add('screen-fade-in');
+    dashEl.style.display = 'block';
+  }, 50);
+
+  hideFromTimer = setTimeout(() => {
+    if (fromEl) {
+      fromEl.classList.remove('screen-fade-out');
+      fromEl.classList.remove('active');
+      fromEl.style.display = 'none';
+    }
+    dashEl.classList.remove('screen-fade-in');
+  }, 400);
+
+  try {
+    const ok = await loadDashboard(user, { skipScreenSwap: true });
+    if (!ok) {
+      revert();
+      return false;
+    }
+    if (skeletonEl) skeletonEl.style.display = 'none';
+    if (mainEl) mainEl.style.display = '';
+    return true;
+  } catch (err) {
+    revert();
+    throw err;
+  }
+}
+
+async function loadDashboard(user, opts = {}) {
   const { data: clients, error } = await sb
     .from('clients')
     .select('*')
@@ -802,7 +900,7 @@ async function loadDashboard(user) {
     const btn = document.getElementById('loginBtn');
     btn.disabled = false;
     btn.textContent = 'Sign in';
-    return;
+    return false;
   }
 
   currentClient = clients[0];
@@ -818,8 +916,10 @@ async function loadDashboard(user) {
     currentClient.bg_preference = 0;
     currentClient.palette_v2_reset = true;
   }
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('dash').style.display = 'block';
+  if (!opts.skipScreenSwap) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dash').style.display = 'block';
+  }
 
   if (!currentClient.terms_accepted) showTermsModal();
 
@@ -864,6 +964,7 @@ async function loadDashboard(user) {
   setTimeout(maybeShowInstallBanner, 1500);
   await loadStats();
   startAutoRefresh();
+  return true;
 }
 
 function startAutoRefresh() {
@@ -1358,7 +1459,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const { data: { session } } = await sb.auth.getSession();
   if (session?.user) {
-    await loadDashboard(session.user);
+    await crossFadeToDashboard(session.user, document.getElementById('loginScreen'));
   }
 
   sb.auth.onAuthStateChange((event) => {
