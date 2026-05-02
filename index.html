@@ -39,17 +39,18 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { overscroll-behavior-y: contain; }
 :root {
-  --bg: #0d0d0d;
-  --surface: #161616;
-  --surface2: #1e1e1e;
-  --border: #2a2a2a;
+  --bg: #f7f7f5;
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --surface2: #f0f0eb;
+  --border: #e5e5e0;
   --border2: #333;
-  --text: #f0f0f0;
-  --muted: #888;
-  --dim: #555;
-  --accent: #191970;
-  --accent-dim: #19197022;
-  --accent-contrast: #fff;
+  --text: #1a1a1a;
+  --muted: #666666;
+  --dim: #9a9a95;
+  --accent: #10b981;
+  --accent-dim: #10b98122;
+  --accent-contrast: #ffffff;
   --amber: #f5a623;
   --amber-dim: #f5a62322;
   --red: #ff4d4d;
@@ -581,6 +582,58 @@ body {
 const SUPABASE_URL = 'https://iskvvnhacqdxybpmwuni.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
 
+const ACCENTS = [
+  ['#10b981', '#10b98122', '#ffffff'],
+  ['#2563eb', '#2563eb22', '#ffffff'],
+  ['#db2777', '#db277722', '#ffffff'],
+  ['#ea580c', '#ea580c22', '#ffffff'],
+  ['#7c3aed', '#7c3aed22', '#ffffff'],
+  ['#dc2626', '#dc262622', '#ffffff'],
+  ['#0891b2', '#0891b222', '#ffffff'],
+  ['#b45309', '#b4530922', '#ffffff'],
+  ['#4338ca', '#4338ca22', '#ffffff']
+];
+const BGS = [
+  ['#f7f7f5', '#ffffff', '#f0f0eb', '#e5e5e0', '#1a1a1a', '#666666', '#9a9a95'],
+  ['#fafaf7', '#ffffff', '#f3f3ee', '#e8e8e3', '#1a1a1a', '#666666', '#9a9a95'],
+  ['#f5f7fa', '#ffffff', '#eef1f5', '#dde2e8', '#1a1f2e', '#5c6675', '#8d96a3'],
+  ['#f8f5f0', '#ffffff', '#f1ebe0', '#e6dccc', '#2a2419', '#6e6353', '#a39785'],
+  ['#f4f3f0', '#fbfaf7', '#ecebe6', '#dcdbd5', '#1f1d1a', '#666259', '#9a9690'],
+  ['#fcfcfa', '#ffffff', '#f5f5f1', '#eaeae5', '#1a1a1a', '#5e5e5e', '#9a9a95'],
+  ['#1f2329', '#262b32', '#2d333b', '#3a4049', '#e8eaed', '#9aa0a8', '#6b7280'],
+  ['#0d0d0d', '#1a1a1a', '#222222', '#2e2e2e', '#f0f0f0', '#9a9a9a', '#6a6a6a'],
+  ['#11151b', '#1a1f28', '#232932', '#323943', '#e8eaed', '#94a0b0', '#647080'],
+  ['#0f1815', '#172420', '#1f302a', '#2c4039', '#e8e9e6', '#8fa098', '#5e6f67']
+];
+
+function applyTheme(accentIdx, bgIdx) {
+  const ai = Math.min(Math.max(0, accentIdx | 0), ACCENTS.length - 1);
+  const bi = Math.min(Math.max(0, bgIdx | 0), BGS.length - 1);
+  const a = ACCENTS[ai];
+  const b = BGS[bi];
+  const r = document.documentElement;
+  r.style.setProperty('--accent', a[0]);
+  r.style.setProperty('--accent-dim', a[1]);
+  r.style.setProperty('--accent-contrast', a[2]);
+  r.style.setProperty('--bg', b[0]);
+  r.style.setProperty('--surface', b[1]);
+  r.style.setProperty('--surface-elevated', b[1]);
+  r.style.setProperty('--surface2', b[2]);
+  r.style.setProperty('--border', b[3]);
+  r.style.setProperty('--text', b[4]);
+  r.style.setProperty('--muted', b[5]);
+  r.style.setProperty('--dim', b[6]);
+  return { ai, bi };
+}
+
+(function applyEarlyTheme() {
+  try {
+    const a = parseInt(localStorage.getItem('cm_accent_preference') || '0', 10) || 0;
+    const b = parseInt(localStorage.getItem('cm_bg_preference') || '0', 10) || 0;
+    applyTheme(a, b);
+  } catch (e) { /* localStorage blocked or first session — :root brand defaults apply */ }
+})();
+
 let sb;
 let currentClient = null;
 let currentMode = 'week';
@@ -1011,6 +1064,7 @@ async function setAccent(idx, color, dimColor, contrast) {
   document.documentElement.style.setProperty('--accent', color);
   document.documentElement.style.setProperty('--accent-dim', dimColor);
   document.documentElement.style.setProperty('--accent-contrast', contrast);
+  try { localStorage.setItem('cm_accent_preference', String(idx)); } catch (e) {}
   if (currentClient && !isAccountReadOnly()) {
     try {
       await sb.from('clients').update({ accent_preference: idx }).eq('id', currentClient.id);
@@ -1024,11 +1078,13 @@ async function setBg(idx, bg, surface, surface2, border, text, muted, dim) {
   document.getElementById('bg-' + idx).classList.add('selected');
   document.documentElement.style.setProperty('--bg', bg);
   document.documentElement.style.setProperty('--surface', surface);
+  document.documentElement.style.setProperty('--surface-elevated', surface);
   document.documentElement.style.setProperty('--surface2', surface2);
   document.documentElement.style.setProperty('--border', border);
   document.documentElement.style.setProperty('--text', text);
   document.documentElement.style.setProperty('--muted', muted);
   document.documentElement.style.setProperty('--dim', dim);
+  try { localStorage.setItem('cm_bg_preference', String(idx)); } catch (e) {}
   if (currentClient && !isAccountReadOnly()) {
     try {
       await sb.from('clients').update({ bg_preference: idx }).eq('id', currentClient.id);
@@ -1038,45 +1094,15 @@ async function setBg(idx, bg, surface, surface2, border, text, muted, dim) {
 }
 
 function applyPreferences() {
-  const accents = [
-    ['#10b981', '#10b98122', '#ffffff'],
-    ['#2563eb', '#2563eb22', '#ffffff'],
-    ['#db2777', '#db277722', '#ffffff'],
-    ['#ea580c', '#ea580c22', '#ffffff'],
-    ['#7c3aed', '#7c3aed22', '#ffffff'],
-    ['#dc2626', '#dc262622', '#ffffff'],
-    ['#0891b2', '#0891b222', '#ffffff'],
-    ['#b45309', '#b4530922', '#ffffff'],
-    ['#4338ca', '#4338ca22', '#ffffff']
-  ];
-  const bgs = [
-    ['#f7f7f5', '#ffffff', '#f0f0eb', '#e5e5e0', '#1a1a1a', '#666666', '#9a9a95'],
-    ['#fafaf7', '#ffffff', '#f3f3ee', '#e8e8e3', '#1a1a1a', '#666666', '#9a9a95'],
-    ['#f5f7fa', '#ffffff', '#eef1f5', '#dde2e8', '#1a1f2e', '#5c6675', '#8d96a3'],
-    ['#f8f5f0', '#ffffff', '#f1ebe0', '#e6dccc', '#2a2419', '#6e6353', '#a39785'],
-    ['#f4f3f0', '#fbfaf7', '#ecebe6', '#dcdbd5', '#1f1d1a', '#666259', '#9a9690'],
-    ['#fcfcfa', '#ffffff', '#f5f5f1', '#eaeae5', '#1a1a1a', '#5e5e5e', '#9a9a95'],
-    ['#1f2329', '#262b32', '#2d333b', '#3a4049', '#e8eaed', '#9aa0a8', '#6b7280'],
-    ['#0d0d0d', '#1a1a1a', '#222222', '#2e2e2e', '#f0f0f0', '#9a9a9a', '#6a6a6a'],
-    ['#11151b', '#1a1f28', '#232932', '#323943', '#e8eaed', '#94a0b0', '#647080'],
-    ['#0f1815', '#172420', '#1f302a', '#2c4039', '#e8e9e6', '#8fa098', '#5e6f67']
-  ];
-  const ai = Math.min(currentClient.accent_preference || 0, accents.length - 1);
-  const bi = Math.min(currentClient.bg_preference || 0, bgs.length - 1);
+  const { ai, bi } = applyTheme(currentClient.accent_preference || 0, currentClient.bg_preference || 0);
   document.querySelectorAll('[id^="acc-"]').forEach(el => el.classList.remove('selected'));
   document.getElementById('acc-' + ai)?.classList.add('selected');
-  document.documentElement.style.setProperty('--accent', accents[ai][0]);
-  document.documentElement.style.setProperty('--accent-dim', accents[ai][1]);
-  document.documentElement.style.setProperty('--accent-contrast', accents[ai][2]);
   document.querySelectorAll('[id^="bg-"]').forEach(el => el.classList.remove('selected'));
   document.getElementById('bg-' + bi)?.classList.add('selected');
-  document.documentElement.style.setProperty('--bg', bgs[bi][0]);
-  document.documentElement.style.setProperty('--surface', bgs[bi][1]);
-  document.documentElement.style.setProperty('--surface2', bgs[bi][2]);
-  document.documentElement.style.setProperty('--border', bgs[bi][3]);
-  document.documentElement.style.setProperty('--text', bgs[bi][4]);
-  document.documentElement.style.setProperty('--muted', bgs[bi][5]);
-  document.documentElement.style.setProperty('--dim', bgs[bi][6]);
+  try {
+    localStorage.setItem('cm_accent_preference', String(ai));
+    localStorage.setItem('cm_bg_preference', String(bi));
+  } catch (e) {}
 }
 
 function getPeriodBounds(mode, offset) {
