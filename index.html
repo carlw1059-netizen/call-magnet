@@ -133,14 +133,54 @@ body {
 .s-swatch.selected { border-color: #111; }
 .s-swatch.selected::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: rgba(0,0,0,0.6); }
 .s-swatch.dark-check.selected::after { color: rgba(255,255,255,0.8); }
-.theme-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 8px 0; }
-.theme-tile { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; padding: 8px; border-radius: 8px; transition: background 0.2s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.theme-picker {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 8px 0;
+  max-width: 100%;
+}
+.theme-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 6px 4px;
+  border-radius: 8px;
+  transition: background 0.2s;
+  min-width: 0;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
 .theme-tile:hover { background: var(--border); }
 .theme-tile.active { background: var(--accent); }
 .theme-tile.active span { color: var(--accent-text); font-weight: 600; }
-.theme-swatch { width: 64px; height: 64px; border-radius: 12px; position: relative; }
-.theme-accent-dot { position: absolute; bottom: 8px; right: 8px; width: 18px; height: 18px; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-.theme-tile span { font-size: 12px; color: var(--text-primary); }
+.theme-swatch {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  position: relative;
+  flex-shrink: 0;
+}
+.theme-accent-dot {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+.theme-tile span {
+  font-size: 11px;
+  color: var(--text-primary);
+  text-align: center;
+  white-space: nowrap;
+}
+@media (max-width: 380px) {
+  .theme-picker { grid-template-columns: repeat(2, 1fr); }
+}
 .settings-divider { height: 1px; background: #ddd; margin: 0.75rem 0; }
 .terms-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; align-items: center; justify-content: center; padding: 2rem; }
 .terms-modal-overlay.open { display: flex; }
@@ -448,11 +488,11 @@ body {
               </div>
               <span>Studio</span>
             </div>
-            <div class="theme-tile" data-theme="mist">
-              <div class="theme-swatch" style="background:#DDE6EF;border:1px solid #C4D0DC;">
-                <div class="theme-accent-dot" style="background:#8B0000;"></div>
+            <div class="theme-tile" data-theme="blossom">
+              <div class="theme-swatch" style="background:#F5E6EC;border:1px solid #E8CCD7;">
+                <div class="theme-accent-dot" style="background:#5B2C82;"></div>
               </div>
-              <span>Mist</span>
+              <span>Blossom</span>
             </div>
           </div>
         </div>
@@ -655,14 +695,14 @@ const themes = {
     accent: '#262626',
     accentText: '#FFFFFF'
   },
-  mist: {
-    label: 'Mist',
-    surface: '#DDE6EF',
-    surfaceElevated: '#EBF1F7',
-    border: '#C4D0DC',
-    textPrimary: '#1E2A3A',
-    textSecondary: '#5C6B7E',
-    accent: '#8B0000',
+  blossom: {
+    label: 'Blossom',
+    surface: '#F5E6EC',
+    surfaceElevated: '#FBF0F4',
+    border: '#E8CCD7',
+    textPrimary: '#2A1A2E',
+    textSecondary: '#7B5F75',
+    accent: '#5B2C82',
     accentText: '#FFFFFF'
   }
 };
@@ -697,7 +737,7 @@ function applyTheme(themeKey) {
     ember: { surface: '#0F1B2D', surfaceElevated: '#1A2740', border: '#2A3A57', textPrimary: '#F4F1EB', textSecondary: '#A0AEC4', accent: '#E8742C', accentText: '#FFFFFF' },
     hearth: { surface: '#F5EFE3', surfaceElevated: '#FDFAF2', border: '#E0D6BF', textPrimary: '#2A1B1B', textSecondary: '#7A6258', accent: '#9B2C2C', accentText: '#FFFFFF' },
     studio: { surface: '#FFFFFF', surfaceElevated: '#FAFAFA', border: '#E5E5E5', textPrimary: '#1A1A1A', textSecondary: '#737373', accent: '#262626', accentText: '#FFFFFF' },
-    mist: { surface: '#DDE6EF', surfaceElevated: '#EBF1F7', border: '#C4D0DC', textPrimary: '#1E2A3A', textSecondary: '#5C6B7E', accent: '#8B0000', accentText: '#FFFFFF' }
+    blossom: { surface: '#F5E6EC', surfaceElevated: '#FBF0F4', border: '#E8CCD7', textPrimary: '#2A1A2E', textSecondary: '#7B5F75', accent: '#5B2C82', accentText: '#FFFFFF' }
   };
   try {
     const themeKey = localStorage.getItem('cm_theme_preference') || 'emerald';
