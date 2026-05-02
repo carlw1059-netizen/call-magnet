@@ -39,18 +39,21 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { overscroll-behavior-y: contain; }
 :root {
-  --bg: #f7f7f5;
-  --surface: #ffffff;
-  --surface-elevated: #ffffff;
-  --surface2: #f0f0eb;
-  --border: #e5e5e0;
+  --bg: #F7F5F0;
+  --surface: #F7F5F0;
+  --surface-elevated: #FFFFFF;
+  --surface2: #FFFFFF;
+  --border: #E8E2D5;
   --border2: #333;
-  --text: #1a1a1a;
-  --muted: #666666;
-  --dim: #9a9a95;
+  --text: #1A1814;
+  --text-primary: #1A1814;
+  --muted: #6B6660;
+  --text-secondary: #6B6660;
+  --dim: #6B6660;
   --accent: #10b981;
   --accent-dim: #10b98122;
-  --accent-contrast: #ffffff;
+  --accent-contrast: #FFFFFF;
+  --accent-text: #FFFFFF;
   --amber: #f5a623;
   --amber-dim: #f5a62322;
   --red: #ff4d4d;
@@ -130,6 +133,14 @@ body {
 .s-swatch.selected { border-color: #111; }
 .s-swatch.selected::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: rgba(0,0,0,0.6); }
 .s-swatch.dark-check.selected::after { color: rgba(255,255,255,0.8); }
+.theme-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 8px 0; }
+.theme-tile { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; padding: 8px; border-radius: 8px; transition: background 0.2s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.theme-tile:hover { background: var(--border); }
+.theme-tile.active { background: var(--accent); }
+.theme-tile.active span { color: var(--accent-text); font-weight: 600; }
+.theme-swatch { width: 64px; height: 64px; border-radius: 12px; position: relative; }
+.theme-accent-dot { position: absolute; bottom: 8px; right: 8px; width: 18px; height: 18px; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+.theme-tile span { font-size: 12px; color: var(--text-primary); }
 .settings-divider { height: 1px; background: #ddd; margin: 0.75rem 0; }
 .terms-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; align-items: center; justify-content: center; padding: 2rem; }
 .terms-modal-overlay.open { display: flex; }
@@ -405,33 +416,44 @@ body {
       <button class="logout-btn" onclick="handleLogout()">Sign out</button>
       <div class="settings-panel" id="settingsPanel">
         <div class="settings-section">
-          <div class="settings-section-title">Accent colour</div>
-          <div class="swatch-grid">
-            <div class="s-swatch selected dark-check" id="acc-0" style="background:#10b981" onclick="setAccent(0,'#10b981','#10b98122','#ffffff')"></div>
-            <div class="s-swatch dark-check" id="acc-1" style="background:#2563eb" onclick="setAccent(1,'#2563eb','#2563eb22','#ffffff')"></div>
-            <div class="s-swatch dark-check" id="acc-2" style="background:#db2777" onclick="setAccent(2,'#db2777','#db277722','#ffffff')"></div>
-            <div class="s-swatch dark-check" id="acc-3" style="background:#ea580c" onclick="setAccent(3,'#ea580c','#ea580c22','#ffffff')"></div>
-            <div class="s-swatch dark-check" id="acc-4" style="background:#7c3aed" onclick="setAccent(4,'#7c3aed','#7c3aed22','#ffffff')"></div>
-            <div class="s-swatch dark-check" id="acc-5" style="background:#dc2626" onclick="setAccent(5,'#dc2626','#dc262622','#ffffff')"></div>
-            <div class="s-swatch dark-check" id="acc-6" style="background:#0891b2" onclick="setAccent(6,'#0891b2','#0891b222','#ffffff')"></div>
-            <div class="s-swatch dark-check" id="acc-7" style="background:#b45309" onclick="setAccent(7,'#b45309','#b4530922','#ffffff')"></div>
-            <div class="s-swatch dark-check" id="acc-8" style="background:#4338ca" onclick="setAccent(8,'#4338ca','#4338ca22','#ffffff')"></div>
-          </div>
-        </div>
-        <div class="settings-divider"></div>
-        <div class="settings-section">
-          <div class="settings-section-title">Background</div>
-          <div class="swatch-grid">
-            <div class="s-swatch" id="bg-0" style="background:#f7f7f5;border:1px solid #e5e5e0" onclick="setBg(0,'#f7f7f5','#ffffff','#f0f0eb','#e5e5e0','#1a1a1a','#666666','#9a9a95')"></div>
-            <div class="s-swatch" id="bg-1" style="background:#fafaf7;border:1px solid #e8e8e3" onclick="setBg(1,'#fafaf7','#ffffff','#f3f3ee','#e8e8e3','#1a1a1a','#666666','#9a9a95')"></div>
-            <div class="s-swatch" id="bg-2" style="background:#f5f7fa;border:1px solid #dde2e8" onclick="setBg(2,'#f5f7fa','#ffffff','#eef1f5','#dde2e8','#1a1f2e','#5c6675','#8d96a3')"></div>
-            <div class="s-swatch" id="bg-3" style="background:#f8f5f0;border:1px solid #e6dccc" onclick="setBg(3,'#f8f5f0','#ffffff','#f1ebe0','#e6dccc','#2a2419','#6e6353','#a39785')"></div>
-            <div class="s-swatch" id="bg-4" style="background:#f4f3f0;border:1px solid #dcdbd5" onclick="setBg(4,'#f4f3f0','#fbfaf7','#ecebe6','#dcdbd5','#1f1d1a','#666259','#9a9690')"></div>
-            <div class="s-swatch" id="bg-5" style="background:#fcfcfa;border:1px solid #eaeae5" onclick="setBg(5,'#fcfcfa','#ffffff','#f5f5f1','#eaeae5','#1a1a1a','#5e5e5e','#9a9a95')"></div>
-            <div class="s-swatch dark-check" id="bg-6" style="background:#1f2329" onclick="setBg(6,'#1f2329','#262b32','#2d333b','#3a4049','#e8eaed','#9aa0a8','#6b7280')"></div>
-            <div class="s-swatch dark-check" id="bg-7" style="background:#0d0d0d" onclick="setBg(7,'#0d0d0d','#1a1a1a','#222222','#2e2e2e','#f0f0f0','#9a9a9a','#6a6a6a')"></div>
-            <div class="s-swatch dark-check" id="bg-8" style="background:#11151b" onclick="setBg(8,'#11151b','#1a1f28','#232932','#323943','#e8eaed','#94a0b0','#647080')"></div>
-            <div class="s-swatch dark-check" id="bg-9" style="background:#0f1815" onclick="setBg(9,'#0f1815','#172420','#1f302a','#2c4039','#e8e9e6','#8fa098','#5e6f67')"></div>
+          <div class="settings-section-title">Theme</div>
+          <div class="theme-picker" id="themePicker">
+            <div class="theme-tile" data-theme="emerald">
+              <div class="theme-swatch" style="background:#F7F5F0;border:1px solid #E8E2D5;">
+                <div class="theme-accent-dot" style="background:#10b981;"></div>
+              </div>
+              <span>Emerald</span>
+            </div>
+            <div class="theme-tile" data-theme="stone">
+              <div class="theme-swatch" style="background:#E8EAEC;border:1px solid #D0D4D9;">
+                <div class="theme-accent-dot" style="background:#0EA5A5;"></div>
+              </div>
+              <span>Stone</span>
+            </div>
+            <div class="theme-tile" data-theme="ember">
+              <div class="theme-swatch" style="background:#0F1B2D;border:1px solid #2A3A57;">
+                <div class="theme-accent-dot" style="background:#E8742C;"></div>
+              </div>
+              <span>Ember</span>
+            </div>
+            <div class="theme-tile" data-theme="hearth">
+              <div class="theme-swatch" style="background:#F5EFE3;border:1px solid #E0D6BF;">
+                <div class="theme-accent-dot" style="background:#9B2C2C;"></div>
+              </div>
+              <span>Hearth</span>
+            </div>
+            <div class="theme-tile" data-theme="studio">
+              <div class="theme-swatch" style="background:#FFFFFF;border:1px solid #E5E5E5;">
+                <div class="theme-accent-dot" style="background:#262626;"></div>
+              </div>
+              <span>Studio</span>
+            </div>
+            <div class="theme-tile" data-theme="mist">
+              <div class="theme-swatch" style="background:#DDE6EF;border:1px solid #C4D0DC;">
+                <div class="theme-accent-dot" style="background:#8B0000;"></div>
+              </div>
+              <span>Mist</span>
+            </div>
           </div>
         </div>
       </div>
@@ -582,56 +604,120 @@ body {
 const SUPABASE_URL = 'https://iskvvnhacqdxybpmwuni.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
 
-const ACCENTS = [
-  ['#10b981', '#10b98122', '#ffffff'],
-  ['#2563eb', '#2563eb22', '#ffffff'],
-  ['#db2777', '#db277722', '#ffffff'],
-  ['#ea580c', '#ea580c22', '#ffffff'],
-  ['#7c3aed', '#7c3aed22', '#ffffff'],
-  ['#dc2626', '#dc262622', '#ffffff'],
-  ['#0891b2', '#0891b222', '#ffffff'],
-  ['#b45309', '#b4530922', '#ffffff'],
-  ['#4338ca', '#4338ca22', '#ffffff']
-];
-const BGS = [
-  ['#f7f7f5', '#ffffff', '#f0f0eb', '#e5e5e0', '#1a1a1a', '#666666', '#9a9a95'],
-  ['#fafaf7', '#ffffff', '#f3f3ee', '#e8e8e3', '#1a1a1a', '#666666', '#9a9a95'],
-  ['#f5f7fa', '#ffffff', '#eef1f5', '#dde2e8', '#1a1f2e', '#5c6675', '#8d96a3'],
-  ['#f8f5f0', '#ffffff', '#f1ebe0', '#e6dccc', '#2a2419', '#6e6353', '#a39785'],
-  ['#f4f3f0', '#fbfaf7', '#ecebe6', '#dcdbd5', '#1f1d1a', '#666259', '#9a9690'],
-  ['#fcfcfa', '#ffffff', '#f5f5f1', '#eaeae5', '#1a1a1a', '#5e5e5e', '#9a9a95'],
-  ['#1f2329', '#262b32', '#2d333b', '#3a4049', '#e8eaed', '#9aa0a8', '#6b7280'],
-  ['#0d0d0d', '#1a1a1a', '#222222', '#2e2e2e', '#f0f0f0', '#9a9a9a', '#6a6a6a'],
-  ['#11151b', '#1a1f28', '#232932', '#323943', '#e8eaed', '#94a0b0', '#647080'],
-  ['#0f1815', '#172420', '#1f302a', '#2c4039', '#e8e9e6', '#8fa098', '#5e6f67']
-];
+const themes = {
+  emerald: {
+    label: 'Emerald',
+    surface: '#F7F5F0',
+    surfaceElevated: '#FFFFFF',
+    border: '#E8E2D5',
+    textPrimary: '#1A1814',
+    textSecondary: '#6B6660',
+    accent: '#10b981',
+    accentText: '#FFFFFF'
+  },
+  stone: {
+    label: 'Stone',
+    surface: '#E8EAEC',
+    surfaceElevated: '#F5F6F8',
+    border: '#D0D4D9',
+    textPrimary: '#1F2937',
+    textSecondary: '#6B7280',
+    accent: '#0EA5A5',
+    accentText: '#FFFFFF'
+  },
+  ember: {
+    label: 'Ember',
+    surface: '#0F1B2D',
+    surfaceElevated: '#1A2740',
+    border: '#2A3A57',
+    textPrimary: '#F4F1EB',
+    textSecondary: '#A0AEC4',
+    accent: '#E8742C',
+    accentText: '#FFFFFF'
+  },
+  hearth: {
+    label: 'Hearth',
+    surface: '#F5EFE3',
+    surfaceElevated: '#FDFAF2',
+    border: '#E0D6BF',
+    textPrimary: '#2A1B1B',
+    textSecondary: '#7A6258',
+    accent: '#9B2C2C',
+    accentText: '#FFFFFF'
+  },
+  studio: {
+    label: 'Studio',
+    surface: '#FFFFFF',
+    surfaceElevated: '#FAFAFA',
+    border: '#E5E5E5',
+    textPrimary: '#1A1A1A',
+    textSecondary: '#737373',
+    accent: '#262626',
+    accentText: '#FFFFFF'
+  },
+  mist: {
+    label: 'Mist',
+    surface: '#DDE6EF',
+    surfaceElevated: '#EBF1F7',
+    border: '#C4D0DC',
+    textPrimary: '#1E2A3A',
+    textSecondary: '#5C6B7E',
+    accent: '#8B0000',
+    accentText: '#FFFFFF'
+  }
+};
 
-function applyTheme(accentIdx, bgIdx) {
-  const ai = Math.min(Math.max(0, accentIdx | 0), ACCENTS.length - 1);
-  const bi = Math.min(Math.max(0, bgIdx | 0), BGS.length - 1);
-  const a = ACCENTS[ai];
-  const b = BGS[bi];
+function applyTheme(themeKey) {
+  const theme = themes[themeKey] || themes.emerald;
   const r = document.documentElement;
-  r.style.setProperty('--accent', a[0]);
-  r.style.setProperty('--accent-dim', a[1]);
-  r.style.setProperty('--accent-contrast', a[2]);
-  r.style.setProperty('--bg', b[0]);
-  r.style.setProperty('--surface', b[1]);
-  r.style.setProperty('--surface-elevated', b[1]);
-  r.style.setProperty('--surface2', b[2]);
-  r.style.setProperty('--border', b[3]);
-  r.style.setProperty('--text', b[4]);
-  r.style.setProperty('--muted', b[5]);
-  r.style.setProperty('--dim', b[6]);
-  return { ai, bi };
+  // New variable names
+  r.style.setProperty('--surface', theme.surface);
+  r.style.setProperty('--surface-elevated', theme.surfaceElevated);
+  r.style.setProperty('--border', theme.border);
+  r.style.setProperty('--text-primary', theme.textPrimary);
+  r.style.setProperty('--text-secondary', theme.textSecondary);
+  r.style.setProperty('--accent', theme.accent);
+  r.style.setProperty('--accent-text', theme.accentText);
+  // Legacy aliases — keeps existing CSS rules working without a sweep
+  r.style.setProperty('--bg', theme.surface);
+  r.style.setProperty('--surface2', theme.surfaceElevated);
+  r.style.setProperty('--text', theme.textPrimary);
+  r.style.setProperty('--muted', theme.textSecondary);
+  r.style.setProperty('--dim', theme.textSecondary);
+  r.style.setProperty('--accent-dim', theme.accent + '22');
+  r.style.setProperty('--accent-contrast', theme.accentText);
+  try { localStorage.setItem('cm_theme_preference', themeKey); } catch (e) {}
 }
 
 (function applyEarlyTheme() {
+  // Inline minimal themes object so we don't depend on script load order
+  const earlyThemes = {
+    emerald: { surface: '#F7F5F0', surfaceElevated: '#FFFFFF', border: '#E8E2D5', textPrimary: '#1A1814', textSecondary: '#6B6660', accent: '#10b981', accentText: '#FFFFFF' },
+    stone: { surface: '#E8EAEC', surfaceElevated: '#F5F6F8', border: '#D0D4D9', textPrimary: '#1F2937', textSecondary: '#6B7280', accent: '#0EA5A5', accentText: '#FFFFFF' },
+    ember: { surface: '#0F1B2D', surfaceElevated: '#1A2740', border: '#2A3A57', textPrimary: '#F4F1EB', textSecondary: '#A0AEC4', accent: '#E8742C', accentText: '#FFFFFF' },
+    hearth: { surface: '#F5EFE3', surfaceElevated: '#FDFAF2', border: '#E0D6BF', textPrimary: '#2A1B1B', textSecondary: '#7A6258', accent: '#9B2C2C', accentText: '#FFFFFF' },
+    studio: { surface: '#FFFFFF', surfaceElevated: '#FAFAFA', border: '#E5E5E5', textPrimary: '#1A1A1A', textSecondary: '#737373', accent: '#262626', accentText: '#FFFFFF' },
+    mist: { surface: '#DDE6EF', surfaceElevated: '#EBF1F7', border: '#C4D0DC', textPrimary: '#1E2A3A', textSecondary: '#5C6B7E', accent: '#8B0000', accentText: '#FFFFFF' }
+  };
   try {
-    const a = parseInt(localStorage.getItem('cm_accent_preference') || '0', 10) || 0;
-    const b = parseInt(localStorage.getItem('cm_bg_preference') || '0', 10) || 0;
-    applyTheme(a, b);
-  } catch (e) { /* localStorage blocked or first session — :root brand defaults apply */ }
+    const themeKey = localStorage.getItem('cm_theme_preference') || 'emerald';
+    const theme = earlyThemes[themeKey] || earlyThemes.emerald;
+    const r = document.documentElement;
+    r.style.setProperty('--surface', theme.surface);
+    r.style.setProperty('--surface-elevated', theme.surfaceElevated);
+    r.style.setProperty('--border', theme.border);
+    r.style.setProperty('--text-primary', theme.textPrimary);
+    r.style.setProperty('--text-secondary', theme.textSecondary);
+    r.style.setProperty('--accent', theme.accent);
+    r.style.setProperty('--accent-text', theme.accentText);
+    r.style.setProperty('--bg', theme.surface);
+    r.style.setProperty('--surface2', theme.surfaceElevated);
+    r.style.setProperty('--text', theme.textPrimary);
+    r.style.setProperty('--muted', theme.textSecondary);
+    r.style.setProperty('--dim', theme.textSecondary);
+    r.style.setProperty('--accent-dim', theme.accent + '22');
+    r.style.setProperty('--accent-contrast', theme.accentText);
+  } catch (e) {}
 })();
 
 let sb;
@@ -958,17 +1044,6 @@ async function loadDashboard(user, opts = {}) {
 
   currentClient = clients[0];
 
-  // One-off palette reset — runs once per client, then never again
-  if (!currentClient.palette_v2_reset) {
-    await sb.from('clients').update({
-      accent_preference: 0,
-      bg_preference: 0,
-      palette_v2_reset: true
-    }).eq('id', currentClient.id);
-    currentClient.accent_preference = 0;
-    currentClient.bg_preference = 0;
-    currentClient.palette_v2_reset = true;
-  }
   if (!opts.skipScreenSwap) {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('dash').style.display = 'block';
@@ -1013,7 +1088,9 @@ async function loadDashboard(user, opts = {}) {
     document.getElementById('renewalValue').textContent = days === 1 ? 'Tomorrow' : days + ' days';
   }
 
-  applyPreferences();
+  const themeKey = currentClient.theme_preference || 'emerald';
+  applyTheme(themeKey);
+  markActiveThemeTile(themeKey);
   setTimeout(maybeShowInstallBanner, 1500);
   await loadStats();
   startAutoRefresh();
@@ -1058,51 +1135,22 @@ document.addEventListener('click', (e) => {
   }
 });
 
-async function setAccent(idx, color, dimColor, contrast) {
-  document.querySelectorAll('[id^="acc-"]').forEach(el => el.classList.remove('selected'));
-  document.getElementById('acc-' + idx).classList.add('selected');
-  document.documentElement.style.setProperty('--accent', color);
-  document.documentElement.style.setProperty('--accent-dim', dimColor);
-  document.documentElement.style.setProperty('--accent-contrast', contrast);
-  try { localStorage.setItem('cm_accent_preference', String(idx)); } catch (e) {}
-  if (currentClient && !isAccountReadOnly()) {
-    try {
-      await sb.from('clients').update({ accent_preference: idx }).eq('id', currentClient.id);
-      currentClient.accent_preference = idx;
-    } catch (e) { console.warn('accent save failed', e); }
-  }
+function markActiveThemeTile(themeKey) {
+  document.querySelectorAll('.theme-tile').forEach(el => {
+    el.classList.toggle('active', el.dataset.theme === themeKey);
+  });
 }
 
-async function setBg(idx, bg, surface, surface2, border, text, muted, dim) {
-  document.querySelectorAll('[id^="bg-"]').forEach(el => el.classList.remove('selected'));
-  document.getElementById('bg-' + idx).classList.add('selected');
-  document.documentElement.style.setProperty('--bg', bg);
-  document.documentElement.style.setProperty('--surface', surface);
-  document.documentElement.style.setProperty('--surface-elevated', surface);
-  document.documentElement.style.setProperty('--surface2', surface2);
-  document.documentElement.style.setProperty('--border', border);
-  document.documentElement.style.setProperty('--text', text);
-  document.documentElement.style.setProperty('--muted', muted);
-  document.documentElement.style.setProperty('--dim', dim);
-  try { localStorage.setItem('cm_bg_preference', String(idx)); } catch (e) {}
+async function selectTheme(themeKey) {
+  if (!themes[themeKey]) themeKey = 'emerald';
+  applyTheme(themeKey);
+  markActiveThemeTile(themeKey);
   if (currentClient && !isAccountReadOnly()) {
     try {
-      await sb.from('clients').update({ bg_preference: idx }).eq('id', currentClient.id);
-      currentClient.bg_preference = idx;
-    } catch (e) { console.warn('bg save failed', e); }
+      await sb.from('clients').update({ theme_preference: themeKey }).eq('id', currentClient.id);
+      currentClient.theme_preference = themeKey;
+    } catch (e) { console.warn('theme save failed', e); }
   }
-}
-
-function applyPreferences() {
-  const { ai, bi } = applyTheme(currentClient.accent_preference || 0, currentClient.bg_preference || 0);
-  document.querySelectorAll('[id^="acc-"]').forEach(el => el.classList.remove('selected'));
-  document.getElementById('acc-' + ai)?.classList.add('selected');
-  document.querySelectorAll('[id^="bg-"]').forEach(el => el.classList.remove('selected'));
-  document.getElementById('bg-' + bi)?.classList.add('selected');
-  try {
-    localStorage.setItem('cm_accent_preference', String(ai));
-    localStorage.setItem('cm_bg_preference', String(bi));
-  } catch (e) {}
 }
 
 function getPeriodBounds(mode, offset) {
@@ -1468,6 +1516,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('logBookingBtn').addEventListener('click', (e) => {
     e.preventDefault();
     logBooking();
+  });
+
+  document.getElementById('themePicker').addEventListener('click', (e) => {
+    const tile = e.target.closest('.theme-tile');
+    if (tile && tile.dataset.theme) selectTheme(tile.dataset.theme);
   });
 
   document.getElementById('passwordInput').addEventListener('keydown', e => {
