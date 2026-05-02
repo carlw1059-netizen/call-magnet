@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'callmagnet-v1';
+const CACHE_VERSION = 'callmagnet-v2';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
