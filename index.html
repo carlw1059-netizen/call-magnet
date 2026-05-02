@@ -114,7 +114,8 @@ body {
 .cancellation-banner { display: none; background: #2a1a00; border-bottom: 2px solid var(--amber); padding: 14px 1.5rem; font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--amber); letter-spacing: 0.03em; text-align: center; }
 .cancellation-banner.active { display: block; }
 .topbar { display: flex; justify-content: space-between; align-items: flex-end; padding: 1.2rem 1.5rem 0.8rem 1.5rem; position: sticky; top: 0; background: var(--bg); z-index: 20; overflow: visible; }
-.topbar::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 1px; background: var(--border); }
+.topbar::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%); background-size: 200% 100%; animation: lineSweep 3s ease-in-out infinite; }
+@keyframes lineSweep { 0% { background-position: -100% 0; } 100% { background-position: 200% 0; } }
 .topbar-logo { font-family: var(--mono); font-size: 27px; letter-spacing: 0.15em; color: var(--accent); text-transform: uppercase; display: flex; align-items: center; gap: 12px; font-weight: 700; line-height: 1; padding-bottom: 4px; }
 .topbar-right { display: flex; align-items: center; gap: 8px; position: relative; padding-bottom: 4px; }
 .settings-btn { background: none; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 5px 10px; font-size: 13px; cursor: pointer; transition: all 0.2s; line-height: 1; font-weight: 700; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
