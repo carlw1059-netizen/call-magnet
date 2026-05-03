@@ -378,6 +378,28 @@ deno_version = 2
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 
+# Webhook receiver functions — called by external services (Stripe, Twilio,
+# Pushover-internal callers) that do not present Supabase JWT bearer tokens.
+# Pinning verify_jwt = false here makes the gateway behaviour durable across
+# redeploys — without this, forgetting --no-verify-jwt on a future
+# `supabase functions deploy` would re-enable JWT enforcement and 401 every
+# legitimate webhook. App-level signature/secret checks live inside each
+# function and remain the actual auth layer.
+[functions.stripe-payment-succeeded]
+verify_jwt = false
+
+[functions.stripe-subscription-deleted]
+verify_jwt = false
+
+[functions.hyper-endpoint]
+verify_jwt = false
+
+[functions.twilio-missed-call]
+verify_jwt = false
+
+[functions.send-pushover-alert]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
