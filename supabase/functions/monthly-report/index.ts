@@ -355,6 +355,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
     });
   }
 
+
+
+
   let body: { client_id?: string; period_month?: string; dry_run?: boolean } = {};
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     try { body = await req.json(); } catch { body = {}; }
