@@ -3,21 +3,24 @@
 // jobs, etc).
 //
 // Auth: deployed with --no-verify-jwt. Internal callers must include an
-// X-Internal-Secret request header matching the PUSHOVER_INTERNAL_SECRET
-// stored in Vault. Wrong/missing header → 401 immediately. The shared
-// secret prevents anyone who guesses the function URL from triggering
-// notifications to Carl's phone — Supabase project URLs are not strong
-// secrets on their own.
+// X-Internal-Secret request header matching the INTERNAL_SECRET stored in
+// Vault. Wrong/missing header → 401 immediately. The shared secret prevents
+// anyone who guesses the function URL from triggering notifications to
+// Carl's phone — Supabase project URLs are not strong secrets on their own.
 //
-// SECRET ROTATION — IMPORTANT: PUSHOVER_INTERNAL_SECRET lives in TWO places:
-//   (1) Edge Functions Vault — read by this file via Deno.env.get(...)
-//   (2) Postgres Vault       — read by the callmagnet-daily-summary pg_cron
-//                              job via SELECT decrypted_secret FROM
-//                              vault.decrypted_secrets WHERE
-//                              name = 'PUSHOVER_INTERNAL_SECRET'
-// These two stores do not auto-sync. If you rotate the value you MUST update
-// both entries with the matching new value, otherwise every cron-driven
-// daily summary will 401 here while ad-hoc curl callers continue to work.
+// SECRET RENAME (transitional): INTERNAL_SECRET is the canonical name.
+// PUSHOVER_INTERNAL_SECRET is the legacy name we're rolling away from. This
+// function reads INTERNAL_SECRET first and falls back to the legacy name
+// while both Vault entries coexist. A future cleanup pass removes the
+// fallback once PUSHOVER_INTERNAL_SECRET is deleted from Vault.
+//
+// SECRET ROTATION: INTERNAL_SECRET lives in TWO places — the Edge Functions
+// Vault (read by this file via Deno.env.get) AND the Postgres Vault (read
+// by callmagnet-daily-summary cron + notify_first_booking trigger via
+// vault.decrypted_secrets WHERE name='INTERNAL_SECRET'). These two stores
+// do not auto-sync. If you rotate the value you MUST update both entries
+// with the matching new value, otherwise every cron-driven daily summary
+// will 401 here while ad-hoc curl callers continue to work.
 //
 // Request body (application/json):
 //   title     string             required  notification title (Pushover limit: 250 chars)
@@ -35,9 +38,12 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-const PUSHOVER_USER_KEY        = Deno.env.get('PUSHOVER_USER_KEY');
-const PUSHOVER_APP_TOKEN       = Deno.env.get('PUSHOVER_APP_TOKEN');
-const PUSHOVER_INTERNAL_SECRET = Deno.env.get('PUSHOVER_INTERNAL_SECRET');
+const PUSHOVER_USER_KEY  = Deno.env.get('PUSHOVER_USER_KEY');
+const PUSHOVER_APP_TOKEN = Deno.env.get('PUSHOVER_APP_TOKEN');
+// Prefer the canonical INTERNAL_SECRET; fall back to the legacy
+// PUSHOVER_INTERNAL_SECRET while both Vault entries coexist. Drop the
+// fallback after the cleanup pass removes the legacy entry.
+const INTERNAL_SECRET    = Deno.env.get('INTERNAL_SECRET') ?? Deno.env.get('PUSHOVER_INTERNAL_SECRET');
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
@@ -45,10 +51,10 @@ Deno.serve(async (req) => {
   }
 
   try {
-    if (!PUSHOVER_USER_KEY || !PUSHOVER_APP_TOKEN || !PUSHOVER_INTERNAL_SECRET) {
+    if (!PUSHOVER_USER_KEY || !PUSHOVER_APP_TOKEN || !INTERNAL_SECRET) {
       console.error(
         'send-pushover-alert: missing required Vault secrets ' +
-        '(PUSHOVER_USER_KEY, PUSHOVER_APP_TOKEN, or PUSHOVER_INTERNAL_SECRET)',
+        '(PUSHOVER_USER_KEY, PUSHOVER_APP_TOKEN, or INTERNAL_SECRET / PUSHOVER_INTERNAL_SECRET)',
       );
       return json(500, {
         error: 'config_error',
@@ -59,7 +65,7 @@ Deno.serve(async (req) => {
     // Shared-secret guard: blocks anyone who guesses the function URL from
     // triggering Pushover notifications. All internal callers (cron, db
     // triggers, other edge functions) must include this header.
-    if (req.headers.get('X-Internal-Secret') !== PUSHOVER_INTERNAL_SECRET) {
+    if (req.headers.get('X-Internal-Secret') !== INTERNAL_SECRET) {
       return json(401, { error: 'unauthorized' });
     }
 

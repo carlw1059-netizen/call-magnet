@@ -400,6 +400,15 @@ verify_jwt = false
 [functions.send-pushover-alert]
 verify_jwt = false
 
+[functions.save-push-subscription]
+verify_jwt = false
+
+[functions.send-client-notification]
+verify_jwt = false
+
+[functions.send-daily-summary]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
