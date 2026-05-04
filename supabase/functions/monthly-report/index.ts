@@ -8,8 +8,14 @@
 //   - client_id   : scope to one client (test/replay).
 //   - period_month: override target month (replay).
 //   - dry_run     : skip lock insert, skip Resend, skip alert email; return preview HTML.
+//
+// Email rebrand (Session 4 D2): brand colours pulled from _shared/emailStyles.ts
+// so future palette changes are a single-file edit. The recap email keeps its
+// distinctive multi-section card layout (header bar, hero stat, 2×2 grid,
+// footer note); the run-summary alert email uses the standard renderEmailShell.
 
 import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { BRAND, escapeHtml as sharedEscapeHtml, renderEmailShell } from '../_shared/emailStyles.ts';
 
 // ─── env ──────────────────────────────────────────────────────────────────
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
@@ -88,7 +94,6 @@ function melbourneLocalToUtc(y: number, m: number, d: number, hh = 0, mm = 0, ss
 }
 
 function periodFromYearMonth(y: number, m: number): Period {
-  // Date.UTC(y, m, 0) = day 0 of (m+1)-month-as-0-based = last day of month m (1-based).
   const lastDay = new Date(Date.UTC(y, m, 0)).getUTCDate();
   const start = melbourneLocalToUtc(y, m, 1, 0, 0, 0, 0);
   const end   = melbourneLocalToUtc(y, m, lastDay, 23, 59, 59, 999);
@@ -123,7 +128,6 @@ function parsePeriodMonthOverride(raw: unknown): Period | null {
 }
 
 function daysOfPeriodOverlap(period: Period, subscriptionStartIso: string | null): number {
-  // null subscription_start → treat as ancient; everyone with no recorded start is eligible.
   if (!subscriptionStartIso) return Number.POSITIVE_INFINITY;
   const subStart = new Date(subscriptionStartIso);
   const overlapStart = subStart > period.start ? subStart : period.start;
@@ -221,17 +225,15 @@ async function gatherClientReport(
 }
 
 // ─── email rendering ──────────────────────────────────────────────────────
-function escapeHtml(s: string): string {
-  const map: Record<string, string> = {
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-  };
-  return s.replace(/[&<>"']/g, ch => map[ch]);
-}
+const escapeHtml = sharedEscapeHtml;
 
 function fmtMoney(n: number): string {
   return '$' + n.toLocaleString('en-AU');
 }
 
+// Recap email keeps its distinctive multi-section card layout (header bar,
+// hero stat block, 2×2 metric grid, prose footer). All brand colours pulled
+// from BRAND so a palette swap propagates without touching this function.
 function renderEmailHTML(c: ClientRow, p: ClientReportPayload, period: Period): string {
   const biz = escapeHtml(c.business_name);
   const month = escapeHtml(period.label);
@@ -245,58 +247,58 @@ function renderEmailHTML(c: ClientRow, p: ClientReportPayload, period: Period): 
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><title>Your ${month} CallMagnet recap</title></head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#111;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f5;padding:24px 0;">
+<body style="margin:0;padding:0;background:${BRAND.pageBackground};font-family:${BRAND.fontStack};color:${BRAND.primaryText};">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${BRAND.pageBackground};padding:24px 0;">
     <tr><td align="center">
-      <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #ddd;border-radius:10px;overflow:hidden;">
-        <tr><td style="padding:24px 28px;background:#191970;color:#ffffff;font-family:'Courier New',monospace;letter-spacing:0.15em;font-size:14px;font-weight:700;text-transform:uppercase;">★ CallMagnet</td></tr>
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="background:${BRAND.cardBackground};border:1px solid ${BRAND.borderColor};border-radius:10px;overflow:hidden;">
+        <tr><td style="padding:24px 28px;background:${BRAND.cardBackground};border-bottom:1px solid ${BRAND.borderColor};color:${BRAND.accent};font-family:'DM Mono', ui-monospace, SFMono-Regular, monospace;letter-spacing:0.15em;font-size:14px;font-weight:700;text-transform:uppercase;">★ CallMagnet</td></tr>
         <tr><td style="padding:28px;">
-          <h1 style="margin:0 0 8px;font-size:22px;color:#191970;letter-spacing:-0.01em;">Hi ${biz},</h1>
-          <p style="margin:0 0 20px;font-size:15px;color:#333;">Here's how ${month} went.</p>
+          <h1 style="margin:0 0 8px;font-size:22px;color:${BRAND.primaryText};letter-spacing:-0.01em;">Hi ${biz},</h1>
+          <p style="margin:0 0 20px;font-size:15px;color:${BRAND.secondaryText};">Here's how ${month} went.</p>
 
-          <div style="background:#19197011;border:1px solid #191970;border-radius:8px;padding:18px 20px;margin-bottom:18px;">
-            <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#191970;font-weight:700;margin-bottom:6px;">Estimated revenue recovered</div>
-            <div style="font-size:36px;color:#191970;font-weight:300;letter-spacing:-0.02em;">${escapeHtml(fmtMoney(p.estimated_revenue))}</div>
+          <div style="background:${BRAND.successBg};border:1px solid ${BRAND.accent};border-radius:8px;padding:18px 20px;margin-bottom:18px;">
+            <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:${BRAND.accent};font-weight:700;margin-bottom:6px;">Estimated revenue recovered</div>
+            <div style="font-size:36px;color:${BRAND.accent};font-weight:300;letter-spacing:-0.02em;">${escapeHtml(fmtMoney(p.estimated_revenue))}</div>
           </div>
 
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
             <tr>
               <td width="50%" style="padding:6px 6px 6px 0;vertical-align:top;">
-                <div style="border:1px solid #191970;border-radius:6px;padding:10px 14px;">
-                  <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#191970;font-weight:700;margin-bottom:4px;">SMS sent</div>
-                  <div style="font-size:24px;color:#191970;font-weight:300;">${p.sms_count}</div>
+                <div style="border:1px solid ${BRAND.accent};border-radius:6px;padding:10px 14px;">
+                  <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${BRAND.accent};font-weight:700;margin-bottom:4px;">SMS sent</div>
+                  <div style="font-size:24px;color:${BRAND.primaryText};font-weight:300;">${p.sms_count}</div>
                 </div>
               </td>
               <td width="50%" style="padding:6px 0 6px 6px;vertical-align:top;">
-                <div style="border:1px solid #191970;border-radius:6px;padding:10px 14px;">
-                  <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#191970;font-weight:700;margin-bottom:4px;">Link taps</div>
-                  <div style="font-size:24px;color:#191970;font-weight:300;">${p.click_count}</div>
+                <div style="border:1px solid ${BRAND.accent};border-radius:6px;padding:10px 14px;">
+                  <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${BRAND.accent};font-weight:700;margin-bottom:4px;">Link taps</div>
+                  <div style="font-size:24px;color:${BRAND.primaryText};font-weight:300;">${p.click_count}</div>
                 </div>
               </td>
             </tr>
             <tr>
               <td width="50%" style="padding:6px 6px 6px 0;vertical-align:top;">
-                <div style="border:1px solid #191970;border-radius:6px;padding:10px 14px;">
-                  <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#191970;font-weight:700;margin-bottom:4px;">Bookings</div>
-                  <div style="font-size:24px;color:#191970;font-weight:300;">${p.booking_count}</div>
+                <div style="border:1px solid ${BRAND.accent};border-radius:6px;padding:10px 14px;">
+                  <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${BRAND.accent};font-weight:700;margin-bottom:4px;">Bookings</div>
+                  <div style="font-size:24px;color:${BRAND.primaryText};font-weight:300;">${p.booking_count}</div>
                 </div>
               </td>
               <td width="50%" style="padding:6px 0 6px 6px;vertical-align:top;">
-                <div style="border:1px solid #191970;border-radius:6px;padding:10px 14px;">
-                  <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#191970;font-weight:700;margin-bottom:4px;">Tap rate</div>
-                  <div style="font-size:24px;color:#191970;font-weight:300;">${p.tap_rate_pct ?? 0}%</div>
+                <div style="border:1px solid ${BRAND.accent};border-radius:6px;padding:10px 14px;">
+                  <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${BRAND.accent};font-weight:700;margin-bottom:4px;">Tap rate</div>
+                  <div style="font-size:24px;color:${BRAND.primaryText};font-weight:300;">${p.tap_rate_pct ?? 0}%</div>
                 </div>
               </td>
             </tr>
           </table>
 
-          <p style="margin:0 0 12px;font-size:14px;color:#333;">You've now had <strong>${p.repeat_caller_count}</strong> ${p.repeat_caller_count === 1 ? 'customer' : 'customers'} call you back twice or more.</p>
+          <p style="margin:0 0 12px;font-size:14px;color:${BRAND.primaryText};">You've now had <strong>${p.repeat_caller_count}</strong> ${p.repeat_caller_count === 1 ? 'customer' : 'customers'} call you back twice or more.</p>
           ${busiestLine}
           ${benchLine}
 
-          <p style="margin:24px 0 0;font-size:13px;color:#666;">Sign in to your dashboard at <a href="https://callmagnet.com.au" style="color:#191970;">callmagnet.com.au</a> to see live activity.</p>
+          <p style="margin:24px 0 0;font-size:13px;color:${BRAND.secondaryText};">Sign in to your dashboard at <a href="https://callmagnet.com.au" style="color:${BRAND.accent};">callmagnet.com.au</a> to see live activity.</p>
         </td></tr>
-        <tr><td style="padding:18px 28px;background:#fafafa;border-top:1px solid #eee;font-size:11px;color:#888;font-family:'Courier New',monospace;letter-spacing:0.05em;">CallMagnet — Pull every customer back.</td></tr>
+        <tr><td style="padding:18px 28px;background:${BRAND.pageBackground};border-top:1px solid ${BRAND.borderColor};font-size:11px;color:${BRAND.mutedText};font-family:'DM Mono', ui-monospace, SFMono-Regular, monospace;letter-spacing:0.05em;">CallMagnet — Pull every customer back.</td></tr>
       </table>
     </td></tr>
   </table>
@@ -304,19 +306,31 @@ function renderEmailHTML(c: ClientRow, p: ClientReportPayload, period: Period): 
 </html>`;
 }
 
+// Run-summary alert email — fired at the end of each cron run with sent /
+// skipped / failed totals. Uses the standard renderEmailShell since it's
+// a simple internal alert, not a customer-facing email.
 function renderAlertEmailHTML(period: Period, sent: SentEntry[], skipped: SkippedEntry[], failed: FailedEntry[]): string {
   const failedRows = failed.length === 0
-    ? '<li><em>None.</em></li>'
+    ? `<li style="color:${BRAND.secondaryText};"><em>None.</em></li>`
     : failed.map(f => `<li><code>${escapeHtml(f.client_id)}</code> — ${escapeHtml(f.business_name)} — ${escapeHtml(f.error)}</li>`).join('');
   const skippedRows = skipped.length === 0
-    ? '<li><em>None.</em></li>'
+    ? `<li style="color:${BRAND.secondaryText};"><em>None.</em></li>`
     : skipped.map(s => `<li><code>${escapeHtml(s.client_id)}</code> — ${escapeHtml(s.business_name)} — ${escapeHtml(s.reason)}</li>`).join('');
-  return `<!DOCTYPE html><html><body style="font-family:-apple-system,BlinkMacSystemFont,monospace;color:#111;padding:16px;">
-<h2>Monthly report run — ${escapeHtml(period.label)}</h2>
-<p><strong>Sent:</strong> ${sent.length} &middot; <strong>Skipped:</strong> ${skipped.length} &middot; <strong>Failed:</strong> ${failed.length}</p>
-<h3>Failed</h3><ul>${failedRows}</ul>
-<h3>Skipped</h3><ul>${skippedRows}</ul>
-</body></html>`;
+
+  const content = `
+    <h1 style="font-size:22px;font-weight:700;color:${BRAND.primaryText};margin:0 0 4px;letter-spacing:-0.01em;">Monthly report run — ${escapeHtml(period.label)}</h1>
+    <p style="font-size:14px;color:${BRAND.secondaryText};margin:0 0 20px;">
+      <strong>Sent:</strong> ${sent.length} &middot;
+      <strong>Skipped:</strong> ${skipped.length} &middot;
+      <strong>Failed:</strong> ${failed.length}
+    </p>
+    <h2 style="font-size:14px;font-weight:700;color:${BRAND.primaryText};margin:16px 0 8px;">Failed</h2>
+    <ul style="margin:0 0 16px;padding-left:20px;font-size:13px;color:${BRAND.primaryText};line-height:1.6;">${failedRows}</ul>
+    <h2 style="font-size:14px;font-weight:700;color:${BRAND.primaryText};margin:16px 0 8px;">Skipped</h2>
+    <ul style="margin:0;padding-left:20px;font-size:13px;color:${BRAND.primaryText};line-height:1.6;">${skippedRows}</ul>
+  `;
+
+  return renderEmailShell(content, `Monthly report ${period.label}: ${sent.length} sent / ${skipped.length} skipped / ${failed.length} failed`);
 }
 
 // ─── Resend dispatch ──────────────────────────────────────────────────────
@@ -354,9 +368,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
       status: 401, headers: { 'Content-Type': 'application/json' },
     });
   }
-
-
-
 
   let body: { client_id?: string; period_month?: string; dry_run?: boolean } = {};
   if (req.method !== 'GET' && req.method !== 'HEAD') {
@@ -400,7 +411,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
       continue;
     }
 
-    // Section F safety: when single-client live mode, log recipient details before sending.
     if (body.client_id && !dryRun) {
       console.warn(
         `[monthly-report] ABOUT TO SEND LIVE EMAIL — client_id=${c.id} ` +
@@ -420,7 +430,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
       continue;
     }
 
-    // Idempotency lock via INSERT. SQLSTATE 23505 (unique_violation) = already processed → skipped.
     const { data: lockRow, error: lockErr } = await sb.from('monthly_reports')
       .insert({ client_id: c.id, period_month: period.monthIso, status: 'pending' })
       .select('id')
@@ -467,7 +476,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
     }
   }
 
-  // End-of-run alert email — best-effort, skipped on dry_run.
   if (!dryRun) {
     try {
       const alert = await sendViaResend({

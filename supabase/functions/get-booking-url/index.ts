@@ -1,4 +1,12 @@
+// get-booking-url: frontend-facing endpoint called when a missed-call recipient
+// taps the booking link in their auto-SMS. Looks up the client's booking_url
+// and logs the tap to link_clicks (for "tap rate" analytics). CORS-enabled.
+//
+// Email rebrand (Session 4 D2): the alert email block in the catch handler
+// now uses _shared/emailStyles.ts so it matches the login palette.
+
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import { BRAND, escapeHtml, renderEmailShell } from "../_shared/emailStyles.ts";
 
 
 const corsHeaders = {
@@ -92,6 +100,15 @@ Deno.serve(async (req) => {
 
 
   } catch (error) {
+    const alertContent = `
+      <h1 style="font-size:22px;font-weight:700;color:${BRAND.primaryText};margin:0 0 4px;letter-spacing:-0.01em;">⚠️ get-booking-url failed</h1>
+      <p style="font-size:14px;color:${BRAND.secondaryText};margin:0 0 16px;">A booking-link tap couldn't be served — the customer may have seen an error page.</p>
+      <p style="font-size:13px;color:${BRAND.primaryText};margin:0 0 8px;"><strong>Function:</strong> get-booking-url</p>
+      <p style="font-size:13px;color:${BRAND.primaryText};margin:0 0 8px;"><strong>Error:</strong> ${escapeHtml(String(error.message ?? error))}</p>
+      <p style="font-size:13px;color:${BRAND.primaryText};margin:0 0 16px;"><strong>Time:</strong> ${new Date().toISOString()}</p>
+      <p style="font-size:13px;color:${BRAND.secondaryText};margin:0;">Log in to Supabase to investigate.</p>
+    `;
+
     await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -102,7 +119,7 @@ Deno.serve(async (req) => {
         from: 'CallMagnet Alerts <hello@callmagnet.com.au>',
         to: 'car312@hotmail.com',
         subject: '⚠️ CallMagnet — get-booking-url failed',
-        html: `<p><strong>Function:</strong> get-booking-url</p><p><strong>Error:</strong> ${error.message}</p><p><strong>Time:</strong> ${new Date().toISOString()}</p><p>Log in to Supabase to investigate.</p>`
+        html: renderEmailShell(alertContent, 'get-booking-url failed — customer may have seen an error')
       })
     }).catch(() => {})
 

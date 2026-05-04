@@ -1,5 +1,16 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+// quick-responder (display name: sms-overage): nightly cron at 0 0 * * * UTC.
+// Two batch jobs in one function:
+//   1. SMS-overage reporting to Stripe billing meters (per active client
+//      with stripe_customer_id who's exceeded their cycle's sms_included).
+//   2. Cancellation finaliser — flips account_status to 'cancelled' for
+//      clients whose cancellation_scheduled was set 30+ days ago.
+//
+// Email rebrand (Session 4 D2): the alert email block in the catch handler
+// now uses _shared/emailStyles.ts so it matches the login palette. Same
+// pattern as the other alert paths in this codebase.
 
+import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import { BRAND, escapeHtml, renderEmailShell } from "../_shared/emailStyles.ts";
 
 Deno.serve(async () => {
   try {
@@ -143,6 +154,14 @@ Deno.serve(async () => {
   } catch (error) {
     console.log(`Fatal error: ${error.message}`);
 
+    const alertContent = `
+      <h1 style="font-size:22px;font-weight:700;color:${BRAND.primaryText};margin:0 0 4px;letter-spacing:-0.01em;">⚠️ sms-overage failed</h1>
+      <p style="font-size:14px;color:${BRAND.secondaryText};margin:0 0 16px;">A nightly run errored before completing.</p>
+      <p style="font-size:13px;color:${BRAND.primaryText};margin:0 0 8px;"><strong>Function:</strong> sms-overage (slug: quick-responder)</p>
+      <p style="font-size:13px;color:${BRAND.primaryText};margin:0 0 8px;"><strong>Error:</strong> ${escapeHtml(String(error.message ?? error))}</p>
+      <p style="font-size:13px;color:${BRAND.primaryText};margin:0 0 16px;"><strong>Time:</strong> ${new Date().toISOString()}</p>
+      <p style="font-size:13px;color:${BRAND.secondaryText};margin:0;">Investigate in Supabase logs.</p>
+    `;
 
     await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -154,7 +173,7 @@ Deno.serve(async () => {
         from: 'CallMagnet Alerts <hello@callmagnet.com.au>',
         to: 'car312@hotmail.com',
         subject: '⚠️ CallMagnet — sms-overage failed',
-        html: `<p><strong>Function:</strong> sms-overage</p><p><strong>Error:</strong> ${error.message}</p><p><strong>Time:</strong> ${new Date().toISOString()}</p><p>Log in to Supabase to investigate.</p>`
+        html: renderEmailShell(alertContent, 'sms-overage run errored — check Supabase logs')
       })
     }).catch(() => {})
 

@@ -19,8 +19,12 @@
 // Orphaned calls (To number doesn't match any clients.twilio_number) are
 // skipped with a warning log + 200 OK — analytics views filter on client_id
 // anyway, so unattributable rows would be invisible junk.
+//
+// Email rebrand (Session 4 D2): the alert email block in the catch handler
+// now uses _shared/emailStyles.ts so it matches the login palette.
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { BRAND, escapeHtml, renderEmailShell } from "../_shared/emailStyles.ts";
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -113,6 +117,14 @@ Deno.serve(async (req) => {
     // fire-and-forget alert email; suppressing alerting failure so a Resend
     // outage can't cascade into the webhook itself failing
     if (RESEND_API_KEY) {
+      const alertContent = `
+        <h1 style="font-size:22px;font-weight:700;color:${BRAND.primaryText};margin:0 0 4px;letter-spacing:-0.01em;">⚠️ twilio-missed-call failed</h1>
+        <p style="font-size:14px;color:${BRAND.secondaryText};margin:0 0 16px;">A missed-call webhook errored — Twilio will retry, but investigate.</p>
+        <p style="font-size:13px;color:${BRAND.primaryText};margin:0 0 8px;"><strong>Function:</strong> twilio-missed-call</p>
+        <p style="font-size:13px;color:${BRAND.primaryText};margin:0 0 8px;"><strong>Error:</strong> ${escapeHtml(errMsg)}</p>
+        <p style="font-size:13px;color:${BRAND.primaryText};margin:0 0 16px;"><strong>Time:</strong> ${new Date().toISOString()}</p>
+        <p style="font-size:13px;color:${BRAND.secondaryText};margin:0;">Twilio will retry — investigate in Supabase logs.</p>
+      `;
       fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
@@ -120,10 +132,7 @@ Deno.serve(async (req) => {
           from: 'CallMagnet Alerts <hello@callmagnet.com.au>',
           to: ALERT_TO,
           subject: '⚠️ CallMagnet — twilio-missed-call failed',
-          html: `<p><strong>Function:</strong> twilio-missed-call</p>
-                 <p><strong>Error:</strong> ${escapeHtml(errMsg)}</p>
-                 <p><strong>Time:</strong> ${new Date().toISOString()}</p>
-                 <p>Twilio will retry — investigate in Supabase logs.</p>`,
+          html: renderEmailShell(alertContent, 'twilio-missed-call failed — Twilio will retry'),
         }),
       }).catch(() => {});
     }
@@ -137,13 +146,4 @@ function json(status: number, body: unknown): Response {
     status,
     headers: { 'Content-Type': 'application/json' },
   });
-}
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 }
