@@ -2,7 +2,13 @@
 // Cron-triggered (Chunk E) at 9am Australia/Melbourne on the 1st of each month.
 // Generates a previous-month recap email per eligible client and sends via Resend.
 // Idempotency: monthly_reports UNIQUE (client_id, period_month).
-// Auth: rejects any caller whose Authorization header is not Bearer SUPABASE_SERVICE_ROLE_KEY.
+// Auth: shared-secret guard via X-Internal-Secret header — same pattern as
+// send-pushover-alert / save-push-subscription / send-client-notification /
+// send-daily-summary. Reads INTERNAL_SECRET from Edge Functions Vault, with
+// PUSHOVER_INTERNAL_SECRET fallback during the rolling rename. The deprecated
+// SUPABASE_SERVICE_ROLE_KEY env var is still used internally for supabase-js
+// createClient (PostgREST DB access) — Supabase's deprecation note only
+// affects auth-gate use, not service-role identity for DB calls.
 //
 // Body shape: { client_id?: uuid, period_month?: "YYYY-MM-01", dry_run?: boolean }
 //   - client_id   : scope to one client (test/replay).
@@ -20,6 +26,7 @@ import { BRAND, escapeHtml as sharedEscapeHtml, renderEmailShell } from '../_sha
 // ─── env ──────────────────────────────────────────────────────────────────
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const INTERNAL_SECRET           = Deno.env.get('INTERNAL_SECRET') ?? Deno.env.get('PUSHOVER_INTERNAL_SECRET');
 const RESEND_API_KEY            = Deno.env.get('RESEND_API_KEY')!;
 const BLOCKED_CLIENT_IDS = (Deno.env.get('BLOCKED_CLIENT_IDS') ?? '')
   .split(',').map(s => s.trim()).filter(Boolean);
@@ -362,8 +369,13 @@ async function sendViaResend(args: { to: string; subject: string; html: string }
 
 // ─── main handler ─────────────────────────────────────────────────────────
 Deno.serve(async (req: Request): Promise<Response> => {
-  const auth = req.headers.get('Authorization') ?? '';
-  if (auth !== `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`) {
+  if (!INTERNAL_SECRET) {
+    console.error('monthly-report: INTERNAL_SECRET missing from env');
+    return new Response(JSON.stringify({ error: 'config_error', detail: 'shared secret not configured in Vault' }), {
+      status: 500, headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  if (req.headers.get('X-Internal-Secret') !== INTERNAL_SECRET) {
     return new Response(JSON.stringify({ error: 'unauthorized' }), {
       status: 401, headers: { 'Content-Type': 'application/json' },
     });

@@ -409,6 +409,9 @@ verify_jwt = false
 [functions.send-daily-summary]
 verify_jwt = false
 
+[functions.monthly-report]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
