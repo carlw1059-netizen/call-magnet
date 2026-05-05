@@ -586,17 +586,17 @@ body {
         <div class="metric-sub">Estimated at 62% conv.</div>
       </div>
       <div class="metric">
-        <div class="metric-label">Peak booking hours</div>
-        <div class="metric-value" id="rPeakHours" style="font-size:22px">—</div>
-        <div class="metric-sub">Last 30 days, top 3</div>
+        <div class="metric-label">Links tapped today</div>
+        <div class="metric-value" id="rLinksToday">0</div>
+        <div class="metric-sub">Captured today</div>
       </div>
       <div class="metric">
-        <div class="metric-label">Last 30 days $ protected</div>
-        <div class="metric-value" id="rLast30Protected">$0</div>
-        <div class="metric-sub">Estimated at 62% conv.</div>
+        <div class="metric-label">This week's $ recovered</div>
+        <div class="metric-value" id="rWeekRecovered">$0</div>
+        <div class="metric-sub">Resets every Monday 5pm</div>
       </div>
     </div>
-    <div class="metrics-fullwidth">
+    <div class="metrics-fullwidth" id="linkTapsTodayRow">
       <div class="metric">
         <div class="metric-label">Link taps today</div>
         <div class="metric-value" id="linkTapsToday">—</div>
@@ -1432,18 +1432,21 @@ function setDashboardMode(mode) {
 function renderTilesForMode(mode) {
   const hg = document.getElementById('hairdresserMetrics');
   const rg = document.getElementById('restaurantMetrics');
+  const ltr = document.getElementById('linkTapsTodayRow');
   const lbr = document.querySelector('.log-booking-row');
   const vtR = document.getElementById('vtRestaurant');
   const vtH = document.getElementById('vtHairdresser');
   if (mode === 'restaurant') {
     if (hg) hg.style.display = 'none';
     if (rg) rg.style.display = 'grid';
+    if (ltr) ltr.style.display = 'none';
     if (lbr) lbr.style.display = 'none';
     if (vtR) vtR.classList.add('active');
     if (vtH) vtH.classList.remove('active');
   } else {
     if (hg) hg.style.display = 'grid';
     if (rg) rg.style.display = 'none';
+    if (ltr) ltr.style.display = 'block';
     if (lbr) lbr.style.display = 'flex';
     if (vtR) vtR.classList.remove('active');
     if (vtH) vtH.classList.add('active');
@@ -1472,20 +1475,51 @@ function melbourneStartOfTodayUtcIso() {
   return new Date(Date.parse(ymd + 'T00:00:00Z') - offsetMin * 60000).toISOString();
 }
 
-function formatHourMel(h) {
-  const h12 = ((h + 11) % 12) + 1;
-  return h12 + (h < 12 ? 'am' : 'pm');
+// Most recent Monday 5pm Melbourne as UTC ISO. The "week" for $-recovered resets here.
+// If today is Mon before 5pm, returns last Monday 5pm; otherwise this week's Monday 5pm.
+// Offset is sampled for the target date, so a DST switch between now and target won't drift.
+function melbourneMostRecentMonday5pmUtcIso() {
+  const now = new Date();
+  const np = {};
+  const nowFmt = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Australia/Melbourne',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', hour12: false, weekday: 'short'
+  });
+  for (const p of nowFmt.formatToParts(now)) {
+    if (p.type !== 'literal') np[p.type] = p.value;
+  }
+  const dayMap = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 };
+  const dow = dayMap[np.weekday];
+  const hourMel = parseInt(np.hour, 10);
+  const daysBack = (dow === 1) ? (hourMel >= 17 ? 0 : 7) : (dow - 1);
+
+  const baseUtc = Date.UTC(parseInt(np.year, 10), parseInt(np.month, 10) - 1, parseInt(np.day, 10));
+  const tDate = new Date(baseUtc - daysBack * 86400000);
+  const tYmd = tDate.getUTCFullYear() + '-' +
+               String(tDate.getUTCMonth() + 1).padStart(2, '0') + '-' +
+               String(tDate.getUTCDate()).padStart(2, '0');
+
+  // Sample 12:00 UTC of target date; Mel sees 22:00 (AEST) or 23:00 (AEDT) — same calendar date.
+  const sample = new Date(Date.parse(tYmd + 'T12:00:00Z'));
+  const sampleMelHour = parseInt(new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Australia/Melbourne', hour: '2-digit', hour12: false
+  }).format(sample), 10);
+  const offsetHours = sampleMelHour - 12;
+
+  return new Date(Date.parse(tYmd + 'T17:00:00Z') - offsetHours * 3600000).toISOString();
 }
 
 async function loadRestaurantTileData(clientId, myRequestId) {
   const tonightStartIso = melbourneStartOfTodayUtcIso();
-  const thirtyAgoIso = new Date(Date.now() - 30 * 86400000).toISOString();
+  const weekStartIso = melbourneMostRecentMonday5pmUtcIso();
 
-  let tonightRes, last30Res;
+  let tonightSmsRes, todayClicksRes, weekSmsRes;
   try {
-    [tonightRes, last30Res] = await Promise.all([
+    [tonightSmsRes, todayClicksRes, weekSmsRes] = await Promise.all([
       sb.from('sms_events').select('id', { count: 'exact' }).eq('client_id', clientId).gte('received_at', tonightStartIso),
-      sb.from('sms_events').select('received_at').eq('client_id', clientId).gte('received_at', thirtyAgoIso)
+      sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).gte('clicked_at', tonightStartIso),
+      sb.from('sms_events').select('id', { count: 'exact' }).eq('client_id', clientId).gte('received_at', weekStartIso)
     ]);
   } catch (e) {
     console.warn('restaurant tiles fetch failed', e);
@@ -1493,31 +1527,17 @@ async function loadRestaurantTileData(clientId, myRequestId) {
   }
   if (myRequestId !== statsRequestId) return;
 
-  const tonightCount = tonightRes.count || 0;
-  const last30Rows = last30Res.data || [];
-  const last30Count = last30Rows.length;
+  const tonightCount = tonightSmsRes.count || 0;
+  const todayClicks = todayClicksRes.count || 0;
+  const weekCount = weekSmsRes.count || 0;
   const avgJob = (currentClient && currentClient.avg_job_value) || 0;
   const tonightSaved = Math.round(tonightCount * avgJob * 0.62);
-  const monthProtected = Math.round(last30Count * avgJob * 0.62);
-
-  const hourCounts = new Array(24).fill(0);
-  for (const r of last30Rows) {
-    const d = new Date(r.received_at);
-    const melHourStr = new Intl.DateTimeFormat('en-GB', { timeZone: 'Australia/Melbourne', hour: '2-digit', hour12: false }).format(d);
-    const h = parseInt(melHourStr, 10);
-    if (h >= 0 && h <= 23) hourCounts[h]++;
-  }
-  const topHours = hourCounts
-    .map((c, h) => ({ h, c }))
-    .filter(x => x.c > 0)
-    .sort((a, b) => b.c - a.c || a.h - b.h)
-    .slice(0, 3)
-    .map(x => formatHourMel(x.h));
+  const weekRecovered = Math.round(weekCount * avgJob * 0.62);
 
   document.getElementById('rTonightCovers').textContent = tonightCount;
   document.getElementById('rTonightSaved').textContent = '$' + tonightSaved.toLocaleString();
-  document.getElementById('rPeakHours').textContent = topHours.length ? topHours.join(', ') : '—';
-  document.getElementById('rLast30Protected').textContent = '$' + monthProtected.toLocaleString();
+  document.getElementById('rLinksToday').textContent = todayClicks;
+  document.getElementById('rWeekRecovered').textContent = '$' + weekRecovered.toLocaleString();
 }
 
 function updateSmsCounter(count) {
