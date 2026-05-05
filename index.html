@@ -631,7 +631,7 @@ body {
         <div class="restaurant-tile-emoji" id="rTile2Emoji">🍽️</div>
         <div class="restaurant-tile-label" id="rTile2Label">Tonight's $ saved</div>
         <div class="restaurant-tile-value" id="rTonightSaved">$0</div>
-        <div class="restaurant-tile-sub" id="rTile2Sub">Range at 60–70% conv.</div>
+        <div class="restaurant-tile-sub" id="rTile2Sub">Estimated at 62% conv.</div>
       </div>
       <div class="restaurant-tile">
         <div class="restaurant-tile-emoji" id="rTile3Emoji">🍽️</div>
@@ -643,7 +643,7 @@ body {
         <div class="restaurant-tile-emoji" id="rTile4Emoji">🍽️</div>
         <div class="restaurant-tile-label" id="rTile4Label">Last 30 days $ protected</div>
         <div class="restaurant-tile-value" id="rLast30Protected">$0</div>
-        <div class="restaurant-tile-sub" id="rTile4Sub">Range at 60–70% conv.</div>
+        <div class="restaurant-tile-sub" id="rTile4Sub">Estimated at 62% conv.</div>
       </div>
     </div>
     <div class="demo-banner" id="demoBanner">No data yet — your CallMagnet system will start showing live stats once your first call comes in.</div>
@@ -1553,16 +1553,14 @@ function applyTileLabels(cfg) {
 function applyTileValues(cfg, data) {
   if (!data) return;
   const { tonightCount, last30Count, topHours } = data;
-  const tonightLow  = Math.round(tonightCount * cfg.multiplier * 0.6);
-  const tonightHigh = Math.round(tonightCount * cfg.multiplier * 0.7);
-  const monthLow    = Math.round(last30Count * cfg.multiplier * 0.6);
-  const monthHigh   = Math.round(last30Count * cfg.multiplier * 0.7);
+  const tonightSaved   = Math.round(tonightCount * cfg.multiplier * 0.62);
+  const monthProtected = Math.round(last30Count  * cfg.multiplier * 0.62);
   document.getElementById('rTonightCovers').textContent = tonightCount;
   document.getElementById('rTonightSaved').textContent =
-    tonightCount === 0 ? '$0' : '$' + tonightLow.toLocaleString() + '–$' + tonightHigh.toLocaleString();
+    tonightCount === 0 ? '$0' : '$' + tonightSaved.toLocaleString();
   document.getElementById('rPeakHours').textContent = topHours.length ? topHours.join(', ') : '—';
   document.getElementById('rLast30Protected').textContent =
-    last30Count === 0 ? '$0' : '$' + monthLow.toLocaleString() + '–$' + monthHigh.toLocaleString();
+    last30Count === 0 ? '$0' : '$' + monthProtected.toLocaleString();
 }
 
 function refreshDemoToggleVisibility() {

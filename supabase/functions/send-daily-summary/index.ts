@@ -27,9 +27,11 @@
 // 7d count >= today's count), "Last 30 days" includes today and last
 // week. This matches natural-language reading.
 //
-// Industry benchmarks for booking estimation:
-//   - 55-70% of missed callers book elsewhere within 5 minutes if not
-//     contacted (low/high range used for the recovered-bookings estimate).
+// Industry benchmark for booking estimation:
+//   - Lead Connect 2025 research: 62% of unanswered callers contact a
+//     competitor when their first call isn't answered. Single-figure
+//     estimate replaces the prior 55–70% range — easier sales math, and
+//     the source-attribution line in the email body cites the figure.
 //
 // Per-vertical revenue averages (AUD):
 //   restaurant  $75 / cover
@@ -59,8 +61,7 @@ const REVENUE_PER_BOOKING: Record<string, number> = {
 };
 const DEFAULT_REVENUE_PER_BOOKING = 75;
 
-const BOOKING_RATE_LOW  = 0.55;
-const BOOKING_RATE_HIGH = 0.70;
+const CONVERSION_RATE = 0.62;
 
 const DASHBOARD_CTA_URL = 'https://callmagnet.com.au/?source=email';
 
@@ -146,22 +147,16 @@ Deno.serve(async (req) => {
           (client.vertical && REVENUE_PER_BOOKING[client.vertical]) ?? DEFAULT_REVENUE_PER_BOOKING;
 
         // Today
-        const estBookingsLow      = Math.round(missedCallsCount * BOOKING_RATE_LOW);
-        const estBookingsHigh     = Math.round(missedCallsCount * BOOKING_RATE_HIGH);
-        const estRevenueLow       = estBookingsLow  * revPerBooking;
-        const estRevenueHigh      = estBookingsHigh * revPerBooking;
+        const estBookings   = Math.round(missedCallsCount * CONVERSION_RATE);
+        const estRevenue    = estBookings * revPerBooking;
 
         // Last 7 days (cumulative — includes today)
-        const estBookings7dLow    = Math.round(missed7d * BOOKING_RATE_LOW);
-        const estBookings7dHigh   = Math.round(missed7d * BOOKING_RATE_HIGH);
-        const estRevenue7dLow     = estBookings7dLow  * revPerBooking;
-        const estRevenue7dHigh    = estBookings7dHigh * revPerBooking;
+        const estBookings7d = Math.round(missed7d * CONVERSION_RATE);
+        const estRevenue7d  = estBookings7d * revPerBooking;
 
         // Last 30 days (cumulative — includes today)
-        const estBookings30dLow   = Math.round(missed30d * BOOKING_RATE_LOW);
-        const estBookings30dHigh  = Math.round(missed30d * BOOKING_RATE_HIGH);
-        const estRevenue30dLow    = estBookings30dLow  * revPerBooking;
-        const estRevenue30dHigh   = estBookings30dHigh * revPerBooking;
+        const estBookings30d = Math.round(missed30d * CONVERSION_RATE);
+        const estRevenue30d  = estBookings30d * revPerBooking;
 
         // ── UPSERT daily_summary_runs row (today only — 7d/30d not persisted) ──
         const upsertRes = await fetch(
@@ -174,15 +169,19 @@ Deno.serve(async (req) => {
               'Content-Type': 'application/json',
               Prefer:        'resolution=merge-duplicates,return=representation',
             },
+            // The conversion-rate switch from 55–70% range to single 62% means
+            // there is no longer a low/high pair. Persist the same value into
+            // both legacy columns so the schema stays untouched and any
+            // downstream readers continue to work; clamp on a future migration.
             body: JSON.stringify({
               client_id:               client.id,
               summary_date:            melbIsoDate,
               missed_calls_count:      missedCallsCount,
               sms_sent_count:          smsSentCount,
-              estimated_bookings_low:  estBookingsLow,
-              estimated_bookings_high: estBookingsHigh,
-              estimated_revenue_low:   estRevenueLow,
-              estimated_revenue_high:  estRevenueHigh,
+              estimated_bookings_low:  estBookings,
+              estimated_bookings_high: estBookings,
+              estimated_revenue_low:   estRevenue,
+              estimated_revenue_high:  estRevenue,
               email_sent:              false,
             }),
           },
@@ -206,22 +205,16 @@ Deno.serve(async (req) => {
           missedCalls:     missedCallsCount,
           smsSent:         smsSentCount,
           linkTaps:        linkTapsToday,
-          bookingsLow:     estBookingsLow,
-          bookingsHigh:    estBookingsHigh,
-          revenueLow:      estRevenueLow,
-          revenueHigh:     estRevenueHigh,
+          bookings:        estBookings,
+          revenue:         estRevenue,
           // Last 7 days
           missedCalls7d:   missed7d,
-          bookingsLow7d:   estBookings7dLow,
-          bookingsHigh7d:  estBookings7dHigh,
-          revenueLow7d:    estRevenue7dLow,
-          revenueHigh7d:   estRevenue7dHigh,
+          bookings7d:      estBookings7d,
+          revenue7d:       estRevenue7d,
           // Last 30 days
           missedCalls30d:  missed30d,
-          bookingsLow30d:  estBookings30dLow,
-          bookingsHigh30d: estBookings30dHigh,
-          revenueLow30d:   estRevenue30dLow,
-          revenueHigh30d:  estRevenue30dHigh,
+          bookings30d:     estBookings30d,
+          revenue30d:      estRevenue30d,
         });
 
         const subject = buildSummarySubject(client.business_name, missedCallsCount);
@@ -369,22 +362,16 @@ interface SummaryEmailParams {
   missedCalls:  number;
   smsSent:      number;
   linkTaps:     number;
-  bookingsLow:  number;
-  bookingsHigh: number;
-  revenueLow:   number;
-  revenueHigh:  number;
+  bookings:     number;
+  revenue:      number;
   // Last 7 days (cumulative — includes today)
   missedCalls7d:  number;
-  bookingsLow7d:  number;
-  bookingsHigh7d: number;
-  revenueLow7d:   number;
-  revenueHigh7d:  number;
+  bookings7d:     number;
+  revenue7d:      number;
   // Last 30 days (cumulative — includes today)
   missedCalls30d:  number;
-  bookingsLow30d:  number;
-  bookingsHigh30d: number;
-  revenueLow30d:   number;
-  revenueHigh30d:  number;
+  bookings30d:     number;
+  revenue30d:      number;
 }
 
 function buildSummarySubject(businessName: string, missedCallsCount: number): string {
@@ -400,13 +387,12 @@ function buildSummarySubject(businessName: string, missedCallsCount: number): st
 function renderTrailingWindow(
   label: string,
   missed: number,
-  revenueLow: number,
-  revenueHigh: number,
+  revenue: number,
 ): string {
   const noun = missed === 1 ? 'missed call' : 'missed calls';
   const revenueLine =
     missed > 0
-      ? `<div style="font-size:14px;color:${BRAND.accent};font-weight:600;">$${formatMoney(revenueLow)}–$${formatMoney(revenueHigh)} estimated</div>`
+      ? `<div style="font-size:14px;color:${BRAND.accent};font-weight:600;">$${formatMoney(revenue)} estimated recovered</div>`
       : `<div style="font-size:14px;color:${BRAND.secondaryText};">No activity in this window</div>`;
 
   return `<div style="margin-bottom:14px;">
@@ -467,11 +453,11 @@ function buildSummaryEmail(p: SummaryEmailParams): string {
       <div style="background:${BRAND.successBg};border:1px solid ${BRAND.accent};border-radius:8px;padding:20px;margin-bottom:24px;">
         <div style="font-size:11px;color:${BRAND.accent};font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;">Estimated impact today</div>
         <div style="font-size:16px;font-weight:600;color:${BRAND.primaryText};line-height:1.5;">
-          Approximately <strong>${p.bookingsLow}–${p.bookingsHigh}</strong> bookings recovered,<br>
-          worth <strong>$${formatMoney(p.revenueLow)}–$${formatMoney(p.revenueHigh)}</strong>.
+          Approximately <strong>${p.bookings}</strong> ${p.bookings === 1 ? 'booking' : 'bookings'} recovered,<br>
+          worth <strong>$${formatMoney(p.revenue)}</strong>.
         </div>
       </div>`;
-    footnote  = `<p style="font-size:12px;color:${BRAND.secondaryText};margin:0;line-height:1.5;">Industry data suggests 55–70% of missed callers book elsewhere within 5 minutes when they don't get an answer. CallMagnet keeps your booking link in their pocket within seconds.</p>`;
+    footnote  = `<p style="font-size:12px;color:${BRAND.secondaryText};margin:0;line-height:1.5;">Estimated recovery based on industry research (Lead Connect 2025): 62% of unanswered callers contact a competitor when their first call isn't answered. CallMagnet keeps your booking link in their pocket within seconds.</p>`;
     preheader = `${p.missedCalls} missed call${p.missedCalls === 1 ? '' : 's'} captured today at ${p.businessName}`;
   } else {
     todayContent = `<div style="background:${BRAND.pageBackground};border:1px solid ${BRAND.borderColor};border-radius:8px;padding:24px;margin-bottom:${linkTapsTile ? '14' : '24'}px;text-align:center;">
@@ -485,8 +471,8 @@ function buildSummaryEmail(p: SummaryEmailParams): string {
   }
 
   // Shared trailing-window sections + CTA — same in both branches.
-  const last7  = renderTrailingWindow('Last 7 days',  p.missedCalls7d,  p.revenueLow7d,  p.revenueHigh7d);
-  const last30 = renderTrailingWindow('Last 30 days', p.missedCalls30d, p.revenueLow30d, p.revenueHigh30d);
+  const last7  = renderTrailingWindow('Last 7 days',  p.missedCalls7d,  p.revenue7d);
+  const last30 = renderTrailingWindow('Last 30 days', p.missedCalls30d, p.revenue30d);
   const cta    = renderCtaButton(DASHBOARD_CTA_URL, 'View dashboard →');
 
   return renderEmailShell(heading + todayContent + last7 + last30 + cta + footnote, preheader);
