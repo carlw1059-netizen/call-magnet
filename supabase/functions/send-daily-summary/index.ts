@@ -17,6 +17,12 @@
 // later split SMS dispatch into a separate table, the queries below split
 // into two and the equality goes away.
 //
+// Link taps: rendered as an extra tile in today's block when the count is
+// > 0. Until rebrand.ly Pro is configured the count stays at 0 for new V2
+// clients and the tile is silently omitted. V1 clients still on the
+// get-booking-url tap tracker will surface real counts straight away
+// because both paths INSERT into the same link_clicks table.
+//
 // Trailing windows are CUMULATIVE: "Last 7 days" includes today (so the
 // 7d count >= today's count), "Last 30 days" includes today and last
 // week. This matches natural-language reading.
@@ -127,11 +133,12 @@ Deno.serve(async (req) => {
 
     for (const client of clients) {
       try {
-        // Three count queries in parallel — one HEAD per window.
-        const [missedCallsCount, missed7d, missed30d] = await Promise.all([
+        // Four count queries in parallel — three SMS windows + today's link taps.
+        const [missedCallsCount, missed7d, missed30d, linkTapsToday] = await Promise.all([
           countSmsEventsForClient(client.id, windowStartToday),
           countSmsEventsForClient(client.id, windowStart7d),
           countSmsEventsForClient(client.id, windowStart30d),
+          countLinkClicksForClient(client.id, windowStartToday),
         ]);
         const smsSentCount = missedCallsCount;                                  // 1:1 today (see header note)
 
@@ -198,6 +205,7 @@ Deno.serve(async (req) => {
           // Today
           missedCalls:     missedCallsCount,
           smsSent:         smsSentCount,
+          linkTaps:        linkTapsToday,
           bookingsLow:     estBookingsLow,
           bookingsHigh:    estBookingsHigh,
           revenueLow:      estRevenueLow,
@@ -284,12 +292,29 @@ Deno.serve(async (req) => {
 // ── helpers ─────────────────────────────────────────────────────────────────
 
 async function countSmsEventsForClient(clientId: string, windowStartIso: string): Promise<number> {
+  return await countTableForClient('sms_events', 'received_at', clientId, windowStartIso);
+}
+
+async function countLinkClicksForClient(clientId: string, windowStartIso: string): Promise<number> {
+  // link_clicks is fed by both V1 (get-booking-url tap tracker, on
+  // clicked_at fallback to created_at) and V2 (rebrand.ly webhook, on
+  // clicked_at). We index on clicked_at, so the dashboard query also uses
+  // clicked_at — keeping one consistent timeline column for "tapped today".
+  return await countTableForClient('link_clicks', 'clicked_at', clientId, windowStartIso);
+}
+
+async function countTableForClient(
+  table:       string,
+  tsColumn:    string,
+  clientId:    string,
+  windowStart: string,
+): Promise<number> {
   // PostgREST count via Prefer: count=exact + HEAD-style empty body.
   // Returns 0 when no rows match.
   const url =
-    `${SUPABASE_URL}/rest/v1/sms_events` +
+    `${SUPABASE_URL}/rest/v1/${table}` +
     `?client_id=eq.${encodeURIComponent(clientId)}` +
-    `&received_at=gte.${encodeURIComponent(windowStartIso)}` +
+    `&${tsColumn}=gte.${encodeURIComponent(windowStart)}` +
     `&select=id`;
 
   const res = await fetch(url, {
@@ -301,7 +326,7 @@ async function countSmsEventsForClient(clientId: string, windowStartIso: string)
     },
   });
   if (!res.ok) {
-    throw new Error(`count_sms_events_failed: ${res.status} ${await res.text()}`);
+    throw new Error(`count_${table}_failed: ${res.status} ${await res.text()}`);
   }
   // Content-Range header looks like "0-0/<total>" or "*/0" when empty.
   const contentRange = res.headers.get('content-range') || '*/0';
@@ -343,6 +368,7 @@ interface SummaryEmailParams {
   // Today
   missedCalls:  number;
   smsSent:      number;
+  linkTaps:     number;
   bookingsLow:  number;
   bookingsHigh: number;
   revenueLow:   number;
@@ -418,15 +444,26 @@ function buildSummaryEmail(p: SummaryEmailParams): string {
   let footnote:     string;
   let preheader:    string;
 
+  // Optional link-taps tile — rendered only when count > 0. Until rebrand.ly
+  // Pro is configured this tile won't appear for V2 clients, keeping the
+  // email visually unchanged from before for them.
+  const linkTapsTile = p.linkTaps > 0
+    ? `<div style="background:${BRAND.pageBackground};border:1px solid ${BRAND.borderColor};border-radius:8px;padding:20px;margin-bottom:24px;text-align:center;">
+        <div style="font-size:12px;color:${BRAND.secondaryText};font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px;">Link taps today</div>
+        <div style="font-size:28px;font-weight:300;color:${BRAND.primaryText};letter-spacing:-0.02em;line-height:1;">${p.linkTaps}</div>
+      </div>`
+    : '';
+
   if (hasActivity) {
     todayContent = `<div style="background:${BRAND.pageBackground};border:1px solid ${BRAND.borderColor};border-radius:8px;padding:24px;margin-bottom:14px;text-align:center;">
         <div style="font-size:13px;color:${BRAND.secondaryText};font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:8px;">Missed calls captured</div>
         <div class="em-bigstat" style="font-size:48px;font-weight:300;color:${BRAND.accent};letter-spacing:-0.02em;line-height:1;">${p.missedCalls}</div>
       </div>
-      <div style="background:${BRAND.pageBackground};border:1px solid ${BRAND.borderColor};border-radius:8px;padding:20px;margin-bottom:24px;text-align:center;">
+      <div style="background:${BRAND.pageBackground};border:1px solid ${BRAND.borderColor};border-radius:8px;padding:20px;margin-bottom:${linkTapsTile ? '14' : '24'}px;text-align:center;">
         <div style="font-size:12px;color:${BRAND.secondaryText};font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px;">Auto-SMS sent</div>
         <div style="font-size:28px;font-weight:300;color:${BRAND.primaryText};letter-spacing:-0.02em;line-height:1;">${p.smsSent}</div>
       </div>
+      ${linkTapsTile}
       <div style="background:${BRAND.successBg};border:1px solid ${BRAND.accent};border-radius:8px;padding:20px;margin-bottom:24px;">
         <div style="font-size:11px;color:${BRAND.accent};font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;">Estimated impact today</div>
         <div style="font-size:16px;font-weight:600;color:${BRAND.primaryText};line-height:1.5;">
@@ -437,11 +474,12 @@ function buildSummaryEmail(p: SummaryEmailParams): string {
     footnote  = `<p style="font-size:12px;color:${BRAND.secondaryText};margin:0;line-height:1.5;">Industry data suggests 55–70% of missed callers book elsewhere within 5 minutes when they don't get an answer. CallMagnet keeps your booking link in their pocket within seconds.</p>`;
     preheader = `${p.missedCalls} missed call${p.missedCalls === 1 ? '' : 's'} captured today at ${p.businessName}`;
   } else {
-    todayContent = `<div style="background:${BRAND.pageBackground};border:1px solid ${BRAND.borderColor};border-radius:8px;padding:24px;margin-bottom:24px;text-align:center;">
+    todayContent = `<div style="background:${BRAND.pageBackground};border:1px solid ${BRAND.borderColor};border-radius:8px;padding:24px;margin-bottom:${linkTapsTile ? '14' : '24'}px;text-align:center;">
         <div style="font-size:13px;color:${BRAND.secondaryText};font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:8px;">Today</div>
         <div class="em-bigstat" style="font-size:48px;font-weight:300;color:${BRAND.primaryText};letter-spacing:-0.02em;line-height:1;">0</div>
         <div style="font-size:13px;color:${BRAND.secondaryText};margin-top:8px;">missed calls — a quiet day</div>
-      </div>`;
+      </div>
+      ${linkTapsTile}`;
     footnote  = `<p style="font-size:12px;color:${BRAND.secondaryText};margin:0;line-height:1.5;">CallMagnet is on the line — every missed call still gets your booking link within seconds.</p>`;
     preheader = `Quiet day at ${p.businessName} — past performance below`;
   }

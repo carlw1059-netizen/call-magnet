@@ -412,6 +412,9 @@ verify_jwt = false
 [functions.monthly-report]
 verify_jwt = false
 
+[functions.rebrandly-webhook]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
