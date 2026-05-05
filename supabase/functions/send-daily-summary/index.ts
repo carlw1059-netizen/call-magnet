@@ -146,17 +146,24 @@ Deno.serve(async (req) => {
         const revPerBooking =
           (client.vertical && REVENUE_PER_BOOKING[client.vertical]) ?? DEFAULT_REVENUE_PER_BOOKING;
 
+        // Bookings round first because they display as an integer count
+        // ("Approximately N bookings recovered"). Revenue rounds the final
+        // product (count × rate × $/booking) instead of (rounded bookings ×
+        // $/booking) so it matches the dashboard tiles, which compute
+        // Math.round(count × multiplier × 0.62) directly. Single brand-
+        // consistent figure across both surfaces — no off-by-rounding skew.
+
         // Today
         const estBookings   = Math.round(missedCallsCount * CONVERSION_RATE);
-        const estRevenue    = estBookings * revPerBooking;
+        const estRevenue    = Math.round(missedCallsCount * CONVERSION_RATE * revPerBooking);
 
         // Last 7 days (cumulative — includes today)
         const estBookings7d = Math.round(missed7d * CONVERSION_RATE);
-        const estRevenue7d  = estBookings7d * revPerBooking;
+        const estRevenue7d  = Math.round(missed7d * CONVERSION_RATE * revPerBooking);
 
         // Last 30 days (cumulative — includes today)
         const estBookings30d = Math.round(missed30d * CONVERSION_RATE);
-        const estRevenue30d  = estBookings30d * revPerBooking;
+        const estRevenue30d  = Math.round(missed30d * CONVERSION_RATE * revPerBooking);
 
         // ── UPSERT daily_summary_runs row (today only — 7d/30d not persisted) ──
         const upsertRes = await fetch(
