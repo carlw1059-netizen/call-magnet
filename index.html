@@ -561,6 +561,11 @@ body {
         <div class="metric-value" id="convRate">0%</div>
         <div class="metric-sub">SMS → click</div>
       </div>
+      <div class="metric">
+        <div class="metric-label">Link taps today</div>
+        <div class="metric-value" id="linkTapsToday">—</div>
+        <div class="metric-sub">Booking link tapped</div>
+      </div>
     </div>
     <div class="demo-banner" id="demoBanner">No data yet — your CallMagnet system will start showing live stats once your first call comes in.</div>
     <div class="log-booking-row">
@@ -1278,14 +1283,16 @@ async function loadStats() {
   }
 
   const monthStartIso = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+  const todayStartIso = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
 
-  let smsRes, clickRes, bookRes, monthSmsRes;
+  let smsRes, clickRes, bookRes, monthSmsRes, tapsTodayRes;
   try {
-    [smsRes, clickRes, bookRes, monthSmsRes] = await Promise.all([
+    [smsRes, clickRes, bookRes, monthSmsRes, tapsTodayRes] = await Promise.all([
       sb.from('sms_events').select('id', { count: 'exact' }).eq('client_id', clientId).gte('received_at', effectiveStart).lte('received_at', endIso),
       sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).gte('created_at', effectiveStart).lte('created_at', endIso),
       sb.from('bookings').select('id', { count: 'exact' }).eq('client_id', clientId).gte('booked_at', effectiveStart).lte('booked_at', endIso),
-      sb.from('sms_events').select('id', { count: 'exact' }).eq('client_id', clientId).gte('received_at', monthStartIso)
+      sb.from('sms_events').select('id', { count: 'exact' }).eq('client_id', clientId).gte('received_at', monthStartIso),
+      sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).gte('clicked_at', todayStartIso)
     ]);
   } catch (e) {
     console.error('stats load failed', e);
@@ -1298,10 +1305,12 @@ async function loadStats() {
   const clickCount = clickRes.count || 0;
   const bookCount = bookRes.count || 0;
   const monthSms = monthSmsRes.count || 0;
+  const tapsTodayCount = tapsTodayRes.count || 0;
 
   document.getElementById('smsCount').textContent = smsCount;
   document.getElementById('clickCount').textContent = clickCount;
   document.getElementById('bookingCount').textContent = bookCount;
+  document.getElementById('linkTapsToday').textContent = tapsTodayCount > 0 ? tapsTodayCount : '—';
 
   const conv = smsCount > 0 ? Math.round((clickCount / smsCount) * 100) + '%' : '—';
   document.getElementById('convRate').textContent = conv;
