@@ -1402,8 +1402,8 @@ async function loadStats() {
     revenue = Math.round(clickCount * avgJob * realConv);
     heroSub = 'Real conversion rate: ' + Math.round(realConv * 100) + '%';
   } else if (clickCount > 0) {
-    revenue = Math.round(clickCount * avgJob * 0.7);
-    heroSub = 'Estimated conversion (70%)';
+    revenue = Math.round(clickCount * avgJob * 0.62);
+    heroSub = 'Estimated conversion (62%)';
   } else if (bookCount > 0) {
     revenue = Math.round(bookCount * avgJob);
     heroSub = bookCount + ' bookings × $' + avgJob + ' avg';
