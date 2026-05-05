@@ -235,6 +235,13 @@ body {
 .metric-label { font-family: var(--sans); font-size: 10px; letter-spacing: 0.02em; color: var(--accent); margin-bottom: 8px; font-weight: 700; }
 .metric-value { font-size: 32px; font-weight: 400; color: var(--accent); letter-spacing: -0.02em; }
 .metric-sub { font-size: 11px; font-weight: 700; color: var(--muted); margin-top: 4px; }
+/* Restaurant-vertical tiles — login palette (#3ECF8E + #F7F7F5 + #FFFFFF), independent of theme */
+.restaurant-tiles { display: none; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 1rem; }
+.restaurant-tiles.active { display: grid; }
+.restaurant-tile { background: #FFFFFF; border: 1.5px solid #3ECF8E; border-radius: 10px; padding: 1rem; }
+.restaurant-tile-label { font-family: var(--sans); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: #3ECF8E; margin-bottom: 8px; font-weight: 700; }
+.restaurant-tile-value { font-size: 28px; font-weight: 400; color: #1a1814; letter-spacing: -0.02em; }
+.restaurant-tile-sub { font-size: 11px; font-weight: 700; color: #6B7280; margin-top: 4px; }
 .log-booking-row { display: flex; justify-content: flex-end; gap: 0.75rem; margin-bottom: 1rem; align-items: center; }
 .log-booking-btn { background: #1a3a1a; border: 2px solid #4caf50; color: #4caf50; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-family: var(--mono); letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s; font-weight: 700; -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 .log-booking-btn:hover { background: #4caf50; color: #fff; }
@@ -298,6 +305,7 @@ body {
 .loading { padding: 2rem; text-align: center; color: var(--dim); font-family: var(--mono); font-size: 12px; font-weight: 700; }
 @media (max-width: 600px) {
   .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .restaurant-tiles.active { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hero-value { font-size: 40px; }
   .biz-name-large { font-size: 26px; }
   .topbar-logo { font-size: 20px; }
@@ -565,6 +573,28 @@ body {
         <div class="metric-label">Link taps today</div>
         <div class="metric-value" id="linkTapsToday">—</div>
         <div class="metric-sub">Booking link tapped</div>
+      </div>
+    </div>
+    <div class="restaurant-tiles" id="restaurantTiles">
+      <div class="restaurant-tile">
+        <div class="restaurant-tile-label">Tonight's covers recovered</div>
+        <div class="restaurant-tile-value" id="rTonightCovers">0</div>
+        <div class="restaurant-tile-sub">Missed calls captured today</div>
+      </div>
+      <div class="restaurant-tile">
+        <div class="restaurant-tile-label">Tonight's $ saved</div>
+        <div class="restaurant-tile-value" id="rTonightSaved">$0</div>
+        <div class="restaurant-tile-sub">Range at 60–70% conv.</div>
+      </div>
+      <div class="restaurant-tile">
+        <div class="restaurant-tile-label">Peak hours</div>
+        <div class="restaurant-tile-value" id="rPeakHours" style="font-size:22px">—</div>
+        <div class="restaurant-tile-sub">Last 30 days, top 3</div>
+      </div>
+      <div class="restaurant-tile">
+        <div class="restaurant-tile-label">Last 30 days $ protected</div>
+        <div class="restaurant-tile-value" id="rLast30Protected">$0</div>
+        <div class="restaurant-tile-sub">Range at 60–70% conv.</div>
       </div>
     </div>
     <div class="demo-banner" id="demoBanner">No data yet — your CallMagnet system will start showing live stats once your first call comes in.</div>
@@ -1357,7 +1387,85 @@ async function loadStats() {
     document.getElementById('overageRow').style.display = 'none';
   }
 
+  await renderRestaurantTiles(clientId, avgJob, myRequestId);
+
   await loadActivity(clientId, effectiveStart, endIso, myRequestId);
+}
+
+// Mel-local start-of-today as UTC ISO. Offset is recomputed each call so AEST/AEDT
+// transitions don't quietly drift the boundary.
+function melbourneStartOfTodayUtcIso() {
+  const now = new Date();
+  const ymd = new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Melbourne', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+  const melHm = new Intl.DateTimeFormat('en-GB', { timeZone: 'Australia/Melbourne', hour: '2-digit', minute: '2-digit', hour12: false }).format(now);
+  const utcHm = new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', hour12: false }).format(now);
+  const [mh, mm] = melHm.split(':').map(Number);
+  const [uh, um] = utcHm.split(':').map(Number);
+  let offsetMin = (mh * 60 + mm) - (uh * 60 + um);
+  if (offsetMin < -720) offsetMin += 1440;
+  if (offsetMin > 720)  offsetMin -= 1440;
+  return new Date(Date.parse(ymd + 'T00:00:00Z') - offsetMin * 60000).toISOString();
+}
+
+function formatHourMel(h) {
+  const h12 = ((h + 11) % 12) + 1;
+  return h12 + (h < 12 ? 'am' : 'pm');
+}
+
+async function renderRestaurantTiles(clientId, avgJob, myRequestId) {
+  const container = document.getElementById('restaurantTiles');
+  if (!container) return;
+  if (!currentClient || currentClient.vertical !== 'restaurant') {
+    container.classList.remove('active');
+    return;
+  }
+
+  const tonightStartIso = melbourneStartOfTodayUtcIso();
+  const thirtyAgoIso = new Date(Date.now() - 30 * 86400000).toISOString();
+
+  let tonightRes, last30Res;
+  try {
+    [tonightRes, last30Res] = await Promise.all([
+      sb.from('sms_events').select('id', { count: 'exact' }).eq('client_id', clientId).gte('received_at', tonightStartIso),
+      sb.from('sms_events').select('received_at').eq('client_id', clientId).gte('received_at', thirtyAgoIso)
+    ]);
+  } catch (e) {
+    console.warn('restaurant tiles fetch failed', e);
+    return;
+  }
+  if (myRequestId !== statsRequestId) return;
+
+  const tonightCount = tonightRes.count || 0;
+  const last30Rows = last30Res.data || [];
+  const last30Count = last30Rows.length;
+
+  const tonightLow  = Math.round(tonightCount * avgJob * 0.6);
+  const tonightHigh = Math.round(tonightCount * avgJob * 0.7);
+  const monthLow    = Math.round(last30Count * avgJob * 0.6);
+  const monthHigh   = Math.round(last30Count * avgJob * 0.7);
+
+  const hourCounts = new Array(24).fill(0);
+  for (const r of last30Rows) {
+    const d = new Date(r.received_at);
+    const melHourStr = new Intl.DateTimeFormat('en-GB', { timeZone: 'Australia/Melbourne', hour: '2-digit', hour12: false }).format(d);
+    const h = parseInt(melHourStr, 10);
+    if (h >= 0 && h <= 23) hourCounts[h]++;
+  }
+  const topHours = hourCounts
+    .map((c, h) => ({ h, c }))
+    .filter(x => x.c > 0)
+    .sort((a, b) => b.c - a.c || a.h - b.h)
+    .slice(0, 3)
+    .map(x => formatHourMel(x.h));
+
+  document.getElementById('rTonightCovers').textContent = tonightCount;
+  document.getElementById('rTonightSaved').textContent =
+    tonightCount === 0 ? '$0' : '$' + tonightLow.toLocaleString() + '–$' + tonightHigh.toLocaleString();
+  document.getElementById('rPeakHours').textContent = topHours.length ? topHours.join(', ') : '—';
+  document.getElementById('rLast30Protected').textContent =
+    last30Count === 0 ? '$0' : '$' + monthLow.toLocaleString() + '–$' + monthHigh.toLocaleString();
+
+  container.classList.add('active');
 }
 
 function updateSmsCounter(count) {
