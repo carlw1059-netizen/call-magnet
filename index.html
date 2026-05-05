@@ -207,7 +207,14 @@ body {
 .biz-header-left { display: flex; flex-direction: column; min-width: 0; }
 .biz-name-large { font-size: 36px; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; line-height: 1.1; }
 .biz-tagline { font-family: var(--sans); font-size: 12px; color: var(--accent); letter-spacing: 0.02em; margin-top: 4px; font-weight: 700; }
-.biz-header-right { display: flex; align-items: flex-end; flex-shrink: 0; }
+.biz-header-right { display: flex; align-items: flex-end; flex-shrink: 0; gap: 8px; }
+.vertical-toggle { display: none; align-items: stretch; background: var(--surface); border: 1px solid var(--accent); border-radius: 4px; overflow: hidden; }
+.vertical-toggle.visible { display: inline-flex; }
+.vt-btn { background: none; border: none; border-right: 1px solid var(--accent); color: var(--accent); font-size: 14px; line-height: 1; padding: 0 12px; cursor: pointer; font-family: var(--mono); transition: background 0.2s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; display: flex; align-items: center; justify-content: center; min-height: 28px; }
+.vt-btn:last-child { border-right: none; }
+.vt-btn:hover { background: var(--accent-dim); }
+.vt-btn.active { background: var(--accent); }
+.vt-btn.active:hover { background: var(--accent); }
 .refresh-btn { background: var(--surface); border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 6px 16px; font-size: 12px; font-family: var(--mono); font-weight: 700; letter-spacing: 0.08em; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; white-space: nowrap; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .refresh-btn:hover { background: var(--accent); color: var(--accent-contrast); }
 .refresh-btn:active { background: var(--accent); color: var(--accent-contrast); transform: scale(0.95); }
@@ -235,47 +242,7 @@ body {
 .metric-label { font-family: var(--sans); font-size: 10px; letter-spacing: 0.02em; color: var(--accent); margin-bottom: 8px; font-weight: 700; }
 .metric-value { font-size: 32px; font-weight: 400; color: var(--accent); letter-spacing: -0.02em; }
 .metric-sub { font-size: 11px; font-weight: 700; color: var(--muted); margin-top: 4px; }
-/* Restaurant-vertical tiles — login palette (#3ECF8E + #F7F7F5 + #FFFFFF), independent of theme */
-.restaurant-tiles { display: none; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 1rem; }
-.restaurant-tiles.active { display: grid; }
-.restaurant-tile { background: #FFFFFF; border: 1.5px solid #3ECF8E; border-radius: 10px; padding: 1rem; }
-.restaurant-tile-emoji { font-size: 18px; line-height: 1; margin-bottom: 6px; }
-.restaurant-tile-label { font-family: var(--sans); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: #3ECF8E; margin-bottom: 8px; font-weight: 700; }
-.restaurant-tile-value { font-size: 28px; font-weight: 400; color: #1a1814; letter-spacing: -0.02em; }
-.restaurant-tile-sub { font-size: 11px; font-weight: 700; color: #6B7280; margin-top: 4px; }
-/* Demo vertical toggle — admin-only chip + dropdown, login palette */
-.demo-toggle-row { display: none; justify-content: flex-end; margin-bottom: 0.75rem; position: relative; }
-.demo-toggle-row.visible { display: flex; }
-.demo-toggle-chip {
-  background: #FFFFFF; border: 1.5px solid #3ECF8E; border-radius: 22px;
-  padding: 0 16px; min-height: 44px; min-width: 44px;
-  display: inline-flex; align-items: center; gap: 8px;
-  font-family: var(--sans); font-size: 13px; font-weight: 700; color: #1a1814;
-  cursor: pointer; transition: box-shadow 0.18s ease, transform 0.08s ease;
-  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-}
-.demo-toggle-chip:hover { box-shadow: 0 3px 10px rgba(62,207,142,0.22); }
-.demo-toggle-chip:active { transform: scale(0.97); }
-.demo-toggle-caret { color: #3ECF8E; font-size: 11px; transition: transform 0.18s ease; }
-.demo-toggle-row.open .demo-toggle-caret { transform: rotate(180deg); }
-.demo-toggle-menu {
-  display: none; position: absolute; top: calc(100% + 6px); right: 0;
-  background: #FFFFFF; border: 1.5px solid #3ECF8E; border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.10);
-  min-width: 200px; padding: 6px; z-index: 30;
-}
-.demo-toggle-row.open .demo-toggle-menu { display: block; }
-.demo-toggle-option {
-  display: flex; align-items: center; gap: 10px; width: 100%;
-  background: transparent; border: none; border-radius: 8px;
-  padding: 0 12px; min-height: 44px;
-  font-family: var(--sans); font-size: 13px; font-weight: 700; color: #1a1814;
-  text-align: left; cursor: pointer;
-  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
-}
-.demo-toggle-option:hover { background: #F7F7F5; }
-.demo-toggle-option.selected { background: rgba(62,207,142,0.12); color: #3ECF8E; }
+.metrics-fullwidth { margin-bottom: 1rem; }
 .log-booking-row { display: flex; justify-content: flex-end; gap: 0.75rem; margin-bottom: 1rem; align-items: center; }
 .log-booking-btn { background: #1a3a1a; border: 2px solid #4caf50; color: #4caf50; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-family: var(--mono); letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s; font-weight: 700; -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 .log-booking-btn:hover { background: #4caf50; color: #fff; }
@@ -339,7 +306,6 @@ body {
 .loading { padding: 2rem; text-align: center; color: var(--dim); font-family: var(--mono); font-size: 12px; font-weight: 700; }
 @media (max-width: 600px) {
   .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .restaurant-tiles.active { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hero-value { font-size: 40px; }
   .biz-name-large { font-size: 26px; }
   .topbar-logo { font-size: 20px; }
@@ -560,6 +526,10 @@ body {
         <div class="biz-tagline">Pull every customer back.</div>
       </div>
       <div class="biz-header-right">
+        <div class="vertical-toggle" id="verticalToggle">
+          <button class="vt-btn" id="vtRestaurant" type="button" aria-label="Restaurant view" onclick="setDashboardMode('restaurant')">🍽️</button>
+          <button class="vt-btn" id="vtHairdresser" type="button" aria-label="Hairdresser view" onclick="setDashboardMode('hairdresser')">👩</button>
+        </div>
         <button class="refresh-btn" id="refreshBtn" onclick="handleRefresh()">
           <span class="refresh-icon" id="refreshIcon">↻</span> Refresh
         </button>
@@ -582,7 +552,7 @@ body {
       <div class="hero-value" id="heroValue">$0</div>
       <div class="hero-sub" id="heroSub"></div>
     </div>
-    <div class="metrics">
+    <div class="metrics" id="hairdresserMetrics">
       <div class="metric">
         <div class="metric-label">SMS sent</div>
         <div class="metric-value" id="smsCount">0</div>
@@ -603,47 +573,34 @@ body {
         <div class="metric-value" id="convRate">0%</div>
         <div class="metric-sub">SMS → click</div>
       </div>
+    </div>
+    <div class="metrics" id="restaurantMetrics" style="display:none">
+      <div class="metric">
+        <div class="metric-label">Tonight's covers recovered</div>
+        <div class="metric-value" id="rTonightCovers">0</div>
+        <div class="metric-sub">Captured today</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Tonight's $ saved</div>
+        <div class="metric-value" id="rTonightSaved">$0</div>
+        <div class="metric-sub">Estimated at 62% conv.</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Peak booking hours</div>
+        <div class="metric-value" id="rPeakHours" style="font-size:22px">—</div>
+        <div class="metric-sub">Last 30 days, top 3</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Last 30 days $ protected</div>
+        <div class="metric-value" id="rLast30Protected">$0</div>
+        <div class="metric-sub">Estimated at 62% conv.</div>
+      </div>
+    </div>
+    <div class="metrics-fullwidth">
       <div class="metric">
         <div class="metric-label">Link taps today</div>
         <div class="metric-value" id="linkTapsToday">—</div>
         <div class="metric-sub">Booking link tapped</div>
-      </div>
-    </div>
-    <div class="demo-toggle-row" id="demoToggleRow">
-      <button class="demo-toggle-chip" id="demoToggleChip" type="button" aria-haspopup="true" aria-expanded="false" onclick="toggleDemoModeMenu(event)">
-        <span id="demoToggleChipLabel">🍽️ Restaurant</span>
-        <span class="demo-toggle-caret" aria-hidden="true">▾</span>
-      </button>
-      <div class="demo-toggle-menu" id="demoToggleMenu" role="menu" aria-labelledby="demoToggleChip">
-        <button class="demo-toggle-option" type="button" role="menuitem" data-mode="restaurant" onclick="selectDemoMode('restaurant')">🍽️ Restaurant</button>
-        <button class="demo-toggle-option" type="button" role="menuitem" data-mode="hairdresser" onclick="selectDemoMode('hairdresser')">💇 Hairdresser</button>
-        <button class="demo-toggle-option" type="button" role="menuitem" data-mode="barber" onclick="selectDemoMode('barber')">✂️ Barber</button>
-      </div>
-    </div>
-    <div class="restaurant-tiles" id="restaurantTiles">
-      <div class="restaurant-tile">
-        <div class="restaurant-tile-emoji" id="rTile1Emoji">🍽️</div>
-        <div class="restaurant-tile-label" id="rTile1Label">Tonight's covers recovered</div>
-        <div class="restaurant-tile-value" id="rTonightCovers">0</div>
-        <div class="restaurant-tile-sub" id="rTile1Sub">Missed calls captured today</div>
-      </div>
-      <div class="restaurant-tile">
-        <div class="restaurant-tile-emoji" id="rTile2Emoji">🍽️</div>
-        <div class="restaurant-tile-label" id="rTile2Label">Tonight's $ saved</div>
-        <div class="restaurant-tile-value" id="rTonightSaved">$0</div>
-        <div class="restaurant-tile-sub" id="rTile2Sub">Estimated at 62% conv.</div>
-      </div>
-      <div class="restaurant-tile">
-        <div class="restaurant-tile-emoji" id="rTile3Emoji">🍽️</div>
-        <div class="restaurant-tile-label" id="rTile3Label">Peak hours</div>
-        <div class="restaurant-tile-value" id="rPeakHours" style="font-size:22px">—</div>
-        <div class="restaurant-tile-sub" id="rTile3Sub">Last 30 days, top 3</div>
-      </div>
-      <div class="restaurant-tile">
-        <div class="restaurant-tile-emoji" id="rTile4Emoji">🍽️</div>
-        <div class="restaurant-tile-label" id="rTile4Label">Last 30 days $ protected</div>
-        <div class="restaurant-tile-value" id="rLast30Protected">$0</div>
-        <div class="restaurant-tile-sub" id="rTile4Sub">Estimated at 62% conv.</div>
       </div>
     </div>
     <div class="demo-banner" id="demoBanner">No data yet — your CallMagnet system will start showing live stats once your first call comes in.</div>
@@ -1217,6 +1174,8 @@ async function loadDashboard(user, opts = {}) {
   applyTheme(themeKey);
   markActiveThemeTile(themeKey);
   setTimeout(maybeShowInstallBanner, 1500);
+  refreshVerticalToggleVisibility();
+  renderTilesForMode(getDashboardMode());
   await loadStats();
   startAutoRefresh();
   return true;
@@ -1436,9 +1395,66 @@ async function loadStats() {
     document.getElementById('overageRow').style.display = 'none';
   }
 
-  await renderVerticalTiles(clientId, myRequestId);
+  if (getDashboardMode() === 'restaurant') {
+    await loadRestaurantTileData(clientId, myRequestId);
+  }
 
   await loadActivity(clientId, effectiveStart, endIso, myRequestId);
+}
+
+const ADMIN_TOGGLE_EMAIL = 'car312@hotmail.com';
+
+function isAdminToggleUser() {
+  return !!(currentClient && currentClient.email && currentClient.email.toLowerCase() === ADMIN_TOGGLE_EMAIL);
+}
+
+function getDashboardMode() {
+  if (isAdminToggleUser()) {
+    try {
+      const v = localStorage.getItem('dashboardMode');
+      if (v === 'restaurant' || v === 'hairdresser') return v;
+    } catch (e) { /* localStorage unavailable */ }
+    return 'hairdresser';
+  }
+  if (currentClient && currentClient.vertical === 'restaurant') return 'restaurant';
+  return 'hairdresser';
+}
+
+function setDashboardMode(mode) {
+  if (mode !== 'restaurant' && mode !== 'hairdresser') return;
+  try { localStorage.setItem('dashboardMode', mode); } catch (e) { /* no-op */ }
+  renderTilesForMode(mode);
+  if (mode === 'restaurant' && currentClient) {
+    loadRestaurantTileData(currentClient.id, statsRequestId);
+  }
+}
+
+function renderTilesForMode(mode) {
+  const hg = document.getElementById('hairdresserMetrics');
+  const rg = document.getElementById('restaurantMetrics');
+  const lbr = document.querySelector('.log-booking-row');
+  const vtR = document.getElementById('vtRestaurant');
+  const vtH = document.getElementById('vtHairdresser');
+  if (mode === 'restaurant') {
+    if (hg) hg.style.display = 'none';
+    if (rg) rg.style.display = 'grid';
+    if (lbr) lbr.style.display = 'none';
+    if (vtR) vtR.classList.add('active');
+    if (vtH) vtH.classList.remove('active');
+  } else {
+    if (hg) hg.style.display = 'grid';
+    if (rg) rg.style.display = 'none';
+    if (lbr) lbr.style.display = 'flex';
+    if (vtR) vtR.classList.remove('active');
+    if (vtH) vtH.classList.add('active');
+  }
+}
+
+function refreshVerticalToggleVisibility() {
+  const t = document.getElementById('verticalToggle');
+  if (!t) return;
+  if (isAdminToggleUser()) t.classList.add('visible');
+  else t.classList.remove('visible');
 }
 
 // Mel-local start-of-today as UTC ISO. Offset is recomputed each call so AEST/AEDT
@@ -1461,167 +1477,7 @@ function formatHourMel(h) {
   return h12 + (h < 12 ? 'am' : 'pm');
 }
 
-// Demo vertical toggle — admin-only sales pitch tool. Visible to Test Business
-// (email match) or any URL with ?demo=admin. Real clients never see it.
-const ADMIN_DEMO_EMAIL = 'car312@hotmail.com';
-const DEMO_MODES = {
-  restaurant: {
-    emoji: '🍽️', label: 'Restaurant', avg: 75,
-    tiles: {
-      countLabel: "Tonight's covers recovered",
-      countSub:   'Missed calls captured today',
-      savedLabel: "Tonight's $ saved",
-      peakLabel:  'Peak hours',
-      monthLabel: 'Last 30 days $ protected',
-    },
-  },
-  hairdresser: {
-    emoji: '💇', label: 'Hairdresser', avg: 100,
-    tiles: {
-      countLabel: 'Cuts captured today',
-      countSub:   'Missed calls captured today',
-      savedLabel: "Tonight's $ saved",
-      peakLabel:  'Peak booking hours',
-      monthLabel: 'Last 30 days $ protected',
-    },
-  },
-  barber: {
-    emoji: '✂️', label: 'Barber', avg: 45,
-    tiles: {
-      countLabel: 'Haircuts captured today',
-      countSub:   'Missed calls captured today',
-      savedLabel: "Tonight's $ saved",
-      peakLabel:  'Peak booking hours',
-      monthLabel: 'Last 30 days $ protected',
-    },
-  },
-};
-
-let lastTileData = null; // cache of last fetched { tonightCount, last30Count, topHours }
-
-function isAdminDemoView() {
-  try {
-    const params = new URLSearchParams(location.search);
-    if (params.get('demo') === 'admin') return true;
-  } catch (e) { /* no-op */ }
-  return !!(currentClient && currentClient.email && currentClient.email.toLowerCase() === ADMIN_DEMO_EMAIL);
-}
-
-function getDemoMode() {
-  try {
-    const v = localStorage.getItem('demoVerticalMode');
-    if (v && DEMO_MODES[v]) return v;
-  } catch (e) { /* localStorage unavailable */ }
-  return 'restaurant';
-}
-
-function setDemoMode(mode) {
-  if (!DEMO_MODES[mode]) return;
-  try { localStorage.setItem('demoVerticalMode', mode); } catch (e) { /* no-op */ }
-}
-
-// Resolve which mode + multiplier to render for. Real clients keep their existing
-// avg_job_value; admin demo overrides with the mode-fixed multiplier.
-function effectiveTileConfig() {
-  if (isAdminDemoView()) {
-    const mode = getDemoMode();
-    const cfg = DEMO_MODES[mode];
-    return { mode, ...cfg, multiplier: cfg.avg };
-  }
-  if (currentClient && currentClient.vertical === 'restaurant') {
-    return {
-      mode: 'restaurant',
-      ...DEMO_MODES.restaurant,
-      multiplier: currentClient.avg_job_value || DEMO_MODES.restaurant.avg,
-    };
-  }
-  return null;
-}
-
-function applyTileLabels(cfg) {
-  document.getElementById('rTile1Emoji').textContent = cfg.emoji;
-  document.getElementById('rTile2Emoji').textContent = cfg.emoji;
-  document.getElementById('rTile3Emoji').textContent = cfg.emoji;
-  document.getElementById('rTile4Emoji').textContent = cfg.emoji;
-  document.getElementById('rTile1Label').textContent = cfg.tiles.countLabel;
-  document.getElementById('rTile2Label').textContent = cfg.tiles.savedLabel;
-  document.getElementById('rTile3Label').textContent = cfg.tiles.peakLabel;
-  document.getElementById('rTile4Label').textContent = cfg.tiles.monthLabel;
-  document.getElementById('rTile1Sub').textContent = cfg.tiles.countSub;
-}
-
-function applyTileValues(cfg, data) {
-  if (!data) return;
-  const { tonightCount, last30Count, topHours } = data;
-  const tonightSaved   = Math.round(tonightCount * cfg.multiplier * 0.62);
-  const monthProtected = Math.round(last30Count  * cfg.multiplier * 0.62);
-  document.getElementById('rTonightCovers').textContent = tonightCount;
-  document.getElementById('rTonightSaved').textContent =
-    tonightCount === 0 ? '$0' : '$' + tonightSaved.toLocaleString();
-  document.getElementById('rPeakHours').textContent = topHours.length ? topHours.join(', ') : '—';
-  document.getElementById('rLast30Protected').textContent =
-    last30Count === 0 ? '$0' : '$' + monthProtected.toLocaleString();
-}
-
-function refreshDemoToggleVisibility() {
-  const row = document.getElementById('demoToggleRow');
-  if (!row) return;
-  const visible = isAdminDemoView();
-  row.classList.toggle('visible', visible);
-  if (visible) {
-    const mode = getDemoMode();
-    const cfg = DEMO_MODES[mode];
-    document.getElementById('demoToggleChipLabel').textContent = cfg.emoji + ' ' + cfg.label;
-    document.querySelectorAll('.demo-toggle-option').forEach((el) => {
-      el.classList.toggle('selected', el.getAttribute('data-mode') === mode);
-    });
-  }
-}
-
-function toggleDemoModeMenu(ev) {
-  if (ev) ev.stopPropagation();
-  const row = document.getElementById('demoToggleRow');
-  const chip = document.getElementById('demoToggleChip');
-  const open = !row.classList.contains('open');
-  row.classList.toggle('open', open);
-  chip.setAttribute('aria-expanded', open ? 'true' : 'false');
-}
-
-function selectDemoMode(mode) {
-  if (!DEMO_MODES[mode]) return;
-  setDemoMode(mode);
-  document.getElementById('demoToggleRow').classList.remove('open');
-  document.getElementById('demoToggleChip').setAttribute('aria-expanded', 'false');
-  refreshDemoToggleVisibility();
-  const cfg = effectiveTileConfig();
-  if (cfg) {
-    applyTileLabels(cfg);
-    applyTileValues(cfg, lastTileData);
-  }
-}
-
-document.addEventListener('click', (ev) => {
-  const row = document.getElementById('demoToggleRow');
-  if (!row || !row.classList.contains('open')) return;
-  if (!row.contains(ev.target)) {
-    row.classList.remove('open');
-    const chip = document.getElementById('demoToggleChip');
-    if (chip) chip.setAttribute('aria-expanded', 'false');
-  }
-});
-
-async function renderVerticalTiles(clientId, myRequestId) {
-  const container = document.getElementById('restaurantTiles');
-  if (!container) return;
-
-  refreshDemoToggleVisibility();
-
-  const cfg = effectiveTileConfig();
-  if (!cfg) {
-    container.classList.remove('active');
-    return;
-  }
-
+async function loadRestaurantTileData(clientId, myRequestId) {
   const tonightStartIso = melbourneStartOfTodayUtcIso();
   const thirtyAgoIso = new Date(Date.now() - 30 * 86400000).toISOString();
 
@@ -1632,7 +1488,7 @@ async function renderVerticalTiles(clientId, myRequestId) {
       sb.from('sms_events').select('received_at').eq('client_id', clientId).gte('received_at', thirtyAgoIso)
     ]);
   } catch (e) {
-    console.warn('vertical tiles fetch failed', e);
+    console.warn('restaurant tiles fetch failed', e);
     return;
   }
   if (myRequestId !== statsRequestId) return;
@@ -1640,6 +1496,9 @@ async function renderVerticalTiles(clientId, myRequestId) {
   const tonightCount = tonightRes.count || 0;
   const last30Rows = last30Res.data || [];
   const last30Count = last30Rows.length;
+  const avgJob = (currentClient && currentClient.avg_job_value) || 0;
+  const tonightSaved = Math.round(tonightCount * avgJob * 0.62);
+  const monthProtected = Math.round(last30Count * avgJob * 0.62);
 
   const hourCounts = new Array(24).fill(0);
   for (const r of last30Rows) {
@@ -1655,10 +1514,10 @@ async function renderVerticalTiles(clientId, myRequestId) {
     .slice(0, 3)
     .map(x => formatHourMel(x.h));
 
-  lastTileData = { tonightCount, last30Count, topHours };
-  applyTileLabels(cfg);
-  applyTileValues(cfg, lastTileData);
-  container.classList.add('active');
+  document.getElementById('rTonightCovers').textContent = tonightCount;
+  document.getElementById('rTonightSaved').textContent = '$' + tonightSaved.toLocaleString();
+  document.getElementById('rPeakHours').textContent = topHours.length ? topHours.join(', ') : '—';
+  document.getElementById('rLast30Protected').textContent = '$' + monthProtected.toLocaleString();
 }
 
 function updateSmsCounter(count) {
