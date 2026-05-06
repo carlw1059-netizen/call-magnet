@@ -6,19 +6,20 @@
  *   Returns the client's vertical, business name, and booking URL so Studio
  *   can select the right SMS reply template via Liquid.
  *
+ *   Uses the anon-safe RPC pattern: calls the get_client_vertical() Supabase
+ *   function (SECURITY DEFINER, anon-executable) via PostgREST instead of
+ *   querying the clients table directly. This means only the public anon key
+ *   is needed — no service role key in Twilio.
+ *
  * Required environment variables
  * (set in Twilio Console → Functions → callmagnet-helpers → Environment Variables):
  *
- *   SUPABASE_URL          – project hostname only, no https:// prefix
- *                           e.g. iskvvnhacqdxybpmwuni.supabase.co
+ *   SUPABASE_URL      – project hostname only, no https:// prefix
+ *                       e.g. iskvvnhacqdxybpmwuni.supabase.co
  *
- *   SUPABASE_SERVICE_ROLE_KEY – Supabase SERVICE ROLE key (not the anon key).
- *                           The clients table has row-level security; unauthenticated
- *                           anon reads return an empty array. The service role key
- *                           bypasses RLS for this server-side lookup — the same
- *                           approach used by the twilio-missed-call edge function.
- *                           Find it: Supabase Dashboard → Settings → API →
- *                           "service_role" (the one labelled "secret").
+ *   SUPABASE_ANON_KEY – Supabase anon (public) key.
+ *                       Find it: Supabase Dashboard → Settings → API →
+ *                       Project API keys → "anon public" row → copy that key.
  *
  * Expected event parameters (sent by Studio "Run Function" widget):
  *   To – Twilio number that received the missed call, E.164 format (+61468083169)
@@ -51,32 +52,29 @@ exports.handler = async function (context, event, callback) {
   }
 
   const rawUrl = context.SUPABASE_URL;
-  const serviceKey = context.SUPABASE_SERVICE_ROLE_KEY;
+  const anonKey = context.SUPABASE_ANON_KEY;
 
-  if (!rawUrl || !serviceKey) {
-    console.error('[fetch-client-vertical] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY env vars');
+  if (!rawUrl || !anonKey) {
+    console.error('[fetch-client-vertical] Missing SUPABASE_URL or SUPABASE_ANON_KEY env vars');
     return callback(null, FALLBACK);
   }
 
   // Strip any accidental https:// prefix or trailing slash from the env var value
   const host = rawUrl.replace(/^https?:\/\//, '').replace(/\/+$/, '');
 
-  const url =
-    `https://${host}/rest/v1/clients` +
-    `?twilio_number=eq.${encodeURIComponent(to)}` +
-    `&select=vertical,business_name,booking_url`;
+  const url = `https://${host}/rest/v1/rpc/get_client_vertical`;
 
   let response;
   try {
-    response = await got(url, {
+    response = await got.post(url, {
       headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`,
-        Accept: 'application/json',
+        apikey: anonKey,
+        Authorization: `Bearer ${anonKey}`,
       },
+      json: { p_twilio_number: to },   // got serialises body + sets Content-Type: application/json
       responseType: 'json',
-      timeout: { request: 5000 },   // 5-second hard timeout; fail fast if Supabase is slow
-      throwHttpErrors: false,       // handle non-2xx manually so we can log the body
+      timeout: { request: 5000 },      // 5-second hard timeout; fail fast if Supabase is slow
+      throwHttpErrors: false,          // handle non-2xx manually so we can log the body
     });
   } catch (err) {
     // Network failure, DNS error, connection refused, or timeout
