@@ -215,6 +215,7 @@ body {
 .vt-btn:hover { background: var(--accent-dim); }
 .vt-btn.active { background: var(--accent); }
 .vt-btn.active:hover { background: var(--accent); }
+.vt-saving { opacity: 0.55; pointer-events: none; transition: opacity 0.15s; }
 .refresh-btn { background: var(--surface); border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 6px 16px; font-size: 12px; font-family: var(--mono); font-weight: 700; letter-spacing: 0.08em; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; white-space: nowrap; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .refresh-btn:hover { background: var(--accent); color: var(--accent-contrast); }
 .refresh-btn:active { background: var(--accent); color: var(--accent-contrast); transform: scale(0.95); }
@@ -1426,6 +1427,19 @@ function setDashboardMode(mode) {
   renderTilesForMode(mode);
   if (mode === 'restaurant' && currentClient) {
     loadRestaurantTileData(currentClient.id, statsRequestId);
+  }
+  if (isAdminToggleUser() && currentClient) {
+    const dbVertical = mode === 'restaurant' ? 'restaurant' : 'barber';
+    const toggle = document.getElementById('verticalToggle');
+    if (toggle) toggle.classList.add('vt-saving');
+    sb.from('clients')
+      .update({ vertical: dbVertical })
+      .eq('id', currentClient.id)
+      .then(({ error }) => {
+        if (error) console.error('[toggle] vertical update failed:', error.message);
+        else console.log('[toggle] clients.vertical →', dbVertical);
+        if (toggle) toggle.classList.remove('vt-saving');
+      });
   }
 }
 
