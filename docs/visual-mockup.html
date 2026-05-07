@@ -3,7 +3,7 @@
 <!--
   Aesthetic: Premium Hospitality + Apple Card tactility + Glassmorphism
   Purpose:   Design review only. No logic, no API calls, no production files touched.
-  Date:      2026-05-07
+  Date:      2026-05-08
 -->
 <html lang="en">
 <head>
@@ -11,67 +11,115 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CallMagnet — Visual Mockup</title>
   <style>
-    /* ─── Reset ───────────────────────────────────────────────────────────── */
+    /*
+     * All colors via CSS variables. Swapping --accent re-tints the entire
+     * dashboard automatically. Required for the 6-theme system to work.
+     */
+
+    /* ─── Reset ──────────────────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     button { font-family: inherit; cursor: pointer; border: none; background: none; }
 
-    /* ─── Design tokens ───────────────────────────────────────────────────── */
+    /* ─── Design tokens ──────────────────────────────────────────────────────── */
     :root {
-      --bg:               #0E1419;
-      --bg-mid:           #111820;
-      --tile-glass:       rgba(255,255,255,0.04);
-      --tile-border:      rgba(16,185,129,0.15);
-      --emerald:          #10B981;
-      --emerald-glow:     rgba(16,185,129,0.12);
-      --emerald-faint:    rgba(16,185,129,0.06);
-      --brass:            #C7A86B;
-      --brass-faint:      rgba(199,168,107,0.08);
-      --text-primary:     rgba(255,255,255,0.92);
-      --text-muted:       rgba(255,255,255,0.55);
-      --text-dim:         rgba(255,255,255,0.30);
-      --text-brass:       #C7A86B;
+      /* ── Core palette ── */
+      --bg-primary:      #0E1419;
+      --bg-mid:          #111820;
+      --accent:          #10B981;
+      --brass:           #C7A86B;
+      --text-primary:    rgba(255,255,255,0.92);
+      --text-muted:      rgba(255,255,255,0.55);
+      --text-dim:        rgba(255,255,255,0.30);
+      --text-brass:      #C7A86B;
 
-      /* Apple Card shadow recipe: 4 layers */
+      /* ── Accent alpha family — all keyed to --accent; swap accent = re-tint all ── */
+      --accent-04:       rgba(16,185,129,0.04);
+      --accent-06:       rgba(16,185,129,0.06);
+      --accent-07:       rgba(16,185,129,0.07);
+      --accent-08:       rgba(16,185,129,0.08);
+      --accent-10:       rgba(16,185,129,0.10);
+      --accent-glow:     rgba(16,185,129,0.12);
+      --accent-border:   rgba(16,185,129,0.15);
+      --accent-16:       rgba(16,185,129,0.16);
+      --accent-18:       rgba(16,185,129,0.18);
+      --accent-24:       rgba(16,185,129,0.24);
+      --accent-26:       rgba(16,185,129,0.26);
+      --accent-28:       rgba(16,185,129,0.28);
+      --accent-30:       rgba(16,185,129,0.30);
+      --accent-40:       rgba(16,185,129,0.40);
+      --accent-55:       rgba(16,185,129,0.55);
+      --accent-60:       rgba(16,185,129,0.60);
+
+      /* ── Brass alpha family ── */
+      --brass-05:        rgba(199,168,107,0.05);
+      --brass-08:        rgba(199,168,107,0.08);
+      --brass-10:        rgba(199,168,107,0.10);
+      --brass-15:        rgba(199,168,107,0.15);
+      --brass-20:        rgba(199,168,107,0.20);
+      --brass-22:        rgba(199,168,107,0.22);
+
+      /* ── White surface alpha family ── */
+      --surface-glass:   rgba(255,255,255,0.04);
+      --surface-025:     rgba(255,255,255,0.025);
+      --surface-03:      rgba(255,255,255,0.03);
+      --surface-05:      rgba(255,255,255,0.05);
+      --surface-06:      rgba(255,255,255,0.06);
+      --surface-07:      rgba(255,255,255,0.07);
+      --surface-08:      rgba(255,255,255,0.08);
+      --surface-09:      rgba(255,255,255,0.09);
+      --surface-10:      rgba(255,255,255,0.10);
+      --surface-12:      rgba(255,255,255,0.12);
+      --surface-13:      rgba(255,255,255,0.13);
+      --surface-15:      rgba(255,255,255,0.15);
+      --surface-18:      rgba(255,255,255,0.18);
+
+      /* ── Neutral shadow family ── */
+      --shadow-04:       rgba(0,0,0,0.04);
+      --shadow-25:       rgba(0,0,0,0.25);
+      --shadow-28:       rgba(0,0,0,0.28);
+      --shadow-30:       rgba(0,0,0,0.30);
+      --shadow-50:       rgba(0,0,0,0.50);
+
+      /* ── Apple Card shadow recipe: 4 layers (references variables above) ── */
       --shadow-tile:
-        0 1px 2px  rgba(0,0,0,0.50),
-        0 4px 12px rgba(0,0,0,0.30),
-        0 8px 32px rgba(16,185,129,0.12),
-        inset 0 1px 0 rgba(255,255,255,0.07);
+        0 1px 2px  var(--shadow-50),
+        0 4px 12px var(--shadow-30),
+        0 8px 32px var(--accent-glow),
+        inset 0 1px 0 var(--surface-07);
 
       --shadow-tile-hover:
-        0 2px 4px  rgba(0,0,0,0.50),
-        0 8px 20px rgba(0,0,0,0.28),
-        0 16px 48px rgba(16,185,129,0.24),
-        inset 0 1px 0 rgba(255,255,255,0.10);
+        0 2px 4px  var(--shadow-50),
+        0 8px 20px var(--shadow-28),
+        0 16px 48px var(--accent-24),
+        inset 0 1px 0 var(--surface-10);
 
       --font-serif: Georgia, 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
       --font-sans:  -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
     }
 
-    /* ─── Body + background ───────────────────────────────────────────────── */
+    /* ─── Body + background ──────────────────────────────────────────────────── */
     html, body {
       min-height: 100vh;
-      background: var(--bg);
+      background: var(--bg-primary);
       color: var(--text-primary);
       font-family: var(--font-sans);
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
 
-    /* Layered dark background: base + noise-like radial gradients */
     body {
       background:
-        radial-gradient(ellipse 60% 50% at 85% 10%, rgba(16,185,129,0.07) 0%, transparent 60%),
-        radial-gradient(ellipse 40% 40% at 10% 80%, rgba(199,168,107,0.05) 0%, transparent 60%),
-        radial-gradient(ellipse 80% 60% at 50% 100%, rgba(0,0,0,0.5) 0%, transparent 70%),
-        #0E1419;
+        radial-gradient(ellipse 60% 50% at 85% 10%, var(--accent-07) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 10% 80%, var(--brass-05) 0%, transparent 60%),
+        radial-gradient(ellipse 80% 60% at 50% 100%, var(--shadow-50) 0%, transparent 70%),
+        var(--bg-primary);
       background-attachment: fixed;
     }
 
-    /* ─── MOCKUP BANNER ──────────────────────────────────────────────────── */
+    /* ─── MOCKUP BANNER ──────────────────────────────────────────────────────── */
     .mockup-banner {
-      background: rgba(199,168,107,0.10);
-      border-bottom: 1px solid rgba(199,168,107,0.20);
+      background: var(--brass-10);
+      border-bottom: 1px solid var(--brass-20);
       text-align: center;
       padding: 9px 20px;
       font-size: 10.5px;
@@ -87,7 +135,7 @@
       -webkit-backdrop-filter: blur(12px);
     }
 
-    /* ─── Dashboard wrapper ───────────────────────────────────────────────── */
+    /* ─── Dashboard wrapper ──────────────────────────────────────────────────── */
     .dashboard {
       max-width: 460px;
       margin: 0 auto;
@@ -98,7 +146,7 @@
       .dashboard { padding: 44px 28px 80px; max-width: 500px; }
     }
 
-    /* ─── Header ──────────────────────────────────────────────────────────── */
+    /* ─── Header ─────────────────────────────────────────────────────────────── */
     .header {
       display: flex;
       align-items: flex-start;
@@ -115,13 +163,23 @@
       line-height: 1.15;
     }
 
-    .header-brand .tagline {
+    /* "Pull every customer back" — brand tagline directly under business name */
+    .header-brand .brand-tagline {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      margin-top: 5px;
+      font-weight: 400;
+    }
+
+    .header-brand .context-tag {
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 11.5px;
-      color: var(--text-muted);
-      margin-top: 4px;
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 6px;
       letter-spacing: 0.03em;
     }
 
@@ -129,7 +187,7 @@
       width: 4px;
       height: 4px;
       border-radius: 50%;
-      background: var(--emerald);
+      background: var(--accent);
       opacity: 0.7;
       flex-shrink: 0;
     }
@@ -143,8 +201,8 @@
     }
 
     .btn-ghost {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.09);
+      background: var(--surface-05);
+      border: 1px solid var(--surface-09);
       color: var(--text-muted);
       font-size: 11.5px;
       padding: 6px 11px;
@@ -155,18 +213,18 @@
     }
 
     .btn-ghost:hover {
-      background: rgba(255,255,255,0.09);
+      background: var(--surface-09);
       color: var(--text-primary);
-      border-color: rgba(255,255,255,0.15);
+      border-color: var(--surface-15);
     }
 
-    /* ─── Renewal badge ───────────────────────────────────────────────────── */
+    /* ─── Renewal badge ──────────────────────────────────────────────────────── */
     .renewal-badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: var(--brass-faint);
-      border: 1px solid rgba(199,168,107,0.22);
+      background: var(--brass-08);
+      border: 1px solid var(--brass-22);
       color: var(--text-brass);
       font-size: 11px;
       letter-spacing: 0.07em;
@@ -184,7 +242,7 @@
       opacity: 0.65;
     }
 
-    /* ─── Vertical toggle ─────────────────────────────────────────────────── */
+    /* ─── Vertical toggle ────────────────────────────────────────────────────── */
     .vertical-toggle {
       display: flex;
       gap: 8px;
@@ -205,25 +263,25 @@
     }
 
     .toggle-btn.active {
-      background: rgba(16,185,129,0.10);
-      border-color: rgba(16,185,129,0.28);
-      color: var(--emerald);
-      box-shadow: 0 0 16px rgba(16,185,129,0.10);
+      background: var(--accent-10);
+      border-color: var(--accent-28);
+      color: var(--accent);
+      box-shadow: 0 0 16px var(--accent-10);
     }
 
     .toggle-btn.inactive {
-      background: rgba(255,255,255,0.04);
-      border-color: rgba(255,255,255,0.07);
+      background: var(--surface-glass);
+      border-color: var(--surface-07);
       color: var(--text-muted);
     }
 
     .toggle-btn.inactive:hover {
-      background: rgba(255,255,255,0.07);
-      border-color: rgba(255,255,255,0.12);
+      background: var(--surface-07);
+      border-color: var(--surface-12);
       color: var(--text-primary);
     }
 
-    /* ─── SECTION LABEL ───────────────────────────────────────────────────── */
+    /* ─── Section label ──────────────────────────────────────────────────────── */
     .section-label {
       font-size: 10px;
       letter-spacing: 0.14em;
@@ -233,7 +291,7 @@
       padding-left: 2px;
     }
 
-    /* ─── 2×2 TILE GRID ───────────────────────────────────────────────────── */
+    /* ─── 2×2 tile grid ──────────────────────────────────────────────────────── */
     .tile-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -241,7 +299,7 @@
       margin-bottom: 13px;
     }
 
-    /* ─── GLASS TILE ──────────────────────────────────────────────────────── */
+    /* ─── Glass tile ─────────────────────────────────────────────────────────── */
     /*
      * Three aesthetic layers stacked:
      * 1. Glassmorphism: backdrop-filter blur + translucent bg
@@ -250,10 +308,10 @@
      */
     .tile {
       position: relative;
-      background: var(--tile-glass);
+      background: var(--surface-glass);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--tile-border);
+      border: 1px solid var(--accent-border);
       border-radius: 20px;
       padding: 20px 18px 18px;
       transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
@@ -271,14 +329,14 @@
       height: 1px;
       background: linear-gradient(90deg,
         transparent,
-        rgba(255,255,255,0.13) 30%,
-        rgba(255,255,255,0.18) 50%,
-        rgba(255,255,255,0.13) 70%,
+        var(--surface-13) 30%,
+        var(--surface-18) 50%,
+        var(--surface-13) 70%,
         transparent
       );
     }
 
-    /* Emerald glow hairline at top of each tile */
+    /* Accent glow hairline at top of each tile */
     .tile::after {
       content: '';
       position: absolute;
@@ -288,8 +346,8 @@
       height: 2px;
       background: linear-gradient(90deg,
         transparent,
-        rgba(16,185,129,0.55) 40%,
-        rgba(16,185,129,0.55) 60%,
+        var(--accent-55) 40%,
+        var(--accent-55) 60%,
         transparent
       );
       border-radius: 0 0 3px 3px;
@@ -299,7 +357,7 @@
 
     .tile:hover {
       transform: translateY(-3px);
-      border-color: rgba(16,185,129,0.30);
+      border-color: var(--accent-30);
       box-shadow: var(--shadow-tile-hover);
     }
 
@@ -314,17 +372,16 @@
       border-radius: 20px;
       background: linear-gradient(
         145deg,
-        rgba(255,255,255,0.025) 0%,
+        var(--surface-025) 0%,
         transparent 50%,
-        rgba(0,0,0,0.04) 100%
+        var(--shadow-04) 100%
       );
       pointer-events: none;
     }
 
-    /* Content is relative to appear above the surface layers */
     .tile-content { position: relative; z-index: 1; }
 
-    /* Tile label — the serif brass treatment */
+    /* Tile label — serif brass treatment */
     .tile-label {
       font-family: var(--font-serif);
       font-size: 11.5px;
@@ -336,7 +393,6 @@
       font-style: italic;
     }
 
-    /* The big number — clean, modern, high-contrast */
     .tile-number {
       font-size: 44px;
       font-weight: 720;
@@ -345,13 +401,11 @@
       line-height: 1;
       margin-bottom: 7px;
       font-variant-numeric: tabular-nums;
-      /* Subtle text shadow to lift number off dark bg */
-      text-shadow: 0 0 40px rgba(255,255,255,0.08);
+      text-shadow: 0 0 40px var(--surface-08);
     }
 
     .tile-number.compact { font-size: 36px; }
 
-    /* Unit label */
     .tile-unit {
       font-size: 10px;
       color: var(--text-muted);
@@ -360,7 +414,6 @@
       font-weight: 500;
     }
 
-    /* Subtitle (resets note) */
     .tile-sub {
       font-size: 9.5px;
       color: var(--text-dim);
@@ -369,26 +422,25 @@
       letter-spacing: 0.01em;
     }
 
-    /* Emerald accent dot on highlighted tiles */
     .tile-dot {
       display: inline-block;
       width: 5px;
       height: 5px;
       border-radius: 50%;
-      background: var(--emerald);
+      background: var(--accent);
       margin-left: 5px;
       vertical-align: 10px;
       opacity: 0.85;
-      box-shadow: 0 0 6px rgba(16,185,129,0.6);
+      box-shadow: 0 0 6px var(--accent-60);
     }
 
-    /* ─── CALLS COUNTER ROW ───────────────────────────────────────────────── */
+    /* ─── Calls counter row ──────────────────────────────────────────────────── */
     .calls-row {
       position: relative;
-      background: rgba(255,255,255,0.03);
+      background: var(--surface-03);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255,255,255,0.07);
+      border: 1px solid var(--surface-07);
       border-radius: 16px;
       padding: 15px 18px;
       display: flex;
@@ -396,8 +448,8 @@
       justify-content: space-between;
       margin-bottom: 13px;
       box-shadow:
-        0 2px 8px rgba(0,0,0,0.25),
-        inset 0 1px 0 rgba(255,255,255,0.04);
+        0 2px 8px var(--shadow-25),
+        inset 0 1px 0 var(--surface-glass);
       overflow: hidden;
     }
 
@@ -410,7 +462,7 @@
       height: 1px;
       background: linear-gradient(90deg,
         transparent,
-        rgba(255,255,255,0.07),
+        var(--surface-07),
         transparent
       );
     }
@@ -425,9 +477,7 @@
       font-weight: normal;
     }
 
-    .calls-right {
-      text-align: right;
-    }
+    .calls-right { text-align: right; }
 
     .calls-count {
       font-size: 28px;
@@ -445,12 +495,12 @@
       letter-spacing: 0.04em;
     }
 
-    /* ─── LOG BOOKING BUTTON ──────────────────────────────────────────────── */
+    /* ─── Log a booking CTA ──────────────────────────────────────────────────── */
     .btn-primary {
       width: 100%;
-      background: rgba(16,185,129,0.10);
-      border: 1px solid rgba(16,185,129,0.26);
-      color: var(--emerald);
+      background: var(--accent-10);
+      border: 1px solid var(--accent-26);
+      color: var(--accent);
       font-size: 14px;
       font-weight: 600;
       padding: 15px;
@@ -458,8 +508,8 @@
       letter-spacing: 0.02em;
       transition: all 0.22s ease;
       box-shadow:
-        0 2px 12px rgba(16,185,129,0.08),
-        inset 0 1px 0 rgba(16,185,129,0.08);
+        0 2px 12px var(--accent-08),
+        inset 0 1px 0 var(--accent-08);
       position: relative;
       overflow: hidden;
     }
@@ -469,33 +519,33 @@
       position: absolute;
       inset: 0;
       background: linear-gradient(135deg,
-        rgba(16,185,129,0.04) 0%,
+        var(--accent-04) 0%,
         transparent 60%
       );
     }
 
     .btn-primary:hover {
-      background: rgba(16,185,129,0.16);
-      border-color: rgba(16,185,129,0.40);
+      background: var(--accent-16);
+      border-color: var(--accent-40);
       box-shadow:
-        0 4px 24px rgba(16,185,129,0.18),
-        inset 0 1px 0 rgba(16,185,129,0.12);
+        0 4px 24px var(--accent-18),
+        inset 0 1px 0 var(--accent-glow);
       transform: translateY(-1px);
     }
 
-    /* ─── DIVIDER ─────────────────────────────────────────────────────────── */
+    /* ─── Divider ─────────────────────────────────────────────────────────────── */
     .divider {
       height: 1px;
       background: linear-gradient(90deg,
         transparent,
-        rgba(255,255,255,0.06) 30%,
-        rgba(255,255,255,0.06) 70%,
+        var(--surface-06) 30%,
+        var(--surface-06) 70%,
         transparent
       );
       margin: 22px 0;
     }
 
-    /* ─── FOOTER ──────────────────────────────────────────────────────────── */
+    /* ─── Footer ──────────────────────────────────────────────────────────────── */
     .footer-note {
       text-align: center;
       font-size: 9.5px;
@@ -505,12 +555,12 @@
       opacity: 0.7;
     }
 
-    /* ─── SPEC ANNOTATIONS (only in mockup) ──────────────────────────────── */
+    /* ─── Spec annotations (mockup-only) ─────────────────────────────────────── */
     .spec-note {
       margin-top: 36px;
       padding: 18px 20px;
-      background: rgba(199,168,107,0.05);
-      border: 1px solid rgba(199,168,107,0.15);
+      background: var(--brass-05);
+      border: 1px solid var(--brass-15);
       border-radius: 14px;
     }
 
@@ -539,7 +589,7 @@
       border-radius: 4px;
       flex-shrink: 0;
       margin-top: 1px;
-      border: 1px solid rgba(255,255,255,0.1);
+      border: 1px solid var(--surface-10);
     }
 
     .spec-label {
@@ -550,11 +600,11 @@
     .spec-value {
       font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', monospace;
       font-size: 10.5px;
-      color: var(--emerald);
+      color: var(--accent);
       opacity: 0.85;
     }
 
-    /* ─── Responsive refinements ──────────────────────────────────────────── */
+    /* ─── Responsive ──────────────────────────────────────────────────────────── */
     @media (max-width: 375px) {
       .tile-number { font-size: 38px; }
       .tile-number.compact { font-size: 32px; }
@@ -584,7 +634,8 @@
     <div class="header">
       <div class="header-brand">
         <div class="business-name">Test Business</div>
-        <div class="tagline">
+        <div class="brand-tagline">Pull every customer back</div>
+        <div class="context-tag">
           <span class="tagline-dot"></span>
           Restaurant &nbsp;·&nbsp; CallMagnet
         </div>
@@ -595,22 +646,22 @@
       </div>
     </div>
 
-    <!-- ── Renewal badge ────────────────────────────────────────────────────── -->
+    <!-- ── Renewal badge ──────────────────────────────────────────────────── -->
     <div class="renewal-badge">
       <span class="renewal-badge-dot"></span>
       Renewal in 8 days
     </div>
 
-    <!-- ── Vertical toggle ─────────────────────────────────────────────────── -->
+    <!-- ── Vertical toggle ────────────────────────────────────────────────── -->
     <div class="vertical-toggle">
       <button class="toggle-btn active">🍽️ &thinsp;Restaurant</button>
       <button class="toggle-btn inactive">👩 &thinsp;Hairdresser</button>
     </div>
 
-    <!-- ── Section label ───────────────────────────────────────────────────── -->
+    <!-- ── Section label ──────────────────────────────────────────────────── -->
     <div class="section-label">Tonight's performance</div>
 
-    <!-- ── 2 × 2 Tile grid ─────────────────────────────────────────────────── -->
+    <!-- ── 2 × 2 Tile grid ────────────────────────────────────────────────── -->
     <div class="tile-grid">
 
       <!-- Tile 1: Covers recovered -->
@@ -656,7 +707,7 @@
 
     </div>
 
-    <!-- ── Calls counter row ───────────────────────────────────────────────── -->
+    <!-- ── Calls counter row ──────────────────────────────────────────────── -->
     <div class="calls-row">
       <div class="calls-left">
         <div class="calls-label">Calls captured<br>this month</div>
@@ -667,72 +718,72 @@
       </div>
     </div>
 
-    <!-- ── Log booking button ──────────────────────────────────────────────── -->
+    <!-- ── Log a booking CTA (restaurant vertical — manual phone/walk-in capture) -->
     <button class="btn-primary">+ Log a booking</button>
 
     <div class="divider"></div>
 
-    <div class="footer-note">CallMagnet &nbsp;·&nbsp; Visual Mockup &nbsp;·&nbsp; 2026-05-07</div>
+    <div class="footer-note">CallMagnet &nbsp;·&nbsp; Visual Mockup &nbsp;·&nbsp; 2026-05-08</div>
 
-    <!-- ── Spec annotation block (mockup-only) ─────────────────────────────── -->
+    <!-- ── Spec annotation block (mockup-only) ──────────────────────────────── -->
     <div class="spec-note">
       <div class="spec-note-title">Design token reference</div>
 
       <div class="spec-row">
-        <div class="spec-swatch" style="background:#0E1419;"></div>
+        <div class="spec-swatch" style="background:var(--bg-primary);"></div>
         <div>
-          <span class="spec-label">Background</span><br>
+          <span class="spec-label">Background — --bg-primary</span><br>
           <span class="spec-value">#0E1419</span> — deep charcoal-navy, no pure black harshness
         </div>
       </div>
 
       <div class="spec-row">
-        <div class="spec-swatch" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.15);"></div>
+        <div class="spec-swatch" style="background:var(--surface-glass);border:1px solid var(--surface-15);"></div>
         <div>
-          <span class="spec-label">Tile glass surface</span><br>
+          <span class="spec-label">Tile glass surface — --surface-glass</span><br>
           <span class="spec-value">rgba(255,255,255,0.04)</span> + backdrop-filter: blur(20px)
         </div>
       </div>
 
       <div class="spec-row">
-        <div class="spec-swatch" style="background:#10B981;"></div>
+        <div class="spec-swatch" style="background:var(--accent);"></div>
         <div>
-          <span class="spec-label">Primary accent — Emerald</span><br>
+          <span class="spec-label">Primary accent — --accent (Emerald theme default)</span><br>
           <span class="spec-value">#10B981</span> — tile borders, glows, active states, CTA
         </div>
       </div>
 
       <div class="spec-row">
-        <div class="spec-swatch" style="background:#C7A86B;"></div>
+        <div class="spec-swatch" style="background:var(--brass);"></div>
         <div>
-          <span class="spec-label">Serif accent — Brass</span><br>
+          <span class="spec-label">Serif accent — --brass</span><br>
           <span class="spec-value">#C7A86B</span> — tile labels, renewal badge, hospitality warmth
         </div>
       </div>
 
       <div class="spec-row">
-        <div class="spec-swatch" style="background:rgba(255,255,255,0.92);"></div>
+        <div class="spec-swatch" style="background:var(--text-primary);"></div>
         <div>
-          <span class="spec-label">Text primary</span><br>
+          <span class="spec-label">Text primary — --text-primary</span><br>
           <span class="spec-value">rgba(255,255,255,0.92)</span> — not pure white, avoids harsh glare
         </div>
       </div>
 
       <div class="spec-row">
-        <div class="spec-swatch" style="background:rgba(255,255,255,0.55);"></div>
+        <div class="spec-swatch" style="background:var(--text-muted);"></div>
         <div>
-          <span class="spec-label">Text muted</span><br>
+          <span class="spec-label">Text muted — --text-muted</span><br>
           <span class="spec-value">rgba(255,255,255,0.55)</span> — labels, ghost buttons, subtitles
         </div>
       </div>
 
-      <div class="spec-row" style="margin-top:14px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.05); margin-bottom:0;">
+      <div class="spec-row" style="margin-top:14px; padding-top:12px; border-top:1px solid var(--surface-05); margin-bottom:0;">
         <div style="font-size:11px; color:var(--text-muted); line-height:1.6;">
           <strong style="color:var(--text-primary); font-size:11.5px;">Tile shadow recipe</strong> (Apple Card layering):<br>
-          <span class="spec-value">0 1px 2px rgba(0,0,0,.50)</span> — contact shadow<br>
-          <span class="spec-value">0 4px 12px rgba(0,0,0,.30)</span> — body shadow<br>
-          <span class="spec-value">0 8px 32px rgba(16,185,129,.12)</span> — emerald glow halo<br>
-          <span class="spec-value">inset 0 1px 0 rgba(255,255,255,.07)</span> — glass top highlight
+          <span class="spec-value">0 1px 2px var(--shadow-50)</span> — contact shadow<br>
+          <span class="spec-value">0 4px 12px var(--shadow-30)</span> — body shadow<br>
+          <span class="spec-value">0 8px 32px var(--accent-glow)</span> — accent glow halo<br>
+          <span class="spec-value">inset 0 1px 0 var(--surface-07)</span> — glass top highlight
         </div>
       </div>
     </div>
