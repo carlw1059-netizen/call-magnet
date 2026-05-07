@@ -654,8 +654,8 @@
 
     <!-- ── Vertical toggle ────────────────────────────────────────────────── -->
     <div class="vertical-toggle">
-      <button class="toggle-btn active">🍽️ &thinsp;Restaurant</button>
-      <button class="toggle-btn inactive">👩 &thinsp;Hairdresser</button>
+      <button class="toggle-btn active" id="toggle-restaurant" onclick="switchVertical('restaurant')">🍽️ &thinsp;Restaurant</button>
+      <button class="toggle-btn inactive" id="toggle-hairdresser" onclick="switchVertical('hairdresser')">👩 &thinsp;Hairdresser</button>
     </div>
 
     <!-- ── Section label ──────────────────────────────────────────────────── -->
@@ -718,8 +718,8 @@
       </div>
     </div>
 
-    <!-- ── Log a booking CTA (restaurant vertical — manual phone/walk-in capture) -->
-    <button class="btn-primary">+ Log a booking</button>
+    <!-- ── Log a booking CTA (hairdresser/barber vertical only — hidden on restaurant) -->
+    <button class="btn-primary" id="log-booking-btn" style="display:none">+ Log a booking</button>
 
     <div class="divider"></div>
 
@@ -790,5 +790,12 @@
 
   </div><!-- /dashboard -->
 
+  <script>
+    function switchVertical(v) {
+      document.getElementById('toggle-restaurant').className = 'toggle-btn ' + (v === 'restaurant' ? 'active' : 'inactive');
+      document.getElementById('toggle-hairdresser').className = 'toggle-btn ' + (v === 'hairdresser' ? 'active' : 'inactive');
+      document.getElementById('log-booking-btn').style.display = v === 'hairdresser' ? '' : 'none';
+    }
+  </script>
 </body>
 </html>
