@@ -32,6 +32,13 @@ const RESEND_API_KEY            = Deno.env.get('RESEND_API_KEY');
 const ALERT_TO                  = 'car312@hotmail.com';
 
 Deno.serve(async (req) => {
+  if (new URL(req.url).searchParams.get('warmup') === '1') {
+    return new Response(JSON.stringify({ warmup: 'ok' }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   if (req.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405 });
   }

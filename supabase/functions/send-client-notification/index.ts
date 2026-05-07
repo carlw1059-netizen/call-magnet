@@ -28,6 +28,13 @@
 // Email rebrand (Session 4 D2): brand colours pulled from _shared/emailStyles.ts
 // and the email body wrapped with renderEmailShell so it matches the login
 // palette. Single source of truth for future palette changes.
+//
+// Restaurant stats email (Session 5 Job 3): missed_call events for the
+// 'restaurant' vertical now include today's and this week's missed-call
+// counts plus estimated revenue recovered, fetched live from sms_events at
+// send time. Week window resets on Monday at 17:00 Melbourne local time.
+// Revenue formula: count × avg_job_value (or $75 fallback) × 0.62
+// (Lead Connect 2025 research rate). Other verticals keep existing format.
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import webPush from 'npm:web-push@3.6.7';
@@ -53,6 +60,7 @@ interface ClientRow {
   business_name: string;
   email:         string;
   vertical:      string;
+  avg_job_value: number | null;
 }
 
 type EventName = 'missed_call' | 'booking_logged';
@@ -83,7 +91,100 @@ function templateFor(
   return   { title: '✅ Booking logged',     body: `${customerName} — added to your bookings` };
 }
 
+// ── Melbourne timezone helpers ───────────────────────────────────────────────
+
+// Returns UTC ISO string for midnight of the current Melbourne calendar day.
+// Subtracts elapsed Melbourne milliseconds-into-day from now — DST-safe.
+function getMelbourneDayStartUTC(now = new Date()): string {
+  const parts = new Intl.DateTimeFormat('en-AU', {
+    timeZone: 'Australia/Melbourne',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+  }).formatToParts(now).reduce((a, p) => { a[p.type] = p.value; return a; }, {} as Record<string, string>);
+  const melbMsIntoDay = (Number(parts.hour) * 3600 + Number(parts.minute) * 60 + Number(parts.second)) * 1000;
+  return new Date(now.getTime() - melbMsIntoDay).toISOString();
+}
+
+// Returns UTC ISO string for the most recent Monday at 17:00 Melbourne time.
+// If it is currently before 17:00 on Monday (week hasn't opened yet), returns
+// the previous Monday's 17:00 instead.
+function getMelbourneWeekStartUTC(now = new Date()): string {
+  const parts = new Intl.DateTimeFormat('en-AU', {
+    timeZone: 'Australia/Melbourne',
+    weekday: 'short',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+  }).formatToParts(now).reduce((a, p) => { a[p.type] = p.value; return a; }, {} as Record<string, string>);
+  const dows: Record<string, number> = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 0 };
+  const dow              = dows[parts.weekday] ?? 0;
+  const daysSinceMonday  = dow === 0 ? 6 : dow - 1;
+  const melbMsIntoDay    = (Number(parts.hour) * 3600 + Number(parts.minute) * 60 + Number(parts.second)) * 1000;
+  const melbMidnightUTC  = now.getTime() - melbMsIntoDay;
+  const mondayMidnightUTC = melbMidnightUTC - daysSinceMonday * 86400000;
+  const monday5pmUTC      = mondayMidnightUTC + 17 * 3600000;
+  return new Date(now.getTime() < monday5pmUTC ? monday5pmUTC - 7 * 86400000 : monday5pmUTC).toISOString();
+}
+
+// Count sms_events rows for a client since a UTC ISO timestamp.
+// Uses Prefer: count=exact so Content-Range returns the total — no rows transferred.
+async function countSmsForWindow(clientId: string, since: string): Promise<number> {
+  const r = await fetch(
+    `${SUPABASE_URL}/rest/v1/sms_events?client_id=eq.${encodeURIComponent(clientId)}&received_at=gte.${encodeURIComponent(since)}&select=id`,
+    {
+      headers: {
+        apikey:        SUPABASE_SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        Prefer:        'count=exact',
+      },
+    },
+  );
+  if (!r.ok) return 0;
+  const range = r.headers.get('Content-Range') ?? '*/0';
+  return parseInt(range.split('/')[1] ?? '0', 10) || 0;
+}
+
+// Build the restaurant-specific missed-call email body.
+// title is already HTML-escaped by the caller.
+function buildRestaurantMissedCallEmail(
+  title: string,
+  todayCount: number, todayRevenue: number,
+  weekCount: number,  weekRevenue: number,
+): string {
+  const fmt = (n: number) => n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : `$${n}`;
+  return `
+    <h1 style="font-size:22px;font-weight:700;color:${BRAND.primaryText};margin:0 0 8px;letter-spacing:-0.02em;">${title}</h1>
+    <p style="font-size:14px;color:${BRAND.secondaryText};line-height:1.5;margin:0 0 28px;">Reservation SMS sent automatically.</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px;">
+      <tr>
+        <td style="width:50%;padding:0 6px 0 0;vertical-align:top;">
+          <div style="background:${BRAND.pageBackground};border-radius:10px;padding:18px 14px;text-align:center;">
+            <div style="font-size:32px;font-weight:700;color:${BRAND.accent};line-height:1;">${todayCount}</div>
+            <div style="font-size:11px;color:${BRAND.secondaryText};margin-top:4px;text-transform:uppercase;letter-spacing:0.05em;">Today</div>
+            <div style="font-size:15px;font-weight:600;color:${BRAND.primaryText};margin-top:8px;">${fmt(todayRevenue)} est. recovered</div>
+          </div>
+        </td>
+        <td style="width:50%;padding:0 0 0 6px;vertical-align:top;">
+          <div style="background:${BRAND.pageBackground};border-radius:10px;padding:18px 14px;text-align:center;">
+            <div style="font-size:32px;font-weight:700;color:${BRAND.accent};line-height:1;">${weekCount}</div>
+            <div style="font-size:11px;color:${BRAND.secondaryText};margin-top:4px;text-transform:uppercase;letter-spacing:0.05em;">This week</div>
+            <div style="font-size:15px;font-weight:600;color:${BRAND.primaryText};margin-top:8px;">${fmt(weekRevenue)} est. recovered</div>
+          </div>
+        </td>
+      </tr>
+    </table>
+    <div style="text-align:center;margin:0 0 28px;">
+      <a href="https://callmagnet.com.au/?source=email" style="display:inline-block;background:${BRAND.accent};color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 28px;border-radius:8px;letter-spacing:0.01em;">View Dashboard</a>
+    </div>
+    <p style="font-size:11px;color:${BRAND.mutedText};margin:0;line-height:1.5;">*Based on Lead Connect 2025 research: 62% of unanswered callers contact a competitor when their first call goes unanswered.</p>
+  `;
+}
+
 Deno.serve(async (req) => {
+  if (new URL(req.url).searchParams.get('warmup') === '1') {
+    return new Response(JSON.stringify({ warmup: 'ok' }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   if (req.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405 });
   }
@@ -126,9 +227,9 @@ Deno.serve(async (req) => {
       return json(400, { error: 'invalid_event', detail: "event must be 'missed_call' or 'booking_logged'" });
     }
 
-    // ── lookup client (vertical, business_name, email) ──────────────────────
+    // ── lookup client (vertical, business_name, email, avg_job_value) ───────
     const clientRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/clients?id=eq.${encodeURIComponent(clientId)}&select=id,business_name,email,vertical`,
+      `${SUPABASE_URL}/rest/v1/clients?id=eq.${encodeURIComponent(clientId)}&select=id,business_name,email,vertical,avg_job_value`,
       {
         headers: {
           apikey:        SUPABASE_SERVICE_ROLE_KEY,
@@ -239,11 +340,30 @@ Deno.serve(async (req) => {
     let emailSent = false;
     if (RESEND_API_KEY && client.email) {
       try {
-        const emailContent = `
+        let emailContent: string;
+
+        if (event === 'missed_call' && client.vertical === 'restaurant') {
+          // ── restaurant missed-call: fetch today/week stats, build rich email ──
+          const [todayCount, weekCount] = await Promise.all([
+            countSmsForWindow(clientId, getMelbourneDayStartUTC()),
+            countSmsForWindow(clientId, getMelbourneWeekStartUTC()),
+          ]);
+          const revPerItem   = client.avg_job_value ?? 75;
+          const todayRevenue = Math.round(todayCount * 0.62 * revPerItem);
+          const weekRevenue  = Math.round(weekCount  * 0.62 * revPerItem);
+          emailContent = buildRestaurantMissedCallEmail(
+            escapeHtml(title),
+            todayCount, todayRevenue,
+            weekCount,  weekRevenue,
+          );
+        } else {
+          emailContent = `
           <h1 style="font-size:22px;font-weight:700;color:${BRAND.primaryText};margin:0 0 12px;letter-spacing:-0.02em;">${escapeHtml(title)}</h1>
           <p style="font-size:15px;color:${BRAND.secondaryText};line-height:1.5;margin:0 0 24px;">${escapeHtml(msg)}</p>
           <p style="font-size:13px;color:${BRAND.secondaryText};margin:0;">Open your dashboard at <a href="https://callmagnet.com.au" style="color:${BRAND.accent};text-decoration:none;">callmagnet.com.au</a></p>
         `;
+        }
+
         const resendRes = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
