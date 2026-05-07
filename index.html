@@ -354,6 +354,342 @@ body {
 }
 .dashboard-skeleton { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
 </style>
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   DARK AESTHETIC LAYER — v2 (2026-05-08)
+   All colors via CSS variables. Swapping --accent re-tints entire dashboard.
+   Required for the 6-theme system to work. NO hardcoded hex inside elements.
+   Applied via cascade — .dash scope wins over :root for dashboard elements.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  --bg-primary:    #0E1419;
+  --brass:         #C7A86B;
+  --font-serif:    Georgia, 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+  /* Accent alpha family — recomputed by applyTheme() on each theme switch */
+  --accent-04:     rgba(16,185,129,0.04);
+  --accent-06:     rgba(16,185,129,0.06);
+  --accent-07:     rgba(16,185,129,0.07);
+  --accent-08:     rgba(16,185,129,0.08);
+  --accent-10:     rgba(16,185,129,0.10);
+  --accent-glow:   rgba(16,185,129,0.12);
+  --accent-border: rgba(16,185,129,0.15);
+  --accent-16:     rgba(16,185,129,0.16);
+  --accent-18:     rgba(16,185,129,0.18);
+  --accent-24:     rgba(16,185,129,0.24);
+  --accent-26:     rgba(16,185,129,0.26);
+  --accent-28:     rgba(16,185,129,0.28);
+  --accent-30:     rgba(16,185,129,0.30);
+  --accent-40:     rgba(16,185,129,0.40);
+  --accent-55:     rgba(16,185,129,0.55);
+  --accent-60:     rgba(16,185,129,0.60);
+  --brass-05:      rgba(199,168,107,0.05);
+  --brass-08:      rgba(199,168,107,0.08);
+  --brass-10:      rgba(199,168,107,0.10);
+  --brass-15:      rgba(199,168,107,0.15);
+  --brass-20:      rgba(199,168,107,0.20);
+  --brass-22:      rgba(199,168,107,0.22);
+  --surface-glass: rgba(255,255,255,0.04);
+  --surface-025:   rgba(255,255,255,0.025);
+  --surface-03:    rgba(255,255,255,0.03);
+  --surface-05:    rgba(255,255,255,0.05);
+  --surface-06:    rgba(255,255,255,0.06);
+  --surface-07:    rgba(255,255,255,0.07);
+  --surface-08:    rgba(255,255,255,0.08);
+  --surface-09:    rgba(255,255,255,0.09);
+  --surface-10:    rgba(255,255,255,0.10);
+  --surface-12:    rgba(255,255,255,0.12);
+  --surface-13:    rgba(255,255,255,0.13);
+  --surface-15:    rgba(255,255,255,0.15);
+  --surface-18:    rgba(255,255,255,0.18);
+  --shadow-04:     rgba(0,0,0,0.04);
+  --shadow-25:     rgba(0,0,0,0.25);
+  --shadow-28:     rgba(0,0,0,0.28);
+  --shadow-30:     rgba(0,0,0,0.30);
+  --shadow-50:     rgba(0,0,0,0.50);
+  --shadow-tile:
+    0 1px 2px  var(--shadow-50),
+    0 4px 12px var(--shadow-30),
+    0 8px 32px var(--accent-glow),
+    inset 0 1px 0 var(--surface-07);
+  --shadow-tile-hover:
+    0 2px 4px  var(--shadow-50),
+    0 8px 20px var(--shadow-28),
+    0 16px 48px var(--accent-24),
+    inset 0 1px 0 var(--surface-10);
+}
+
+/* ── Dashboard scope: dark base vars override inherited theme surface colors ── */
+.dash {
+  --surface:          rgba(255,255,255,0.04);
+  --surface-elevated: rgba(255,255,255,0.07);
+  --border:           rgba(255,255,255,0.10);
+  --text:             rgba(255,255,255,0.92);
+  --text-primary:     rgba(255,255,255,0.92);
+  --muted:            rgba(255,255,255,0.55);
+  --dim:              rgba(255,255,255,0.30);
+  background:
+    radial-gradient(ellipse 60% 50% at 85% 10%, var(--accent-07) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 10% 80%, var(--brass-05) 0%, transparent 60%),
+    var(--bg-primary) !important;
+  min-height: 100vh;
+}
+
+/* ── Topbar ── */
+.dash .topbar {
+  background: rgba(14,20,25,0.85) !important;
+  border-bottom: 1px solid var(--surface-07);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.dash .topbar::after { display: none; }
+.dash .topbar-logo { color: var(--brass) !important; letter-spacing: 0.06em; }
+.dash .settings-btn {
+  background: var(--surface-05) !important;
+  border: 1px solid var(--accent-border) !important;
+  color: var(--accent) !important;
+  border-radius: 7px !important;
+}
+.dash .settings-btn.active { background: var(--accent-16) !important; }
+.dash .settings-btn:hover  { background: var(--accent-10) !important; color: var(--accent) !important; }
+.dash .logout-btn {
+  background: var(--surface-05) !important;
+  border: 1px solid var(--accent-border) !important;
+  color: var(--accent) !important;
+  border-radius: 7px !important;
+}
+.dash .logout-btn:hover { background: var(--accent-16) !important; color: var(--accent) !important; }
+
+/* ── Biz header ── */
+.dash .biz-name-large { color: rgba(255,255,255,0.92) !important; font-size: 26px !important; }
+.dash .biz-tagline {
+  color: rgba(255,255,255,0.45) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  font-weight: 400 !important;
+  margin-top: 5px !important;
+}
+.dash .refresh-btn {
+  background: var(--surface-05) !important;
+  border: 1px solid var(--accent-border) !important;
+  color: var(--accent) !important;
+  border-radius: 7px !important;
+}
+.dash .refresh-btn:hover { background: var(--accent-10) !important; }
+
+/* ── Admin vertical toggle ── */
+.dash .vertical-toggle { background: var(--surface-glass) !important; border-color: var(--accent-border) !important; border-radius: 7px !important; }
+.dash .vt-btn { color: var(--accent) !important; border-right-color: var(--accent-border) !important; }
+.dash .vt-btn.active { background: var(--accent-10) !important; }
+
+/* ── Birthday / demo banners ── */
+.dash .birthday-banner { background: var(--brass-08) !important; border-color: var(--brass-20) !important; color: var(--brass) !important; }
+.dash .demo-banner { color: rgba(255,255,255,0.28) !important; }
+.dash .suspension-banner { background: rgba(255,77,77,0.12) !important; }
+.dash .cancellation-banner { background: rgba(245,166,35,0.10) !important; }
+
+/* ── Period controls ── */
+.dash .period-label-text { color: rgba(255,255,255,0.92) !important; }
+.dash .nav-btn { background: var(--surface-glass) !important; border-color: var(--accent-border) !important; color: var(--accent) !important; border-radius: 6px !important; }
+.dash .nav-btn:hover { background: var(--accent-10) !important; }
+.dash .nav-btn:disabled { background: transparent !important; color: var(--dim) !important; border-color: var(--surface-07) !important; }
+.dash .toggle-row { background: var(--surface-glass) !important; border-color: var(--accent-border) !important; border-radius: 6px !important; }
+.dash .toggle-btn { color: rgba(255,255,255,0.45) !important; }
+.dash .toggle-btn.active { background: var(--accent-10) !important; color: var(--accent) !important; }
+
+/* ── Hero tile ── */
+.dash .hero {
+  background: var(--surface-glass) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid var(--accent-border) !important;
+  border-radius: 20px !important;
+  box-shadow: var(--shadow-tile) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+.dash .hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 15%; right: 15%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--surface-13) 30%, var(--surface-18) 50%, var(--surface-13) 70%, transparent);
+  pointer-events: none;
+}
+.dash .hero-label {
+  font-family: var(--font-serif) !important;
+  font-style: italic !important;
+  font-size: 12px !important;
+  color: var(--brass) !important;
+  letter-spacing: 0.05em !important;
+  font-weight: normal !important;
+}
+.dash .hero-value { color: rgba(255,255,255,0.92) !important; text-shadow: 0 0 40px var(--surface-08); }
+.dash .hero-sub   { color: rgba(255,255,255,0.45) !important; opacity: 1 !important; font-size: 12px !important; }
+
+/* ── Metric tiles ── */
+.dash .metrics { gap: 12px !important; }
+.dash .metric {
+  background: var(--surface-glass) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid var(--accent-border) !important;
+  border-radius: 20px !important;
+  padding: 20px 16px 16px !important;
+  box-shadow: var(--shadow-tile) !important;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+.dash .metric::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 15%; right: 15%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--surface-13) 30%, var(--surface-18) 50%, var(--surface-13) 70%, transparent);
+  pointer-events: none;
+}
+.dash .metric::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 20px; right: 20px; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-55) 40%, var(--accent-55) 60%, transparent);
+  border-radius: 0 0 3px 3px;
+  opacity: 0.7;
+  transition: opacity 0.22s ease;
+  pointer-events: none;
+}
+.dash .metric:hover { transform: translateY(-3px) !important; border-color: var(--accent-30) !important; box-shadow: var(--shadow-tile-hover) !important; }
+.dash .metric:hover::after { opacity: 1; }
+
+.dash .metric-label {
+  font-family: var(--font-serif) !important;
+  font-size: 11.5px !important;
+  color: var(--brass) !important;
+  letter-spacing: 0.05em !important;
+  line-height: 1.4 !important;
+  margin-bottom: 14px !important;
+  font-weight: normal !important;
+  font-style: italic !important;
+}
+.dash .metric-value {
+  font-size: 38px !important;
+  font-weight: 700 !important;
+  color: rgba(255,255,255,0.92) !important;
+  letter-spacing: -0.03em !important;
+  line-height: 1 !important;
+}
+.dash .metric-sub {
+  font-size: 9.5px !important;
+  color: rgba(255,255,255,0.28) !important;
+  margin-top: 6px !important;
+  font-weight: 400 !important;
+}
+.dash .metrics-fullwidth .metric { border-radius: 16px !important; }
+
+/* ── Log booking button ── */
+.dash .log-booking-btn {
+  background: var(--accent-10) !important;
+  border: 1px solid var(--accent-26) !important;
+  color: var(--accent) !important;
+  border-radius: 10px !important;
+}
+.dash .log-booking-btn:hover { background: var(--accent-16) !important; border-color: var(--accent-40) !important; }
+.dash .log-booking-confirm { color: var(--accent) !important; }
+.dash .log-booking-error   { color: var(--red) !important; }
+
+/* ── Renewal strip ── */
+.dash .renewal-strip {
+  display: inline-flex !important;
+  background: var(--brass-08) !important;
+  border: 1px solid var(--brass-22) !important;
+  border-radius: 20px !important;
+  padding: 6px 14px !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
+.dash .renewal-label { color: var(--brass) !important; opacity: 1 !important; font-size: 11px !important; letter-spacing: 0.06em !important; }
+.dash .renewal-value { color: var(--brass) !important; font-size: 13px !important; }
+
+/* ── Reset button ── */
+.dash .reset-row { justify-content: flex-start !important; }
+.dash .reset-btn {
+  background: transparent !important;
+  border: 1px solid var(--surface-06) !important;
+  color: rgba(255,255,255,0.25) !important;
+  font-size: 10.5px !important;
+  padding: 4px 10px !important;
+  border-radius: 6px !important;
+}
+.dash .reset-btn:hover { background: var(--surface-05) !important; color: rgba(255,255,255,0.50) !important; border-color: var(--surface-12) !important; }
+
+/* ── Section header / SMS odometer ── */
+.dash .section-title { color: rgba(255,255,255,0.28) !important; letter-spacing: 0.14em !important; font-size: 10px !important; }
+.dash .call-count-badge { background: var(--accent-10) !important; border-color: var(--accent-border) !important; color: var(--accent) !important; }
+.dash .odometer { background: var(--surface-glass) !important; border-color: var(--accent-border) !important; }
+.dash .odometer-cell, .dash .odometer-prefix { color: var(--accent) !important; background: transparent !important; border-right-color: var(--accent-border) !important; }
+.dash .odometer-sep { background: var(--accent-border) !important; }
+.dash .sms-month-label { color: rgba(255,255,255,0.28) !important; font-size: 10px !important; letter-spacing: 0.08em !important; }
+.dash .sms-overflow { background: var(--surface-glass) !important; border-color: var(--accent-border) !important; color: var(--accent) !important; }
+.dash .overage-label { color: var(--red) !important; }
+.dash .overage-overflow { background: var(--surface-glass) !important; }
+
+/* ── Activity card ── */
+.dash .activity-card {
+  background: var(--surface-03) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid var(--surface-07) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 2px 8px var(--shadow-25), inset 0 1px 0 var(--surface-glass) !important;
+}
+.dash .activity-summary:hover { background: var(--surface-05) !important; }
+.dash .activity-summary-text { color: rgba(255,255,255,0.92) !important; }
+.dash .activity-summary-sub  { color: rgba(255,255,255,0.45) !important; }
+.dash .expand-icon { color: rgba(255,255,255,0.28) !important; }
+.dash .activity-dropdown.open { border-top-color: var(--surface-07) !important; }
+.dash .activity-row { border-bottom-color: var(--surface-07) !important; }
+.dash .activity-number { color: rgba(255,255,255,0.92) !important; }
+.dash .activity-time   { color: rgba(255,255,255,0.28) !important; }
+.dash .dot { background: var(--accent) !important; }
+.dash .empty-state, .dash .loading { color: rgba(255,255,255,0.28) !important; }
+
+/* ── Status pills ── */
+.dash .status-pill { background: var(--accent-10) !important; border-color: var(--accent-border) !important; color: var(--accent) !important; }
+
+/* ── Reset / terms modals ── */
+.dash .modal-overlay { background: rgba(0,0,0,0.78) !important; }
+.dash .modal { background: #0D1B26 !important; border-color: var(--surface-10) !important; border-radius: 14px !important; }
+.dash .modal-title { color: rgba(255,255,255,0.92) !important; }
+.dash .modal-body  { color: rgba(255,255,255,0.50) !important; }
+.dash .btn-cancel  { border-color: var(--surface-10) !important; color: rgba(255,255,255,0.50) !important; border-radius: 8px !important; }
+.dash .btn-cancel:hover { background: var(--surface-07) !important; color: rgba(255,255,255,0.92) !important; }
+.dash .btn-confirm { border-radius: 8px !important; }
+
+/* ── Footer ── */
+.dash .dash-footer { border-top-color: var(--surface-07) !important; }
+.dash .dash-footer a, .dash .dash-footer span { color: rgba(255,255,255,0.18) !important; }
+.dash .dash-footer a:hover { color: var(--accent) !important; }
+
+/* ── Install banner ── */
+.dash .install-banner { background: var(--surface-glass) !important; border-color: var(--accent-border) !important; }
+.dash .install-banner-text { color: rgba(255,255,255,0.65) !important; }
+.dash .install-banner-close { color: rgba(255,255,255,0.35) !important; }
+
+/* ── Skeleton loading ── */
+.dash .skeleton {
+  background: linear-gradient(90deg, var(--surface-05) 0%, var(--surface-10) 50%, var(--surface-05) 100%) !important;
+  background-size: 200% 100%;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .dash .metric { padding: 16px 14px 14px !important; border-radius: 16px !important; }
+  .dash .metric-value { font-size: 30px !important; }
+  .dash .metric-label { font-size: 10.5px !important; }
+}
+@media (min-width: 601px) {
+  .dash .metric-value { font-size: 44px !important; }
+}
+</style>
 </head>
 <body>
 <!-- LOGIN SCREEN -->
@@ -690,116 +1026,146 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const themes = {
   emerald: {
     label: 'Emerald',
-    surface: '#F7F5F0',
-    surfaceElevated: '#FFFFFF',
-    border: '#E8E2D5',
-    textPrimary: '#1A1814',
-    textSecondary: '#6B6660',
+    surface: '#0E1419',
+    surfaceElevated: '#111820',
+    border: 'rgba(255,255,255,0.10)',
+    textPrimary: 'rgba(255,255,255,0.92)',
+    textSecondary: 'rgba(255,255,255,0.55)',
     accent: '#10b981',
     accentText: '#FFFFFF'
   },
   stone: {
     label: 'Stone',
-    surface: '#E8EAEC',
-    surfaceElevated: '#F5F6F8',
-    border: '#D0D4D9',
-    textPrimary: '#1F2937',
-    textSecondary: '#6B7280',
+    surface: '#0E1419',
+    surfaceElevated: '#111820',
+    border: 'rgba(255,255,255,0.10)',
+    textPrimary: 'rgba(255,255,255,0.92)',
+    textSecondary: 'rgba(255,255,255,0.55)',
     accent: '#0EA5A5',
     accentText: '#FFFFFF'
   },
   ember: {
     label: 'Ember',
-    surface: '#0F1B2D',
-    surfaceElevated: '#1A2740',
-    border: '#2A3A57',
-    textPrimary: '#F4F1EB',
-    textSecondary: '#A0AEC4',
+    surface: '#0E1419',
+    surfaceElevated: '#111820',
+    border: 'rgba(255,255,255,0.10)',
+    textPrimary: 'rgba(255,255,255,0.92)',
+    textSecondary: 'rgba(255,255,255,0.55)',
     accent: '#E8742C',
     accentText: '#FFFFFF'
   },
   hearth: {
     label: 'Hearth',
-    surface: '#F5EFE3',
-    surfaceElevated: '#FDFAF2',
-    border: '#E0D6BF',
-    textPrimary: '#2A1B1B',
-    textSecondary: '#7A6258',
-    accent: '#9B2C2C',
+    surface: '#0E1419',
+    surfaceElevated: '#111820',
+    border: 'rgba(255,255,255,0.10)',
+    textPrimary: 'rgba(255,255,255,0.92)',
+    textSecondary: 'rgba(255,255,255,0.55)',
+    accent: '#DC2626',
     accentText: '#FFFFFF'
   },
   studio: {
     label: 'Studio',
-    surface: '#FFFFFF',
-    surfaceElevated: '#FAFAFA',
-    border: '#E5E5E5',
-    textPrimary: '#1A1A1A',
-    textSecondary: '#737373',
-    accent: '#262626',
-    accentText: '#FFFFFF'
+    surface: '#0E1419',
+    surfaceElevated: '#111820',
+    border: 'rgba(255,255,255,0.10)',
+    textPrimary: 'rgba(255,255,255,0.92)',
+    textSecondary: 'rgba(255,255,255,0.55)',
+    accent: '#CBD5E1',
+    accentText: '#0E1419'
   },
   blossom: {
     label: 'Blossom',
-    surface: '#F5E6EC',
-    surfaceElevated: '#FBF0F4',
-    border: '#E8CCD7',
-    textPrimary: '#2A1A2E',
-    textSecondary: '#7B5F75',
-    accent: '#5B2C82',
+    surface: '#0E1419',
+    surfaceElevated: '#111820',
+    border: 'rgba(255,255,255,0.10)',
+    textPrimary: 'rgba(255,255,255,0.92)',
+    textSecondary: 'rgba(255,255,255,0.55)',
+    accent: '#A855F7',
     accentText: '#FFFFFF'
   }
 };
 
+function hexToRgb(hex) {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return [r, g, b];
+}
+
 function applyTheme(themeKey) {
   const theme = themes[themeKey] || themes.emerald;
   const r = document.documentElement;
-  // New variable names
+  const [ar, ag, ab] = hexToRgb(theme.accent);
+  // Accent alpha family — recomputed for each theme so tints stay coherent
+  const alphaMap = {
+    '--accent-04': 0.04, '--accent-06': 0.06, '--accent-07': 0.07, '--accent-08': 0.08,
+    '--accent-10': 0.10, '--accent-glow': 0.12, '--accent-border': 0.15,
+    '--accent-16': 0.16, '--accent-18': 0.18, '--accent-24': 0.24, '--accent-26': 0.26,
+    '--accent-28': 0.28, '--accent-30': 0.30, '--accent-40': 0.40,
+    '--accent-55': 0.55, '--accent-60': 0.60
+  };
+  for (const [name, alpha] of Object.entries(alphaMap)) {
+    r.style.setProperty(name, `rgba(${ar},${ag},${ab},${alpha})`);
+  }
+  // Compound shadow vars that embed the accent glow
+  r.style.setProperty('--shadow-tile',
+    `0 1px 2px rgba(0,0,0,0.50), 0 4px 12px rgba(0,0,0,0.30), 0 8px 32px rgba(${ar},${ag},${ab},0.12), inset 0 1px 0 rgba(255,255,255,0.07)`);
+  r.style.setProperty('--shadow-tile-hover',
+    `0 2px 4px rgba(0,0,0,0.50), 0 8px 20px rgba(0,0,0,0.28), 0 16px 48px rgba(${ar},${ag},${ab},0.24), inset 0 1px 0 rgba(255,255,255,0.10)`);
+  // Core accent + dark base
+  r.style.setProperty('--accent', theme.accent);
+  r.style.setProperty('--accent-text', theme.accentText);
+  r.style.setProperty('--accent-contrast', theme.accentText);
+  r.style.setProperty('--accent-dim', `rgba(${ar},${ag},${ab},0.10)`);
+  r.style.setProperty('--bg-primary', '#0E1419');
   r.style.setProperty('--surface', theme.surface);
   r.style.setProperty('--surface-elevated', theme.surfaceElevated);
   r.style.setProperty('--border', theme.border);
   r.style.setProperty('--text-primary', theme.textPrimary);
   r.style.setProperty('--text-secondary', theme.textSecondary);
-  r.style.setProperty('--accent', theme.accent);
-  r.style.setProperty('--accent-text', theme.accentText);
-  // Legacy aliases — keeps existing CSS rules working without a sweep
+  // Legacy aliases
   r.style.setProperty('--bg', theme.surface);
   r.style.setProperty('--surface2', theme.surfaceElevated);
   r.style.setProperty('--text', theme.textPrimary);
   r.style.setProperty('--muted', theme.textSecondary);
   r.style.setProperty('--dim', theme.textSecondary);
-  r.style.setProperty('--accent-dim', theme.accent + '22');
-  r.style.setProperty('--accent-contrast', theme.accentText);
   try { localStorage.setItem('cm_theme_preference', themeKey); } catch (e) {}
 }
 
 (function applyEarlyTheme() {
-  // Inline minimal themes object so we don't depend on script load order
+  // Dark-aesthetic early theme — prevents FOUC with correct bg + accent before full init
   const earlyThemes = {
-    emerald: { surface: '#F7F5F0', surfaceElevated: '#FFFFFF', border: '#E8E2D5', textPrimary: '#1A1814', textSecondary: '#6B6660', accent: '#10b981', accentText: '#FFFFFF' },
-    stone: { surface: '#E8EAEC', surfaceElevated: '#F5F6F8', border: '#D0D4D9', textPrimary: '#1F2937', textSecondary: '#6B7280', accent: '#0EA5A5', accentText: '#FFFFFF' },
-    ember: { surface: '#0F1B2D', surfaceElevated: '#1A2740', border: '#2A3A57', textPrimary: '#F4F1EB', textSecondary: '#A0AEC4', accent: '#E8742C', accentText: '#FFFFFF' },
-    hearth: { surface: '#F5EFE3', surfaceElevated: '#FDFAF2', border: '#E0D6BF', textPrimary: '#2A1B1B', textSecondary: '#7A6258', accent: '#9B2C2C', accentText: '#FFFFFF' },
-    studio: { surface: '#FFFFFF', surfaceElevated: '#FAFAFA', border: '#E5E5E5', textPrimary: '#1A1A1A', textSecondary: '#737373', accent: '#262626', accentText: '#FFFFFF' },
-    blossom: { surface: '#F5E6EC', surfaceElevated: '#FBF0F4', border: '#E8CCD7', textPrimary: '#2A1A2E', textSecondary: '#7B5F75', accent: '#5B2C82', accentText: '#FFFFFF' }
+    emerald: { accent: '#10b981', accentText: '#FFFFFF' },
+    stone:   { accent: '#0EA5A5', accentText: '#FFFFFF' },
+    ember:   { accent: '#E8742C', accentText: '#FFFFFF' },
+    hearth:  { accent: '#DC2626', accentText: '#FFFFFF' },
+    studio:  { accent: '#CBD5E1', accentText: '#0E1419' },
+    blossom: { accent: '#A855F7', accentText: '#FFFFFF' }
   };
   try {
     const themeKey = localStorage.getItem('cm_theme_preference') || 'emerald';
     const theme = earlyThemes[themeKey] || earlyThemes.emerald;
     const r = document.documentElement;
-    r.style.setProperty('--surface', theme.surface);
-    r.style.setProperty('--surface-elevated', theme.surfaceElevated);
-    r.style.setProperty('--border', theme.border);
-    r.style.setProperty('--text-primary', theme.textPrimary);
-    r.style.setProperty('--text-secondary', theme.textSecondary);
+    const h = theme.accent.replace('#', '');
+    const ar = parseInt(h.slice(0,2),16), ag = parseInt(h.slice(2,4),16), ab = parseInt(h.slice(4,6),16);
+    r.style.setProperty('--bg', '#0E1419');
+    r.style.setProperty('--bg-primary', '#0E1419');
+    r.style.setProperty('--surface', '#0E1419');
+    r.style.setProperty('--surface-elevated', '#111820');
+    r.style.setProperty('--border', 'rgba(255,255,255,0.10)');
+    r.style.setProperty('--text-primary', 'rgba(255,255,255,0.92)');
+    r.style.setProperty('--text-secondary', 'rgba(255,255,255,0.55)');
+    r.style.setProperty('--text', 'rgba(255,255,255,0.92)');
+    r.style.setProperty('--muted', 'rgba(255,255,255,0.55)');
+    r.style.setProperty('--dim', 'rgba(255,255,255,0.30)');
     r.style.setProperty('--accent', theme.accent);
     r.style.setProperty('--accent-text', theme.accentText);
-    r.style.setProperty('--bg', theme.surface);
-    r.style.setProperty('--surface2', theme.surfaceElevated);
-    r.style.setProperty('--text', theme.textPrimary);
-    r.style.setProperty('--muted', theme.textSecondary);
-    r.style.setProperty('--dim', theme.textSecondary);
-    r.style.setProperty('--accent-dim', theme.accent + '22');
     r.style.setProperty('--accent-contrast', theme.accentText);
+    r.style.setProperty('--accent-dim', `rgba(${ar},${ag},${ab},0.10)`);
+    r.style.setProperty('--accent-glow', `rgba(${ar},${ag},${ab},0.12)`);
+    r.style.setProperty('--accent-border', `rgba(${ar},${ag},${ab},0.15)`);
   } catch (e) {}
 })();
 
@@ -1450,11 +1816,13 @@ function renderTilesForMode(mode) {
   const lbr = document.querySelector('.log-booking-row');
   const vtR = document.getElementById('vtRestaurant');
   const vtH = document.getElementById('vtHairdresser');
+  const resetRow = document.querySelector('.reset-row');
   if (mode === 'restaurant') {
     if (hg) hg.style.display = 'none';
     if (rg) rg.style.display = 'grid';
     if (ltr) ltr.style.display = 'none';
     if (lbr) lbr.style.display = 'none';
+    if (resetRow) resetRow.style.display = 'none';
     if (vtR) vtR.classList.add('active');
     if (vtH) vtH.classList.remove('active');
   } else {
@@ -1462,6 +1830,7 @@ function renderTilesForMode(mode) {
     if (rg) rg.style.display = 'none';
     if (ltr) ltr.style.display = 'block';
     if (lbr) lbr.style.display = 'flex';
+    if (resetRow) resetRow.style.display = 'flex';
     if (vtR) vtR.classList.remove('active');
     if (vtH) vtH.classList.add('active');
   }
@@ -1739,7 +2108,8 @@ async function confirmReset() {
   if (isAccountReadOnly()) { closeResetModal(); return; }
   const now = new Date().toISOString();
   try {
-    await sb.from('clients').update({ reset_date: now }).eq('id', currentClient.id);
+    const { error } = await sb.from('clients').update({ reset_date: now }).eq('id', currentClient.id);
+    if (error) { console.error('reset failed', error); closeResetModal(); return; }
     currentClient.reset_date = now;
   } catch (e) { console.error('reset failed', e); }
   closeResetModal();
