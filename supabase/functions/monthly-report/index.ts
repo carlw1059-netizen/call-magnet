@@ -369,6 +369,13 @@ async function sendViaResend(args: { to: string; subject: string; html: string }
 
 // ─── main handler ─────────────────────────────────────────────────────────
 Deno.serve(async (req: Request): Promise<Response> => {
+  if (new URL(req.url).searchParams.get('warmup') === '1') {
+    return new Response(JSON.stringify({ warmup: 'ok' }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   if (!INTERNAL_SECRET) {
     console.error('monthly-report: INTERNAL_SECRET missing from env');
     return new Response(JSON.stringify({ error: 'config_error', detail: 'shared secret not configured in Vault' }), {

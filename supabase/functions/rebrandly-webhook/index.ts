@@ -53,6 +53,13 @@ interface RebrandlyPayload {
 }
 
 Deno.serve(async (req) => {
+  if (new URL(req.url).searchParams.get('warmup') === '1') {
+    return new Response(JSON.stringify({ warmup: 'ok' }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   if (req.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405 });
   }

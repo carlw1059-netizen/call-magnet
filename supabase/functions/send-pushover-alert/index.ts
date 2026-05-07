@@ -46,6 +46,13 @@ const PUSHOVER_APP_TOKEN = Deno.env.get('PUSHOVER_APP_TOKEN');
 const INTERNAL_SECRET    = Deno.env.get('INTERNAL_SECRET') ?? Deno.env.get('PUSHOVER_INTERNAL_SECRET');
 
 Deno.serve(async (req) => {
+  if (new URL(req.url).searchParams.get('warmup') === '1') {
+    return new Response(JSON.stringify({ warmup: 'ok' }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   if (req.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405 });
   }
