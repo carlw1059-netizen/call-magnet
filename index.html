@@ -363,31 +363,36 @@ body {
    ═══════════════════════════════════════════════════════════════════════════ */
 :root {
   --bg-primary:    #0E1419;
-  --brass:         #C7A86B;
+  --accent:        #06D6A0;
+  --burnt-orange:  #CC5500;
+  --burnt-orange-dim: rgba(204,85,0,0.40);
   --font-serif:    Georgia, 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
   /* Accent alpha family — recomputed by applyTheme() on each theme switch */
-  --accent-04:     rgba(16,185,129,0.04);
-  --accent-06:     rgba(16,185,129,0.06);
-  --accent-07:     rgba(16,185,129,0.07);
-  --accent-08:     rgba(16,185,129,0.08);
-  --accent-10:     rgba(16,185,129,0.10);
-  --accent-glow:   rgba(16,185,129,0.12);
-  --accent-border: rgba(16,185,129,0.15);
-  --accent-16:     rgba(16,185,129,0.16);
-  --accent-18:     rgba(16,185,129,0.18);
-  --accent-24:     rgba(16,185,129,0.24);
-  --accent-26:     rgba(16,185,129,0.26);
-  --accent-28:     rgba(16,185,129,0.28);
-  --accent-30:     rgba(16,185,129,0.30);
-  --accent-40:     rgba(16,185,129,0.40);
-  --accent-55:     rgba(16,185,129,0.55);
-  --accent-60:     rgba(16,185,129,0.60);
-  --brass-05:      rgba(199,168,107,0.05);
-  --brass-08:      rgba(199,168,107,0.08);
-  --brass-10:      rgba(199,168,107,0.10);
-  --brass-15:      rgba(199,168,107,0.15);
-  --brass-20:      rgba(199,168,107,0.20);
-  --brass-22:      rgba(199,168,107,0.22);
+  --accent-04:     rgba(6,214,160,0.04);
+  --accent-06:     rgba(6,214,160,0.06);
+  --accent-07:     rgba(6,214,160,0.07);
+  --accent-08:     rgba(6,214,160,0.08);
+  --accent-10:     rgba(6,214,160,0.10);
+  --accent-glow:   rgba(6,214,160,0.12);
+  --accent-border: rgba(6,214,160,0.15);
+  --accent-16:     rgba(6,214,160,0.16);
+  --accent-18:     rgba(6,214,160,0.18);
+  --accent-24:     rgba(6,214,160,0.24);
+  --accent-26:     rgba(6,214,160,0.26);
+  --accent-28:     rgba(6,214,160,0.28);
+  --accent-30:     rgba(6,214,160,0.30);
+  --accent-40:     rgba(6,214,160,0.40);
+  --accent-55:     rgba(6,214,160,0.55);
+  --accent-60:     rgba(6,214,160,0.60);
+  /* Burnt orange alpha family — tiny decorative corner accents only, never prominent */
+  --burnt-orange-04: rgba(204,85,0,0.04);
+  --burnt-orange-05: rgba(204,85,0,0.05);
+  --burnt-orange-06: rgba(204,85,0,0.06);
+  --burnt-orange-08: rgba(204,85,0,0.08);
+  --burnt-orange-10: rgba(204,85,0,0.10);
+  --burnt-orange-15: rgba(204,85,0,0.15);
+  --burnt-orange-20: rgba(204,85,0,0.20);
+  --burnt-orange-22: rgba(204,85,0,0.22);
   --surface-glass: rgba(255,255,255,0.04);
   --surface-025:   rgba(255,255,255,0.025);
   --surface-03:    rgba(255,255,255,0.03);
@@ -429,7 +434,7 @@ body {
   --dim:              rgba(255,255,255,0.30);
   background:
     radial-gradient(ellipse 60% 50% at 85% 10%, var(--accent-07) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 40% at 10% 80%, var(--brass-05) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 10% 80%, var(--burnt-orange-05) 0%, transparent 60%),
     var(--bg-primary) !important;
   min-height: 100vh;
 }
@@ -442,7 +447,7 @@ body {
   -webkit-backdrop-filter: blur(12px);
 }
 .dash .topbar::after { display: none; }
-.dash .topbar-logo { color: var(--brass) !important; letter-spacing: 0.06em; }
+.dash .topbar-logo { color: var(--accent) !important; letter-spacing: 0.06em; }
 .dash .settings-btn {
   background: var(--surface-05) !important;
   border: 1px solid var(--accent-border) !important;
@@ -483,7 +488,7 @@ body {
 .dash .vt-btn.active { background: var(--accent-10) !important; }
 
 /* ── Birthday / demo banners ── */
-.dash .birthday-banner { background: var(--brass-08) !important; border-color: var(--brass-20) !important; color: var(--brass) !important; }
+.dash .birthday-banner { background: var(--accent-08) !important; border-color: var(--accent-border) !important; color: var(--accent) !important; }
 .dash .demo-banner { color: rgba(255,255,255,0.28) !important; }
 .dash .suspension-banner { background: rgba(255,77,77,0.12) !important; }
 .dash .cancellation-banner { background: rgba(245,166,35,0.10) !important; }
@@ -499,7 +504,10 @@ body {
 
 /* ── Hero tile ── */
 .dash .hero {
-  background: var(--surface-glass) !important;
+  background:
+    radial-gradient(circle at 0% 0%, var(--burnt-orange-06), transparent 32px),
+    radial-gradient(circle at 100% 100%, var(--burnt-orange-04), transparent 22px),
+    var(--surface-glass) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
   border: 1px solid var(--accent-border) !important;
@@ -519,17 +527,20 @@ body {
   font-family: var(--font-serif) !important;
   font-style: italic !important;
   font-size: 12px !important;
-  color: var(--brass) !important;
+  color: var(--accent) !important;
   letter-spacing: 0.05em !important;
   font-weight: normal !important;
 }
-.dash .hero-value { color: rgba(255,255,255,0.92) !important; text-shadow: 0 0 40px var(--surface-08); }
+.dash .hero-value { color: var(--accent) !important; text-shadow: 0 0 40px var(--accent-08); }
 .dash .hero-sub   { color: rgba(255,255,255,0.45) !important; opacity: 1 !important; font-size: 12px !important; }
 
 /* ── Metric tiles ── */
 .dash .metrics { gap: 12px !important; }
 .dash .metric {
-  background: var(--surface-glass) !important;
+  background:
+    radial-gradient(circle at 0% 0%, var(--burnt-orange-06), transparent 28px),
+    radial-gradient(circle at 100% 100%, var(--burnt-orange-04), transparent 20px),
+    var(--surface-glass) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
   border: 1px solid var(--accent-border) !important;
@@ -563,7 +574,7 @@ body {
 .dash .metric-label {
   font-family: var(--font-serif) !important;
   font-size: 11.5px !important;
-  color: var(--brass) !important;
+  color: var(--accent) !important;
   letter-spacing: 0.05em !important;
   line-height: 1.4 !important;
   margin-bottom: 14px !important;
@@ -573,7 +584,7 @@ body {
 .dash .metric-value {
   font-size: 38px !important;
   font-weight: 700 !important;
-  color: rgba(255,255,255,0.92) !important;
+  color: var(--accent) !important;
   letter-spacing: -0.03em !important;
   line-height: 1 !important;
 }
@@ -599,15 +610,15 @@ body {
 /* ── Renewal strip ── */
 .dash .renewal-strip {
   display: inline-flex !important;
-  background: var(--brass-08) !important;
-  border: 1px solid var(--brass-22) !important;
+  background: var(--accent-08) !important;
+  border: 1px solid var(--accent-border) !important;
   border-radius: 20px !important;
   padding: 6px 14px !important;
   gap: 8px !important;
   align-items: center !important;
 }
-.dash .renewal-label { color: var(--brass) !important; opacity: 1 !important; font-size: 11px !important; letter-spacing: 0.06em !important; }
-.dash .renewal-value { color: var(--brass) !important; font-size: 13px !important; }
+.dash .renewal-label { color: var(--accent) !important; opacity: 1 !important; font-size: 11px !important; letter-spacing: 0.06em !important; }
+.dash .renewal-value { color: var(--accent) !important; font-size: 13px !important; }
 
 /* ── Reset button ── */
 .dash .reset-row { justify-content: flex-start !important; }
@@ -805,8 +816,8 @@ body {
           <div class="settings-section-title">Theme</div>
           <div class="theme-picker" id="themePicker">
             <div class="theme-tile" data-theme="emerald">
-              <div class="theme-swatch" style="background:#F7F5F0;border:1px solid #E8E2D5;">
-                <div class="theme-accent-dot" style="background:#10b981;"></div>
+              <div class="theme-swatch" style="background:#0E1419;border:1px solid rgba(6,214,160,0.3);">
+                <div class="theme-accent-dot" style="background:#06D6A0;"></div>
               </div>
               <span>Emerald</span>
             </div>
@@ -1031,7 +1042,7 @@ const themes = {
     border: 'rgba(255,255,255,0.10)',
     textPrimary: 'rgba(255,255,255,0.92)',
     textSecondary: 'rgba(255,255,255,0.55)',
-    accent: '#10b981',
+    accent: '#06D6A0',
     accentText: '#FFFFFF'
   },
   stone: {
@@ -1137,7 +1148,7 @@ function applyTheme(themeKey) {
 (function applyEarlyTheme() {
   // Dark-aesthetic early theme — prevents FOUC with correct bg + accent before full init
   const earlyThemes = {
-    emerald: { accent: '#10b981', accentText: '#FFFFFF' },
+    emerald: { accent: '#06D6A0', accentText: '#FFFFFF' },
     stone:   { accent: '#0EA5A5', accentText: '#FFFFFF' },
     ember:   { accent: '#E8742C', accentText: '#FFFFFF' },
     hearth:  { accent: '#DC2626', accentText: '#FFFFFF' },
