@@ -39,38 +39,17 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { overscroll-behavior-y: contain; }
 :root {
-  --bg: #F7F5F0;
-  --surface: #F7F5F0;
-  --surface-elevated: #FFFFFF;
-  --surface2: #FFFFFF;
-  --border: #E8E2D5;
-  --border2: #333;
-  --text: #1A1814;
-  --text-primary: #1A1814;
-  --muted: #6B6660;
-  --text-secondary: #6B6660;
-  --dim: #6B6660;
-  --accent: #10b981;
-  --accent-dim: #10b98122;
-  --accent-contrast: #FFFFFF;
-  --accent-text: #FFFFFF;
-  --amber: #f5a623;
-  --amber-dim: #f5a62322;
-  --red: #ff4d4d;
-  --red-dim: #ff4d4d18;
-  --mono: 'DM Mono', monospace;
-  --sans: 'DM Sans', sans-serif;
-  /* Emerald-theme defaults — overridden by applyTheme() before first paint */
   --bg-primary: #0E1419;
+  --accent: #06D6A0;
+  --accent-glow: rgba(6, 214, 160, 0.12);
+  --accent-bright: rgba(6, 214, 160, 0.25);
+  --accent-border: rgba(6, 214, 160, 0.15);
+  --burnt-orange: #CC5500;
+  --burnt-orange-dim: rgba(204, 85, 0, 0.4);
+  --text-primary: rgba(255,255,255,0.92);
+  --text-muted: rgba(255,255,255,0.55);
   --surface-glass: rgba(255,255,255,0.04);
-  --surface-07: rgba(255,255,255,0.07);
-  --surface-08: rgba(255,255,255,0.08);
-  --surface-10: rgba(255,255,255,0.10);
-  --shadow-30: rgba(0,0,0,0.30);
-  --accent-glow: rgba(6,214,160,0.12);
-  --accent-border: rgba(6,214,160,0.15);
-  --accent-08: rgba(6,214,160,0.08);
-  --accent-04: rgba(6,214,160,0.04);
+  --topbar-bg: rgba(14, 20, 25, 0.88);
 }
 body {
   background: var(--bg);
@@ -197,54 +176,6 @@ body {
 .s-swatch.selected { border-color: #111; }
 .s-swatch.selected::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: rgba(0,0,0,0.6); }
 .s-swatch.dark-check.selected::after { color: rgba(255,255,255,0.8); }
-.theme-picker {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  padding: 8px 0;
-  max-width: 100%;
-}
-.theme-tile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  padding: 6px 4px;
-  border-radius: 8px;
-  transition: background 0.2s;
-  min-width: 0;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-.theme-tile:hover { background: var(--border); }
-.theme-tile.active { background: var(--accent); }
-.theme-tile.active span { color: var(--accent-text); font-weight: 600; }
-.theme-swatch {
-  width: 52px;
-  height: 52px;
-  border-radius: 10px;
-  position: relative;
-  flex-shrink: 0;
-}
-.theme-accent-dot {
-  position: absolute;
-  bottom: 6px;
-  right: 6px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.15);
-}
-.theme-tile span {
-  font-size: 11px;
-  color: var(--text-primary);
-  text-align: center;
-  white-space: nowrap;
-}
-@media (max-width: 380px) {
-  .theme-picker { grid-template-columns: repeat(2, 1fr); }
-}
 .settings-divider { height: 1px; background: #ddd; margin: 0.75rem 0; }
 .terms-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; align-items: center; justify-content: center; padding: 2rem; }
 .terms-modal-overlay.open { display: flex; }
@@ -430,7 +361,7 @@ body {
   --burnt-orange:  #CC5500;
   --burnt-orange-dim: rgba(204,85,0,0.40);
   --font-serif:    Georgia, 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
-  /* Accent alpha family — recomputed by applyTheme() on each theme switch */
+  /* Accent alpha family — hardcoded emerald tints */
   --accent-04:     rgba(6,214,160,0.04);
   --accent-06:     rgba(6,214,160,0.06);
   --accent-07:     rgba(6,214,160,0.07);
@@ -896,47 +827,6 @@ body {
       <button class="settings-btn" id="settingsBtn" aria-label="Settings" onclick="toggleSettings()">⚙</button>
       <button class="logout-btn" onclick="handleLogout()">Sign out</button>
       <div class="settings-panel" id="settingsPanel">
-        <div class="settings-section">
-          <div class="settings-section-title">Theme</div>
-          <div class="theme-picker" id="themePicker">
-            <div class="theme-tile" data-theme="mono">
-              <div class="theme-swatch" style="background:#FFFFFF;border:1px solid #E5E5E5;">
-                <div class="theme-accent-dot" style="background:#0A0A0A;"></div>
-              </div>
-              <span>Mono</span>
-            </div>
-            <div class="theme-tile" data-theme="emerald">
-              <div class="theme-swatch" style="background:#0E1419;border:1px solid rgba(6,214,160,0.3);">
-                <div class="theme-accent-dot" style="background:#06D6A0;"></div>
-              </div>
-              <span>Emerald</span>
-            </div>
-            <div class="theme-tile" data-theme="cream">
-              <div class="theme-swatch" style="background:#CBBD93;border:1px solid rgba(102,0,51,0.3);">
-                <div class="theme-accent-dot" style="background:#660033;"></div>
-              </div>
-              <span>Cream</span>
-            </div>
-            <div class="theme-tile" data-theme="bloom">
-              <div class="theme-swatch" style="background:#FDF2F8;border:1px solid rgba(107,44,126,0.3);">
-                <div class="theme-accent-dot" style="background:#6B2C7E;"></div>
-              </div>
-              <span>Bloom</span>
-            </div>
-            <div class="theme-tile" data-theme="ocean">
-              <div class="theme-swatch" style="background:#7E7E7E;border:1px solid rgba(11,163,255,0.3);">
-                <div class="theme-accent-dot" style="background:#0BA3FF;"></div>
-              </div>
-              <span>Ocean</span>
-            </div>
-            <div class="theme-tile" data-theme="harbor">
-              <div class="theme-swatch" style="background:#0A2540;border:1px solid rgba(204,85,0,0.35);">
-                <div class="theme-accent-dot" style="background:#CC5500;"></div>
-              </div>
-              <span>Harbor</span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -1118,176 +1008,6 @@ body {
 const SUPABASE_URL = 'https://iskvvnhacqdxybpmwuni.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
 
-const themes = {
-  mono: {
-    label: 'Mono',
-    bg: '#FFFFFF',
-    accent: '#0A0A0A',
-    accentText: '#FFFFFF',
-    textPrimary: 'rgba(10,10,10,0.92)',
-    textSecondary: 'rgba(10,10,10,0.55)',
-    isDark: false
-  },
-  emerald: {
-    label: 'Emerald',
-    bg: '#0E1419',
-    accent: '#06D6A0',
-    accentText: '#FFFFFF',
-    textPrimary: 'rgba(255,255,255,0.92)',
-    textSecondary: 'rgba(255,255,255,0.55)',
-    isDark: true
-  },
-  cream: {
-    label: 'Cream',
-    bg: '#CBBD93',
-    accent: '#660033',
-    accentText: '#FFFFFF',
-    textPrimary: 'rgba(10,10,10,0.92)',
-    textSecondary: 'rgba(10,10,10,0.55)',
-    isDark: false
-  },
-  bloom: {
-    label: 'Bloom',
-    bg: '#FDF2F8',
-    accent: '#6B2C7E',
-    accentText: '#FFFFFF',
-    textPrimary: 'rgba(20,10,25,0.92)',
-    textSecondary: 'rgba(20,10,25,0.55)',
-    isDark: false
-  },
-  ocean: {
-    label: 'Ocean',
-    bg: '#7E7E7E',
-    accent: '#0BA3FF',
-    accentText: '#FFFFFF',
-    textPrimary: 'rgba(10,10,10,0.92)',
-    textSecondary: 'rgba(10,10,10,0.55)',
-    isDark: false
-  },
-  harbor: {
-    label: 'Harbor',
-    bg: '#0A2540',
-    accent: '#CC5500',
-    accentText: '#FFFFFF',
-    textPrimary: 'rgba(255,255,255,0.92)',
-    textSecondary: 'rgba(255,255,255,0.55)',
-    isDark: true
-  }
-};
-
-function hexToRgb(hex) {
-  const h = hex.replace('#', '');
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
-  return [r, g, b];
-}
-
-function applyTheme(themeKey) {
-  const theme = themes[themeKey] || themes.emerald;
-  const r = document.documentElement;
-  const [ar, ag, ab] = hexToRgb(theme.accent);
-  const [br, bgG, bb] = hexToRgb(theme.bg);
-
-  // Accent alpha family — recomputed for each theme so tints stay coherent
-  const alphaMap = {
-    '--accent-04': 0.04, '--accent-06': 0.06, '--accent-07': 0.07, '--accent-08': 0.08,
-    '--accent-10': 0.10, '--accent-glow': 0.12, '--accent-border': 0.15,
-    '--accent-16': 0.16, '--accent-18': 0.18, '--accent-24': 0.24, '--accent-26': 0.26,
-    '--accent-28': 0.28, '--accent-30': 0.30, '--accent-40': 0.40,
-    '--accent-55': 0.55, '--accent-60': 0.60
-  };
-  for (const [name, alpha] of Object.entries(alphaMap)) {
-    r.style.setProperty(name, `rgba(${ar},${ag},${ab},${alpha})`);
-  }
-
-  // Shadow vars — heavier drop on dark, softer on light
-  if (theme.isDark) {
-    r.style.setProperty('--shadow-tile',
-      `0 1px 2px rgba(0,0,0,0.50), 0 4px 12px rgba(0,0,0,0.30), 0 8px 32px rgba(${ar},${ag},${ab},0.12), inset 0 1px 0 rgba(255,255,255,0.07)`);
-    r.style.setProperty('--shadow-tile-hover',
-      `0 2px 4px rgba(0,0,0,0.50), 0 8px 20px rgba(0,0,0,0.28), 0 16px 48px rgba(${ar},${ag},${ab},0.24), inset 0 1px 0 rgba(255,255,255,0.10)`);
-    r.style.setProperty('--shadow-25', 'rgba(0,0,0,0.25)');
-    r.style.setProperty('--shadow-28', 'rgba(0,0,0,0.28)');
-    r.style.setProperty('--shadow-30', 'rgba(0,0,0,0.30)');
-    r.style.setProperty('--shadow-50', 'rgba(0,0,0,0.50)');
-  } else {
-    r.style.setProperty('--shadow-tile',
-      `0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06), 0 8px 32px rgba(${ar},${ag},${ab},0.15), inset 0 1px 0 rgba(255,255,255,0.90)`);
-    r.style.setProperty('--shadow-tile-hover',
-      `0 2px 6px rgba(0,0,0,0.10), 0 8px 24px rgba(0,0,0,0.08), 0 16px 48px rgba(${ar},${ag},${ab},0.25), inset 0 1px 0 rgba(255,255,255,1)`);
-    r.style.setProperty('--shadow-25', 'rgba(0,0,0,0.08)');
-    r.style.setProperty('--shadow-28', 'rgba(0,0,0,0.10)');
-    r.style.setProperty('--shadow-30', 'rgba(0,0,0,0.08)');
-    r.style.setProperty('--shadow-50', 'rgba(0,0,0,0.15)');
-  }
-
-  // Core accent
-  r.style.setProperty('--accent', theme.accent);
-  r.style.setProperty('--accent-text', theme.accentText);
-  r.style.setProperty('--accent-contrast', theme.accentText);
-  r.style.setProperty('--accent-dim', `rgba(${ar},${ag},${ab},0.10)`);
-
-  // Background — per-theme
-  r.style.setProperty('--bg-primary', theme.bg);
-  r.style.setProperty('--bg', theme.bg);
-  r.style.setProperty('--surface', theme.bg);
-  r.style.setProperty('--surface-elevated', theme.bg);
-  r.style.setProperty('--surface2', theme.bg);
-
-  // Text
-  r.style.setProperty('--text-primary', theme.textPrimary);
-  r.style.setProperty('--text-secondary', theme.textSecondary);
-  r.style.setProperty('--text', theme.textPrimary);
-  r.style.setProperty('--muted', theme.textSecondary);
-
-  // Topbar: semi-transparent bg color for backdrop-filter blur
-  r.style.setProperty('--topbar-bg', `rgba(${br},${bgG},${bb},0.88)`);
-  r.style.setProperty('--border', theme.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)');
-
-  // Override .dash element's CSS-scoped vars with inline styles so they win over .dash { --var: ... } rules
-  const surfaceRgb = theme.isDark ? '255,255,255' : '0,0,0';
-  const dim = theme.isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.30)';
-  const dash = document.querySelector('.dash');
-  if (dash) {
-    dash.style.setProperty('--surface-glass',    `rgba(${surfaceRgb},0.04)`);
-    dash.style.setProperty('--surface-025',      `rgba(${surfaceRgb},0.025)`);
-    dash.style.setProperty('--surface-03',       `rgba(${surfaceRgb},0.03)`);
-    dash.style.setProperty('--surface-05',       `rgba(${surfaceRgb},0.05)`);
-    dash.style.setProperty('--surface-06',       `rgba(${surfaceRgb},0.06)`);
-    dash.style.setProperty('--surface-07',       `rgba(${surfaceRgb},0.07)`);
-    dash.style.setProperty('--surface-08',       `rgba(${surfaceRgb},0.08)`);
-    dash.style.setProperty('--surface-09',       `rgba(${surfaceRgb},0.09)`);
-    dash.style.setProperty('--surface-10',       `rgba(${surfaceRgb},0.10)`);
-    dash.style.setProperty('--surface-12',       `rgba(${surfaceRgb},0.12)`);
-    dash.style.setProperty('--surface-13',       `rgba(${surfaceRgb},0.13)`);
-    dash.style.setProperty('--surface-15',       `rgba(${surfaceRgb},0.15)`);
-    dash.style.setProperty('--surface-18',       `rgba(${surfaceRgb},0.18)`);
-    dash.style.setProperty('--surface',          `rgba(${surfaceRgb},0.04)`);
-    dash.style.setProperty('--surface-elevated', `rgba(${surfaceRgb},0.07)`);
-    dash.style.setProperty('--border',           theme.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)');
-    dash.style.setProperty('--text',             theme.textPrimary);
-    dash.style.setProperty('--text-primary',     theme.textPrimary);
-    dash.style.setProperty('--muted',            theme.textSecondary);
-    dash.style.setProperty('--dim',              dim);
-  }
-
-  // Mirror key surface vars on :root so login page (outside .dash) can use glass effects
-  r.style.setProperty('--surface-glass', `rgba(${surfaceRgb},0.04)`);
-  r.style.setProperty('--surface-07',    `rgba(${surfaceRgb},0.07)`);
-  r.style.setProperty('--surface-08',    `rgba(${surfaceRgb},0.08)`);
-  r.style.setProperty('--surface-10',    `rgba(${surfaceRgb},0.10)`);
-  r.style.setProperty('--dim',           dim);
-
-  try { localStorage.setItem('cm_theme_preference', themeKey); } catch (e) {}
-}
-
-(function applyEarlyTheme() {
-  try {
-    const themeKey = localStorage.getItem('cm_theme_preference') || 'emerald';
-    applyTheme(themeKey);
-  } catch (e) {}
-})();
 
 let sb;
 let currentClient = null;
@@ -1657,9 +1377,6 @@ async function loadDashboard(user, opts = {}) {
     document.getElementById('renewalValue').textContent = days === 1 ? 'Tomorrow' : days + ' days';
   }
 
-  const themeKey = currentClient.theme_preference || 'emerald';
-  applyTheme(themeKey);
-  markActiveThemeTile(themeKey);
   setTimeout(maybeShowInstallBanner, 1500);
   refreshVerticalToggleVisibility();
   renderTilesForMode(getDashboardMode());
@@ -1706,24 +1423,6 @@ document.addEventListener('click', (e) => {
   }
 });
 
-function markActiveThemeTile(themeKey) {
-  document.querySelectorAll('.theme-tile').forEach(el => {
-    el.classList.toggle('active', el.dataset.theme === themeKey);
-  });
-}
-
-async function selectTheme(themeKey) {
-  if (!themes[themeKey]) themeKey = 'emerald';
-  applyTheme(themeKey);
-  markActiveThemeTile(themeKey);
-  if (currentClient && !isAccountReadOnly()) {
-    try {
-      const { error } = await sb.from('clients').update({ theme_preference: themeKey }).eq('id', currentClient.id);
-      if (error) { console.warn('theme save failed', error); return; }
-      currentClient.theme_preference = themeKey;
-    } catch (e) { console.warn('theme save failed', e); }
-  }
-}
 
 function getPeriodBounds(mode, offset) {
   const now = new Date();
@@ -1810,6 +1509,8 @@ async function loadStats() {
 
   const monthStartIso = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
   const todayStartIso = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
+  // For link-taps-today: respect reset_date if it occurred today (take whichever is later)
+  const tapsTodayStart = effectiveStart > todayStartIso ? effectiveStart : todayStartIso;
 
   let smsRes, clickRes, bookRes, monthSmsRes, tapsTodayRes;
   try {
@@ -1818,7 +1519,7 @@ async function loadStats() {
       sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).gte('created_at', effectiveStart).lte('created_at', endIso),
       sb.from('bookings').select('id', { count: 'exact' }).eq('client_id', clientId).gte('booked_at', effectiveStart).lte('booked_at', endIso),
       sb.from('sms_events').select('id', { count: 'exact' }).eq('client_id', clientId).gte('received_at', monthStartIso),
-      sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).gte('clicked_at', todayStartIso)
+      sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).gte('clicked_at', tapsTodayStart)
     ]);
   } catch (e) {
     console.error('stats load failed', e);
@@ -2249,11 +1950,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('logBookingBtn').addEventListener('click', (e) => {
     e.preventDefault();
     logBooking();
-  });
-
-  document.getElementById('themePicker').addEventListener('click', (e) => {
-    const tile = e.target.closest('.theme-tile');
-    if (tile && tile.dataset.theme) selectTheme(tile.dataset.theme);
   });
 
   document.getElementById('passwordInput').addEventListener('keydown', e => {
