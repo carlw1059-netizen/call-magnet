@@ -479,17 +479,18 @@ body {
   border: 1px solid var(--accent-border) !important;
   color: var(--accent) !important;
   border-radius: 7px !important;
+  box-shadow: 0 0 10px var(--accent-glow) !important;
 }
 .dash .refresh-btn:hover { background: var(--accent-10) !important; }
 
 /* ── Admin vertical toggle ── */
-.dash .vertical-toggle { background: var(--surface-glass) !important; border-color: var(--accent-border) !important; border-radius: 7px !important; }
+.dash .vertical-toggle { background: var(--surface-glass) !important; border-color: var(--accent-border) !important; border-radius: 7px !important; box-shadow: 0 0 10px var(--accent-glow) !important; }
 .dash .vt-btn { color: var(--accent) !important; border-right-color: var(--accent-border) !important; }
 .dash .vt-btn.active { background: var(--accent-10) !important; }
 
 /* ── Birthday / demo banners ── */
 .dash .birthday-banner { background: var(--accent-08) !important; border-color: var(--accent-border) !important; color: var(--accent) !important; }
-.dash .demo-banner { color: rgba(255,255,255,0.28) !important; }
+.dash .demo-banner { color: var(--dim) !important; }
 .dash .suspension-banner { background: rgba(255,77,77,0.12) !important; }
 .dash .cancellation-banner { background: rgba(245,166,35,0.10) !important; }
 
@@ -498,8 +499,8 @@ body {
 .dash .nav-btn { background: var(--surface-glass) !important; border-color: var(--accent-border) !important; color: var(--accent) !important; border-radius: 6px !important; }
 .dash .nav-btn:hover { background: var(--accent-10) !important; }
 .dash .nav-btn:disabled { background: transparent !important; color: var(--dim) !important; border-color: var(--surface-07) !important; }
-.dash .toggle-row { background: var(--surface-glass) !important; border-color: var(--accent-border) !important; border-radius: 6px !important; }
-.dash .toggle-btn { color: rgba(255,255,255,0.45) !important; }
+.dash .toggle-row { background: var(--surface-glass) !important; border-color: var(--accent-border) !important; border-radius: 6px !important; box-shadow: 0 0 10px var(--accent-glow) !important; }
+.dash .toggle-btn { color: var(--muted) !important; }
 .dash .toggle-btn.active { background: var(--accent-10) !important; color: var(--accent) !important; }
 
 /* ── Hero tile ── */
@@ -531,7 +532,7 @@ body {
   letter-spacing: 0.05em !important;
   font-weight: normal !important;
 }
-.dash .hero-value { color: var(--accent) !important; text-shadow: 0 0 40px var(--accent-08); }
+.dash .hero-value { color: var(--accent) !important; }
 .dash .hero-sub   { color: var(--muted) !important; opacity: 1 !important; font-size: 12px !important; }
 
 /* ── Metric tiles ── */
@@ -825,41 +826,35 @@ body {
         <div class="settings-section">
           <div class="settings-section-title">Theme</div>
           <div class="theme-picker" id="themePicker">
+            <div class="theme-tile" data-theme="mono">
+              <div class="theme-swatch" style="background:#FFFFFF;border:1px solid #E5E5E5;">
+                <div class="theme-accent-dot" style="background:#0A0A0A;"></div>
+              </div>
+              <span>Mono</span>
+            </div>
             <div class="theme-tile" data-theme="emerald">
               <div class="theme-swatch" style="background:#0E1419;border:1px solid rgba(6,214,160,0.3);">
                 <div class="theme-accent-dot" style="background:#06D6A0;"></div>
               </div>
               <span>Emerald</span>
             </div>
-            <div class="theme-tile" data-theme="stone">
-              <div class="theme-swatch" style="background:#E8EAEC;border:1px solid #D0D4D9;">
-                <div class="theme-accent-dot" style="background:#0EA5A5;"></div>
+            <div class="theme-tile" data-theme="fresh">
+              <div class="theme-swatch" style="background:#FFFFFF;border:1px solid rgba(6,214,160,0.5);">
+                <div class="theme-accent-dot" style="background:#06D6A0;"></div>
               </div>
-              <span>Stone</span>
+              <span>Fresh</span>
             </div>
-            <div class="theme-tile" data-theme="ember">
-              <div class="theme-swatch" style="background:#0F1B2D;border:1px solid #2A3A57;">
-                <div class="theme-accent-dot" style="background:#E8742C;"></div>
+            <div class="theme-tile" data-theme="bloom">
+              <div class="theme-swatch" style="background:#FDF2F8;border:1px solid rgba(107,44,126,0.3);">
+                <div class="theme-accent-dot" style="background:#6B2C7E;"></div>
               </div>
-              <span>Ember</span>
+              <span>Bloom</span>
             </div>
-            <div class="theme-tile" data-theme="hearth">
-              <div class="theme-swatch" style="background:#F5EFE3;border:1px solid #E0D6BF;">
-                <div class="theme-accent-dot" style="background:#9B2C2C;"></div>
+            <div class="theme-tile" data-theme="harbor">
+              <div class="theme-swatch" style="background:#0A2540;border:1px solid rgba(204,85,0,0.35);">
+                <div class="theme-accent-dot" style="background:#CC5500;"></div>
               </div>
-              <span>Hearth</span>
-            </div>
-            <div class="theme-tile" data-theme="studio">
-              <div class="theme-swatch" style="background:#FFFFFF;border:1px solid #E5E5E5;">
-                <div class="theme-accent-dot" style="background:#262626;"></div>
-              </div>
-              <span>Studio</span>
-            </div>
-            <div class="theme-tile" data-theme="blossom">
-              <div class="theme-swatch" style="background:#F5E6EC;border:1px solid #E8CCD7;">
-                <div class="theme-accent-dot" style="background:#5B2C82;"></div>
-              </div>
-              <span>Blossom</span>
+              <span>Harbor</span>
             </div>
           </div>
         </div>
@@ -1045,6 +1040,15 @@ const SUPABASE_URL = 'https://iskvvnhacqdxybpmwuni.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
 
 const themes = {
+  mono: {
+    label: 'Mono',
+    bg: '#FFFFFF',
+    accent: '#0A0A0A',
+    accentText: '#FFFFFF',
+    textPrimary: 'rgba(10,10,10,0.92)',
+    textSecondary: 'rgba(10,10,10,0.55)',
+    isDark: false
+  },
   emerald: {
     label: 'Emerald',
     bg: '#0E1419',
@@ -1054,50 +1058,32 @@ const themes = {
     textSecondary: 'rgba(255,255,255,0.55)',
     isDark: true
   },
-  stone: {
-    label: 'Stone',
-    bg: '#1A1814',
-    accent: '#A8A29E',
+  fresh: {
+    label: 'Fresh',
+    bg: '#FFFFFF',
+    accent: '#06D6A0',
     accentText: '#FFFFFF',
-    textPrimary: 'rgba(255,255,255,0.92)',
-    textSecondary: 'rgba(255,255,255,0.55)',
-    isDark: true
-  },
-  ember: {
-    label: 'Ember',
-    bg: '#1A1410',
-    accent: '#E8742C',
-    accentText: '#FFFFFF',
-    textPrimary: 'rgba(255,255,255,0.92)',
-    textSecondary: 'rgba(255,255,255,0.55)',
-    isDark: true
-  },
-  hearth: {
-    label: 'Hearth',
-    bg: '#FEF7F0',
-    accent: '#DC2626',
-    accentText: '#FFFFFF',
-    textPrimary: 'rgba(20,15,10,0.92)',
-    textSecondary: 'rgba(20,15,10,0.60)',
+    textPrimary: 'rgba(10,10,10,0.92)',
+    textSecondary: 'rgba(10,10,10,0.55)',
     isDark: false
   },
-  studio: {
-    label: 'Studio',
-    bg: '#F8FAFC',
-    accent: '#475569',
-    accentText: '#FFFFFF',
-    textPrimary: 'rgba(15,23,42,0.92)',
-    textSecondary: 'rgba(15,23,42,0.60)',
-    isDark: false
-  },
-  blossom: {
-    label: 'Blossom',
+  bloom: {
+    label: 'Bloom',
     bg: '#FDF2F8',
-    accent: '#EC4899',
+    accent: '#6B2C7E',
     accentText: '#FFFFFF',
-    textPrimary: 'rgba(40,15,30,0.92)',
-    textSecondary: 'rgba(40,15,30,0.60)',
+    textPrimary: 'rgba(20,10,25,0.92)',
+    textSecondary: 'rgba(20,10,25,0.55)',
     isDark: false
+  },
+  harbor: {
+    label: 'Harbor',
+    bg: '#0A2540',
+    accent: '#CC5500',
+    accentText: '#FFFFFF',
+    textPrimary: 'rgba(255,255,255,0.92)',
+    textSecondary: 'rgba(255,255,255,0.55)',
+    isDark: true
   }
 };
 

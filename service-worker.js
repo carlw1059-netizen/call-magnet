@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 8 May 2026 — theme backgrounds: each theme defines own bg, light themes (Hearth/Studio/Blossom), restaurant 2x2
-const CACHE_VERSION = 'callmagnet-v8-theme-backgrounds';
+// Last bumped: 8 May 2026 — 5 themes (Mono/Emerald/Fresh/Bloom/Harbor), glow scoped to tiles + 3 button groups
+const CACHE_VERSION = 'callmagnet-v9-5themes';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
