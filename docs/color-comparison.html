@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CallMagnet — Color Comparison</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #1a1a1a;
+    color: #fff;
+    font-family: system-ui, -apple-system, sans-serif;
+    scroll-behavior: smooth;
+    padding-bottom: 80px;
+  }
+
+  /* ── Top Banner ── */
+  .banner {
+    background: #111;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 40px 60px;
+    text-align: center;
+  }
+  .banner h1 {
+    font-family: Georgia, 'Palatino Linotype', serif;
+    font-size: 28px;
+    font-weight: normal;
+    letter-spacing: 0.12em;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+  .banner p {
+    color: rgba(255,255,255,0.5);
+    font-size: 14px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Nav ── */
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(26,26,26,0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    gap: 8px;
+    padding: 12px 60px;
+    flex-wrap: wrap;
+  }
+  .nav a {
+    color: rgba(255,255,255,0.55);
+    text-decoration: none;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: all 0.2s;
+  }
+  .nav a:hover {
+    color: #fff;
+    border-color: rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.05);
+  }
+
+  /* ── Section ── */
+  section {
+    padding: 60px 60px 40px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .section-header {
+    font-family: Georgia, serif;
+    font-size: 22px;
+    font-weight: normal;
+    letter-spacing: 0.14em;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .section-sub {
+    color: rgba(255,255,255,0.35);
+    font-size: 13px;
+    margin-bottom: 36px;
+    letter-spacing: 0.03em;
+  }
+
+  /* ── Swatch Grid ── */
+  .swatch-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 28px;
+  }
+
+  .swatch-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  .swatch-block {
+    width: 200px;
+    height: 100px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 10px;
+  }
+
+  .swatch-hex {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 3px;
+  }
+
+  .swatch-name {
+    font-size: 12px;
+    color: rgba(255,255,255,0.38);
+    letter-spacing: 0.03em;
+  }
+
+  .current-badge {
+    display: inline-block;
+    font-size: 10px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin-left: 8px;
+    color: rgba(255,255,255,0.5);
+    vertical-align: middle;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── Tile Preview on Background ── */
+  .bg-demo {
+    width: 300px;
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 14px;
+  }
+
+  .demo-tile {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(16,185,129,0.15);
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow:
+      0 1px 2px rgba(0,0,0,0.5),
+      0 4px 12px rgba(0,0,0,0.3),
+      0 8px 32px rgba(16,185,129,0.10),
+      inset 0 1px 0 rgba(255,255,255,0.07);
+    position: relative;
+    overflow: hidden;
+  }
+  .demo-tile::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+  }
+  .demo-tile-label {
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-size: 11px;
+    color: #C7A86B;
+    margin-bottom: 6px;
+    letter-spacing: 0.03em;
+  }
+  .demo-tile-num {
+    font-size: 36px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.92);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .demo-tile-sub {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+  }
+
+  /* ── Emerald Button Demo ── */
+  .emerald-demo-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .em-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: #fff;
+    cursor: default;
+    width: 160px;
+  }
+
+  .em-glow-demo {
+    width: 200px;
+    height: 50px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── Serif Text Demo ── */
+  .serif-demo {
+    margin-top: 14px;
+    padding: 16px 20px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    width: 200px;
+  }
+  .serif-demo-text {
+    font-family: Georgia, 'Palatino Linotype', serif;
+    font-style: italic;
+    font-size: 14px;
+    letter-spacing: 0.03em;
+    line-height: 1.4;
+  }
+  .serif-demo-note {
+    font-size: 10px;
+    color: rgba(255,255,255,0.25);
+    margin-top: 6px;
+    font-family: 'Courier New', monospace;
+  }
+
+  /* ── Combination Cards ── */
+  .combo-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+  }
+
+  .combo-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  .combo-label {
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 8px;
+  }
+  .combo-label strong {
+    color: rgba(255,255,255,0.85);
+    font-size: 14px;
+  }
+
+  .combo-bg {
+    border-radius: 20px;
+    padding: 30px;
+    position: relative;
+    overflow: hidden;
+    width: 320px;
+  }
+
+  .combo-tile {
+    border-radius: 18px;
+    padding: 22px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .combo-tile::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent);
+  }
+  .combo-tile::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 30%; right: 30%;
+    height: 1px;
+  }
+
+  .combo-tile-label {
+    font-family: Georgia, 'Palatino Linotype', serif;
+    font-style: italic;
+    font-size: 12px;
+    margin-bottom: 8px;
+    letter-spacing: 0.03em;
+  }
+  .combo-tile-num {
+    font-size: 48px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.93);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .combo-tile-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.42);
+    line-height: 1.4;
+  }
+
+  .combo-chips {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .chip {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.6);
+  }
+
+  /* ── Divider ── */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+    margin: 0 60px;
+  }
+</style>
+</head>
+<body>
+
+<!-- BANNER -->
+<div class="banner">
+  <h1>COLOR COMPARISON — CallMagnet PWA</h1>
+  <p>Pick your favorite background, emerald, and burnt orange &nbsp;·&nbsp; Scroll through each section &nbsp;·&nbsp; Curated combinations at the bottom</p>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="#backgrounds">Backgrounds</a>
+  <a href="#emeralds">Emeralds</a>
+  <a href="#brass">Brass / Orange</a>
+  <a href="#combos">Curated Combinations</a>
+</nav>
+
+<!-- ═══════════════════════════════════════════
+     SECTION 2 — BACKGROUND OPTIONS
+     ═══════════════════════════════════════════ -->
+<section id="backgrounds">
+  <h2 class="section-header">Background — Charcoal / Navy Options</h2>
+  <p class="section-sub">Each swatch shows a sample glass tile rendered on that background. Current default shown first.</p>
+
+  <div class="swatch-grid">
+
+    <!-- 1 -->
+    <div class="swatch-item">
+      <div class="swatch-block" style="background:#0E1419;"></div>
+      <div class="swatch-hex">#0E1419 <span class="current-badge">CURRENT</span></div>
+      <div class="swatch-name">Almost Black</div>
+      <div class="bg-demo" style="background:#0E1419;">
+        <div class="demo-tile">
+          <div class="demo-tile-label">Tonight's covers recovered</div>
+          <div class="demo-tile-num">8</div>
+          <div class="demo-tile-sub">62% conversion × $46/cover</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="swatch-item">
+      <div class="swatch-block" style="background:#0E1A26;"></div>
+      <div class="swatch-hex">#0E1A26</div>
+      <div class="swatch-name">Step 1 Navy</div>
+      <div class="bg-demo" style="background:#0E1A26;">
+        <div class="demo-tile">
+          <div class="demo-tile-label">Tonight's covers recovered</div>
+          <div class="demo-tile-num">8</div>
+          <div class="demo-tile-sub">62% conversion × $46/cover</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="swatch-item">
+      <div class="swatch-block" style="background:#0F2236;"></div>
+      <div class="swatch-hex">#0F2236</div>
+      <div class="swatch-name">Step 2 Navy</div>
+      <div class="bg-demo" style="background:#0F2236;">
+        <div class="demo-tile">
+          <div class="demo-tile-label">Tonight's covers recovered</div>
+          <div class="demo-tile-num">8</div>
+          <div class="demo-tile-sub">62% conversion × $46/cover</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="swatch-item">
+      <div class="swatch-block" style="background:#0F2A47;"></div>
+      <div class="swatch-hex">#0F2A47</div>
+      <div class="swatch-name">More Navy Lean</div>
+      <div class="bg-demo" style="background:#0F2A47;">
+        <div class="demo-tile">
+          <div class="demo-tile-label">Tonight's covers recovered</div>
+          <div class="demo-tile-num">8</div>
+          <div class="demo-tile-sub">62% conversion × $46/cover</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="swatch-item">
+      <div class="swatch-block" style="background:#0D2942;"></div>
+      <div class="swatch-hex">#0D2942</div>
+      <div class="swatch-name">Navy-Charcoal Premium</div>
+      <div class="bg-demo" style="background:#0D2942;">
+        <div class="demo-tile">
+          <div class="demo-tile-label">Tonight's covers recovered</div>
+          <div class="demo-tile-num">8</div>
+          <div class="demo-tile-sub">62% conversion × $46/cover</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="swatch-item">
+      <div class="swatch-block" style="background:#102A4F;"></div>
+      <div class="swatch-hex">#102A4F</div>
+      <div class="swatch-name">Maximum Navy Depth</div>
+      <div class="bg-demo" style="background:#102A4F;">
+        <div class="demo-tile">
+          <div class="demo-tile-label">Tonight's covers recovered</div>
+          <div class="demo-tile-num">8</div>
+          <div class="demo-tile-sub">62% conversion × $46/cover</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7 -->
+    <div class="swatch-item">
+      <div class="swatch-block" style="background:#0A2540;"></div>
+      <div class="swatch-hex">#0A2540</div>
+      <div class="swatch-name">Stripe-Style Deep Navy</div>
+      <div class="bg-demo" style="background:#0A2540;">
+        <div class="demo-tile">
+          <div class="demo-tile-label">Tonight's covers recovered</div>
+          <div class="demo-tile-num">8</div>
+          <div class="demo-tile-sub">62% conversion × $46/cover</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     SECTION 3 — EMERALD OPTIONS
+     ═══════════════════════════════════════════ -->
+<section id="emeralds">
+  <h2 class="section-header">Emerald / Green Options</h2>
+  <p class="section-sub">Button demo + soft glow on dark background. Glow shows how each reads as an accent light source.</p>
+
+  <div class="swatch-grid">
+
+    <!-- 1 -->
+    <div class="swatch-item">
+      <div class="swatch-block" style="background:#10B981;"></div>
+      <div class="swatch-hex">#10B981 <span class="current-badge">CURRENT</span></div>
+      <div class="swatch-name">Tailwind Emerald-500</div>
+      <div class="emerald-demo-wrap">
+        <div class="em-btn" style="background:#10B981; box-shadow: 0 4px 16px rgba(16,185,129,0.4);">Log a booking</div>
+        <div class="em-glow-demo" style="box-shadow: 0 0 40px rgba(16,185,129,0.3), inset 0 0 20px rgba(16,185,129,0.05); border-color: rgba(16,185,129,0.2);">
+          <span style="color: rgba(16,185,129,0.7); font-size:11px;">glow · rgba(16,185,129,0.3)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="swatch-item">
+      <div class="swatch-block" style="background:#0FBA76;"></div>
+      <div class="swatch-hex">#0FBA76</div>
+      <div class="swatch-name">Premium Emerald (deeper)</div>
+      <div class="emerald-demo-wrap">
+        <div class="em-btn" style="background:#0FBA76; box-shadow: 0 4px 16px rgba(15,186,118,0.4);">Log a booking</div>
+        <div class="em-glow-demo" style="box-shadow: 0 0 40px rgba(15,186,118,0.3), inset 0 0 20px rgba(15,186,118,0.05); border-color: rgba(15,186,118,0.2);">
+          <span style="color: rgba(15,186,118,0.7); font-size:11px;">glow · rgba(15,186,118,0.3)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="swatch-item">
+      <div class="swatch-block" style="background:#10D982;"></div>
+      <div class="swatch-hex">#10D982</div>
+      <div class="swatch-name">Vivid Emerald (brighter)</div>
+      <div class="emerald-demo-wrap">
+        <div class="em-btn" style="background:#10D982; box-shadow: 0 4px 16px rgba(16,217,130,0.4); color: #0a2030;">Log a booking</div>
+        <div class="em-glow-demo" style="box-shadow: 0 0 40px rgba(16,217,130,0.35), inset 0 0 20px rgba(16,217,130,0.07); border-color: rgba(16,217,130,0.25);">
+          <span style="color: rgba(16,217,130,0.8); font-size:11px;">glow · rgba(16,217,130,0.35)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="swatch-item">
+      <div class="swatch-block" style="background:#06D6A0;"></div>
+      <div class="swatch-hex">#06D6A0</div>
+      <div class="swatch-name">Jewel Emerald (mint-leaning)</div>
+      <div class="emerald-demo-wrap">
+        <div class="em-btn" style="background:#06D6A0; box-shadow: 0 4px 16px rgba(6,214,160,0.4); color: #0a2030;">Log a booking</div>
+        <div class="em-glow-demo" style="box-shadow: 0 0 40px rgba(6,214,160,0.3), inset 0 0 20px rgba(6,214,160,0.06); border-color: rgba(6,214,160,0.2);">
+          <span style="color: rgba(6,214,160,0.7); font-size:11px;">glow · rgba(6,214,160,0.30)</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     SECTION 4 — BRASS / BURNT ORANGE
+     ═══════════════════════════════════════════ -->
+<section id="brass">
+  <h2 class="section-header">Burnt Orange / Brass Options</h2>
+  <p class="section-sub">This color is used for serif tile labels ("Tonight's $ Saved"). Shows as actual italic serif UI text below each swatch.</p>
+
+  <div class="swatch-grid">
+
+    <!-- 1 -->
+    <div class="swatch-item">
+      <div class="swatch-block" style="background:#C7A86B;"></div>
+      <div class="swatch-hex">#C7A86B <span class="current-badge">CURRENT</span></div>
+      <div class="swatch-name">Current Brass</div>
+      <div class="serif-demo">
+        <div class="serif-demo-text" style="color:#C7A86B;">Tonight's $ Saved</div>
+        <div class="serif-demo-note">"poo brown territory"</div>
+      </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="swatch-item">
+      <div class="swatch-block" style="background:#C49A5A;"></div>
+      <div class="swatch-hex">#C49A5A</div>
+      <div class="swatch-name">Slightly Warmer Brass</div>
+      <div class="serif-demo">
+        <div class="serif-demo-text" style="color:#C49A5A;">Tonight's $ Saved</div>
+        <div class="serif-demo-note">warmer, less green</div>
+      </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="swatch-item">
+      <div class="swatch-block" style="background:#D88341;"></div>
+      <div class="swatch-hex">#D88341</div>
+      <div class="swatch-name">Copper-Orange Premium</div>
+      <div class="serif-demo">
+        <div class="serif-demo-text" style="color:#D88341;">Tonight's $ Saved</div>
+        <div class="serif-demo-note">copper warmth, premium</div>
+      </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="swatch-item">
+      <div class="swatch-block" style="background:#D17A2E;"></div>
+      <div class="swatch-hex">#D17A2E</div>
+      <div class="swatch-name">Burnt Orange Medium</div>
+      <div class="serif-demo">
+        <div class="serif-demo-text" style="color:#D17A2E;">Tonight's $ Saved</div>
+        <div class="serif-demo-note">classic burnt orange</div>
+      </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="swatch-item">
+      <div class="swatch-block" style="background:#E08020;"></div>
+      <div class="swatch-hex">#E08020</div>
+      <div class="swatch-name">Bright Burnt Orange</div>
+      <div class="serif-demo">
+        <div class="serif-demo-text" style="color:#E08020;">Tonight's $ Saved</div>
+        <div class="serif-demo-note">high energy, warm</div>
+      </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="swatch-item">
+      <div class="swatch-block" style="background:#CC5500;"></div>
+      <div class="swatch-hex">#CC5500</div>
+      <div class="swatch-name">Pure Burnt Orange</div>
+      <div class="serif-demo">
+        <div class="serif-demo-text" style="color:#CC5500;">Tonight's $ Saved</div>
+        <div class="serif-demo-note">deep, saturated</div>
+      </div>
+    </div>
+
+    <!-- 7 -->
+    <div class="swatch-item">
+      <div class="swatch-block" style="background:#F58220;"></div>
+      <div class="swatch-hex">#F58220</div>
+      <div class="swatch-name">Vivid Orange</div>
+      <div class="serif-demo">
+        <div class="serif-demo-text" style="color:#F58220;">Tonight's $ Saved</div>
+        <div class="serif-demo-note">vivid, high contrast</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     SECTION 5 — CURATED COMBINATIONS
+     ═══════════════════════════════════════════ -->
+<section id="combos">
+  <h2 class="section-header">Curated Combinations</h2>
+  <p class="section-sub">Full glass tile with glassmorphism + Apple Card shadows. Each combo uses different background, emerald, and burnt orange.</p>
+
+  <div class="combo-grid">
+
+    <!-- COMBO A -->
+    <div class="combo-card">
+      <div class="combo-label"><strong>A — Restaurant Premium</strong><br>Refined, timeless</div>
+      <div class="combo-bg" style="
+        background:
+          radial-gradient(ellipse 60% 50% at 80% 15%, rgba(15,186,118,0.07) 0%, transparent 60%),
+          radial-gradient(ellipse 40% 40% at 15% 80%, rgba(216,131,65,0.05) 0%, transparent 60%),
+          #0D2942;
+      ">
+        <div class="combo-tile" style="
+          background: rgba(255,255,255,0.045);
+          border: 1px solid rgba(15,186,118,0.18);
+          box-shadow:
+            0 1px 2px rgba(0,0,0,0.55),
+            0 4px 12px rgba(0,0,0,0.35),
+            0 8px 36px rgba(15,186,118,0.13),
+            inset 0 1px 0 rgba(255,255,255,0.08);
+          backdrop-filter: blur(20px);
+        ">
+          <div class="combo-tile-label" style="color:#D88341;">Tonight's covers recovered</div>
+          <div class="combo-tile-num">8</div>
+          <div class="combo-tile-sub">62% conversion rate &nbsp;×&nbsp; $46/cover</div>
+        </div>
+      </div>
+      <div class="combo-chips">
+        <span class="chip" style="background:rgba(13,41,66,0.5); border-color:#0D2942; color:#0D2942; background:#0D2942; color:#fff;">BG #0D2942</span>
+        <span class="chip" style="color:#0FBA76; border-color:rgba(15,186,118,0.3);">EM #0FBA76</span>
+        <span class="chip" style="color:#D88341; border-color:rgba(216,131,65,0.3);">OG #D88341</span>
+      </div>
+    </div>
+
+    <!-- COMBO B -->
+    <div class="combo-card">
+      <div class="combo-label"><strong>B — Pop &amp; Confident</strong><br>Modern, vivid</div>
+      <div class="combo-bg" style="
+        background:
+          radial-gradient(ellipse 60% 50% at 80% 15%, rgba(16,217,130,0.08) 0%, transparent 60%),
+          radial-gradient(ellipse 40% 40% at 15% 80%, rgba(209,122,46,0.06) 0%, transparent 60%),
+          #0F2A47;
+      ">
+        <div class="combo-tile" style="
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(16,217,130,0.18);
+          box-shadow:
+            0 1px 2px rgba(0,0,0,0.55),
+            0 4px 12px rgba(0,0,0,0.35),
+            0 8px 36px rgba(16,217,130,0.14),
+            inset 0 1px 0 rgba(255,255,255,0.08);
+          backdrop-filter: blur(20px);
+        ">
+          <div class="combo-tile-label" style="color:#D17A2E;">Tonight's covers recovered</div>
+          <div class="combo-tile-num">8</div>
+          <div class="combo-tile-sub">62% conversion rate &nbsp;×&nbsp; $46/cover</div>
+        </div>
+      </div>
+      <div class="combo-chips">
+        <span class="chip" style="background:#0F2A47; color:#fff;">BG #0F2A47</span>
+        <span class="chip" style="color:#10D982; border-color:rgba(16,217,130,0.3);">EM #10D982</span>
+        <span class="chip" style="color:#D17A2E; border-color:rgba(209,122,46,0.3);">OG #D17A2E</span>
+      </div>
+    </div>
+
+    <!-- COMBO C -->
+    <div class="combo-card">
+      <div class="combo-label"><strong>C — High Energy</strong><br>Bold, bright</div>
+      <div class="combo-bg" style="
+        background:
+          radial-gradient(ellipse 60% 50% at 80% 15%, rgba(16,217,130,0.08) 0%, transparent 60%),
+          radial-gradient(ellipse 40% 40% at 15% 80%, rgba(224,128,32,0.07) 0%, transparent 60%),
+          #0F2A47;
+      ">
+        <div class="combo-tile" style="
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(16,217,130,0.2);
+          box-shadow:
+            0 1px 2px rgba(0,0,0,0.55),
+            0 4px 12px rgba(0,0,0,0.35),
+            0 8px 36px rgba(16,217,130,0.16),
+            inset 0 1px 0 rgba(255,255,255,0.09);
+          backdrop-filter: blur(20px);
+        ">
+          <div class="combo-tile-label" style="color:#E08020;">Tonight's covers recovered</div>
+          <div class="combo-tile-num">8</div>
+          <div class="combo-tile-sub">62% conversion rate &nbsp;×&nbsp; $46/cover</div>
+        </div>
+      </div>
+      <div class="combo-chips">
+        <span class="chip" style="background:#0F2A47; color:#fff;">BG #0F2A47</span>
+        <span class="chip" style="color:#10D982; border-color:rgba(16,217,130,0.3);">EM #10D982</span>
+        <span class="chip" style="color:#E08020; border-color:rgba(224,128,32,0.3);">OG #E08020</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</body>
+</html>
