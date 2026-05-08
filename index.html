@@ -1817,12 +1817,12 @@ function renderTilesForMode(mode) {
   const vtR = document.getElementById('vtRestaurant');
   const vtH = document.getElementById('vtHairdresser');
   const resetRow = document.querySelector('.reset-row');
+  if (resetRow) resetRow.style.display = 'flex';
   if (mode === 'restaurant') {
     if (hg) hg.style.display = 'none';
     if (rg) rg.style.display = 'grid';
     if (ltr) ltr.style.display = 'none';
     if (lbr) lbr.style.display = 'none';
-    if (resetRow) resetRow.style.display = 'none';
     if (vtR) vtR.classList.add('active');
     if (vtH) vtH.classList.remove('active');
   } else {
@@ -1830,7 +1830,6 @@ function renderTilesForMode(mode) {
     if (rg) rg.style.display = 'none';
     if (ltr) ltr.style.display = 'block';
     if (lbr) lbr.style.display = 'flex';
-    if (resetRow) resetRow.style.display = 'flex';
     if (vtR) vtR.classList.remove('active');
     if (vtH) vtH.classList.add('active');
   }
