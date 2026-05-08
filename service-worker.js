@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 8 May 2026 — 5 themes locked, glow strict scope: metric tiles only + 3 button groups, hero no glow
-const CACHE_VERSION = 'callmagnet-v9-5themes-glow-scope';
+// Last bumped: 8 May 2026 — 6 themes final (Mono/Emerald/Cream/Bloom/Ocean/Harbor), Reset glow + RPC fix
+const CACHE_VERSION = 'callmagnet-v10-final-themes-reset';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
