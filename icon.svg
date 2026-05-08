@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="45%" r="65%">
+      <stop offset="0%" stop-color="#182530"/>
+      <stop offset="100%" stop-color="#090E13"/>
+    </radialGradient>
+    <radialGradient id="glowHalo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#06D6A0" stop-opacity="0.28"/>
+      <stop offset="55%"  stop-color="#06D6A0" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="#06D6A0" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="starSheen" x1="15%" y1="10%" x2="70%" y2="90%">
+      <stop offset="0%"   stop-color="#ffffff" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="starGlow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="0" stdDeviation="14" flood-color="#06D6A0" flood-opacity="0.90"/>
+    </filter>
+    <filter id="softBlur" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+    <clipPath id="roundedSquare">
+      <rect width="512" height="512" rx="108"/>
+    </clipPath>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect width="512" height="512" rx="108" fill="url(#bgGrad)"/>
+
+  <!-- Ambient glow field -->
+  <circle cx="256" cy="248" r="192" fill="url(#glowHalo)" clip-path="url(#roundedSquare)"/>
+
+  <!-- Soft diffuse glow duplicate (blurred star silhouette for depth) -->
+  <polygon
+    points="256,108 291,208 396,210 312,272 342,372 256,314 170,372 200,272 116,210 221,208"
+    fill="#06D6A0" opacity="0.18" filter="url(#softBlur)" clip-path="url(#roundedSquare)"/>
+
+  <!-- Main star — emerald with glow drop-shadow -->
+  <polygon
+    points="256,108 291,208 396,210 312,272 342,372 256,314 170,372 200,272 116,210 221,208"
+    fill="#06D6A0" filter="url(#starGlow)"/>
+
+  <!-- Sheen overlay on star for glass/premium finish -->
+  <polygon
+    points="256,108 291,208 396,210 312,272 342,372 256,314 170,372 200,272 116,210 221,208"
+    fill="url(#starSheen)"/>
+
+  <!-- Brass accent ring at icon edge -->
+  <rect width="512" height="512" rx="108" fill="none" stroke="#C49A5A" stroke-width="3" stroke-opacity="0.38"/>
+</svg>
