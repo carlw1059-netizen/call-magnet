@@ -441,7 +441,7 @@ body {
 
 /* ── Topbar ── */
 .dash .topbar {
-  background: rgba(14,20,25,0.85) !important;
+  background: var(--topbar-bg, rgba(14,20,25,0.85)) !important;
   border-bottom: 1px solid var(--surface-07);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -467,7 +467,7 @@ body {
 /* ── Biz header ── */
 .dash .biz-name-large { color: var(--accent) !important; font-size: 26px !important; }
 .dash .biz-tagline {
-  color: rgba(255,255,255,0.45) !important;
+  color: var(--muted) !important;
   font-size: 10px !important;
   letter-spacing: 0.12em !important;
   text-transform: uppercase !important;
@@ -532,10 +532,11 @@ body {
   font-weight: normal !important;
 }
 .dash .hero-value { color: var(--accent) !important; text-shadow: 0 0 40px var(--accent-08); }
-.dash .hero-sub   { color: rgba(255,255,255,0.45) !important; opacity: 1 !important; font-size: 12px !important; }
+.dash .hero-sub   { color: var(--muted) !important; opacity: 1 !important; font-size: 12px !important; }
 
 /* ── Metric tiles ── */
 .dash .metrics { gap: 12px !important; }
+.dash #restaurantMetrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 .dash .metric {
   background:
     radial-gradient(circle at 0% 0%, var(--burnt-orange-06), transparent 28px),
@@ -590,7 +591,7 @@ body {
 }
 .dash .metric-sub {
   font-size: 9.5px !important;
-  color: rgba(255,255,255,0.28) !important;
+  color: var(--dim) !important;
   margin-top: 6px !important;
   font-weight: 400 !important;
 }
@@ -653,15 +654,15 @@ body {
   box-shadow: 0 2px 8px var(--shadow-25), inset 0 1px 0 var(--surface-glass) !important;
 }
 .dash .activity-summary:hover { background: var(--surface-05) !important; }
-.dash .activity-summary-text { color: rgba(255,255,255,0.92) !important; }
-.dash .activity-summary-sub  { color: rgba(255,255,255,0.45) !important; }
-.dash .expand-icon { color: rgba(255,255,255,0.28) !important; }
+.dash .activity-summary-text { color: var(--text-primary) !important; }
+.dash .activity-summary-sub  { color: var(--muted) !important; }
+.dash .expand-icon { color: var(--dim) !important; }
 .dash .activity-dropdown.open { border-top-color: var(--surface-07) !important; }
 .dash .activity-row { border-bottom-color: var(--surface-07) !important; }
-.dash .activity-number { color: rgba(255,255,255,0.92) !important; }
-.dash .activity-time   { color: rgba(255,255,255,0.28) !important; }
+.dash .activity-number { color: var(--text-primary) !important; }
+.dash .activity-time   { color: var(--dim) !important; }
 .dash .dot { background: var(--accent) !important; }
-.dash .empty-state, .dash .loading { color: rgba(255,255,255,0.28) !important; }
+.dash .empty-state, .dash .loading { color: var(--dim) !important; }
 
 /* ── Status pills ── */
 .dash .status-pill { background: var(--accent-10) !important; border-color: var(--accent-border) !important; color: var(--accent) !important; }
@@ -669,21 +670,21 @@ body {
 /* ── Reset / terms modals ── */
 .dash .modal-overlay { background: rgba(0,0,0,0.78) !important; }
 .dash .modal { background: var(--bg-primary) !important; border-color: var(--surface-10) !important; border-radius: 14px !important; }
-.dash .modal-title { color: rgba(255,255,255,0.92) !important; }
-.dash .modal-body  { color: rgba(255,255,255,0.50) !important; }
-.dash .btn-cancel  { border-color: var(--surface-10) !important; color: rgba(255,255,255,0.50) !important; border-radius: 8px !important; }
-.dash .btn-cancel:hover { background: var(--surface-07) !important; color: rgba(255,255,255,0.92) !important; }
+.dash .modal-title { color: var(--text-primary) !important; }
+.dash .modal-body  { color: var(--muted) !important; }
+.dash .btn-cancel  { border-color: var(--surface-10) !important; color: var(--muted) !important; border-radius: 8px !important; }
+.dash .btn-cancel:hover { background: var(--surface-07) !important; color: var(--text-primary) !important; }
 .dash .btn-confirm { border-radius: 8px !important; }
 
 /* ── Footer ── */
 .dash .dash-footer { border-top-color: var(--surface-07) !important; }
-.dash .dash-footer a, .dash .dash-footer span { color: rgba(255,255,255,0.18) !important; }
+.dash .dash-footer a, .dash .dash-footer span { color: var(--dim) !important; }
 .dash .dash-footer a:hover { color: var(--accent) !important; }
 
 /* ── Install banner ── */
 .dash .install-banner { background: var(--surface-glass) !important; border-color: var(--accent-border) !important; }
-.dash .install-banner-text { color: rgba(255,255,255,0.65) !important; }
-.dash .install-banner-close { color: rgba(255,255,255,0.35) !important; }
+.dash .install-banner-text { color: var(--muted) !important; }
+.dash .install-banner-close { color: var(--dim) !important; }
 
 /* ── Settings panel (dark override) ── */
 .dash .settings-panel {
@@ -1046,63 +1047,57 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const themes = {
   emerald: {
     label: 'Emerald',
-    surface: '#0E1419',
-    surfaceElevated: '#111820',
-    border: 'rgba(255,255,255,0.10)',
+    bg: '#0E1419',
+    accent: '#06D6A0',
+    accentText: '#FFFFFF',
     textPrimary: 'rgba(255,255,255,0.92)',
     textSecondary: 'rgba(255,255,255,0.55)',
-    accent: '#06D6A0',
-    accentText: '#FFFFFF'
+    isDark: true
   },
   stone: {
     label: 'Stone',
-    surface: '#0E1419',
-    surfaceElevated: '#111820',
-    border: 'rgba(255,255,255,0.10)',
+    bg: '#1A1814',
+    accent: '#A8A29E',
+    accentText: '#FFFFFF',
     textPrimary: 'rgba(255,255,255,0.92)',
     textSecondary: 'rgba(255,255,255,0.55)',
-    accent: '#0EA5A5',
-    accentText: '#FFFFFF'
+    isDark: true
   },
   ember: {
     label: 'Ember',
-    surface: '#0E1419',
-    surfaceElevated: '#111820',
-    border: 'rgba(255,255,255,0.10)',
+    bg: '#1A1410',
+    accent: '#E8742C',
+    accentText: '#FFFFFF',
     textPrimary: 'rgba(255,255,255,0.92)',
     textSecondary: 'rgba(255,255,255,0.55)',
-    accent: '#E8742C',
-    accentText: '#FFFFFF'
+    isDark: true
   },
   hearth: {
     label: 'Hearth',
-    surface: '#0E1419',
-    surfaceElevated: '#111820',
-    border: 'rgba(255,255,255,0.10)',
-    textPrimary: 'rgba(255,255,255,0.92)',
-    textSecondary: 'rgba(255,255,255,0.55)',
+    bg: '#FEF7F0',
     accent: '#DC2626',
-    accentText: '#FFFFFF'
+    accentText: '#FFFFFF',
+    textPrimary: 'rgba(20,15,10,0.92)',
+    textSecondary: 'rgba(20,15,10,0.60)',
+    isDark: false
   },
   studio: {
     label: 'Studio',
-    surface: '#0E1419',
-    surfaceElevated: '#111820',
-    border: 'rgba(255,255,255,0.10)',
-    textPrimary: 'rgba(255,255,255,0.92)',
-    textSecondary: 'rgba(255,255,255,0.55)',
-    accent: '#CBD5E1',
-    accentText: '#0E1419'
+    bg: '#F8FAFC',
+    accent: '#475569',
+    accentText: '#FFFFFF',
+    textPrimary: 'rgba(15,23,42,0.92)',
+    textSecondary: 'rgba(15,23,42,0.60)',
+    isDark: false
   },
   blossom: {
     label: 'Blossom',
-    surface: '#0E1419',
-    surfaceElevated: '#111820',
-    border: 'rgba(255,255,255,0.10)',
-    textPrimary: 'rgba(255,255,255,0.92)',
-    textSecondary: 'rgba(255,255,255,0.55)',
-    accent: '#A855F7',
-    accentText: '#FFFFFF'
+    bg: '#FDF2F8',
+    accent: '#EC4899',
+    accentText: '#FFFFFF',
+    textPrimary: 'rgba(40,15,30,0.92)',
+    textSecondary: 'rgba(40,15,30,0.60)',
+    isDark: false
   }
 };
 
@@ -1118,6 +1113,8 @@ function applyTheme(themeKey) {
   const theme = themes[themeKey] || themes.emerald;
   const r = document.documentElement;
   const [ar, ag, ab] = hexToRgb(theme.accent);
+  const [br, bgG, bb] = hexToRgb(theme.bg);
+
   // Accent alpha family — recomputed for each theme so tints stay coherent
   const alphaMap = {
     '--accent-04': 0.04, '--accent-06': 0.06, '--accent-07': 0.07, '--accent-08': 0.08,
@@ -1129,63 +1126,85 @@ function applyTheme(themeKey) {
   for (const [name, alpha] of Object.entries(alphaMap)) {
     r.style.setProperty(name, `rgba(${ar},${ag},${ab},${alpha})`);
   }
-  // Compound shadow vars that embed the accent glow
-  r.style.setProperty('--shadow-tile',
-    `0 1px 2px rgba(0,0,0,0.50), 0 4px 12px rgba(0,0,0,0.30), 0 8px 32px rgba(${ar},${ag},${ab},0.12), inset 0 1px 0 rgba(255,255,255,0.07)`);
-  r.style.setProperty('--shadow-tile-hover',
-    `0 2px 4px rgba(0,0,0,0.50), 0 8px 20px rgba(0,0,0,0.28), 0 16px 48px rgba(${ar},${ag},${ab},0.24), inset 0 1px 0 rgba(255,255,255,0.10)`);
-  // Core accent + dark base
+
+  // Shadow vars — heavier drop on dark, softer on light
+  if (theme.isDark) {
+    r.style.setProperty('--shadow-tile',
+      `0 1px 2px rgba(0,0,0,0.50), 0 4px 12px rgba(0,0,0,0.30), 0 8px 32px rgba(${ar},${ag},${ab},0.12), inset 0 1px 0 rgba(255,255,255,0.07)`);
+    r.style.setProperty('--shadow-tile-hover',
+      `0 2px 4px rgba(0,0,0,0.50), 0 8px 20px rgba(0,0,0,0.28), 0 16px 48px rgba(${ar},${ag},${ab},0.24), inset 0 1px 0 rgba(255,255,255,0.10)`);
+    r.style.setProperty('--shadow-25', 'rgba(0,0,0,0.25)');
+    r.style.setProperty('--shadow-28', 'rgba(0,0,0,0.28)');
+    r.style.setProperty('--shadow-30', 'rgba(0,0,0,0.30)');
+    r.style.setProperty('--shadow-50', 'rgba(0,0,0,0.50)');
+  } else {
+    r.style.setProperty('--shadow-tile',
+      `0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06), 0 8px 32px rgba(${ar},${ag},${ab},0.15), inset 0 1px 0 rgba(255,255,255,0.90)`);
+    r.style.setProperty('--shadow-tile-hover',
+      `0 2px 6px rgba(0,0,0,0.10), 0 8px 24px rgba(0,0,0,0.08), 0 16px 48px rgba(${ar},${ag},${ab},0.25), inset 0 1px 0 rgba(255,255,255,1)`);
+    r.style.setProperty('--shadow-25', 'rgba(0,0,0,0.08)');
+    r.style.setProperty('--shadow-28', 'rgba(0,0,0,0.10)');
+    r.style.setProperty('--shadow-30', 'rgba(0,0,0,0.08)');
+    r.style.setProperty('--shadow-50', 'rgba(0,0,0,0.15)');
+  }
+
+  // Core accent
   r.style.setProperty('--accent', theme.accent);
   r.style.setProperty('--accent-text', theme.accentText);
   r.style.setProperty('--accent-contrast', theme.accentText);
   r.style.setProperty('--accent-dim', `rgba(${ar},${ag},${ab},0.10)`);
-  r.style.setProperty('--bg-primary', '#0E1419');
-  r.style.setProperty('--surface', theme.surface);
-  r.style.setProperty('--surface-elevated', theme.surfaceElevated);
-  r.style.setProperty('--border', theme.border);
+
+  // Background — per-theme
+  r.style.setProperty('--bg-primary', theme.bg);
+  r.style.setProperty('--bg', theme.bg);
+  r.style.setProperty('--surface', theme.bg);
+  r.style.setProperty('--surface-elevated', theme.bg);
+  r.style.setProperty('--surface2', theme.bg);
+
+  // Text
   r.style.setProperty('--text-primary', theme.textPrimary);
   r.style.setProperty('--text-secondary', theme.textSecondary);
-  // Legacy aliases
-  r.style.setProperty('--bg', theme.surface);
-  r.style.setProperty('--surface2', theme.surfaceElevated);
   r.style.setProperty('--text', theme.textPrimary);
   r.style.setProperty('--muted', theme.textSecondary);
-  r.style.setProperty('--dim', theme.textSecondary);
+
+  // Topbar: semi-transparent bg color for backdrop-filter blur
+  r.style.setProperty('--topbar-bg', `rgba(${br},${bgG},${bb},0.88)`);
+  r.style.setProperty('--border', theme.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)');
+
+  // Override .dash element's CSS-scoped vars with inline styles so they win over .dash { --var: ... } rules
+  const surfaceRgb = theme.isDark ? '255,255,255' : '0,0,0';
+  const dim = theme.isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.30)';
+  const dash = document.querySelector('.dash');
+  if (dash) {
+    dash.style.setProperty('--surface-glass',    `rgba(${surfaceRgb},0.04)`);
+    dash.style.setProperty('--surface-025',      `rgba(${surfaceRgb},0.025)`);
+    dash.style.setProperty('--surface-03',       `rgba(${surfaceRgb},0.03)`);
+    dash.style.setProperty('--surface-05',       `rgba(${surfaceRgb},0.05)`);
+    dash.style.setProperty('--surface-06',       `rgba(${surfaceRgb},0.06)`);
+    dash.style.setProperty('--surface-07',       `rgba(${surfaceRgb},0.07)`);
+    dash.style.setProperty('--surface-08',       `rgba(${surfaceRgb},0.08)`);
+    dash.style.setProperty('--surface-09',       `rgba(${surfaceRgb},0.09)`);
+    dash.style.setProperty('--surface-10',       `rgba(${surfaceRgb},0.10)`);
+    dash.style.setProperty('--surface-12',       `rgba(${surfaceRgb},0.12)`);
+    dash.style.setProperty('--surface-13',       `rgba(${surfaceRgb},0.13)`);
+    dash.style.setProperty('--surface-15',       `rgba(${surfaceRgb},0.15)`);
+    dash.style.setProperty('--surface-18',       `rgba(${surfaceRgb},0.18)`);
+    dash.style.setProperty('--surface',          `rgba(${surfaceRgb},0.04)`);
+    dash.style.setProperty('--surface-elevated', `rgba(${surfaceRgb},0.07)`);
+    dash.style.setProperty('--border',           theme.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)');
+    dash.style.setProperty('--text',             theme.textPrimary);
+    dash.style.setProperty('--text-primary',     theme.textPrimary);
+    dash.style.setProperty('--muted',            theme.textSecondary);
+    dash.style.setProperty('--dim',              dim);
+  }
+
   try { localStorage.setItem('cm_theme_preference', themeKey); } catch (e) {}
 }
 
 (function applyEarlyTheme() {
-  // Dark-aesthetic early theme — prevents FOUC with correct bg + accent before full init
-  const earlyThemes = {
-    emerald: { accent: '#06D6A0', accentText: '#FFFFFF' },
-    stone:   { accent: '#0EA5A5', accentText: '#FFFFFF' },
-    ember:   { accent: '#E8742C', accentText: '#FFFFFF' },
-    hearth:  { accent: '#DC2626', accentText: '#FFFFFF' },
-    studio:  { accent: '#CBD5E1', accentText: '#0E1419' },
-    blossom: { accent: '#A855F7', accentText: '#FFFFFF' }
-  };
   try {
     const themeKey = localStorage.getItem('cm_theme_preference') || 'emerald';
-    const theme = earlyThemes[themeKey] || earlyThemes.emerald;
-    const r = document.documentElement;
-    const h = theme.accent.replace('#', '');
-    const ar = parseInt(h.slice(0,2),16), ag = parseInt(h.slice(2,4),16), ab = parseInt(h.slice(4,6),16);
-    r.style.setProperty('--bg', '#0E1419');
-    r.style.setProperty('--bg-primary', '#0E1419');
-    r.style.setProperty('--surface', '#0E1419');
-    r.style.setProperty('--surface-elevated', '#111820');
-    r.style.setProperty('--border', 'rgba(255,255,255,0.10)');
-    r.style.setProperty('--text-primary', 'rgba(255,255,255,0.92)');
-    r.style.setProperty('--text-secondary', 'rgba(255,255,255,0.55)');
-    r.style.setProperty('--text', 'rgba(255,255,255,0.92)');
-    r.style.setProperty('--muted', 'rgba(255,255,255,0.55)');
-    r.style.setProperty('--dim', 'rgba(255,255,255,0.30)');
-    r.style.setProperty('--accent', theme.accent);
-    r.style.setProperty('--accent-text', theme.accentText);
-    r.style.setProperty('--accent-contrast', theme.accentText);
-    r.style.setProperty('--accent-dim', `rgba(${ar},${ag},${ab},0.10)`);
-    r.style.setProperty('--accent-glow', `rgba(${ar},${ag},${ab},0.12)`);
-    r.style.setProperty('--accent-border', `rgba(${ar},${ag},${ab},0.15)`);
+    applyTheme(themeKey);
   } catch (e) {}
 })();
 
