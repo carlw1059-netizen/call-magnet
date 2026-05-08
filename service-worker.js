@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 8 May 2026 — background uniformity: modal, settings panel, theme-color meta
-const CACHE_VERSION = 'callmagnet-v7-bg-uniformity';
+// Last bumped: 8 May 2026 — theme backgrounds: each theme defines own bg, light themes (Hearth/Studio/Blossom), restaurant 2x2
+const CACHE_VERSION = 'callmagnet-v8-theme-backgrounds';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
