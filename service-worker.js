@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 8 May 2026 — glass aesthetic with locked colors (#0E1419 + #06D6A0 + #CC5500)
-const CACHE_VERSION = 'callmagnet-v3-glass-aesthetic';
+// Last bumped: 8 May 2026 — theme-tint text elements (biz name, date, reset btn, section titles)
+const CACHE_VERSION = 'callmagnet-v6-text-tint';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
