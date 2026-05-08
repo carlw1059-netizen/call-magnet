@@ -631,6 +631,7 @@ body {
   font-size: 10.5px !important;
   padding: 4px 10px !important;
   border-radius: 6px !important;
+  box-shadow: 0 0 10px var(--accent-glow) !important;
 }
 .dash .reset-btn:hover { background: var(--accent-10) !important; color: var(--accent) !important; border-color: var(--accent-30) !important; }
 
@@ -838,17 +839,23 @@ body {
               </div>
               <span>Emerald</span>
             </div>
-            <div class="theme-tile" data-theme="fresh">
-              <div class="theme-swatch" style="background:#FFFFFF;border:1px solid rgba(6,214,160,0.5);">
-                <div class="theme-accent-dot" style="background:#06D6A0;"></div>
+            <div class="theme-tile" data-theme="cream">
+              <div class="theme-swatch" style="background:#CBBD93;border:1px solid rgba(102,0,51,0.3);">
+                <div class="theme-accent-dot" style="background:#660033;"></div>
               </div>
-              <span>Fresh</span>
+              <span>Cream</span>
             </div>
             <div class="theme-tile" data-theme="bloom">
               <div class="theme-swatch" style="background:#FDF2F8;border:1px solid rgba(107,44,126,0.3);">
                 <div class="theme-accent-dot" style="background:#6B2C7E;"></div>
               </div>
               <span>Bloom</span>
+            </div>
+            <div class="theme-tile" data-theme="ocean">
+              <div class="theme-swatch" style="background:#7E7E7E;border:1px solid rgba(11,163,255,0.3);">
+                <div class="theme-accent-dot" style="background:#0BA3FF;"></div>
+              </div>
+              <span>Ocean</span>
             </div>
             <div class="theme-tile" data-theme="harbor">
               <div class="theme-swatch" style="background:#0A2540;border:1px solid rgba(204,85,0,0.35);">
@@ -1058,10 +1065,10 @@ const themes = {
     textSecondary: 'rgba(255,255,255,0.55)',
     isDark: true
   },
-  fresh: {
-    label: 'Fresh',
-    bg: '#FFFFFF',
-    accent: '#06D6A0',
+  cream: {
+    label: 'Cream',
+    bg: '#CBBD93',
+    accent: '#660033',
     accentText: '#FFFFFF',
     textPrimary: 'rgba(10,10,10,0.92)',
     textSecondary: 'rgba(10,10,10,0.55)',
@@ -1074,6 +1081,15 @@ const themes = {
     accentText: '#FFFFFF',
     textPrimary: 'rgba(20,10,25,0.92)',
     textSecondary: 'rgba(20,10,25,0.55)',
+    isDark: false
+  },
+  ocean: {
+    label: 'Ocean',
+    bg: '#7E7E7E',
+    accent: '#0BA3FF',
+    accentText: '#FFFFFF',
+    textPrimary: 'rgba(10,10,10,0.92)',
+    textSecondary: 'rgba(10,10,10,0.55)',
     isDark: false
   },
   harbor: {
@@ -2130,11 +2146,10 @@ function closeResetModal() { document.getElementById('resetModal').classList.rem
 async function confirmReset() {
   if (!currentClient) return;
   if (isAccountReadOnly()) { closeResetModal(); return; }
-  const now = new Date().toISOString();
   try {
-    const { error } = await sb.from('clients').update({ reset_date: now }).eq('id', currentClient.id);
+    const { error } = await sb.rpc('reset_client_counter', { p_client_id: currentClient.id });
     if (error) { console.error('reset failed', error); closeResetModal(); return; }
-    currentClient.reset_date = now;
+    currentClient.reset_date = new Date().toISOString();
   } catch (e) { console.error('reset failed', e); }
   closeResetModal();
   await loadStats();
