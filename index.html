@@ -214,9 +214,9 @@ body {
 .biz-header-left { display: flex; flex-direction: column; min-width: 0; }
 .biz-name-large { font-size: 36px; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; line-height: 1.1; }
 .biz-tagline { font-family: var(--sans); font-size: 12px; color: var(--accent); letter-spacing: 0.02em; margin-top: 4px; font-weight: 700; white-space: nowrap; display: block; }
-.biz-header-right { display: flex; align-items: flex-start; flex-shrink: 0; gap: 8px; }
-.vertical-toggle { display: none; align-items: stretch; background: var(--surface); border: 1px solid var(--accent); border-radius: 4px; overflow: hidden; flex-wrap: wrap; gap: 0; }
-.vertical-toggle.visible { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 8px 0; }
+.biz-header-right { display: flex; align-items: flex-end; flex-shrink: 0; gap: 8px; }
+.vertical-toggle { display: none; align-items: stretch; background: var(--surface); border: 1px solid var(--accent); border-radius: 4px; overflow: hidden; }
+.vertical-toggle.visible { display: inline-flex; }
 .vt-btn { background: none; border: none; border-right: 1px solid var(--accent); color: var(--accent); font-size: 14px; line-height: 1; padding: 0 12px; cursor: pointer; font-family: var(--mono); transition: background 0.2s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; display: flex; align-items: center; justify-content: center; min-height: 28px; }
 .vt-btn:last-child { border-right: none; }
 .vt-btn:hover { background: var(--accent-dim); }
