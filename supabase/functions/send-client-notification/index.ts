@@ -47,6 +47,7 @@ const VAPID_PUBLIC_KEY          = Deno.env.get('VAPID_PUBLIC_KEY');
 const VAPID_PRIVATE_KEY         = Deno.env.get('VAPID_PRIVATE_KEY');
 const VAPID_SUBJECT             = Deno.env.get('VAPID_SUBJECT'); // e.g. mailto:hello@callmagnet.com.au
 const RESEND_API_KEY            = Deno.env.get('RESEND_API_KEY');
+const PROGRESSIER_API_KEY       = Deno.env.get('PROGRESSIER_API_KEY');
 
 interface SubscriptionRow {
   id:       string;
@@ -63,7 +64,7 @@ interface ClientRow {
   avg_job_value: number | null;
 }
 
-type EventName = 'missed_call' | 'booking_logged';
+type EventName = 'missed_call' | 'booking_logged' | 'link_tapped';
 
 function templateFor(
   event: EventName,
@@ -223,8 +224,73 @@ Deno.serve(async (req) => {
     if (!clientId) {
       return json(400, { error: 'missing_required_field', detail: 'client_id is required' });
     }
-    if (event !== 'missed_call' && event !== 'booking_logged') {
-      return json(400, { error: 'invalid_event', detail: "event must be 'missed_call' or 'booking_logged'" });
+    if (event !== 'missed_call' && event !== 'booking_logged' && event !== 'link_tapped') {
+      return json(400, { error: 'invalid_event', detail: "event must be 'missed_call', 'booking_logged', or 'link_tapped'" });
+    }
+
+    // ── link_tapped: Progressier-only path (no Web Push, no email) ──────────
+    if (event === 'link_tapped') {
+      const ltClientRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/clients?id=eq.${encodeURIComponent(clientId)}&select=id,business_name,vertical`,
+        {
+          headers: {
+            apikey:        SUPABASE_SERVICE_ROLE_KEY,
+            Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          },
+        },
+      );
+      if (!ltClientRes.ok) {
+        throw new Error(`client_lookup_failed: ${ltClientRes.status} ${await ltClientRes.text()}`);
+      }
+      const ltClientArr = await ltClientRes.json() as Array<{ id: string; business_name: string; vertical: string }>;
+      if (ltClientArr.length === 0) {
+        return json(404, { error: 'client_not_found', detail: `no client with id ${clientId}` });
+      }
+      const ltVertical = ltClientArr[0].vertical;
+
+      let ltTitle: string;
+      let ltBody:  string;
+      if (ltVertical === 'restaurant') {
+        ltTitle = '🍽️ Customer activity';
+        ltBody  = "A customer just tapped your booking link — they're looking now";
+      } else if (ltVertical === 'barber') {
+        ltTitle = '✂️ Customer activity';
+        ltBody  = "A customer just tapped your booking link — they're looking now";
+      } else if (ltVertical === 'tradie') {
+        ltTitle = '🔧 Customer activity';
+        ltBody  = 'A customer just tapped your call-back link';
+      } else {
+        ltTitle = '📱 Customer activity';
+        ltBody  = 'A customer just tapped your link';
+      }
+
+      if (!PROGRESSIER_API_KEY) {
+        console.warn('link_tapped: PROGRESSIER_API_KEY missing — skipping push');
+        return json(200, { sent: false, reason: 'PROGRESSIER_API_KEY not configured', event, client_id: clientId });
+      }
+
+      const progRes = await fetch('https://progressier.app/api/v1/push/send', {
+        method: 'POST',
+        headers: {
+          Authorization:  `Bearer ${PROGRESSIER_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          recipients: { id: clientId },
+          title:      ltTitle,
+          body:       ltBody,
+          url:        'https://callmagnet.com.au',
+        }),
+      });
+
+      if (!progRes.ok) {
+        const errText = await progRes.text();
+        console.error(`link_tapped: progressier api error ${progRes.status}: ${errText}`);
+        return json(200, { sent: false, reason: 'progressier_api_error', status: progRes.status, event, client_id: clientId });
+      }
+
+      console.log(`link_tapped: progressier push sent for client ${clientId}`);
+      return json(200, { sent: true, event: 'link_tapped', client_id: clientId });
     }
 
     // ── lookup client (vertical, business_name, email, avg_job_value) ───────

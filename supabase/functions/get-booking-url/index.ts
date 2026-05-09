@@ -25,6 +25,7 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    const INTERNAL_SECRET = Deno.env.get('INTERNAL_SECRET')
 
 
     const url = new URL(req.url)
@@ -91,6 +92,32 @@ Deno.serve(async (req) => {
         })
       }
     )
+
+
+    // Fire-and-forget push notification — never block redirect
+    if (INTERNAL_SECRET) {
+      fetch(`${supabaseUrl}/functions/v1/send-client-notification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Internal-Secret': INTERNAL_SECRET,
+          'Authorization': `Bearer ${supabaseKey}`
+        },
+        body: JSON.stringify({
+          event: 'link_tapped',
+          client_id: clientId,
+          timestamp: now.toISOString(),
+          metadata: {
+            user_agent: req.headers.get('user-agent') || null,
+            click_id: null
+          }
+        })
+      }).catch((err) => {
+        console.warn('get-booking-url: push fire-and-forget failed:', err?.message ?? err);
+      });
+    } else {
+      console.warn('get-booking-url: INTERNAL_SECRET missing, skipping push');
+    }
 
 
     return new Response(JSON.stringify({ booking_url: clients[0].booking_url }), {
