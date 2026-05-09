@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 9 May 2026 — tagline nowrap on mobile + charcoal overscroll bg
-const CACHE_VERSION = 'callmagnet-v15-tagline-overscroll-fix';
+// Last bumped: 9 May 2026 — reset modal card styling + vertical toggle position above tagline
+const CACHE_VERSION = 'callmagnet-v17-modal-toggle-layout-fix';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 

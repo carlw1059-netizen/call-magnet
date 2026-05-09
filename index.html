@@ -184,13 +184,13 @@ body {
 </style>
 <style>
 .main { max-width: 900px; margin: 0 auto; padding: 1.5rem 1.5rem; }
-.biz-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1rem; gap: 1rem; }
+.biz-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; gap: 1rem; }
 .biz-header-left { display: flex; flex-direction: column; min-width: 0; }
 .biz-name-large { font-size: 36px; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; line-height: 1.1; }
-.biz-tagline { font-family: var(--sans); font-size: 12px; color: var(--accent); letter-spacing: 0.02em; margin-top: 4px; font-weight: 700; white-space: nowrap; }
-.biz-header-right { display: flex; align-items: flex-end; flex-shrink: 0; gap: 8px; }
+.biz-tagline { font-family: var(--sans); font-size: 12px; color: var(--accent); letter-spacing: 0.02em; margin-top: 4px; font-weight: 700; white-space: nowrap; display: block; }
+.biz-header-right { display: flex; align-items: flex-start; flex-shrink: 0; gap: 8px; }
 .vertical-toggle { display: none; align-items: stretch; background: var(--surface); border: 1px solid var(--accent); border-radius: 4px; overflow: hidden; }
-.vertical-toggle.visible { display: inline-flex; }
+.vertical-toggle.visible { display: inline-flex; margin-bottom: 8px; }
 .vt-btn { background: none; border: none; border-right: 1px solid var(--accent); color: var(--accent); font-size: 14px; line-height: 1; padding: 0 12px; cursor: pointer; font-family: var(--mono); transition: background 0.2s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; display: flex; align-items: center; justify-content: center; min-height: 28px; }
 .vt-btn:last-child { border-right: none; }
 .vt-btn:hover { background: var(--accent-dim); }
@@ -642,13 +642,14 @@ body {
 .dash .status-pill { background: var(--accent-10) !important; border-color: var(--accent-border) !important; color: var(--accent) !important; }
 
 /* ── Reset / terms modals ── */
-.dash .modal-overlay { background: rgba(0,0,0,0.78) !important; }
-.dash .modal { background: var(--bg-primary) !important; border-color: var(--surface-10) !important; border-radius: 14px !important; }
-.dash .modal-title { color: var(--text-primary) !important; }
-.dash .modal-body  { color: var(--muted) !important; }
-.dash .btn-cancel  { border-color: var(--surface-10) !important; color: var(--muted) !important; border-radius: 8px !important; }
-.dash .btn-cancel:hover { background: var(--surface-07) !important; color: var(--text-primary) !important; }
-.dash .btn-confirm { border-radius: 8px !important; background: var(--red) !important; color: #fff !important; }
+.dash .modal-overlay { background: rgba(0,0,0,0.6) !important; backdrop-filter: blur(4px) !important; z-index: 1000 !important; }
+.dash .modal { background: #0E1419 !important; border: 1px solid rgba(6,214,160,0.2) !important; border-radius: 16px !important; padding: 24px !important; max-width: 320px !important; box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important; }
+.dash .modal-title { color: var(--text-primary) !important; font-size: 18px !important; font-weight: 600 !important; margin-bottom: 12px !important; }
+.dash .modal-body  { color: var(--muted) !important; font-size: 14px !important; margin-bottom: 24px !important; }
+.dash .modal-actions { justify-content: flex-end !important; }
+.dash .btn-cancel  { flex: unset !important; border: 1px solid rgba(6,214,160,0.3) !important; color: var(--accent) !important; background: transparent !important; padding: 10px 20px !important; border-radius: 8px !important; }
+.dash .btn-cancel:hover { background: var(--accent-08) !important; color: var(--accent) !important; }
+.dash .btn-confirm { flex: unset !important; border-radius: 8px !important; background: var(--red) !important; color: #fff !important; padding: 10px 20px !important; box-shadow: 0 0 8px var(--red-glow) !important; }
 
 /* ── Footer ── */
 .dash .dash-footer { border-top-color: var(--surface-07) !important; }
@@ -812,13 +813,13 @@ body {
     <div class="biz-header">
       <div class="biz-header-left">
         <div class="biz-name-large" id="bizNameLarge"></div>
-        <div class="biz-tagline">Pull every customer back.</div>
-      </div>
-      <div class="biz-header-right">
         <div class="vertical-toggle" id="verticalToggle">
           <button class="vt-btn" id="vtRestaurant" type="button" aria-label="Restaurant view" onclick="setDashboardMode('restaurant')">🍽️</button>
           <button class="vt-btn" id="vtHairdresser" type="button" aria-label="Hairdresser view" onclick="setDashboardMode('hairdresser')">👩</button>
         </div>
+        <div class="biz-tagline">Pull every customer back.</div>
+      </div>
+      <div class="biz-header-right">
         <button class="refresh-btn" id="refreshBtn" onclick="handleRefresh()">
           <span class="refresh-icon" id="refreshIcon">↻</span> Refresh
         </button>
