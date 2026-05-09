@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 9 May 2026 — restore vertical toggle compact layout
-const CACHE_VERSION = 'callmagnet-v20-toggle-layout-restore';
+// Last bumped: 9 May 2026 — Progressier push notifications integration
+const CACHE_VERSION = 'callmagnet-v21-progressier-push';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
