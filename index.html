@@ -994,6 +994,7 @@ let statsRequestId = 0;
 
 function isAccountReadOnly() {
   if (!currentClient) return true;
+  if (currentClient.is_test_account) return false;
   if (currentClient.account_status === 'suspended') return true;
   if (currentClient.cancellation_scheduled) return true;
   return false;
@@ -1314,10 +1315,10 @@ async function loadDashboard(user, opts = {}) {
 
   if (!currentClient.terms_accepted) showTermsModal();
 
-  if (currentClient.account_status === 'suspended') {
+  if (currentClient.account_status === 'suspended' && !currentClient.is_test_account) {
     document.getElementById('suspensionBanner').classList.add('active');
   }
-  if (currentClient.cancellation_scheduled) {
+  if (currentClient.cancellation_scheduled && !currentClient.is_test_account) {
     const endDate = new Date(currentClient.cancelled_at);
     endDate.setDate(endDate.getDate() + 30);
     document.getElementById('cancellationEndDate').textContent =
