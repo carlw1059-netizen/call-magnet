@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 9 May 2026 — chain progressier.js + service-worker.js via importScripts
-const CACHE_VERSION = 'callmagnet-v24-sw-chain';
+// Last bumped: 9 May 2026 — vertical toggle align-self flex-start
+const CACHE_VERSION = 'callmagnet-v25-toggle-align';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
