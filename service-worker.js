@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
 // Last bumped: 8 May 2026 — PNG icon fallbacks rendered from icon.svg (192, 512, 180px)
-const CACHE_VERSION = 'callmagnet-v12-icon-pngs';
+const CACHE_VERSION = 'callmagnet-v15-tagline-overscroll-fix';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
