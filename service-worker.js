@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 9 May 2026 — font swap Aptos/Candara, size bump, red revert, footer white+bigger
-const CACHE_VERSION = 'callmagnet-v15-aptos-candara-sizes';
+// Last bumped: 9 May 2026 — tagline nowrap on mobile + charcoal overscroll bg
+const CACHE_VERSION = 'callmagnet-v16-tagline-overscroll-fix';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
