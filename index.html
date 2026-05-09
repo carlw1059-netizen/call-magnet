@@ -155,8 +155,10 @@ body {
 .dash { display: none; min-height: 100vh; background: var(--bg); }
 .suspension-banner { display: none; background: var(--red-dim); border-bottom: 2px solid var(--red); padding: 14px 1.5rem; font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--red); letter-spacing: 0.03em; text-align: center; }
 .suspension-banner.active { display: block; }
-.cancellation-banner { display: none; background: rgba(204, 85, 0, 0.18); border-bottom: 1px solid rgba(204, 85, 0, 0.4); padding: 14px 1.5rem; font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--burnt-orange); letter-spacing: 0.03em; text-align: center; }
+.cancellation-banner { display: none; background: rgba(204, 85, 0, 0.18); border-bottom: 1px solid rgba(204, 85, 0, 0.4); padding: 14px 1.5rem; font-family: var(--mono); font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.95); letter-spacing: 0.03em; text-align: center; }
 .cancellation-banner.active { display: block; }
+.cancellation-banner a { color: rgba(255,255,255,0.9); text-decoration: underline; }
+.cancellation-banner a:hover { color: #ffffff; }
 .topbar { display: flex; justify-content: space-between; align-items: flex-end; padding: 1rem 1.5rem 0.6rem 1.5rem; position: sticky; top: 0; background: var(--bg); z-index: 20; overflow: visible; }
 .topbar::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%); background-size: 200% 100%; animation: lineSweep 3s ease-in-out infinite; }
 @keyframes lineSweep { 0% { background-position: -100% 0; } 100% { background-position: 200% 0; } }
@@ -189,8 +191,8 @@ body {
 .biz-name-large { font-size: 36px; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; line-height: 1.1; }
 .biz-tagline { font-family: var(--sans); font-size: 12px; color: var(--accent); letter-spacing: 0.02em; margin-top: 4px; font-weight: 700; white-space: nowrap; display: block; }
 .biz-header-right { display: flex; align-items: flex-start; flex-shrink: 0; gap: 8px; }
-.vertical-toggle { display: none; align-items: stretch; background: var(--surface); border: 1px solid var(--accent); border-radius: 4px; overflow: hidden; }
-.vertical-toggle.visible { display: inline-flex; margin-bottom: 8px; }
+.vertical-toggle { display: none; align-items: stretch; background: var(--surface); border: 1px solid var(--accent); border-radius: 4px; overflow: hidden; flex-wrap: wrap; gap: 0; }
+.vertical-toggle.visible { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 8px 0; }
 .vt-btn { background: none; border: none; border-right: 1px solid var(--accent); color: var(--accent); font-size: 14px; line-height: 1; padding: 0 12px; cursor: pointer; font-family: var(--mono); transition: background 0.2s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; display: flex; align-items: center; justify-content: center; min-height: 28px; }
 .vt-btn:last-child { border-right: none; }
 .vt-btn:hover { background: var(--accent-dim); }
@@ -235,14 +237,14 @@ body {
 .reset-row { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
 .reset-btn { background: none; border: 2px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 6px 14px; font-size: 12px; font-family: var(--mono); letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s; font-weight: 700; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .reset-btn:hover { background: var(--accent); color: var(--accent-contrast); }
-.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center; padding: 2rem; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 9000; align-items: center; justify-content: center; padding: 2rem; }
 .modal-overlay.open { display: flex; }
-.modal { background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; padding: 1.5rem; max-width: 340px; width: 100%; }
-.modal-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 0.5rem; }
-.modal-body { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.6; }
-.modal-actions { display: flex; gap: 0.75rem; }
-.btn-cancel { flex: 1; background: none; border: 1px solid var(--border2); color: var(--muted); border-radius: 6px; padding: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--sans); -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-.btn-confirm { flex: 1; background: var(--red); border: none; color: #fff; border-radius: 6px; padding: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--sans); -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.modal { background: #0E1419; border: 1px solid rgba(6,214,160,0.25); border-radius: 16px; padding: 28px 24px 20px; max-width: 320px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.5); position: relative; z-index: 9001; }
+.modal-title { font-size: 18px; font-weight: 600; color: rgba(255,255,255,0.92); margin-bottom: 10px; }
+.modal-body { font-size: 14px; font-weight: 400; color: rgba(255,255,255,0.55); margin-bottom: 24px; line-height: 1.6; }
+.modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+.btn-cancel { background: transparent; border: 1px solid rgba(6,214,160,0.35); color: var(--accent); border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--sans); -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.btn-confirm { background: var(--red); border: none; color: #fff; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--sans); -webkit-tap-highlight-color: transparent; touch-action: manipulation; box-shadow: 0 0 10px var(--red-glow); }
 .renewal-strip { display: flex; align-items: center; margin-bottom: 0.75rem; padding: 10px 14px; background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; }
 .renewal-label { font-family: var(--sans); font-size: 10px; letter-spacing: 0.02em; color: var(--accent); font-weight: 700; opacity: 0.7; }
 .renewal-value { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent); }
@@ -445,6 +447,8 @@ body {
   text-transform: uppercase !important;
   font-weight: 400 !important;
   margin-top: 5px !important;
+  white-space: nowrap !important;
+  display: block !important;
 }
 .dash .refresh-btn {
   background: var(--surface-05) !important;
@@ -464,7 +468,9 @@ body {
 .dash .birthday-banner { background: var(--accent-08) !important; border-color: var(--accent-border) !important; color: var(--accent) !important; }
 .dash .demo-banner { color: var(--dim) !important; }
 .dash .suspension-banner { background: rgba(255,77,77,0.12) !important; }
-.dash .cancellation-banner { background: rgba(204, 85, 0, 0.18) !important; border-bottom-color: rgba(204, 85, 0, 0.4) !important; color: var(--burnt-orange) !important; }
+.dash .cancellation-banner { background: rgba(204, 85, 0, 0.18) !important; border-bottom-color: rgba(204, 85, 0, 0.4) !important; color: rgba(255,255,255,0.95) !important; }
+.dash .cancellation-banner a { color: rgba(255,255,255,0.9) !important; text-decoration: underline !important; }
+.dash .cancellation-banner a:hover { color: #ffffff !important; }
 
 /* ── Period controls ── */
 .dash .period-label-text { color: var(--accent) !important; }
@@ -642,14 +648,14 @@ body {
 .dash .status-pill { background: var(--accent-10) !important; border-color: var(--accent-border) !important; color: var(--accent) !important; }
 
 /* ── Reset / terms modals ── */
-.dash .modal-overlay { background: rgba(0,0,0,0.6) !important; backdrop-filter: blur(4px) !important; z-index: 1000 !important; }
-.dash .modal { background: #0E1419 !important; border: 1px solid rgba(6,214,160,0.2) !important; border-radius: 16px !important; padding: 24px !important; max-width: 320px !important; box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important; }
-.dash .modal-title { color: var(--text-primary) !important; font-size: 18px !important; font-weight: 600 !important; margin-bottom: 12px !important; }
-.dash .modal-body  { color: var(--muted) !important; font-size: 14px !important; margin-bottom: 24px !important; }
-.dash .modal-actions { justify-content: flex-end !important; }
-.dash .btn-cancel  { flex: unset !important; border: 1px solid rgba(6,214,160,0.3) !important; color: var(--accent) !important; background: transparent !important; padding: 10px 20px !important; border-radius: 8px !important; }
+.dash .modal-overlay { background: rgba(0,0,0,0.65) !important; backdrop-filter: blur(4px) !important; -webkit-backdrop-filter: blur(4px) !important; z-index: 9000 !important; }
+.dash .modal { background: #0E1419 !important; border: 1px solid rgba(6,214,160,0.25) !important; border-radius: 16px !important; padding: 28px 24px 20px !important; max-width: 320px !important; width: 90% !important; box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important; position: relative !important; z-index: 9001 !important; }
+.dash .modal-title { color: rgba(255,255,255,0.92) !important; font-size: 18px !important; font-weight: 600 !important; margin-bottom: 10px !important; }
+.dash .modal-body  { color: rgba(255,255,255,0.55) !important; font-size: 14px !important; margin-bottom: 24px !important; }
+.dash .modal-actions { justify-content: flex-end !important; gap: 12px !important; }
+.dash .btn-cancel  { background: transparent !important; border: 1px solid rgba(6,214,160,0.35) !important; color: var(--accent) !important; padding: 10px 20px !important; border-radius: 8px !important; font-size: 14px !important; }
 .dash .btn-cancel:hover { background: var(--accent-08) !important; color: var(--accent) !important; }
-.dash .btn-confirm { flex: unset !important; border-radius: 8px !important; background: var(--red) !important; color: #fff !important; padding: 10px 20px !important; box-shadow: 0 0 8px var(--red-glow) !important; }
+.dash .btn-confirm { background: var(--red) !important; border: none !important; color: #fff !important; padding: 10px 20px !important; border-radius: 8px !important; font-size: 14px !important; box-shadow: 0 0 10px var(--red-glow) !important; }
 
 /* ── Footer ── */
 .dash .dash-footer { border-top-color: var(--surface-07) !important; }
@@ -790,7 +796,7 @@ body {
     ⚠️ Your CallMagnet subscription is paused due to a failed payment. Please email us at hello@callmagnet.com.au to reactivate.
   </div>
   <div class="cancellation-banner" id="cancellationBanner">
-    Your CallMagnet subscription has been cancelled. You have access until <span id="cancellationEndDate"></span>. You're always welcome back — email hello@callmagnet.com.au to reactivate.
+    Your CallMagnet subscription has been cancelled. You have access until <span id="cancellationEndDate"></span>. You're always welcome back — email <a href="mailto:hello@callmagnet.com.au">hello@callmagnet.com.au</a> to reactivate.
   </div>
   <div class="topbar">
     <div class="topbar-logo"><span class="star-pulse">★</span>CallMagnet</div>
