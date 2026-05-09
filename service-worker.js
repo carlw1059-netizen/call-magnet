@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 9 May 2026 — theme system removed, charcoal+emerald hardcoded, hairdresser Reset fix
-const CACHE_VERSION = 'callmagnet-v13-no-themes-reset-fix';
+// Last bumped: 9 May 2026 — red accents, reset modal fix, gear removed, banner fix, fonts restored, compacted
+const CACHE_VERSION = 'callmagnet-v14-red-accents-reset-modal';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
