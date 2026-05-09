@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 9 May 2026 — remove duplicate manifest reference for Progressier
-const CACHE_VERSION = 'callmagnet-v22-progressier-manifest-cleanup';
+// Last bumped: 9 May 2026 — rename progressier-sw.js to progressier.js
+const CACHE_VERSION = 'callmagnet-v23-progressier-sw-rename';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
