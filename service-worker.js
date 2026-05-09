@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 9 May 2026 — reset modal card bg + vertical toggle layout + cancellation banner white text
-const CACHE_VERSION = 'callmagnet-v18-modal-toggle-banner-fix';
+// Last bumped: 9 May 2026 — is_test_account flag + cancellation banner reflow fix
+const CACHE_VERSION = 'callmagnet-v19-test-account-banner-reflow';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
