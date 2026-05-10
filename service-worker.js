@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 10 May 2026 — wire link tap to push notification (Task C)
-const CACHE_VERSION = 'callmagnet-v27-task-c-push-wiring';
+// Last bumped: 10 May 2026 — go.html brand polish + fast redirect
+const CACHE_VERSION = 'callmagnet-v28-go-brand-polish';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
