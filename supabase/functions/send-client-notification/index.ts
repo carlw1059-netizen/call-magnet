@@ -266,6 +266,14 @@ Deno.serve(async (req) => {
 
       if (!PROGRESSIER_API_KEY) {
         console.warn('link_tapped: PROGRESSIER_API_KEY missing — skipping push');
+        logNotification({
+          client_id:     clientId,
+          channel:       'push',
+          event:         'link_tapped',
+          status:        'skipped',
+          error_message: 'PROGRESSIER_API_KEY not configured',
+          metadata:      { title: ltTitle, body: ltBody },
+        });
         return json(200, { sent: false, reason: 'PROGRESSIER_API_KEY not configured', event, client_id: clientId });
       }
 
@@ -286,10 +294,27 @@ Deno.serve(async (req) => {
       if (!progRes.ok) {
         const errText = await progRes.text();
         console.error(`link_tapped: progressier api error ${progRes.status}: ${errText}`);
+        logNotification({
+          client_id:         clientId,
+          channel:           'push',
+          event:             'link_tapped',
+          status:            'failed',
+          error_message:     errText,
+          provider_response: { status: progRes.status, body: errText },
+          metadata:          { title: ltTitle, body: ltBody },
+        });
         return json(200, { sent: false, reason: 'progressier_api_error', status: progRes.status, event, client_id: clientId });
       }
 
       console.log(`link_tapped: progressier push sent for client ${clientId}`);
+      logNotification({
+        client_id:         clientId,
+        channel:           'push',
+        event:             'link_tapped',
+        status:            'sent',
+        provider_response: { status: progRes.status },
+        metadata:          { title: ltTitle, body: ltBody, url: 'https://callmagnet.com.au' },
+      });
       return json(200, { sent: true, event: 'link_tapped', client_id: clientId });
     }
 
@@ -358,15 +383,39 @@ Deno.serve(async (req) => {
         if (r.value.ok) {
           pushSent++;
           succeededIds.push(r.value.id);
+          logNotification({
+            client_id: clientId,
+            channel:   'push',
+            event,
+            status:    'sent',
+            metadata:  { subscription_id: r.value.id, title, body: msg, context },
+          });
         } else {
           pushFailed++;
+          const expired = r.value.status === 404 || r.value.status === 410;
           // 404 (legacy) and 410 Gone — subscription expired, prune it
-          if (r.value.status === 404 || r.value.status === 410) {
+          if (expired) {
             expiredIds.push(r.value.id);
           }
+          logNotification({
+            client_id:         clientId,
+            channel:           'push',
+            event,
+            status:            'failed',
+            error_message:     r.value.message,
+            provider_response: { statusCode: r.value.status },
+            metadata:          { subscription_id: r.value.id, expired },
+          });
         }
       } else {
         pushFailed++;
+        logNotification({
+          client_id:     clientId,
+          channel:       'push',
+          event,
+          status:        'failed',
+          error_message: String((r as PromiseRejectedResult).reason ?? 'rejected'),
+        });
       }
     }
 
@@ -444,16 +493,58 @@ Deno.serve(async (req) => {
           }),
         });
         emailSent = resendRes.ok;
-        if (!resendRes.ok) {
-          console.warn(`resend_email_failed: ${resendRes.status} ${await resendRes.text()}`);
+        if (resendRes.ok) {
+          logNotification({
+            client_id:         clientId,
+            channel:           'email',
+            event,
+            status:            'sent',
+            provider_response: { status: resendRes.status },
+            metadata:          { recipient: client.email, subject: title },
+          });
+        } else {
+          const errText = await resendRes.text();
+          console.warn(`resend_email_failed: ${resendRes.status} ${errText}`);
+          logNotification({
+            client_id:         clientId,
+            channel:           'email',
+            event,
+            status:            'failed',
+            error_message:     errText,
+            provider_response: { status: resendRes.status },
+            metadata:          { recipient: client.email, subject: title },
+          });
         }
       } catch (e) {
-        console.warn(`resend_email_exception: ${(e as Error)?.message ?? e}`);
+        const errMsg = `exception: ${(e as Error)?.message ?? e}`;
+        console.warn(`resend_email_exception: ${errMsg}`);
+        logNotification({
+          client_id:     clientId,
+          channel:       'email',
+          event,
+          status:        'failed',
+          error_message: errMsg,
+          metadata:      { recipient: client.email },
+        });
       }
     } else if (!RESEND_API_KEY) {
       console.warn('RESEND_API_KEY missing — skipping email');
+      logNotification({
+        client_id:     clientId,
+        channel:       'email',
+        event,
+        status:        'skipped',
+        error_message: 'RESEND_API_KEY missing',
+      });
     } else {
       console.warn(`client ${clientId} has no email — skipping email`);
+      logNotification({
+        client_id:     clientId,
+        channel:       'email',
+        event,
+        status:        'skipped',
+        error_message: 'client has no email address',
+      });
     }
 
     return json(200, {
@@ -476,4 +567,35 @@ function json(status: number, body: unknown): Response {
     status,
     headers: { 'Content-Type': 'application/json' },
   });
+}
+
+// Fire-and-forget audit log. Failure to write the audit row must never tank
+// the actual notification path, so we .catch() and console.warn only.
+function logNotification(row: {
+  client_id:         string;
+  channel:           'push' | 'email';
+  event:             string;
+  status:            'sent' | 'failed' | 'skipped';
+  error_message?:    string | null;
+  provider_response?: unknown;
+  metadata?:         unknown;
+}): void {
+  fetch(`${SUPABASE_URL}/rest/v1/notifications_sent`, {
+    method: 'POST',
+    headers: {
+      apikey:        SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      'Content-Type': 'application/json',
+      Prefer:        'return=minimal',
+    },
+    body: JSON.stringify({
+      client_id:         row.client_id,
+      channel:           row.channel,
+      event:             row.event,
+      status:            row.status,
+      error_message:     row.error_message ?? null,
+      provider_response: row.provider_response ?? null,
+      metadata:          row.metadata ?? null,
+    }),
+  }).catch((err) => console.warn(`notifications_sent log failed: ${err?.message ?? err}`));
 }
