@@ -570,7 +570,11 @@ function json(status: number, body: unknown): Response {
 }
 
 // Fire-and-forget audit log. Failure to write the audit row must never tank
-// the actual notification path, so we .catch() and console.warn only.
+// the actual notification path. NOTE: fetch() only rejects on network errors
+// — a 4xx/5xx HTTP response resolves the promise normally. Without an HTTP-
+// error branch, schema-cache misses (PGRST205) and RLS denials would be
+// invisible. So we inspect res.ok in .then() and console.error any non-2xx
+// alongside the .catch() for network failures.
 function logNotification(row: {
   client_id:         string;
   channel:           'push' | 'email';
@@ -597,5 +601,12 @@ function logNotification(row: {
       provider_response: row.provider_response ?? null,
       metadata:          row.metadata ?? null,
     }),
-  }).catch((err) => console.warn(`notifications_sent log failed: ${err?.message ?? err}`));
+  })
+    .then(async (res) => {
+      if (!res.ok) {
+        const body = await res.text().catch(() => '<no body>');
+        console.error(`notifications_sent insert non-2xx: ${res.status} ${body}`);
+      }
+    })
+    .catch((err) => console.error(`notifications_sent insert network error: ${err?.message ?? err}`));
 }

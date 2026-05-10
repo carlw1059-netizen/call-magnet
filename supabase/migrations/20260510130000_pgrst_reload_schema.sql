@@ -1,0 +1,21 @@
+-- Force PostgREST to reload its schema cache.
+--
+-- WHY: PostgREST caches the database schema. When a migration creates a new
+-- table (or column), edge functions hitting the REST API can get
+-- 404 PGRST205 ("Could not find the table 'public.X' in the schema cache")
+-- until PostgREST notices the change. Supabase usually issues this NOTIFY
+-- automatically, but warm function instances can race the reload and silently
+-- write to the wrong (cached) view of the schema.
+--
+-- This bit Session 6: notifications_sent (added 20260510123000) accepted writes
+-- in Postgres but PostgREST's cache had not picked it up, so every fire-and-
+-- forget POST returned 404 and the helper's .catch() (which only fires on
+-- network errors, not HTTP errors) silently swallowed it. Audit table stayed
+-- empty for hours despite the notification path working.
+--
+-- HOW TO REUSE THIS: any future migration that creates a new table or column
+-- referenced by edge functions should append `NOTIFY pgrst, 'reload schema';`
+-- as the final statement. It costs nothing to issue and guarantees PostgREST
+-- sees the new schema before the next REST request.
+
+NOTIFY pgrst, 'reload schema';

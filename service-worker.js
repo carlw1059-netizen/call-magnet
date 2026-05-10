@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 10 May 2026 — notifications_sent audit table
-const CACHE_VERSION = 'callmagnet-v29-notifications-audit';
+// Last bumped: 10 May 2026 — audit helper detects HTTP errors + PGRST schema reload
+const CACHE_VERSION = 'callmagnet-v30-audit-helper-fix';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
