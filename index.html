@@ -250,6 +250,7 @@ body {
 .metric-label { font-family: var(--sans); font-size: 10px; letter-spacing: 0.02em; color: var(--accent); margin-bottom: 8px; font-weight: 700; }
 .metric-value { font-size: 32px; font-weight: 400; color: var(--accent); letter-spacing: -0.02em; }
 .metric-sub { font-size: 11px; font-weight: 700; color: var(--muted); margin-top: 4px; }
+.metric-hint { font-size: 12px; font-style: italic; color: rgba(255,255,255,0.6); margin-top: 6px; line-height: 1.3; }
 .metrics-fullwidth { margin-bottom: 1rem; }
 .log-booking-row { display: flex; justify-content: flex-end; gap: 0.75rem; margin-bottom: 1rem; align-items: center; }
 .log-booking-btn { background: #1a3a1a; border: 2px solid #4caf50; color: #4caf50; border-radius: 4px; padding: 6px 14px; font-size: 12px; font-family: var(--mono); letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s; font-weight: 700; -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
@@ -891,6 +892,7 @@ body {
         <div class="metric-label">Link clicks</div>
         <div class="metric-value" id="clickCount">0</div>
         <div class="metric-sub">Booking link tapped</div>
+        <div class="metric-hint">Check your booking system to see who booked</div>
       </div>
       <div class="metric">
         <div class="metric-label">Bookings created</div>
@@ -930,6 +932,7 @@ body {
         <div class="metric-label">Link taps today</div>
         <div class="metric-value" id="linkTapsToday">—</div>
         <div class="metric-sub">Booking link tapped</div>
+        <div class="metric-hint">Check your booking system to see who booked</div>
       </div>
     </div>
     <div class="demo-banner" id="demoBanner">No data yet — your CallMagnet system will start showing live stats once your first call comes in.</div>
