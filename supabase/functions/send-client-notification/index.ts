@@ -277,7 +277,7 @@ Deno.serve(async (req) => {
         return json(200, { sent: false, reason: 'PROGRESSIER_API_KEY not configured', event, client_id: clientId });
       }
 
-      const progRes = await fetch('https://progressier.app/api/v1/push/send', {
+      const progRes = await fetch('https://progressier.app/9kXZoGF2Dlfeqec880My/send', {
         method: 'POST',
         headers: {
           Authorization:  `Bearer ${PROGRESSIER_API_KEY}`,

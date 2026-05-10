@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 10 May 2026 — audit helper detects HTTP errors + PGRST schema reload
-const CACHE_VERSION = 'callmagnet-v30-audit-helper-fix';
+// Last bumped: 10 May 2026 — correct Progressier API endpoint (app-id-in-path)
+const CACHE_VERSION = 'callmagnet-v31-progressier-endpoint-fix';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
