@@ -1,51 +1,51 @@
 # CallMagnet Client Onboarding
 
-*Step-by-step guide for adding a new client to the system.*
+*Step-by-step guide for adding a new client. Hand this to Carl during the session — every step is non-skippable.*
 
 ---
 
 ## Pre-Onboarding Checklist
 
-Before starting, collect:
+Collect from the client before starting:
 
 - [ ] Business name (exact trading name)
 - [ ] Owner's email address
-- [ ] Owner's phone number (for test call)
-- [ ] Existing business phone number (the one to forward from)
-- [ ] Carrier for that number (Telstra mobile / Optus mobile / NBN VoIP / Landline)
-- [ ] Booking URL (their booking page, e.g. Fresha, HotDoc, website)
-- [ ] Average job/booking value in AUD (for revenue estimates)
-- [ ] Suburb and postcode
-- [ ] Industry vertical: `restaurant`, `barber`, `hairdresser`, `tradie`, or `default`
-- [ ] ABN (11 digits, optional)
+- [ ] Owner's mobile number (for verification call later)
+- [ ] Existing business phone number (the one customers currently dial)
+- [ ] Carrier for that number (Telstra mobile / Optus mobile / NBN VoIP provider name / copper landline / office PBX)
+- [ ] Booking URL — Fresha, HotDoc, OpenTable, Linktree, website, whatever (one URL — the SMS sends this only)
+- [ ] Average job/booking value in AUD (drives revenue estimates on the dashboard)
+- [ ] Suburb + postcode (for suburb benchmark analytics)
+- [ ] Industry vertical: `restaurant`, `barber`, or `default` (hairdressers use `barber`; tradies are not yet supported)
+- [ ] ABN — 11 digits (Australian Business Number — verifies legitimacy; nullable but should be collected)
 
 ---
 
 ## Step 1: Buy a Twilio Number
 
-1. Log in to Twilio Console → **Phone Numbers → Manage → Buy a Number**.
-2. Select **Australia (+61)**.
-3. Filter by: Local, Voice + SMS capabilities.
-4. Choose a number in the client's area code if possible (not required).
-5. Purchase the number ($1–$2/month).
-6. Note the E.164 format: `+614XXXXXXXX` or `+613XXXXXXXX`.
+1. Twilio Console → **Phone Numbers → Manage → Buy a Number**
+2. Country: **Australia (+61)**
+3. Type: **Local**, Capabilities: **Voice + SMS**
+4. Pick a number — area code matching client's region is nice but not required
+5. Buy it (~$1–$2/month)
+6. Record the E.164 format: `+614XXXXXXXX` (mobile-style numbers are most reliable; +613 also works)
 
 ---
 
 ## Step 2: Attach the Number to the Studio Flow
 
-1. In Twilio Console → **Phone Numbers → Manage → Active Numbers**.
-2. Click the newly purchased number.
-3. Under **Voice & Fax → A Call Comes In**: select **Studio Flow** and choose the CallMagnet flow.
-4. Save.
+1. Twilio Console → **Phone Numbers → Manage → Active Numbers**
+2. Click the new number
+3. Under **Voice & Fax → A Call Comes In**: set to **Studio Flow** and pick the **CallMagnet** flow
+4. Save
 
-Now any call to this number triggers the Studio flow.
+Any call to this number now triggers the CallMagnet flow (which captures the missed call and SMSes the caller).
 
 ---
 
 ## Step 3: Create the clients Row
 
-Run this in Supabase Studio SQL Editor (read-only queries are fine here; this INSERT counts as a schema boundary write but it's operational data, not schema):
+In Supabase Studio → SQL Editor:
 
 ```sql
 INSERT INTO public.clients (
@@ -66,171 +66,168 @@ INSERT INTO public.clients (
   'Business Name Here',
   'owner@example.com',
   '+61412345678',           -- E.164 Twilio number from Step 1
-  'restaurant',             -- or: barber, hairdresser, tradie, default
+  'restaurant',             -- 'restaurant' | 'barber' | 'default'
+                            --   hairdressers → 'barber' (same template)
+                            --   anything else → 'default'
   'https://booking.example.com',
-  75,                       -- avg job value in AUD
+  75,                       -- avg job value AUD
   'Fitzroy',
   '3065',
   'Restaurant',
-  '12345678901',            -- 11 digits, or NULL
+  '12345678901',            -- 11 digits, or NULL if not collected
   'active',
   true,
   now()
 );
 ```
 
-After inserting, note the generated `id` (UUID) — you'll need it to verify.
+Note the generated `id` (UUID). You'll need it for the verification call later.
 
-**Important:** Never set `twilio_number` to a value already used by another client row. The Twilio missed-call handler looks up clients by this column.
-
----
-
-## Step 4: Set Up Call Forwarding on the Client's Number
-
-The client configures their existing business number to forward unanswered calls to the Twilio number.
-
-### Telstra Mobile (proven — standard USSD codes)
-
-Dial these codes from the client's Telstra mobile:
-
-| Condition | Code |
-|-----------|------|
-| No answer (ring unanswered) | `**61*+614XXXXXXXX#` |
-| Busy | `**67*+614XXXXXXXX#` |
-| Not reachable (off/no signal) | `**62*+614XXXXXXXX#` |
-
-To set all three at once (recommended):
-```
-**004*+614XXXXXXXX#
-```
-
-To verify forwarding is active:
-```
-*#61#   (no-answer)
-*#67#   (busy)
-*#62#   (unreachable)
-```
-
-To cancel:
-```
-##004#
-```
-
-**Test:** Call the client's number from another phone and don't answer. Within 15–30 seconds, the call should forward to the Twilio number and the Studio flow should fire.
+**Hard rule:** every `twilio_number` value must be unique across the table. Twilio missed-call handler looks up clients by this column — duplicates cause silent cross-routing.
 
 ---
 
-### Optus Mobile (untested — standard USSD syntax, confirm with client)
+## Step 4: Set Up Conditional Call Forwarding
 
-Optus uses the same GSM supplementary service codes as Telstra. Standard syntax:
+**This is the non-negotiable core of the product.** Without all three forwarding conditions set, missed calls don't reach the Twilio number and the SMS pipeline never fires. Walk through all three with the client live.
 
+### Mobile (Telstra / Optus / Vodafone) — Three USSD Codes
+
+Dial each from the client's mobile. Substitute their Twilio number (E.164) for `[TWILIO_NUMBER]`.
+
+Worked example with test number `+61468083169`:
+
+| Condition | What it covers | USSD code | Test example |
+|---|---|---|---|
+| **CFNRy** (No Reply) | Phone rings out, owner doesn't answer | `**61*[TWILIO_NUMBER]*11*30#` | `**61*+61468083169*11*30#` |
+| **CFB** (Busy) | Owner already on a call | `**67*[TWILIO_NUMBER]#` | `**67*+61468083169#` |
+| **CFNRc** (Not Reachable) | Phone off, flat battery, out of range, airplane mode | `**62*[TWILIO_NUMBER]#` | `**62*+61468083169#` |
+
+The `*11*30` at the end of CFNRy = 30-second timeout before forward (long enough to actually pick up if the owner is near the phone, short enough that customer doesn't give up first).
+
+After each dial, the carrier announces "Forwarding registered" or similar — wait for confirmation before dialling the next one.
+
+### Verify Mobile Forwarding
+
+To confirm registration:
 ```
-**61*+614XXXXXXXX**30#   (no answer, 30-second ring time)
-**67*+614XXXXXXXX#       (busy)
-**62*+614XXXXXXXX#       (not reachable)
+*#61#   (no-answer status)
+*#67#   (busy status)
+*#62#   (unreachable status)
 ```
 
-All three:
-```
-**004*+614XXXXXXXX**30#
-```
+Each should report the Twilio number as the forwarding target.
 
-Cancel:
-```
-##004#
-```
+**Live test:** turn the client's phone OFF completely, then call it from another phone. Within ~10 seconds, the call diverts to Twilio → Studio flow fires → SMS lands on the calling phone. If no SMS within 30s, forwarding isn't set correctly — re-dial the CFNRc code.
 
-**Note:** Optus USSD forwarding has not been tested with CallMagnet. If codes don't work, contact Optus Business support and ask to set conditional call forwarding to `+614XXXXXXXX`.
+To cancel all three (if needed later): `##004#`
 
 ---
 
-### NBN VoIP (most complex — varies by provider)
+### Landline (Carrier-Specific — Each Different)
 
-VoIP forwarding is configured in the VoIP provider's portal, not via phone codes.
+Landlines do NOT support USSD codes. Forwarding is configured per carrier. Every restaurant, clinic, or salon being onboarded needs landline coverage checked alongside mobile.
 
-**Common providers and where to find the setting:**
+**NBN VoIP carriers (most common):** configured in the carrier's account portal.
 
-| Provider | Where | Setting name |
-|----------|-------|-------------|
-| Aussie Broadband | My Aussie portal → Phone → Features | Conditional forward / No answer forward |
+| Carrier | Portal location | Setting name |
+|---|---|---|
+| Belong | Belong portal → Phone → Call features | Forward on no answer / forward when busy |
+| iiNet | Toolbox portal → Phone → Call diversions | Call diversion (conditional) |
+| TPG | My Account → Phone services → Call forwarding | Diversion on busy / no answer |
+| Aussie Broadband | My Aussie portal → Phone → Features | Conditional forward / no-answer forward |
 | Superloop | Account portal → Voice → Call Forwarding | Forward on no answer |
 | Tangerine | Account portal → VoIP Settings | Call divert |
 | Internode | NodeLine portal | Call forwarding |
 
-**Standard settings to enter:**
-- Forward type: **No Answer**
+Standard settings to apply in each portal:
+- Forward type: **No Answer** (NOT unconditional — owner still wants to answer when they can)
+- Forward type: **Busy** as well if portal supports separately
 - Forward to: `+614XXXXXXXX` (E.164)
 - Ring time before forward: 20–25 seconds
 
-**Test:** VoIP systems can take 5–15 minutes to apply changes. Test by calling the number and waiting.
+VoIP portals can take 5–15 minutes to apply changes. Test by calling and waiting.
 
-**Fallback:** If the VoIP portal doesn't support conditional forwarding, ask the provider to enable "Call Divert on No Answer" via a support ticket. Some providers charge extra.
+**Traditional copper landline (Telstra ULL or legacy carrier):**
+- Some support `*61*+614XXXXXXXX#` (no-answer) and `*67*+614XXXXXXXX#` (busy) dialled from the handset
+- If codes don't work: call the carrier's business support, ask for "conditional call forwarding on no answer + busy" set to the Twilio number. May incur a one-off setup fee.
 
----
+**Office PBX systems (Cisco / Aastra / 3CX / Avaya):**
+- Forwarding is configured inside the PBX, not at the phone or with the carrier
+- Owner or their IT contact does this — admin UI varies by vendor
+- Settings: forward on no answer + forward on busy, target = Twilio E.164, 20–25s timeout
 
-### Landline (carrier-dependent)
-
-Landline forwarding in Australia is managed by the carrier, not the customer.
-
-**Telstra landline:**
-- Dial `*21*+614XXXXXXXX#` for unconditional forward (all calls — not recommended).
-- Dial `*61*+614XXXXXXXX#` for no-answer forward.
-- Activation confirmation: brief tone + announcement.
-
-**NBN FTTB / other carriers:**
-- Similar USSD codes if the carrier has kept the Telstra stack.
-- If codes don't work: contact carrier support.
-- Some carriers require calling Business Support to set conditional forwarding (common for older copper lines).
-
-**Important:** Unconditional forwarding means ALL calls go to Twilio (including calls the owner answers). Use conditional (no-answer/busy) forwarding only.
+**Live test for landline:** call the landline from a mobile, let it ring out (20+ seconds), confirm the call diverts to Twilio and SMS lands. Repeat with the landline picked up + busy if testing CFB.
 
 ---
 
-## Step 5: Generate Stripe Checkout Link
+## Step 5: Push Subscription Payment Link
 
-1. Log in to Stripe Dashboard.
-2. Go to **Payment Links** (or create a new one).
-3. Select the CallMagnet subscription product.
-4. Add the client's email as a prefill if possible.
-5. Copy the payment link and send to the client.
+1. Stripe Dashboard → **Payment Links** → existing CallMagnet subscription link
+2. Pre-fill client's email if the link supports it
+3. Send the link to the client; they pay
 
-When the client pays, Stripe fires `invoice.payment_succeeded` → `stripe-payment-succeeded` edge function → sets `account_status = 'active'` and sends the welcome email automatically.
+When payment succeeds:
+- `stripe-payment-succeeded` webhook fires → sets `account_status = 'active'` on the matching `stripe_customer_id` row
+- Welcome email auto-sends via Resend (one-shot, gated on `emails_sent` array)
 
-**Note:** If you've already set `account_status = 'active'` in the INSERT above (manual activation), the Stripe payment will still send the welcome email on first payment — this is fine.
+If you've already set `account_status = 'active'` manually in the Step 3 INSERT, the Stripe webhook still sends the welcome email on first payment. Fine.
 
----
-
-## Step 6: Verify End-to-End
-
-1. **Test call:** Call the client's business number from a different phone. Do NOT answer.
-2. Wait 20–30 seconds (ring timeout depends on carrier).
-3. After the call diverts: check Supabase → Table Editor → `sms_events` for a new row.
-4. Check the Twilio Console → Monitor → Calls for the call record.
-5. Confirm the dashboard at callmagnet.com.au shows the test event.
-6. Confirm the owner's email received a notification (check spam folder first time).
-7. Confirm Web Push fired (if push is enabled on owner's device).
+**Linking Stripe customer to clients row:** after the client pays, copy their Stripe customer ID (cus_xxx) from the Stripe Dashboard → Customers, then:
+```sql
+UPDATE clients
+   SET stripe_customer_id = 'cus_xxxxx'
+ WHERE id = '<the UUID from Step 3>';
+```
+Without this link, `stripe-payment-succeeded` and `stripe-subscription-deleted` can't find the client when webhooks fire.
 
 ---
 
-## First-Week Monitoring Checklist
+## Step 6: End-to-End Verification
 
-Check daily for the first 5 business days:
+1. Call the client's business number from a different phone.
+2. **Do not answer.** Let it ring out (~25 seconds for mobile, ~30 seconds for landline).
+3. After the divert, your calling phone should receive an SMS within 10 seconds with the booking link.
+4. Studio SQL: `SELECT * FROM sms_events WHERE client_id = '<UUID>' ORDER BY received_at DESC LIMIT 1;` → confirm new row.
+5. Tap the link in the SMS → should land on the client's booking URL (Fresha / OpenTable / etc).
+6. Owner's Pushover/Progressier device (if configured) buzzes with "Customer activity".
+7. Owner's email receives notification (check spam first time).
+8. Dashboard at https://callmagnet.com.au shows the test event.
 
-- [ ] `sms_events` is recording rows for real calls
-- [ ] Daily summary email arrives each night around 11pm Melbourne
-- [ ] No error alerts arriving at car312@hotmail.com
-- [ ] Dashboard counts match `sms_events` row count
-- [ ] Client confirms they've received the SMS notifications
-- [ ] If zero events after day 1 with real call volume: forwarding is not working — re-check setup
+Run the test sequence with all three conditions: rang-out, busy (owner on another call), and phone off. All three must produce an SMS within 10 seconds.
 
 ---
 
-## Common Setup Mistakes
+## Notes — What's NOT Asked During Onboarding
+
+- **No theme preference.** CallMagnet uses a single hardcoded charcoal-navy + emerald aesthetic. The legacy theme picker was removed; do not offer "pick a colour" to clients.
+- **No tradie vertical.** Currently unsupported in templates. Set tradies as `vertical = 'default'` if you must onboard one before the vertical is added.
+- **No custom SMS copy.** Vertical determines template; owner doesn't write their own SMS body.
+
+---
+
+## First-Week Monitoring
+
+Daily check for 5 business days after onboarding:
+
+- [ ] `sms_events` recording rows for real call activity (count > 0)
+- [ ] Daily summary email arrives ~11pm Melbourne
+- [ ] No error alerts at `car312@hotmail.com`
+- [ ] Client's dashboard counts match actual missed-call frequency
+- [ ] Client confirms they're receiving owner-side notifications (Pushover/Progressier/email)
+- [ ] Zero events after day 1 with known call volume = forwarding broken — re-test all three conditions
+
+---
+
+## Common Mistakes (Most → Least Frequent)
 
 | Mistake | Symptom | Fix |
-|---------|---------|-----|
-| Twilio number not attached to Studio flow | Call forwards to Twilio but nothing fires | Attach Studio flow to the number in Twilio Console |
-| Wrong twilio_number in clients row (typo or wrong format) | sms_events rows show up as orphaned calls | Fix the twilio_number column value |
-| Unconditional forward (not conditional) | All calls, including answered ones, go to Twilio | Change to conditional (no-answer) forwarding |
-| Forwarding to Twilio number without country code | Some carriers drop the + prefix | Test with and without `+61` prefix |
-| Client's email wrong in clients table | No notification emails | UPDATE clients SET email = '...' WHERE id = '...' |
+|---|---|---|
+| Only one of three forwarding conditions set on mobile (usually CFNRy only) | Some missed calls fire SMS, others don't (silent when busy or phone off) | Re-dial CFB + CFNRc codes |
+| Twilio number not attached to Studio flow | Call forwards to Twilio, nothing happens after | Attach Studio flow in Twilio Console |
+| Wrong `twilio_number` in clients row (typo or missing `+`) | `sms_events` rows appear as orphaned calls (no client match) | Fix the column value, must be E.164 |
+| Unconditional forward used (`**21*` instead of `**61*`) | Every call diverts, owner never answers anything | Cancel with `##004#`, redo with three conditional codes |
+| Landline left unforwarded after mobile is done | Landline-side calls still ring out without SMS | Configure landline carrier portal or PBX |
+| Wrong email in clients row | No notification emails arrive | `UPDATE clients SET email = '...' WHERE id = '...';` |
+| `stripe_customer_id` not linked after payment | Welcome email never sends, account stays at default status | Copy `cus_xxx` from Stripe → UPDATE clients row |
+| VoIP portal ring time too short (under 15s) | Calls divert before owner has chance to answer | Increase to 20–25s in portal |

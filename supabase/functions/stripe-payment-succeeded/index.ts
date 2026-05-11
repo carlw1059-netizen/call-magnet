@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
 
 
       const clientRes = await fetch(
-        `${supabaseUrl}/rest/v1/clients?stripe_customer_id=eq.${stripeCustomerId}&select=*`,
+        `${supabaseUrl}/rest/v1/clients?stripe_customer_id=eq.${stripeCustomerId}&is_test_account=eq.false&select=*`,
         { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }
       )
       const clients = await clientRes.json()
