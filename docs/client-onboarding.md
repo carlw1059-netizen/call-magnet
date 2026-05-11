@@ -16,7 +16,12 @@ Collect from the client before starting:
 - [ ] Booking URL — Fresha, HotDoc, OpenTable, Linktree, website, whatever (one URL — the SMS sends this only)
 - [ ] Average job/booking value in AUD (drives revenue estimates on the dashboard)
 - [ ] Suburb + postcode (for suburb benchmark analytics)
-- [ ] Industry vertical: `restaurant`, `barber`, or `default` (hairdressers use `barber`; tradies are not yet supported)
+- [ ] Industry vertical — one of:
+  - `restaurant` — cafes, restaurants, takeaway, anywhere reservations matter
+  - `barber` — male grooming, walk-in friendly, shorter appointments
+  - `hairdresser` — salons, longer appointments, different demographic copy tone
+  - `default` — edge cases that don't fit any of the above
+  - (`tradie` is NOT supported yet — use `default` if you must onboard one)
 - [ ] ABN — 11 digits (Australian Business Number — verifies legitimacy; nullable but should be collected)
 
 ---
@@ -66,9 +71,11 @@ INSERT INTO public.clients (
   'Business Name Here',
   'owner@example.com',
   '+61412345678',           -- E.164 Twilio number from Step 1
-  'restaurant',             -- 'restaurant' | 'barber' | 'default'
-                            --   hairdressers → 'barber' (same template)
-                            --   anything else → 'default'
+  'restaurant',             -- 'restaurant' | 'barber' | 'hairdresser' | 'default'
+                            --   restaurant   → delivery/reservation framing
+                            --   barber       → walk-in / shorter slots, masculine tone
+                            --   hairdresser  → longer appointments, demographic-tuned tone
+                            --   default      → fallback for edge cases (clinics etc)
   'https://booking.example.com',
   75,                       -- avg job value AUD
   'Fitzroy',
@@ -203,6 +210,15 @@ Run the test sequence with all three conditions: rang-out, busy (owner on anothe
 - **No theme preference.** CallMagnet uses a single hardcoded charcoal-navy + emerald aesthetic. The legacy theme picker was removed; do not offer "pick a colour" to clients.
 - **No tradie vertical.** Currently unsupported in templates. Set tradies as `vertical = 'default'` if you must onboard one before the vertical is added.
 - **No custom SMS copy.** Vertical determines template; owner doesn't write their own SMS body.
+
+### Three live verticals (each has its own template)
+
+Restaurant, barber, and hairdresser each get a distinct template — these are **not aliased**. Pick the one that matches the client's real-world workflow:
+
+- **Restaurant** — delivery-basket / reservation framing. Used for cafes, restaurants, takeaway. Daily/weekly revenue email tiles for missed-call recovery rely on this vertical's stats logic.
+- **Barber** — appointment framing, walk-in heavy. Shorter booking windows in the copy. Masculine tone. Hairdresser-style salons should NOT be set to `barber`.
+- **Hairdresser** — appointment framing, longer booking windows. Different demographic-aware copy tone. Hairdresser dashboard uses the same 5-tile layout (SMS sent, Link clicks, Bookings, Conversion, Link taps) that respects `clients.reset_date` for counter resets.
+- **Default** — fallback only. Use sparingly — verticals exist because the copy difference matters for conversion.
 
 ---
 
