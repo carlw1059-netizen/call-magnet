@@ -737,33 +737,18 @@ body {
   <div class="login-box">
     <div class="login-logo"><span class="star-pulse">★</span>CallMagnet</div>
     <h1 class="login-heading" id="authHeading">Welcome back.</h1>
-    <p class="login-sub" id="authSub">Sign in to view your recovery stats.</p>
-    <div class="field" id="bizNameField" style="display:none">
-      <label>Business Name</label>
-      <input type="text" id="bizNameInput" placeholder="e.g. Brunswick Barber" />
-    </div>
+    <p class="login-sub" id="authSub">Enter your email or mobile — we'll send a one-tap login link.</p>
     <div class="field">
-      <label>Email</label>
-      <input type="email" id="emailInput" placeholder="you@example.com" autocomplete="email" />
+      <label>Email or mobile</label>
+      <input type="text" id="identifierInput" placeholder="you@example.com or 0412 345 678" autocomplete="username" />
     </div>
-    <div class="field">
-      <label>Password</label>
-      <div class="password-wrap">
-        <input type="password" id="passwordInput" placeholder="••••••••" autocomplete="current-password" />
-        <button class="eye-btn" type="button" aria-label="Show or hide password" onclick="togglePassword()">👁</button>
-      </div>
-    </div>
-    <div class="remember-row" id="rememberRow">
-      <input type="checkbox" id="rememberMe" checked />
-      <label for="rememberMe">Keep me signed in</label>
-    </div>
-    <span class="forgot-link" id="forgotLinkBtn" onclick="showForgot()">Forgot password?</span>
-    <button class="btn-primary" id="loginBtn" onclick="handleAuth()">Sign in</button>
+    <button class="btn-primary" id="loginBtn" onclick="handleMagicLink()">Send login link</button>
     <div class="error-msg" id="errorMsg"></div>
-    <div class="success-msg" id="signupSuccessMsg">Account created! Check your email to confirm, then sign in.</div>
-    <div class="auth-toggle" id="authToggle">
-      Don't have an account? <span onclick="switchToSignup()">Sign up</span>
-    </div>
+    <div class="success-msg" id="magicLinkSuccessMsg">Login link sent. Check your phone or inbox.</div>
+    <!-- legacy hidden inputs kept so existing JS references don't throw on load -->
+    <input type="hidden" id="emailInput" />
+    <input type="hidden" id="passwordInput" />
+    <input type="hidden" id="bizNameInput" />
   </div>
 </div>
 
@@ -1592,10 +1577,56 @@ async function loadStats() {
   await loadActivity(clientId, effectiveStart, endIso, myRequestId);
 }
 
-const ADMIN_TOGGLE_EMAIL = 'car312@hotmail.com';
+// is_admin flag lives on auth.users.raw_app_meta_data and is mirrored into
+// the JWT session at sign-in. We cache the boolean on auth-state-change so
+// downstream call sites (renderTilesForMode, vertical toggle visibility,
+// etc.) can read it synchronously.
+let _isAdminCached = false;
 
 function isAdminToggleUser() {
-  return !!(currentClient && currentClient.email && currentClient.email.toLowerCase() === ADMIN_TOGGLE_EMAIL);
+  return _isAdminCached === true;
+}
+
+async function handleMagicLink() {
+  const idEl   = document.getElementById('identifierInput');
+  const errDiv = document.getElementById('errorMsg');
+  const okDiv  = document.getElementById('magicLinkSuccessMsg');
+  const btn    = document.getElementById('loginBtn');
+  if (errDiv) { errDiv.style.display = 'none'; errDiv.textContent = ''; }
+  if (okDiv)  { okDiv.style.display  = 'none'; }
+  const identifier = (idEl?.value ?? '').trim();
+  if (!identifier) {
+    if (errDiv) { errDiv.textContent = 'Enter your email or mobile number.'; errDiv.style.display = 'block'; }
+    return;
+  }
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.textContent = 'Sending…';
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/request-login-link', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + SUPABASE_ANON_KEY },
+      body:    JSON.stringify({ identifier }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      if (okDiv) {
+        okDiv.textContent = data.message || 'Login link sent. Check your phone or inbox.';
+        okDiv.style.display = 'block';
+      }
+      if (idEl) idEl.value = '';
+    } else {
+      if (errDiv) {
+        errDiv.textContent = data.detail || data.error || 'Could not send login link. Try again.';
+        errDiv.style.display = 'block';
+      }
+    }
+  } catch (e) {
+    if (errDiv) { errDiv.textContent = 'Network error. Try again.'; errDiv.style.display = 'block'; }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel || 'Send login link';
+  }
 }
 
 function getDashboardMode() {
@@ -2034,25 +2065,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     logBooking();
   });
 
-  document.getElementById('passwordInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') handleAuth();
-  });
-  document.getElementById('emailInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') handleAuth();
-  });
-  document.getElementById('recoveryPassInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') handleRecovery();
-  });
-  document.getElementById('recoveryPassConfirm').addEventListener('keydown', e => {
-    if (e.key === 'Enter') handleRecovery();
-  });
+  // Magic-link form: Enter submits.
+  const idEl = document.getElementById('identifierInput');
+  if (idEl) {
+    idEl.addEventListener('keydown', e => { if (e.key === 'Enter') handleMagicLink(); });
+  }
+  // Legacy recovery-screen handlers — kept in case Supabase fires PASSWORD_RECOVERY.
+  const recoveryPass = document.getElementById('recoveryPassInput');
+  const recoveryConfirm = document.getElementById('recoveryPassConfirm');
+  if (recoveryPass) recoveryPass.addEventListener('keydown', e => { if (e.key === 'Enter') handleRecovery(); });
+  if (recoveryConfirm) recoveryConfirm.addEventListener('keydown', e => { if (e.key === 'Enter') handleRecovery(); });
 
   const { data: { session } } = await sb.auth.getSession();
+  _isAdminCached = (session?.user?.app_metadata && session.user.app_metadata.is_admin === true);
   if (session?.user) {
     await crossFadeToDashboard(session.user, document.getElementById('loginScreen'));
   }
 
-  sb.auth.onAuthStateChange((event) => {
+  sb.auth.onAuthStateChange((event, newSession) => {
+    _isAdminCached = (newSession?.user?.app_metadata && newSession.user.app_metadata.is_admin === true);
     if (event === 'PASSWORD_RECOVERY') {
       showRecovery();
     }

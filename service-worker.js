@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 12 May 2026 — hide hero (money tile) in restaurant mode
-const CACHE_VERSION = 'callmagnet-v34-restaurant-hide-hero';
+// Last bumped: 12 May 2026 — admin onboarding form + magic-link login flow
+const CACHE_VERSION = 'callmagnet-v35-admin-onboard-magiclink';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 

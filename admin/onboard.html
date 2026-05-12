@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0E1419">
+<title>CallMagnet — New Client Onboarding</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #0E1419; min-height: 100vh; overscroll-behavior: none; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    color: rgba(255,255,255,0.92);
+    -webkit-font-smoothing: antialiased;
+    padding: 1.5rem 1rem 4rem;
+  }
+  :root {
+    --bg: #0E1419;
+    --accent: #06D6A0;
+    --accent-glow: rgba(6, 214, 160, 0.18);
+    --accent-border: rgba(6, 214, 160, 0.25);
+    --accent-soft: rgba(6, 214, 160, 0.08);
+    --red: #CC5500;
+    --red-glow: rgba(204, 85, 0, 0.18);
+    --text: rgba(255,255,255,0.92);
+    --muted: rgba(255,255,255,0.55);
+    --glass: rgba(255,255,255,0.04);
+  }
+  .wrap { max-width: 520px; margin: 0 auto; }
+  .topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.5rem 0 1.5rem;
+  }
+  .logo {
+    font-weight: 700; font-size: 16px; letter-spacing: 0.06em; color: var(--accent);
+    text-transform: uppercase;
+  }
+  .logo .star { display: inline-block; margin-right: 4px; }
+  .signout {
+    background: transparent; border: 1px solid var(--accent-border); color: var(--accent);
+    padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;
+    font-family: inherit; letter-spacing: 0.04em;
+  }
+  .signout:hover { background: var(--accent-soft); }
+  .card {
+    background: var(--glass);
+    border: 1px solid var(--accent-border);
+    border-radius: 16px;
+    padding: 1.75rem 1.5rem;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.35), 0 0 32px var(--accent-glow);
+    margin-bottom: 1rem;
+  }
+  h1 {
+    font-size: 22px; font-weight: 600; color: var(--text);
+    letter-spacing: -0.01em; margin-bottom: 0.4rem;
+  }
+  .subtitle {
+    font-size: 13px; color: var(--muted); margin-bottom: 1.25rem;
+  }
+  .field { margin-bottom: 1rem; }
+  .field label {
+    display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 6px;
+  }
+  .field label .opt { color: var(--muted); font-weight: 500; text-transform: none; letter-spacing: 0; }
+  .field input, .field select {
+    width: 100%; padding: 11px 12px; font-size: 15px; font-family: inherit;
+    background: rgba(0,0,0,0.3); color: var(--text);
+    border: 1px solid var(--accent-border); border-radius: 8px;
+    outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+    -webkit-appearance: none; -moz-appearance: none; appearance: none;
+  }
+  .field input:focus, .field select:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .field select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2306D6A0' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e");
+    background-repeat: no-repeat; background-position: right 12px center; background-size: 14px;
+    padding-right: 36px;
+  }
+  .field .hint {
+    font-size: 11px; color: var(--muted); margin-top: 4px; font-style: italic;
+  }
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.06);
+    margin-top: 4px;
+  }
+  .toggle-label { font-size: 14px; color: var(--text); }
+  .toggle-switch {
+    position: relative; width: 44px; height: 26px; background: rgba(255,255,255,0.1);
+    border-radius: 13px; cursor: pointer; transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .toggle-switch.on { background: var(--accent); }
+  .toggle-switch::after {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 20px; height: 20px; background: #fff; border-radius: 50%;
+    transition: left 0.2s;
+  }
+  .toggle-switch.on::after { left: 21px; }
+  .submit {
+    width: 100%; padding: 14px; font-size: 15px; font-weight: 700;
+    background: var(--accent); color: #0a1110; border: none; border-radius: 10px;
+    cursor: pointer; font-family: inherit; letter-spacing: 0.02em;
+    margin-top: 0.5rem; box-shadow: 0 0 16px var(--accent-glow);
+    transition: transform 0.08s, box-shadow 0.15s;
+  }
+  .submit:hover:not(:disabled) { box-shadow: 0 0 24px var(--accent-glow); }
+  .submit:active:not(:disabled) { transform: scale(0.98); }
+  .submit:disabled { opacity: 0.55; cursor: wait; }
+  .error {
+    color: var(--red); background: var(--red-glow);
+    border: 1px solid rgba(204,85,0,0.4); border-radius: 8px;
+    padding: 10px 12px; font-size: 13px; margin-bottom: 1rem;
+    display: none;
+  }
+  .error.visible { display: block; }
+  /* Success card */
+  .success-card { display: none; text-align: center; }
+  .success-card.visible { display: block; }
+  .check-circle {
+    width: 56px; height: 56px; border-radius: 50%; background: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-bottom: 0.75rem; box-shadow: 0 0 24px var(--accent-glow);
+    color: #0a1110; font-size: 32px; font-weight: 700;
+  }
+  .success-card h2 { font-size: 20px; font-weight: 600; margin-bottom: 1.25rem; color: var(--text); }
+  .url-box {
+    background: rgba(0,0,0,0.4); border: 1px solid var(--accent-border);
+    border-radius: 8px; padding: 12px 14px; font-family: 'SF Mono', Menlo, monospace;
+    font-size: 12px; color: var(--accent); word-break: break-all;
+    text-align: left; margin-bottom: 0.75rem;
+  }
+  .copy-btn {
+    background: transparent; border: 1px solid var(--accent); color: var(--accent);
+    padding: 8px 16px; border-radius: 8px; font-size: 13px; cursor: pointer;
+    font-family: inherit; margin-bottom: 1rem;
+  }
+  .copy-btn:hover { background: var(--accent-soft); }
+  .copy-btn.copied { background: var(--accent); color: #0a1110; }
+  .sms-status { font-size: 13px; padding: 10px 12px; border-radius: 8px; margin-bottom: 1rem; }
+  .sms-status.ok { color: var(--accent); background: var(--accent-soft); }
+  .sms-status.fail { color: var(--red); background: var(--red-glow); }
+  .another-btn {
+    width: 100%; padding: 12px; font-size: 14px; font-weight: 600;
+    background: transparent; color: var(--accent); border: 1px solid var(--accent);
+    border-radius: 10px; cursor: pointer; font-family: inherit;
+  }
+  .another-btn:hover { background: var(--accent-soft); }
+  /* Auth-gate states */
+  .gate-state { text-align: center; padding: 3rem 1rem; display: none; }
+  .gate-state.visible { display: block; }
+  .gate-state h2 { font-size: 18px; color: var(--text); margin-bottom: 0.5rem; }
+  .gate-state p { font-size: 14px; color: var(--muted); }
+  .spinner {
+    display: inline-block; width: 32px; height: 32px;
+    border: 3px solid var(--accent-border); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="logo"><span class="star">★</span>CallMagnet — Admin</div>
+    <button class="signout" id="signoutBtn" style="display:none" onclick="handleSignout()">Sign out</button>
+  </div>
+
+  <!-- Loading state -->
+  <div class="gate-state visible" id="gateLoading">
+    <div class="spinner"></div>
+    <h2 style="margin-top:1rem">Checking access…</h2>
+  </div>
+
+  <!-- Not logged in -->
+  <div class="gate-state" id="gateLogin">
+    <h2>Sign in required</h2>
+    <p>You need to sign in as an admin to onboard new clients.</p>
+    <p style="margin-top:1rem"><a href="/" style="color:var(--accent)">Go to login →</a></p>
+  </div>
+
+  <!-- Not authorized -->
+  <div class="gate-state" id="gateForbidden">
+    <h2>Not authorized</h2>
+    <p>This page is for admin users only.</p>
+    <p style="margin-top:1rem"><a href="/" style="color:var(--accent)">Back to dashboard →</a></p>
+  </div>
+
+  <!-- Form -->
+  <div class="card" id="formCard" style="display:none">
+    <h1>New Client Onboarding</h1>
+    <p class="subtitle">Fill in the details. A login link will be SMS'd to the owner's phone.</p>
+
+    <div class="error" id="errorBox"></div>
+
+    <div class="field">
+      <label>Vertical</label>
+      <select id="verticalSelect"><option value="">Loading…</option></select>
+      <div class="hint">Determines tile template + default customer-spend</div>
+    </div>
+
+    <div class="field">
+      <label>Business name</label>
+      <input type="text" id="businessNameInput" placeholder="e.g. Brunswick Barbershop" autocomplete="organization" />
+    </div>
+
+    <div class="field">
+      <label>Owner email</label>
+      <input type="email" id="ownerEmailInput" placeholder="owner@example.com" autocomplete="email" />
+    </div>
+
+    <div class="field">
+      <label>Owner mobile</label>
+      <input type="tel" id="ownerPhoneInput" placeholder="04xx xxx xxx" autocomplete="tel" />
+      <div class="hint">Auto-converts to +614XXXXXXXX</div>
+    </div>
+
+    <div class="field">
+      <label>Twilio number</label>
+      <input type="tel" id="twilioNumberInput" placeholder="04xx xxx xxx" />
+      <div class="hint">The Twilio AU number bought for this client</div>
+    </div>
+
+    <div class="field">
+      <label>ABN <span class="opt">(optional)</span></label>
+      <input type="text" id="abnInput" placeholder="11 digits" inputmode="numeric" maxlength="11" />
+    </div>
+
+    <div class="field">
+      <label>Average customer spend ($AUD)</label>
+      <input type="number" id="avgJobValueInput" min="1" step="1" placeholder="80" />
+      <div class="hint">Pre-filled from vertical default — adjust if needed</div>
+    </div>
+
+    <div class="field">
+      <label>Booking link (rebrand.ly URL)</label>
+      <input type="url" id="rebrandlyUrlInput" placeholder="https://rebrand.ly/their-slug" />
+    </div>
+
+    <div class="toggle-row">
+      <div class="toggle-label">Send login SMS to client</div>
+      <div class="toggle-switch on" id="sendSmsToggle" onclick="toggleSms()"></div>
+    </div>
+
+    <button class="submit" id="submitBtn" onclick="submitForm()">Create Client</button>
+  </div>
+
+  <!-- Success state -->
+  <div class="card success-card" id="successCard">
+    <div class="check-circle">✓</div>
+    <h2>Client created successfully</h2>
+    <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;">Login URL</div>
+    <div class="url-box" id="loginUrlBox"></div>
+    <button class="copy-btn" id="copyBtn" onclick="copyUrl()">Copy URL</button>
+    <div class="sms-status" id="smsStatus"></div>
+    <button class="another-btn" onclick="resetForm()">Onboard another client</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://iskvvnhacqdxybpmwuni.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
+
+let sb = null;
+let session = null;
+let verticals = [];
+let sendSmsOn = true;
+
+function showState(id) {
+  ['gateLoading','gateLogin','gateForbidden'].forEach(s => {
+    document.getElementById(s).classList.toggle('visible', s === id);
+  });
+}
+
+function formatAuPhone(raw) {
+  const digits = raw.replace(/\D/g, '');
+  if (!digits) return '';
+  if (digits.startsWith('61') && digits.length >= 10) return '+' + digits;
+  if (digits.startsWith('04') && digits.length === 10) return '+61' + digits.slice(1);
+  if (digits.startsWith('4')  && digits.length === 9)  return '+61' + digits;
+  return raw;
+}
+
+async function loadVerticals() {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/verticals?active=eq.true&order=display_order.asc&select=vertical_key,display_name,default_avg_job_value', {
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY }
+  });
+  if (!res.ok) {
+    throw new Error('Could not load verticals: ' + res.status);
+  }
+  verticals = await res.json();
+  const sel = document.getElementById('verticalSelect');
+  sel.innerHTML = verticals.map(v =>
+    '<option value="' + v.vertical_key + '" data-avg="' + v.default_avg_job_value + '">' + v.display_name + '</option>'
+  ).join('');
+  // Pre-fill avg from first vertical
+  prefillAvgFromVertical();
+}
+
+function prefillAvgFromVertical() {
+  const sel = document.getElementById('verticalSelect');
+  const opt = sel.options[sel.selectedIndex];
+  if (opt && opt.dataset.avg) {
+    document.getElementById('avgJobValueInput').value = opt.dataset.avg;
+  }
+}
+
+function toggleSms() {
+  sendSmsOn = !sendSmsOn;
+  document.getElementById('sendSmsToggle').classList.toggle('on', sendSmsOn);
+}
+
+function showError(msg) {
+  const box = document.getElementById('errorBox');
+  box.textContent = msg;
+  box.classList.add('visible');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function clearError() {
+  document.getElementById('errorBox').classList.remove('visible');
+}
+
+async function submitForm() {
+  clearError();
+
+  const business_name = document.getElementById('businessNameInput').value.trim();
+  const vertical      = document.getElementById('verticalSelect').value;
+  const owner_email   = document.getElementById('ownerEmailInput').value.trim().toLowerCase();
+  const owner_phone   = formatAuPhone(document.getElementById('ownerPhoneInput').value);
+  const twilio_number = formatAuPhone(document.getElementById('twilioNumberInput').value);
+  const abn           = document.getElementById('abnInput').value.replace(/\D/g, '');
+  const avg_raw       = document.getElementById('avgJobValueInput').value.trim();
+  const avg_job_value = avg_raw ? Number(avg_raw) : null;
+  const rebrandly_url = document.getElementById('rebrandlyUrlInput').value.trim();
+
+  if (!business_name) return showError('Business name is required.');
+  if (!vertical)      return showError('Pick a vertical.');
+  if (!owner_email || !owner_email.includes('@')) return showError('Valid owner email is required.');
+  if (!owner_phone || !/^\+61\d{8,11}$/.test(owner_phone)) return showError('Owner phone must be an Australian mobile (04xx or +614xx).');
+  if (!twilio_number || !/^\+614\d{8}$/.test(twilio_number)) return showError('Twilio number must be a valid AU mobile (+614XXXXXXXX).');
+  if (abn && abn.length !== 11) return showError('ABN must be 11 digits.');
+  if (!rebrandly_url || !/^https?:\/\//.test(rebrandly_url)) return showError('Booking link must start with https://');
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Creating…';
+
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/create-client', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + session.access_token
+      },
+      body: JSON.stringify({
+        business_name,
+        vertical,
+        owner_email,
+        owner_phone,
+        twilio_number,
+        abn: abn || null,
+        avg_job_value,
+        rebrandly_url,
+        send_sms: sendSmsOn
+      })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      const msg = data.detail || data.error || ('Server returned ' + res.status);
+      showError('Create failed: ' + msg);
+      btn.disabled = false;
+      btn.textContent = 'Create Client';
+      return;
+    }
+    showSuccess(data, owner_phone);
+  } catch (e) {
+    showError('Network error: ' + (e?.message || e));
+    btn.disabled = false;
+    btn.textContent = 'Create Client';
+  }
+}
+
+function showSuccess(data, owner_phone) {
+  document.getElementById('formCard').style.display = 'none';
+  document.getElementById('successCard').classList.add('visible');
+  document.getElementById('loginUrlBox').textContent = data.login_url;
+  const smsEl = document.getElementById('smsStatus');
+  if (data.sms_sent) {
+    smsEl.className = 'sms-status ok';
+    smsEl.textContent = '✓ Login link sent to ' + owner_phone;
+  } else if (data.sms_error) {
+    smsEl.className = 'sms-status fail';
+    smsEl.textContent = '⚠️ SMS failed — give the client this URL manually. (' + data.sms_error + ')';
+  } else {
+    smsEl.className = 'sms-status fail';
+    smsEl.textContent = '⚠️ SMS not sent — give the client this URL manually.';
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function copyUrl() {
+  const text = document.getElementById('loginUrlBox').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.classList.add('copied');
+    btn.textContent = '✓ Copied';
+    setTimeout(() => { btn.classList.remove('copied'); btn.textContent = 'Copy URL'; }, 2000);
+  });
+}
+
+function resetForm() {
+  document.getElementById('successCard').classList.remove('visible');
+  document.getElementById('businessNameInput').value = '';
+  document.getElementById('ownerEmailInput').value = '';
+  document.getElementById('ownerPhoneInput').value = '';
+  document.getElementById('twilioNumberInput').value = '';
+  document.getElementById('abnInput').value = '';
+  document.getElementById('rebrandlyUrlInput').value = '';
+  prefillAvgFromVertical();
+  document.getElementById('formCard').style.display = 'block';
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = false;
+  btn.textContent = 'Create Client';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function handleSignout() {
+  await sb.auth.signOut();
+  window.location.href = '/';
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      persistSession: true,
+      storage: window.localStorage,
+      storageKey: 'callmagnet-auth-token',
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
+  });
+
+  const { data: { session: s } } = await sb.auth.getSession();
+  session = s;
+
+  if (!session) {
+    showState('gateLogin');
+    return;
+  }
+
+  const isAdmin = session.user?.app_metadata?.is_admin === true;
+  if (!isAdmin) {
+    showState('gateForbidden');
+    document.getElementById('signoutBtn').style.display = 'block';
+    return;
+  }
+
+  // Authed + admin — show form
+  document.getElementById('gateLoading').classList.remove('visible');
+  document.getElementById('signoutBtn').style.display = 'block';
+  document.getElementById('formCard').style.display = 'block';
+
+  try {
+    await loadVerticals();
+  } catch (e) {
+    showError('Could not load verticals dropdown: ' + (e?.message || e));
+  }
+
+  document.getElementById('verticalSelect').addEventListener('change', prefillAvgFromVertical);
+
+  // Auto-format phone fields on blur
+  const phoneFields = ['ownerPhoneInput', 'twilioNumberInput'];
+  phoneFields.forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('blur', () => {
+      const formatted = formatAuPhone(el.value);
+      if (formatted) el.value = formatted;
+    });
+  });
+});
+</script>
+</body>
+</html>
