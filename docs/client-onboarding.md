@@ -32,7 +32,7 @@ Collect from the client before starting:
 2. Country: **Australia (+61)**
 3. Type: **Local**, Capabilities: **Voice + SMS**
 4. Pick a number — area code matching client's region is nice but not required
-5. Buy it (~$1–$2/month)
+5. Buy it (~$6.50/month total cost — number rental + SMS bundle for AU local Voice+SMS capable)
 6. Record the E.164 format: `+614XXXXXXXX` (mobile-style numbers are most reliable; +613 also works)
 
 ---
@@ -45,6 +45,20 @@ Collect from the client before starting:
 4. Save
 
 Any call to this number now triggers the CallMagnet flow (which captures the missed call and SMSes the caller).
+
+### Multi-Client Studio Architecture
+
+**One Studio flow handles every client.** Do NOT duplicate the flow per signing.
+
+The flow's first step is a Twilio Function call to `fetch_client` which queries Supabase by the inbound `To` number (the Twilio number that received the diverted call) and returns that client's `business_name`, `vertical`, `rebrandly_url`, and template variables. The flow then sends the vertical-appropriate SMS body to the original caller (the `From` number).
+
+What this means operationally — per new client, only these per-client steps exist:
+1. Buy AU Twilio number (~$6.50/month, Step 1 above)
+2. Voice Config → A Call Comes In → Studio Flow → **CallMagnet** (Step 2 above)
+3. UPDATE/INSERT `clients.twilio_number` so `fetch_client` can match (Step 3 below)
+4. Configure the client's phone forwarding to the new Twilio number (Step 4 below)
+
+The Studio flow itself is touched zero times after the initial build.
 
 ---
 
@@ -168,11 +182,76 @@ VoIP portals can take 5–15 minutes to apply changes. Test by calling and waiti
 
 ---
 
-## Step 5: Push Subscription Payment Link
+## SMS Template Rules (Locked)
 
-1. Stripe Dashboard → **Payment Links** → existing CallMagnet subscription link
-2. Pre-fill client's email if the link supports it
-3. Send the link to the client; they pay
+The Twilio Studio flow generates the outbound SMS body using the client's vertical template. The template format is non-negotiable:
+
+- **Opens** with "Hi —" or "Hi," (no other greeting variants — keeps brand voice consistent)
+- **Contains the rebrand.ly short link** introduced by either "Book:" or "Click:" (not "Reserve:", "Tap here:", or freeform copy)
+- **Ends** with "Reply STOP to opt out" (Australian SPAM Act compliance — mandatory)
+- **Max length 160 characters** — single SMS segment, no concatenation, no segment-cost spike
+- **NEVER contains `callmagnet.com.au`** — the SMS is client-facing; the customer should perceive it as coming from the business, not from a third-party SaaS
+
+Owners do not customise their SMS body. The vertical (`restaurant` / `barber` / `hairdresser` / `default`) determines the template; the business name + booking link are interpolated.
+
+---
+
+## Rebrand.ly Link Tier
+
+CallMagnet uses rebrand.ly to shorten and track booking links sent in SMS. Each client gets a unique short link pointing at their `booking_url`.
+
+**Current tier: Free** — sufficient through pre-launch and test client only. No webhook events, no Pro features.
+
+**Upgrade trigger: client #1 signed.** Switch the rebrand.ly account to **Professional ($32 USD/month flat)** at the moment the first paying client onboards. Pro tier unlocks:
+- Click webhook events into Supabase (replaces the current `get-booking-url` polling path)
+- Custom domain (optional brand polish)
+- Higher rate limits as client count grows
+
+Don't pre-upgrade — flat $32/month burns cash before revenue exists. The dormant `rebrandly-webhook` edge function (with secret stub `REBRANDLY_WEBHOOK_SECRET=PENDING_UPGRADE`) goes live the same hour the Pro tier activates.
+
+---
+
+## Revenue Math (Dashboard Hero Tile)
+
+The dashboard's "revenue recovered" headline number is computed at view time, not stored. Formula per client:
+
+```
+revenue_recovered = link_clicks × avg_job_value × 0.62
+```
+
+Where:
+- `link_clicks` = count of `link_clicks` rows for the selected period (today / week / month)
+- `clients.avg_job_value` = the per-client column you collected during onboarding (AUD)
+- `0.62` = Lead Connect 2025 industry research conversion rate (62% of unanswered callers contact a competitor when their first call goes unanswered → 62% of recovered tap-throughs become real bookings)
+
+If the client also logs real bookings via "+ Log a booking" on the dashboard, the formula switches to use observed conversion rate instead of 62%:
+```
+revenue_recovered = link_clicks × avg_job_value × (bookings ÷ link_clicks)
+```
+
+This gives the client a self-tightening estimate that improves as they log more real bookings.
+
+**Setting `avg_job_value` correctly matters.** Too low → revenue tile underwhelms, churn risk. Too high → looks fake, trust damage. Ask the client directly during onboarding ("what's your average customer spend per visit/booking?") and use their number.
+
+---
+
+## Step 5: Stripe Pricing + Payment Link by Vertical
+
+### Pricing by Vertical (Locked)
+
+| Vertical | Setup fee | Monthly | Notes |
+|---|---|---|---|
+| **Restaurant** | **$499** | **$249** | Higher ticket — owner is busy, has high churn exposure on missed reservations, can absorb setup |
+| **Barber** | $0 | **$99** | No setup — barbers price-sensitive, walk-in heavy, faster signup decisions |
+| **Hairdresser** | $0 | **$99** | No setup — same logic as barber; conversion easier without upfront friction |
+| Default | TBD | TBD | Custom pricing — discuss in advance |
+
+Choose the right Stripe Payment Link for the client's vertical.
+
+1. Stripe Dashboard → **Payment Links**
+2. Pick the link matching their vertical (restaurant-setup-plus-monthly / barber-monthly / hairdresser-monthly)
+3. Pre-fill client's email if the link supports it
+4. Send the link to the client; they pay
 
 When payment succeeds:
 - `stripe-payment-succeeded` webhook fires → sets `account_status = 'active'` on the matching `stripe_customer_id` row
