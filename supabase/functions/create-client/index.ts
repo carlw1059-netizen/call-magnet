@@ -20,6 +20,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const INTERNAL_SECRET           = Deno.env.get('INTERNAL_SECRET');
+const RESEND_API_KEY            = Deno.env.get('RESEND_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin':  '*',
@@ -238,12 +239,75 @@ Deno.serve(async (req) => {
       sms_error = 'INTERNAL_SECRET not configured — cannot call send-twilio-sms';
     }
 
+    // ── 8. Send branded onboarding welcome email via Resend (best-effort) ──
+    let welcome_email_sent = false;
+    let welcome_email_error: string | null = null;
+    if (RESEND_API_KEY) {
+      try {
+        const escapedBiz = business_name.replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]!));
+        const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="x-apple-disable-message-reformatting"><title>Welcome to CallMagnet</title></head>
+<body style="margin:0;padding:0;background:#0E1419;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:rgba(255,255,255,0.92);-webkit-text-size-adjust:100%;">
+<div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:transparent;">Your CallMagnet dashboard is ready. Tap to log in.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0E1419;">
+  <tr><td align="center" style="padding:32px 16px 24px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;background:rgba(255,255,255,0.04);border:1px solid rgba(6,214,160,0.22);border-radius:14px;">
+      <tr><td style="padding:36px 30px 32px;color:rgba(255,255,255,0.92);">
+        <div style="font-size:14px;letter-spacing:0.16em;color:#06D6A0;text-transform:uppercase;font-weight:700;margin-bottom:28px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">★ CallMagnet</div>
+        <h1 style="margin:0 0 12px;font-size:24px;font-weight:600;color:rgba(255,255,255,0.92);letter-spacing:-0.01em;">Welcome, ${escapedBiz}.</h1>
+        <p style="margin:0 0 24px;font-size:15px;line-height:1.55;color:rgba(255,255,255,0.78);">Your CallMagnet account is set up. Tap below to log in and see your dashboard. You'll see SMS replies fire to customers in real time as soon as your phone forwarding is configured.</p>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding:0 0 24px;">
+          <a href="${login_url}" style="display:inline-block;background:#06D6A0;color:#0a1110;text-decoration:none;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;letter-spacing:0.01em;">Log in to CallMagnet</a>
+        </td></tr></table>
+        <div style="margin:0 0 24px;padding:18px 18px;background:rgba(6,214,160,0.06);border:1px solid rgba(6,214,160,0.18);border-radius:10px;">
+          <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#06D6A0;font-weight:700;margin-bottom:10px;">Next steps</div>
+          <ol style="margin:0;padding:0 0 0 20px;font-size:14px;line-height:1.55;color:rgba(255,255,255,0.85);">
+            <li style="margin-bottom:6px;">Log in with the button above</li>
+            <li style="margin-bottom:6px;">Open your dashboard and walk through the tiles</li>
+            <li>Reply to this email or text Carl if anything looks wrong</li>
+          </ol>
+        </div>
+        <p style="margin:18px 0 0;font-size:12px;line-height:1.55;color:rgba(255,255,255,0.55);word-break:break-all;">Button not working? Copy and paste this URL into your browser:<br><span style="color:rgba(255,255,255,0.7);">${login_url}</span></p>
+      </td></tr>
+    </table>
+    <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:18px;letter-spacing:0.06em;">CallMagnet</div>
+  </td></tr>
+</table>
+</body></html>`;
+        const resendRes = await fetch('https://api.resend.com/emails', {
+          method:  'POST',
+          headers: {
+            Authorization:  `Bearer ${RESEND_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from:    'CallMagnet <hello@callmagnet.com.au>',
+            to:      owner_email,
+            subject: 'Welcome to CallMagnet — your dashboard is ready',
+            html,
+          }),
+        });
+        welcome_email_sent = resendRes.ok;
+        if (!resendRes.ok) {
+          welcome_email_error = `resend failed (${resendRes.status}): ${await resendRes.text()}`;
+          console.warn(welcome_email_error);
+        }
+      } catch (e) {
+        welcome_email_error = `welcome_email_exception: ${(e as Error)?.message ?? e}`;
+        console.warn(welcome_email_error);
+      }
+    } else {
+      welcome_email_error = 'RESEND_API_KEY not configured';
+    }
+
     return json(200, {
       success:    true,
       client_id,
       login_url,
       sms_sent,
       sms_error,
+      welcome_email_sent,
+      welcome_email_error,
       auth_user_id: authUserId,
     });
 

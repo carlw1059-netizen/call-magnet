@@ -236,6 +236,27 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+# Branded auth email templates (CallMagnet dark palette).
+# NOTE: hosted Supabase ignores these blocks — Carl pastes each template
+# into the Dashboard manually at Authentication → Email Templates.
+# These entries are for local-dev parity and as the source-of-truth files.
+
+[auth.email.template.magic_link]
+subject = "Your CallMagnet login link"
+content_path = "./supabase/templates/magic_link.html"
+
+[auth.email.template.confirmation]
+subject = "Welcome to CallMagnet — confirm your account"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.recovery]
+subject = "Reset your CallMagnet password"
+content_path = "./supabase/templates/recovery.html"
+
+[auth.email.template.email_change]
+subject = "Confirm your new CallMagnet email"
+content_path = "./supabase/templates/email_change.html"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"
