@@ -715,6 +715,9 @@ body {
 @media (min-width: 601px) {
   .dash .metric-value { font-size: 46px !important; }
 }
+/* Restaurant text-tile overrides — long labels need smaller, tighter type */
+.dash #rPeakWindowToday { font-size: 22px !important; line-height: 1.2 !important; font-weight: 600 !important; letter-spacing: -0.01em !important; }
+@media (min-width: 601px) { .dash #rPeakWindowToday { font-size: 28px !important; } }
 </style>
 <link rel="manifest" href="https://progressier.app/9kXZoGF2Dlfeqec880My/progressier.json"/>
 <script defer src="https://progressier.app/9kXZoGF2Dlfeqec880My/script.js"></script>
@@ -912,9 +915,9 @@ body {
         <div class="metric-sub">Captured today</div>
       </div>
       <div class="metric">
-        <div class="metric-label">Tonight's $ saved</div>
-        <div class="metric-value" id="rTonightSaved">$0</div>
-        <div class="metric-sub">Estimated at 62% conv.</div>
+        <div class="metric-label">Peak miss window today</div>
+        <div class="metric-value" id="rPeakWindowToday">—</div>
+        <div class="metric-sub">Today's busiest 30-min slot</div>
       </div>
       <div class="metric">
         <div class="metric-label">Links tapped today</div>
@@ -922,9 +925,9 @@ body {
         <div class="metric-sub">Captured today</div>
       </div>
       <div class="metric">
-        <div class="metric-label">This week's $ recovered</div>
-        <div class="metric-value" id="rWeekRecovered">$0</div>
-        <div class="metric-sub">Resets every Monday 5pm</div>
+        <div class="metric-label">Tap rate this week</div>
+        <div class="metric-value" id="rTapRateWeek">—</div>
+        <div class="metric-sub" id="rTapRateWeekSub">0 sent yet</div>
       </div>
     </div>
     <div class="metrics-fullwidth" id="linkTapsTodayRow">
@@ -1716,12 +1719,14 @@ async function loadRestaurantTileData(clientId, myRequestId) {
   const tonightStartIso = melbourneStartOfTodayUtcIso();
   const weekStartIso = melbourneMostRecentMonday5pmUtcIso();
 
-  let tonightSmsRes, todayClicksRes, weekSmsRes;
+  let todaySmsRes, todayClicksRes, weekSmsRes, weekClicksRes;
   try {
-    [tonightSmsRes, todayClicksRes, weekSmsRes] = await Promise.all([
-      sb.from('sms_events').select('id', { count: 'exact' }).eq('client_id', clientId).gte('received_at', tonightStartIso),
+    [todaySmsRes, todayClicksRes, weekSmsRes, weekClicksRes] = await Promise.all([
+      // received_at rows for today — used for both count (tile 1) and bucketing (tile 2)
+      sb.from('sms_events').select('received_at').eq('client_id', clientId).gte('received_at', tonightStartIso),
       sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).gte('clicked_at', tonightStartIso),
-      sb.from('sms_events').select('id', { count: 'exact' }).eq('client_id', clientId).gte('received_at', weekStartIso)
+      sb.from('sms_events').select('id', { count: 'exact' }).eq('client_id', clientId).gte('received_at', weekStartIso),
+      sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).gte('clicked_at', weekStartIso)
     ]);
   } catch (e) {
     console.warn('restaurant tiles fetch failed', e);
@@ -1729,17 +1734,93 @@ async function loadRestaurantTileData(clientId, myRequestId) {
   }
   if (myRequestId !== statsRequestId) return;
 
-  const tonightCount = tonightSmsRes.count || 0;
+  const todayEvents = todaySmsRes.data || [];
+  const tonightCount = todayEvents.length;
   const todayClicks = todayClicksRes.count || 0;
-  const weekCount = weekSmsRes.count || 0;
-  const avgJob = (currentClient && currentClient.avg_job_value) || 0;
-  const tonightSaved = Math.round(tonightCount * avgJob * 0.62);
-  const weekRecovered = Math.round(weekCount * avgJob * 0.62);
+  const weekSms = weekSmsRes.count || 0;
+  const weekClicks = weekClicksRes.count || 0;
 
   document.getElementById('rTonightCovers').textContent = tonightCount;
-  document.getElementById('rTonightSaved').textContent = '$' + tonightSaved.toLocaleString();
+  document.getElementById('rPeakWindowToday').textContent = computePeakWindowLabel(todayEvents);
   document.getElementById('rLinksToday').textContent = todayClicks;
-  document.getElementById('rWeekRecovered').textContent = '$' + weekRecovered.toLocaleString();
+
+  const tapRateEl = document.getElementById('rTapRateWeek');
+  const tapSubEl  = document.getElementById('rTapRateWeekSub');
+  if (weekSms === 0) {
+    tapRateEl.textContent = '—';
+    tapSubEl.textContent  = '0 sent yet';
+  } else {
+    const rawPct    = Math.round((weekClicks / weekSms) * 100);
+    const cappedPct = Math.min(rawPct, 100);
+    tapRateEl.textContent = cappedPct + '%';
+    tapSubEl.textContent  = weekClicks + ' of ' + weekSms + ' sent';
+  }
+}
+
+// Bucket today's sms_events into 30-min Melbourne-local slots, return the
+// peak slot as a human-friendly label. Examples:
+//   0 events       → "No calls yet today"
+//   1–2 events     → "12pm — 1 call"  (single time, count)
+//   3+ events      → "6:30–7:30pm — 8 calls"  (range, count)
+// Tie-break = earliest slot wins.
+function computePeakWindowLabel(events) {
+  if (!events || events.length === 0) return 'No calls yet today';
+
+  const buckets = new Map();   // "HH:MM" → count
+  const meta    = new Map();   // "HH:MM" → { h, m }  for label formatting
+  for (const ev of events) {
+    if (!ev || !ev.received_at) continue;
+    const dt = new Date(ev.received_at);
+    if (Number.isNaN(dt.getTime())) continue;
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Australia/Melbourne',
+      hour: '2-digit', minute: '2-digit', hour12: false,
+    }).formatToParts(dt);
+    const h = parseInt(parts.find(p => p.type === 'hour').value, 10);
+    const m = parseInt(parts.find(p => p.type === 'minute').value, 10);
+    const bucketMin = m < 30 ? 0 : 30;
+    const key = String(h).padStart(2, '0') + ':' + String(bucketMin).padStart(2, '0');
+    buckets.set(key, (buckets.get(key) || 0) + 1);
+    if (!meta.has(key)) meta.set(key, { h, m: bucketMin });
+  }
+
+  // Earliest bucket with peak count (strict > so the first one we hit wins ties).
+  const sortedKeys = Array.from(buckets.keys()).sort();
+  let peakKey = sortedKeys[0];
+  let peakCount = buckets.get(peakKey);
+  for (const k of sortedKeys) {
+    const v = buckets.get(k);
+    if (v > peakCount) { peakKey = k; peakCount = v; }
+  }
+
+  const { h, m } = meta.get(peakKey);
+  const callWord = peakCount === 1 ? '1 call' : peakCount + ' calls';
+
+  if (events.length <= 2) {
+    return formatSingleTime(h, m) + ' — ' + callWord;
+  }
+  const endH = m === 30 ? (h + 1) % 24 : h;
+  const endM = m === 30 ? 0 : 30;
+  return formatTimeRange(h, m, endH, endM) + ' — ' + callWord;
+}
+
+function formatSingleTime(h, m) {
+  const ampm = h >= 12 ? 'pm' : 'am';
+  const h12  = h % 12 === 0 ? 12 : h % 12;
+  return h12 + (m === 0 ? '' : ':' + String(m).padStart(2, '0')) + ampm;
+}
+
+function formatTimeRange(h, m, endH, endM) {
+  const startAmpm = h >= 12 ? 'pm' : 'am';
+  const endAmpm   = endH >= 12 ? 'pm' : 'am';
+  const h12       = h % 12 === 0 ? 12 : h % 12;
+  const endH12    = endH % 12 === 0 ? 12 : endH % 12;
+  const startStr  = h12 + (m === 0 ? '' : ':' + String(m).padStart(2, '0'));
+  const endStr    = endH12 + (endM === 0 ? '' : ':' + String(endM).padStart(2, '0'));
+  if (startAmpm === endAmpm) {
+    return startStr + '–' + endStr + endAmpm;
+  }
+  return startStr + startAmpm + '–' + endStr + endAmpm;
 }
 
 function updateSmsCounter(count) {

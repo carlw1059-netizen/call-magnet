@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 11 May 2026 — notification copy redirects to booking system + dashboard hint
-const CACHE_VERSION = 'callmagnet-v32-notification-redirect-copy';
+// Last bumped: 12 May 2026 — restaurant tiles: peak miss window + tap rate this week
+const CACHE_VERSION = 'callmagnet-v33-restaurant-peak-and-taprate';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
