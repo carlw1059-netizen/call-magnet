@@ -41,6 +41,7 @@ const FALLBACK = {
   vertical: 'default',
   business_name: 'us',
   booking_url: 'https://callmagnet.com.au',
+  customer_sms_template: 'Hi — sorry I missed your call. Click to book:',
 };
 
 exports.handler = async function (context, event, callback) {
@@ -97,11 +98,18 @@ exports.handler = async function (context, event, callback) {
     return callback(null, FALLBACK);
   }
 
-  const { vertical, business_name, booking_url } = rows[0];
+  const { vertical, business_name, booking_url, customer_sms_template } = rows[0];
+
+  // If template still has [LINK] placeholder, substitute the actual rebrandly URL
+  // so Twilio Studio doesn't have to. Keeps Liquid template trivial:
+  //   {{widgets.fetch_client.parsed.customer_sms_template}} Reply STOP to opt out
+  const url = booking_url || 'https://callmagnet.com.au';
+  const tmpl = (customer_sms_template || FALLBACK.customer_sms_template).replace(/\[LINK\]/g, url);
 
   return callback(null, {
-    vertical:      vertical      || 'default',
-    business_name: business_name || 'us',
-    booking_url:   booking_url   || 'https://callmagnet.com.au',
+    vertical:              vertical      || 'default',
+    business_name:         business_name || 'us',
+    booking_url:           url,
+    customer_sms_template: tmpl,
   });
 };

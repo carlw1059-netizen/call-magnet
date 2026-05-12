@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 12 May 2026 — admin onboarding form + magic-link login flow
-const CACHE_VERSION = 'callmagnet-v35-admin-onboard-magiclink';
+// Last bumped: 13 May 2026 — customizable customer SMS template per client
+const CACHE_VERSION = 'callmagnet-v36-customer-sms-templates';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
