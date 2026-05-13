@@ -718,6 +718,20 @@ body {
 /* Restaurant text-tile overrides — long labels need smaller, tighter type */
 .dash #rPeakWindowToday { font-size: 22px !important; line-height: 1.2 !important; font-weight: 600 !important; letter-spacing: -0.01em !important; }
 @media (min-width: 601px) { .dash #rPeakWindowToday { font-size: 28px !important; } }
+
+/* Hide Progressier's bottom-right "Install the app" widget on desktop.
+   PWA install via Chrome desktop is not the intended UX — only useful on
+   iPhone/Android home screens. Belt-and-braces selector hits any element
+   Progressier injects with their namespace. */
+@media (min-width: 768px) {
+  [id^="progressier"],
+  [class*="progressier"],
+  [class*="pgs-"],
+  [data-progressier-installer],
+  [data-progressier-install] {
+    display: none !important;
+  }
+}
 </style>
 <link rel="manifest" href="https://progressier.app/9kXZoGF2Dlfeqec880My/progressier.json"/>
 <script defer src="https://progressier.app/9kXZoGF2Dlfeqec880My/script.js"></script>
