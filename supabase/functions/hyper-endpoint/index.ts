@@ -91,6 +91,22 @@ Deno.serve(async (req) => {
 
 
   } catch (error) {
+    const errSafe = String(error.message ?? error).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c])
+    const alertHtml = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0E1419;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#FFFFFF;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0E1419;"><tr><td align="center" style="padding:32px 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;background:#161D24;border:1px solid rgba(6,214,160,0.15);border-left:3px solid #CC5500;border-radius:14px;">
+<tr><td style="padding:36px 30px;color:#FFFFFF;">
+<div style="font-size:14px;letter-spacing:0.16em;color:#06D6A0;text-transform:uppercase;font-weight:700;margin-bottom:24px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">★ CallMagnet</div>
+<h1 style="margin:0 0 8px;font-size:20px;font-weight:600;color:#FFFFFF;">⚠️ stripe-payment-failed failed</h1>
+<p style="margin:0 0 18px;font-size:13px;color:#B0B8C1;">A Stripe webhook errored before completing.</p>
+<p style="margin:0 0 6px;font-size:13px;color:#FFFFFF;"><strong>Function:</strong> stripe-payment-failed</p>
+<p style="margin:0 0 6px;font-size:13px;color:#FFFFFF;"><strong>Error:</strong> ${errSafe}</p>
+<p style="margin:0 0 16px;font-size:13px;color:#FFFFFF;"><strong>Time:</strong> ${new Date().toISOString()}</p>
+<p style="margin:0;font-size:12px;color:#6B7480;">Log in to Supabase to investigate.</p>
+</td></tr></table>
+<div style="font-size:12px;color:#6B7480;margin-top:18px;letter-spacing:0.06em;">CallMagnet</div>
+</td></tr></table></body></html>`
     await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -101,7 +117,7 @@ Deno.serve(async (req) => {
         from: 'CallMagnet Alerts <hello@callmagnet.com.au>',
         to: 'car312@hotmail.com',
         subject: '⚠️ CallMagnet — stripe-payment-failed failed',
-        html: `<p><strong>Function:</strong> stripe-payment-failed</p><p><strong>Error:</strong> ${error.message}</p><p><strong>Time:</strong> ${new Date().toISOString()}</p><p>Log in to Supabase to investigate.</p>`
+        html: alertHtml
       })
     }).catch(() => {})
 

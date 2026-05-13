@@ -479,6 +479,7 @@ Deno.serve(async (req) => {
         `;
         }
 
+        const plainText = `${title}\n\n${msg}\n\nOpen your dashboard: https://callmagnet.com.au\n\nCallMagnet — callmagnet.com.au\n`;
         const resendRes = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
@@ -490,6 +491,7 @@ Deno.serve(async (req) => {
             to:      client.email,
             subject: title,
             html:    renderEmailShell(emailContent, msg),
+            text:    plainText,
           }),
         });
         emailSent = resendRes.ok;

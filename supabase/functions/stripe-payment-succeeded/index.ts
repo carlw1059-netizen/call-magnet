@@ -124,6 +124,50 @@ Deno.serve(async (req) => {
       // Send welcome email if first payment
       const emailsSent = client.emails_sent || []
       if (!emailsSent.includes('welcome') && resendKey) {
+        // Locked dark palette. Only 7 hex/rgba values appear in this HTML:
+        // #0E1419 (bg) #161D24 (card) #06D6A0 (accent) #CC5500 (edge)
+        // #FFFFFF (text) #B0B8C1 (secondary) #6B7480 (muted) rgba(6,214,160,0.15) (border)
+        const bizSafe = String(client.business_name).replace(/[&<>"']/g, (c) =>
+          ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]
+        )
+        const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="x-apple-disable-message-reformatting"><title>You're live, ${bizSafe}.</title></head>
+<body style="margin:0;padding:0;background:#0E1419;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#FFFFFF;-webkit-text-size-adjust:100%;">
+<div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:transparent;">Your CallMagnet system is now live.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0E1419;">
+  <tr><td align="center" style="padding:32px 16px 24px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:#161D24;border:1px solid rgba(6,214,160,0.15);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.35);">
+      <tr><td style="padding:40px 36px;color:#FFFFFF;">
+        <div style="font-size:14px;letter-spacing:0.16em;color:#06D6A0;text-transform:uppercase;font-weight:700;margin-bottom:28px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">★ CallMagnet</div>
+        <h1 style="margin:0 0 8px;font-size:26px;font-weight:600;color:#FFFFFF;letter-spacing:-0.01em;">You're live, ${bizSafe}.</h1>
+        <p style="margin:0 0 28px;font-size:15px;line-height:1.55;color:#B0B8C1;">Your CallMagnet system is active right now.</p>
+        <p style="margin:0 0 16px;font-size:15px;line-height:1.65;color:#FFFFFF;">From this moment — every time someone calls your business number and can't get through, they'll automatically receive an SMS with your booking link within seconds.</p>
+        <p style="margin:0 0 28px;font-size:15px;line-height:1.65;color:#FFFFFF;">You don't need to do anything. No app to monitor. No calls to return. CallMagnet runs silently in the background and catches the revenue you would have lost.</p>
+        <div style="background:#0E1419;border:1px solid rgba(6,214,160,0.15);border-left:3px solid #CC5500;border-radius:10px;padding:18px 20px;margin:0 0 28px;">
+          <div style="font-size:11px;letter-spacing:0.12em;color:#06D6A0;text-transform:uppercase;font-weight:700;margin-bottom:10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">One thing to do now</div>
+          <p style="margin:0 0 6px;font-size:14px;line-height:1.5;color:#FFFFFF;">When a missed caller books with you — tap <strong style="color:#06D6A0;">+ Log a booking</strong> in your dashboard.</p>
+          <p style="margin:0;font-size:14px;line-height:1.5;color:#B0B8C1;">It takes two seconds and tracks exactly how much revenue CallMagnet is recovering for you.</p>
+        </div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="left" style="padding:0 0 20px;">
+          <a href="https://callmagnet.com.au" style="display:inline-block;background:#06D6A0;color:#0E1419;text-decoration:none;font-weight:700;font-size:15px;padding:14px 28px;border-radius:10px;letter-spacing:0.01em;">View your dashboard →</a>
+        </td></tr></table>
+        <p style="margin:32px 0 0;font-size:13px;line-height:1.5;color:#B0B8C1;">Questions? Reply to this email or contact <a href="mailto:hello@callmagnet.com.au" style="color:#06D6A0;text-decoration:none;">hello@callmagnet.com.au</a></p>
+        <p style="margin:8px 0 0;font-size:13px;line-height:1.5;color:#6B7480;">We will never sell your data. Ever.</p>
+      </td></tr>
+    </table>
+    <div style="font-size:12px;color:#6B7480;margin-top:18px;letter-spacing:0.06em;">CallMagnet</div>
+  </td></tr>
+</table>
+</body></html>`
+        const text =
+          `You're live, ${client.business_name}.\n\n` +
+          `Your CallMagnet system is active right now.\n\n` +
+          `From this moment — every time someone calls your business number and can't get through, they'll automatically receive an SMS with your booking link within seconds.\n\n` +
+          `You don't need to do anything. No app to monitor. No calls to return.\n\n` +
+          `One thing to do now: when a missed caller books with you, tap "+ Log a booking" in your dashboard. It takes two seconds and tracks exactly how much revenue CallMagnet is recovering for you.\n\n` +
+          `View your dashboard: https://callmagnet.com.au\n\n` +
+          `Questions? Reply to this email or contact hello@callmagnet.com.au\n` +
+          `We will never sell your data. Ever.\n`
         const emailRes = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
@@ -134,21 +178,8 @@ Deno.serve(async (req) => {
             from: 'CallMagnet <hello@callmagnet.com.au>',
             to: client.email,
             subject: `You're live, ${client.business_name}.`,
-            html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#0d0d0d;color:#f0f0f0;padding:40px 32px;border-radius:10px;">
-              <div style="font-family:monospace;font-size:22px;letter-spacing:0.15em;color:#191970;text-transform:uppercase;margin-bottom:32px;font-weight:700;">★ CallMagnet</div>
-              <h1 style="font-size:28px;font-weight:700;color:#f0f0f0;margin-bottom:8px;letter-spacing:-0.02em;">You're live, ${client.business_name}.</h1>
-              <p style="font-size:15px;color:#888;margin-bottom:32px;">Your CallMagnet system is active right now.</p>
-              <p style="font-size:15px;color:#f0f0f0;line-height:1.7;margin-bottom:16px;">From this moment — every time someone calls your business number and can't get through, they'll automatically receive an SMS with your booking link within seconds.</p>
-              <p style="font-size:15px;color:#f0f0f0;line-height:1.7;margin-bottom:16px;">You don't need to do anything. No app to monitor. No calls to return. CallMagnet runs silently in the background and catches the revenue you would have lost.</p>
-              <div style="background:#161616;border:1px solid #191970;border-radius:8px;padding:20px 24px;margin:32px 0;">
-                <p style="font-family:monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#191970;margin-bottom:16px;font-weight:700;">One thing to do now</p>
-                <p style="font-size:14px;color:#f0f0f0;margin-bottom:8px;">When a missed caller books with you — tap <strong>+ Log a booking</strong> in your dashboard.</p>
-                <p style="font-size:14px;color:#f0f0f0;margin-bottom:0;">It takes two seconds and tracks exactly how much revenue CallMagnet is recovering for you.</p>
-              </div>
-              <a href="https://callmagnet.com.au" style="display:inline-block;background:#191970;color:#ffffff;padding:12px 24px;border-radius:6px;font-weight:700;text-decoration:none;font-size:14px;margin-bottom:32px;">View your dashboard →</a>
-              <p style="font-size:13px;color:#555;margin-top:40px;">Questions? Reply to this email or contact hello@callmagnet.com.au</p>
-              <p style="font-size:13px;color:#555;">We will never sell your data. Ever.</p>
-            </div>`
+            html,
+            text
           })
         })
         const emailData = await emailRes.json()

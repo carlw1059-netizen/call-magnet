@@ -233,6 +233,14 @@ Deno.serve(async (req) => {
 
         const subject = buildSummarySubject(client.business_name, missedCallsCount);
 
+        const text =
+          `${subject}\n\n` +
+          `Hi ${client.business_name},\n\n` +
+          `Today: ${missedCallsCount} missed calls captured, ${smsSentCount} SMS sent, ${linkTapsToday} link taps, ~${estBookings} estimated bookings (~$${estRevenue} estimated revenue).\n` +
+          `Last 7 days: ${missed7d} missed calls, ~${estBookings7d} bookings (~$${estRevenue7d}).\n` +
+          `Last 30 days: ${missed30d} missed calls, ~${estBookings30d} bookings (~$${estRevenue30d}).\n\n` +
+          `Open your dashboard: https://callmagnet.com.au\n\n` +
+          `CallMagnet — callmagnet.com.au\n`;
         const resendRes = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
@@ -244,6 +252,7 @@ Deno.serve(async (req) => {
             to:      client.email,
             subject,
             html:    emailHtml,
+            text,
           }),
         });
 

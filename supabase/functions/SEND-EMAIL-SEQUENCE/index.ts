@@ -66,7 +66,8 @@ Deno.serve(async () => {
             from: 'CallMagnet <hello@callmagnet.com.au>',
             to: client.email,
             subject: `Two weeks in, ${client.business_name}.`,
-            html: `<div style="font-family:${BRAND.fontStack};max-width:560px;margin:0 auto;background:${BRAND.cardBackground};color:${BRAND.primaryText};padding:40px 32px;border-radius:10px;border:1px solid ${BRAND.borderColor};">
+            text: `Two weeks in, ${client.business_name}.\n\nMissed calls caught: ${smsCount}\n${clickCount > 0 ? `Customers tapped your booking link: ${clickCount}\n` : ''}${recovered > 0 ? `Estimated revenue recovered: $${recovered}\n` : ''}\nWhen a missed caller books with you, tap "+ Log a booking" in your dashboard.\n\nView your dashboard: https://callmagnet.com.au\n\nQuestions? Reply or contact hello@callmagnet.com.au\n\nCallMagnet — callmagnet.com.au\n`,
+            html: `<div style="font-family:${BRAND.fontStack};max-width:560px;margin:0 auto;background:${BRAND.cardBackground};color:${BRAND.primaryText};padding:40px 32px;border-radius:14px;border:1px solid ${BRAND.borderColor};">
               <div style="font-family:'DM Mono', ui-monospace, monospace;font-size:22px;letter-spacing:0.15em;color:${BRAND.accent};text-transform:uppercase;margin-bottom:32px;font-weight:700;">★ CallMagnet</div>
               <h1 style="font-size:28px;font-weight:700;color:${BRAND.primaryText};margin-bottom:8px;letter-spacing:-0.02em;">Two weeks in, ${client.business_name}.</h1>
               <p style="font-size:15px;color:${BRAND.secondaryText};margin-bottom:32px;">Here's what's been happening while you've been busy.</p>
@@ -83,7 +84,7 @@ Deno.serve(async () => {
               </div>
               <p style="font-size:15px;color:${BRAND.primaryText};line-height:1.7;margin-bottom:16px;">Every one of those callers tried to reach your business number and couldn't get through. Without CallMagnet — they would have called someone else.</p>
               <p style="font-size:15px;color:${BRAND.primaryText};line-height:1.7;margin-bottom:32px;">When a missed caller books with you — tap <strong>+ Log a booking</strong> in your dashboard. It keeps your revenue total accurate and shows you exactly what CallMagnet is recovering.</p>
-              <a href="https://callmagnet.com.au" style="display:inline-block;background:${BRAND.accent};color:#ffffff;padding:12px 24px;border-radius:6px;font-weight:700;text-decoration:none;font-size:14px;margin-bottom:32px;">View your dashboard →</a>
+              <a href="https://callmagnet.com.au" style="display:inline-block;background:${BRAND.accent};color:#0E1419;padding:12px 24px;border-radius:10px;font-weight:700;text-decoration:none;font-size:14px;margin-bottom:32px;">View your dashboard →</a>
               <p style="font-size:13px;color:${BRAND.mutedText};margin-top:40px;">Questions? Reply to this email or contact hello@callmagnet.com.au</p>
             </div>`
           })
@@ -131,7 +132,8 @@ Deno.serve(async () => {
             from: 'CallMagnet <hello@callmagnet.com.au>',
             to: client.email,
             subject: `Your first month, ${client.business_name}.`,
-            html: `<div style="font-family:${BRAND.fontStack};max-width:560px;margin:0 auto;background:${BRAND.cardBackground};color:${BRAND.primaryText};padding:40px 32px;border-radius:10px;border:1px solid ${BRAND.borderColor};">
+            text: `Your first month, ${client.business_name}.\n\nMissed calls caught: ${smsCount}\nCustomers tapped your booking link: ${clickCount}\nBookings logged: ${bookCount}\n${recovered > 0 ? `Estimated revenue recovered: $${recovered}\n` : ''}\nThank you for being one of our first clients.\n\nView your dashboard: https://callmagnet.com.au\n\nCallMagnet — callmagnet.com.au\n`,
+            html: `<div style="font-family:${BRAND.fontStack};max-width:560px;margin:0 auto;background:${BRAND.cardBackground};color:${BRAND.primaryText};padding:40px 32px;border-radius:14px;border:1px solid ${BRAND.borderColor};">
               <div style="font-family:'DM Mono', ui-monospace, monospace;font-size:22px;letter-spacing:0.15em;color:${BRAND.accent};text-transform:uppercase;margin-bottom:32px;font-weight:700;">★ CallMagnet</div>
               <h1 style="font-size:28px;font-weight:700;color:${BRAND.primaryText};margin-bottom:8px;letter-spacing:-0.02em;">Your first month, ${client.business_name}.</h1>
               <p style="font-size:15px;color:${BRAND.secondaryText};margin-bottom:32px;">One month of catching what you would have lost.</p>
@@ -153,7 +155,7 @@ Deno.serve(async () => {
               </div>
               <p style="font-size:15px;color:${BRAND.primaryText};line-height:1.7;margin-bottom:16px;">Those are customers who called your business number, couldn't get through, and still booked — because CallMagnet sent them straight to your booking link before they moved on.</p>
               <p style="font-size:15px;color:${BRAND.primaryText};line-height:1.7;margin-bottom:32px;">At 3 recovered bookings a week at $80 each — CallMagnet pays for itself in the first week of every month. The other three weeks are yours.</p>
-              <a href="https://callmagnet.com.au" style="display:inline-block;background:${BRAND.accent};color:#ffffff;padding:12px 24px;border-radius:6px;font-weight:700;text-decoration:none;font-size:14px;margin-bottom:32px;">View your dashboard →</a>
+              <a href="https://callmagnet.com.au" style="display:inline-block;background:${BRAND.accent};color:#0E1419;padding:12px 24px;border-radius:10px;font-weight:700;text-decoration:none;font-size:14px;margin-bottom:32px;">View your dashboard →</a>
               <p style="font-size:13px;color:${BRAND.mutedText};margin-top:8px;">Thank you for being one of our first clients.</p>
               <p style="font-size:13px;color:${BRAND.mutedText};">We will never sell your data. Ever.</p>
             </div>`

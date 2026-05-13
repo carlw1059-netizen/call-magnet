@@ -1,24 +1,34 @@
 // Shared email styling — single source of truth for CallMagnet brand colours
-// across every Resend-sending edge function. Match the login screen palette
-// (#3ECF8E accent on #F7F7F5 page bg) so emails feel like the same product
+// across every Resend-sending edge function. Matches the locked PWA palette
+// (#0E1419 charcoal + #06D6A0 emerald) so emails feel like the same product
 // the client logs into.
 //
-// Future colour changes are one-file edits here; callers should never
-// hardcode brand hex values.
+// LOCKED PALETTE — ONLY 7 colours used anywhere in emails:
+//   #0E1419  background (charcoal-navy)
+//   #06D6A0  accent (jewel emerald)
+//   #CC5500  edge highlight (burnt orange — tiny edges/borders only, never fills)
+//   #FFFFFF  primary text on dark bg
+//   #B0B8C1  secondary text
+//   #6B7480  tertiary/muted text
+//   #161D24  card/tile bg (one shade lighter than main bg, for depth)
+//   rgba(6, 214, 160, 0.15)  faint emerald-glow border
+//
+// Do NOT add new hex values. Future colour changes are one-file edits here.
 
 export const BRAND = {
-  accent:         '#3ECF8E',                                                   // login green
-  accentHover:    '#2EB87A',                                                   // darker shade for borders/hover
-  pageBackground: '#F7F7F5',                                                   // login page background
-  cardBackground: '#FFFFFF',                                                   // login card background
-  primaryText:    '#111111',
-  secondaryText:  '#666666',
-  mutedText:      '#888888',
-  borderColor:    '#DDDDDD',
-  successBg:      '#F0F4FF',                                                   // success message bg from login
-  errorBg:        '#FFF0F0',
-  errorText:      '#CC0000',
-  errorBorder:    '#FF4D4D',
+  accent:         '#06D6A0',                                                   // emerald accent — buttons, links, headings
+  accentHover:    '#06D6A0',                                                   // same colour, no separate hover hue
+  pageBackground: '#0E1419',                                                   // outer body background
+  cardBackground: '#161D24',                                                   // inner card background
+  primaryText:    '#FFFFFF',                                                   // body text on dark
+  secondaryText:  '#B0B8C1',                                                   // softer body text
+  mutedText:      '#6B7480',                                                   // footer / fine print
+  borderColor:    'rgba(6, 214, 160, 0.15)',                                   // faint emerald border
+  edge:           '#CC5500',                                                   // burnt orange edge (errors, warnings — tiny borders only)
+  successBg:      '#161D24',                                                   // card-shade panel for highlighted content
+  errorBg:        '#161D24',                                                   // same card shade; differentiation via border colour
+  errorText:      '#FFFFFF',                                                   // white text on dark
+  errorBorder:    '#CC5500',                                                   // burnt orange border on error blocks
   fontStack:      "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
 } as const;
 
@@ -27,10 +37,6 @@ export const BRAND = {
 // the @media block in <style>). All styles are inline on the table cells
 // because Gmail strips <style> blocks above the body in some clients —
 // the <style> here only carries the @media query, which most clients honour.
-//
-// Verified renderable in Gmail web (Chrome) and Apple Mail iOS at the time
-// of writing. Outlook desktop would also render but isn't part of the test
-// matrix today.
 //
 // content   — HTML string for the body (caller's responsibility to build)
 // preheader — optional ~80-char inbox preview text shown next to the subject
@@ -55,15 +61,15 @@ export function renderEmailShell(content: string, preheader?: string): string {
     }
   </style>
 </head>
-<body style="margin:0;padding:0;background:${BRAND.pageBackground};">
+<body style="margin:0;padding:0;background:${BRAND.pageBackground};-webkit-text-size-adjust:100%;">
   ${preheaderBlock}
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${BRAND.pageBackground};">
     <tr>
       <td align="center" style="padding:32px 16px;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:${BRAND.cardBackground};border:1px solid ${BRAND.borderColor};border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.06);">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:${BRAND.cardBackground};border:1px solid ${BRAND.borderColor};border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.35);">
           <tr>
             <td class="em-card" style="padding:40px 36px;font-family:${BRAND.fontStack};color:${BRAND.primaryText};">
-              <div style="font-family:'DM Mono', ui-monospace, SFMono-Regular, monospace;font-size:18px;letter-spacing:0.15em;color:${BRAND.accent};text-transform:uppercase;font-weight:700;margin-bottom:32px;">
+              <div style="font-family:ui-monospace, SFMono-Regular, 'DM Mono', monospace;font-size:14px;letter-spacing:0.16em;color:${BRAND.accent};text-transform:uppercase;font-weight:700;margin-bottom:28px;">
                 ★ CallMagnet
               </div>
               ${content}

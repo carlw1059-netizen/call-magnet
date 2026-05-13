@@ -341,7 +341,7 @@ function renderAlertEmailHTML(period: Period, sent: SentEntry[], skipped: Skippe
 }
 
 // ─── Resend dispatch ──────────────────────────────────────────────────────
-async function sendViaResend(args: { to: string; subject: string; html: string }): Promise<{ ok: boolean; messageId?: string; error?: string }> {
+async function sendViaResend(args: { to: string; subject: string; html: string; text?: string }): Promise<{ ok: boolean; messageId?: string; error?: string }> {
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -354,6 +354,7 @@ async function sendViaResend(args: { to: string; subject: string; html: string }
         to: [args.to],
         subject: args.subject,
         html: args.html,
+        text: args.text ?? `${args.subject}\n\nOpen your full monthly recap in CallMagnet: https://callmagnet.com.au\n\nReply to this email if anything looks wrong.\n\nCallMagnet — callmagnet.com.au\n`,
       }),
     });
     if (!res.ok) {
