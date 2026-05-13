@@ -80,12 +80,13 @@ Deno.serve(async (req) => {
 
     if (!twilioRes.ok) {
       const errBody = await twilioRes.text();
-      console.error(`twilio_api_failed: status=${twilioRes.status} body=${errBody}`);
+      console.error(`twilio_api_failed: to=${to} from=${TWILIO_FROM_NUMBER} status=${twilioRes.status} body=${errBody}`);
       return json(500, { error: 'twilio_api_failed', status: twilioRes.status, detail: errBody });
     }
 
     const data = await twilioRes.json();
-    return json(200, { ok: true, sid: data?.sid ?? null });
+    console.log(`send-twilio-sms: ok to=${to} sid=${data?.sid ?? '(none)'} status=${data?.status ?? '(none)'}`);
+    return json(200, { ok: true, sid: data?.sid ?? null, status: data?.status ?? null });
 
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : String(err);

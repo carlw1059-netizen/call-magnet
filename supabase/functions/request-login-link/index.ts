@@ -39,12 +39,20 @@ Deno.serve(async (req) => {
     return new Response('Method Not Allowed', { status: 405, headers: corsHeaders });
   }
 
+  // Debug mode — caller passes X-Internal-Secret matching the Vault entry.
+  // Real errors returned instead of generic OK. Lets admin diagnose the flow
+  // end-to-end without relying on inbox/SMS arrival as the only signal.
+  const debug = req.headers.get('X-Internal-Secret') === INTERNAL_SECRET;
+  const debugFail = (status: number, payload: Record<string, unknown>) =>
+    debug ? json(status, { debug: true, ...payload }) : json(200, GENERIC_OK);
+
   try {
     const body       = await req.json().catch(() => null) as { identifier?: unknown } | null;
     const identifier = typeof body?.identifier === 'string' ? body.identifier.trim() : '';
     if (!identifier) {
       return json(400, { error: 'missing_identifier', detail: 'identifier required' });
     }
+    console.log(`request-login-link: identifier=${identifier} debug=${debug}`);
 
     const supa = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false },
@@ -79,15 +87,23 @@ Deno.serve(async (req) => {
         .limit(1);
       if (clientByPhone && clientByPhone.length > 0 && clientByPhone[0].email) {
         email = clientByPhone[0].email;
+        console.log(`request-login-link: matched email=${email} via clients.owner_phone`);
       } else {
         // Fallback — listUsers and match by auth.users.phone
-        const { data: usersList } = await supa.auth.admin.listUsers({ page: 1, perPage: 1000 });
-        const match = usersList?.users?.find((u) => u.phone === phone.replace(/^\+/, '') || u.phone === phone);
+        const { data: usersList, error: listErr } = await supa.auth.admin.listUsers({ page: 1, perPage: 1000 });
+        if (listErr) {
+          console.error(`request-login-link: listUsers failed: ${listErr.message}`);
+        }
+        const phoneNoPlus = phone.replace(/^\+/, '');
+        const match = usersList?.users?.find((u) => u.phone === phoneNoPlus || u.phone === phone);
         if (match?.email) {
           email = match.email;
+          console.log(`request-login-link: matched email=${email} via auth.users.phone fallback (user id=${match.id})`);
         } else {
-          console.warn(`request-login-link: no client or auth user found for phone=${phone}`);
-          return json(200, GENERIC_OK);
+          const totalUsers = usersList?.users?.length ?? 0;
+          const samplePhones = (usersList?.users ?? []).slice(0, 5).map((u) => u.phone).join(',');
+          console.warn(`request-login-link: no match for phone=${phone}. listUsers returned ${totalUsers} users. sample phones: ${samplePhones}`);
+          return debugFail(404, { error: 'phone_not_found', phone, total_users: totalUsers, sample_phones: samplePhones });
         }
       }
     }
@@ -108,9 +124,10 @@ Deno.serve(async (req) => {
     });
     if (linkErr || !linkData?.properties?.action_link) {
       console.warn(`request-login-link: generateLink failed for email=${email}: ${linkErr?.message}`);
-      return json(200, GENERIC_OK);
+      return debugFail(500, { error: 'generate_link_failed', detail: linkErr?.message });
     }
     const login_url = linkData.properties.action_link;
+    console.log(`request-login-link: generated link for ${email}, url_length=${login_url.length}`);
 
     // Dispatch via the right channel
     if (channel === 'email') {
@@ -185,12 +202,16 @@ Deno.serve(async (req) => {
             message: `CallMagnet login: ${login_url} (expires in 1 hour)`,
           }),
         });
+        const smsBody = await smsRes.text();
         if (!smsRes.ok) {
-          const errBody = await smsRes.text();
-          console.warn(`twilio send failed (${smsRes.status}): ${errBody}`);
+          console.warn(`twilio send failed (${smsRes.status}): ${smsBody}`);
+          return debugFail(500, { error: 'twilio_send_failed', status: smsRes.status, body: smsBody });
         }
+        console.log(`request-login-link: sms dispatched, response=${smsBody}`);
       } catch (e) {
-        console.warn(`twilio exception: ${(e as Error)?.message ?? e}`);
+        const msg = (e as Error)?.message ?? String(e);
+        console.warn(`twilio exception: ${msg}`);
+        return debugFail(500, { error: 'twilio_exception', detail: msg });
       }
     }
 
