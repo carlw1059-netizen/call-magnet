@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 13 May 2026 — hide Progressier install widget on desktop
-const CACHE_VERSION = 'callmagnet-v42-hide-progressier-on-desktop';
+// Last bumped: 13 May 2026 — circle favicon + remove URL fallback + dark color-scheme hint
+const CACHE_VERSION = 'callmagnet-v43-favicon-circle-email-cleanup';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 

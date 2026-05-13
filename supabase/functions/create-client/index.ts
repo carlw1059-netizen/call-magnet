@@ -249,7 +249,7 @@ Deno.serve(async (req) => {
       try {
         const escapedBiz = business_name.replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]!));
         const html = `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="x-apple-disable-message-reformatting"><title>Welcome to CallMagnet</title></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="x-apple-disable-message-reformatting"><meta name="color-scheme" content="dark light"><meta name="supported-color-schemes" content="dark light"><title>Welcome to CallMagnet</title></head>
 <body style="margin:0;padding:0;background:#0E1419;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:rgba(255,255,255,0.92);-webkit-text-size-adjust:100%;">
 <div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:transparent;">Your CallMagnet dashboard is ready. Tap to log in.</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0E1419;">
@@ -270,7 +270,6 @@ Deno.serve(async (req) => {
             <li>Reply to this email or text Carl if anything looks wrong</li>
           </ol>
         </div>
-        <p style="margin:18px 0 0;font-size:12px;line-height:1.55;color:rgba(255,255,255,0.55);word-break:break-all;">Button not working? Copy and paste this URL into your browser:<br><span style="color:rgba(255,255,255,0.7);">${login_url}</span></p>
       </td></tr>
     </table>
     <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:18px;letter-spacing:0.06em;">CallMagnet</div>

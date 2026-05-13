@@ -140,7 +140,7 @@ Deno.serve(async (req) => {
         // with the action URL inlined directly (Resend send bypasses Supabase Auth
         // template flow, so {{ .ConfirmationURL }} substitution doesn't happen here).
         const html = `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="x-apple-disable-message-reformatting"><title>Your CallMagnet login link</title></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="x-apple-disable-message-reformatting"><meta name="color-scheme" content="dark light"><meta name="supported-color-schemes" content="dark light"><title>Your CallMagnet login link</title></head>
 <body style="margin:0;padding:0;background:#0E1419;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:rgba(255,255,255,0.92);-webkit-text-size-adjust:100%;">
 <div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:transparent;">Tap to log in to CallMagnet. Link expires in 1 hour.</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0E1419;">
@@ -153,7 +153,6 @@ Deno.serve(async (req) => {
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding:0 0 20px;">
           <a href="${login_url}" style="display:inline-block;background:#06D6A0;color:#0a1110;text-decoration:none;font-weight:700;font-size:15px;padding:14px 30px;border-radius:10px;letter-spacing:0.01em;">Log in to CallMagnet</a>
         </td></tr></table>
-        <p style="margin:18px 0 0;font-size:12px;line-height:1.55;color:rgba(255,255,255,0.55);word-break:break-all;">Button not working? Copy and paste this URL into your browser:<br><span style="color:rgba(255,255,255,0.7);">${login_url}</span></p>
         <p style="margin:20px 0 0;font-size:12px;line-height:1.5;color:rgba(255,255,255,0.45);">If you didn't request this link, you can ignore this email.</p>
       </td></tr>
     </table>
