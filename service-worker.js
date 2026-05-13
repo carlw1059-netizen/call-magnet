@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 13 May 2026 — branded auth emails + onboarding welcome email
-const CACHE_VERSION = 'callmagnet-v37-branded-auth-emails';
+// Last bumped: 13 May 2026 — request-login-link branded email (was plain-text)
+const CACHE_VERSION = 'callmagnet-v38-request-login-link-branded';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
