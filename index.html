@@ -2116,7 +2116,19 @@ function isAlreadyInstalled() {
   return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 }
 
+// Mobile-only gate. Install-as-PWA UX is only useful on phones/tablets where
+// the app icon lives on a home screen. Desktop "install" via Chrome creates
+// an installed app in OS dock but offers no value over a browser tab here.
+// Belt-and-braces: UA sniff first, fall back to viewport width for dev-tools
+// mobile-emulation mode.
+function isMobileDevice() {
+  const ua = navigator.userAgent || '';
+  if (/Mobi|Android|iPhone|iPad|iPod/i.test(ua)) return true;
+  return window.matchMedia('(max-width: 768px)').matches;
+}
+
 function maybeShowInstallBanner() {
+  if (!isMobileDevice()) return;
   if (isAlreadyInstalled()) return;
   if (localStorage.getItem('callmagnet-install-dismissed') === '1') return;
   if (!currentClient) return;
