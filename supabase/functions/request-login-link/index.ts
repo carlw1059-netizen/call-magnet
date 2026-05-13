@@ -68,25 +68,43 @@ Deno.serve(async (req) => {
 
       channel = 'sms';
 
-      // Find email associated with this phone via clients.owner_phone
+      // Find email by phone. Two paths:
+      //   1. clients.owner_phone — populated for clients created via admin form
+      //   2. auth.users.phone — fallback for any auth user with phone set
+      //      (e.g. Carl's own founder account, pre-clients-row users)
       const { data: clientByPhone } = await supa
         .from('clients')
         .select('email')
         .eq('owner_phone', phone)
         .limit(1);
-      if (!clientByPhone || clientByPhone.length === 0 || !clientByPhone[0].email) {
-        console.warn(`request-login-link: no client found with owner_phone=${phone}`);
-        return json(200, GENERIC_OK);
+      if (clientByPhone && clientByPhone.length > 0 && clientByPhone[0].email) {
+        email = clientByPhone[0].email;
+      } else {
+        // Fallback — listUsers and match by auth.users.phone
+        const { data: usersList } = await supa.auth.admin.listUsers({ page: 1, perPage: 1000 });
+        const match = usersList?.users?.find((u) => u.phone === phone.replace(/^\+/, '') || u.phone === phone);
+        if (match?.email) {
+          email = match.email;
+        } else {
+          console.warn(`request-login-link: no client or auth user found for phone=${phone}`);
+          return json(200, GENERIC_OK);
+        }
       }
-      email = clientByPhone[0].email;
     }
 
     if (!email) return json(200, GENERIC_OK);
 
-    // Generate magic link server-side
+    // Generate magic link server-side. Pin redirectTo to HTTPS + trailing slash
+    // so the URL falls inside the PWA scope ("/" per manifest.json) and the
+    // installed PWA is eligible to handle it on platforms that auto-launch
+    // matching links (Android). iOS Safari does not auto-launch PWAs from
+    // links — fallback is the browser rendering the full dashboard.
     const { data: linkData, error: linkErr } = await supa.auth.admin.generateLink({
       type:  'magiclink',
       email,
+      options: {
+        redirectTo: 'https://callmagnet.com.au/',
+      },
     });
     if (linkErr || !linkData?.properties?.action_link) {
       console.warn(`request-login-link: generateLink failed for email=${email}: ${linkErr?.message}`);

@@ -201,6 +201,9 @@ Deno.serve(async (req) => {
     const { data: linkData, error: linkErr } = await supa.auth.admin.generateLink({
       type:  'magiclink',
       email: owner_email,
+      options: {
+        redirectTo: 'https://callmagnet.com.au/',
+      },
     });
     if (linkErr) {
       // Don't fail the whole onboarding — client row exists, just no auto-login link
@@ -274,6 +277,15 @@ Deno.serve(async (req) => {
   </td></tr>
 </table>
 </body></html>`;
+        const text =
+          `Welcome, ${business_name}.\n\n` +
+          `Your CallMagnet account is set up. Tap the link below to log in and see your dashboard. You'll see SMS replies fire to customers in real time as soon as your phone forwarding is configured.\n\n` +
+          `Log in: ${login_url}\n\n` +
+          `Next steps:\n` +
+          `1. Log in with the link above\n` +
+          `2. Open your dashboard and walk through the tiles\n` +
+          `3. Reply to this email or text Carl if anything looks wrong\n\n` +
+          `CallMagnet — callmagnet.com.au\n`;
         const resendRes = await fetch('https://api.resend.com/emails', {
           method:  'POST',
           headers: {
@@ -285,6 +297,7 @@ Deno.serve(async (req) => {
             to:      owner_email,
             subject: 'Welcome to CallMagnet — your dashboard is ready',
             html,
+            text,
           }),
         });
         welcome_email_sent = resendRes.ok;
