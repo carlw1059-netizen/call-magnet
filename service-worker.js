@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 14 May 2026 — admin hub + dashboard admin FAB
-const CACHE_VERSION = 'callmagnet-v45-admin-hub';
+// Last bumped: 14 May 2026 — rebrand.ly-shortened login SMS link
+const CACHE_VERSION = 'callmagnet-v46-rebrandly-sms-shorten';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 

@@ -445,6 +445,9 @@ verify_jwt = false
 [functions.request-login-link]
 verify_jwt = false
 
+[functions.create-rebrandly-link]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

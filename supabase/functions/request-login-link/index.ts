@@ -188,6 +188,37 @@ Deno.serve(async (req) => {
         console.warn('request-login-link: INTERNAL_SECRET missing — cannot call send-twilio-sms');
         return json(200, GENERIC_OK);
       }
+
+      // Try to shorten the magic-link URL via Rebrandly before SMSing. The
+      // raw Supabase verify URL is ~180 chars — pushes the SMS to 2 segments
+      // and looks unprofessional. Rebrandly shortens to ~25 chars.
+      // Falls back to the long URL if Rebrandly is unreachable / key missing
+      // / API errors. Never blocks the login flow.
+      let sms_url = login_url;
+      try {
+        const rebRes = await fetch(`${SUPABASE_URL}/functions/v1/create-rebrandly-link`, {
+          method:  'POST',
+          headers: {
+            'Content-Type':      'application/json',
+            'X-Internal-Secret': INTERNAL_SECRET,
+            Authorization:       `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          },
+          body: JSON.stringify({
+            destination: login_url,
+            title:       `Magic link for ${email} ${new Date().toISOString().slice(0, 10)}`,
+          }),
+        });
+        const rebData = await rebRes.json().catch(() => ({}));
+        if (rebRes.ok && rebData?.ok && typeof rebData.short_url === 'string') {
+          sms_url = rebData.short_url;
+          console.log(`request-login-link: shortened to ${sms_url}`);
+        } else {
+          console.warn(`request-login-link: rebrandly shorten failed — falling back to long URL. detail=${JSON.stringify(rebData).slice(0, 200)}`);
+        }
+      } catch (e) {
+        console.warn(`request-login-link: rebrandly exception — falling back to long URL: ${(e as Error)?.message ?? e}`);
+      }
+
       try {
         const smsRes = await fetch(`${SUPABASE_URL}/functions/v1/send-twilio-sms`, {
           method:  'POST',
@@ -198,7 +229,7 @@ Deno.serve(async (req) => {
           },
           body: JSON.stringify({
             to:      phone,
-            message: `CallMagnet login: ${login_url} (expires in 1 hour)`,
+            message: `CallMagnet login: ${sms_url} (expires in 1 hour)`,
           }),
         });
         const smsBody = await smsRes.text();
