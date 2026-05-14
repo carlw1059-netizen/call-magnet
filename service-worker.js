@@ -1,18 +1,19 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 14 May 2026 — rebrand.ly-shortened login SMS link
-const CACHE_VERSION = 'callmagnet-v46-rebrandly-sms-shorten';
+// Last bumped: 14 May 2026 — force-bust all favicon caches via ?v=2026-05-14
+const CACHE_VERSION = 'callmagnet-v47-favicon-cachebust-2026-05-14';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
 const STATIC_ASSETS = [
   '/manifest.json',
-  '/favicon.ico',
-  '/favicon-16x16.png',
-  '/favicon-32x32.png',
-  '/apple-touch-icon.png',
-  '/android-chrome-192x192.png',
-  '/android-chrome-512x512.png'
+  '/favicon.ico?v=2026-05-14',
+  '/favicon-16x16.png?v=2026-05-14',
+  '/favicon-32x32.png?v=2026-05-14',
+  '/apple-touch-icon.png?v=2026-05-14',
+  '/android-chrome-192x192.png?v=2026-05-14',
+  '/android-chrome-512x512.png?v=2026-05-14',
+  '/icon.svg?v=2026-05-14'
 ];
 
 self.addEventListener('install', (event) => {
