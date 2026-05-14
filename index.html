@@ -735,6 +735,30 @@ body {
     display: none !important;
   }
 }
+
+/* Admin FAB — bottom-right floating action button, glass aesthetic.
+   Toggled via JS based on session.user.app_metadata.is_admin.
+   On mobile sits above Progressier widget (92px from bottom).
+   On desktop sits uncluttered bottom-right (Progressier hidden by rule above). */
+.admin-fab {
+  position: fixed; bottom: 24px; right: 20px; z-index: 9000;
+  width: 56px; height: 56px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(14, 20, 25, 0.92);
+  border: 1px solid rgba(6, 214, 160, 0.5);
+  box-shadow: 0 0 24px rgba(6, 214, 160, 0.35), 0 4px 16px rgba(0, 0, 0, 0.45);
+  color: #06D6A0; text-decoration: none;
+  font-size: 24px; line-height: 1;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.12s, box-shadow 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.admin-fab:hover { box-shadow: 0 0 32px rgba(6, 214, 160, 0.55), 0 4px 16px rgba(0, 0, 0, 0.45); transform: translateY(-1px); }
+.admin-fab:active { transform: scale(0.96); }
+.admin-fab-icon { display: block; }
+@media (max-width: 767px) {
+  .admin-fab { bottom: 92px; }
+}
 </style>
 <link rel="manifest" href="https://progressier.app/9kXZoGF2Dlfeqec880My/progressier.json"/>
 <script defer src="https://progressier.app/9kXZoGF2Dlfeqec880My/script.js"></script>
@@ -992,6 +1016,13 @@ body {
     <button class="install-banner-btn" id="installBtn" onclick="handleInstall()">Install</button>
     <button class="install-banner-close" aria-label="Dismiss" onclick="dismissInstall()">✕</button>
   </div>
+
+  <!-- Admin FAB — visible only when current session user has is_admin=true.
+       Stays above Progressier widget on mobile (bottom: 92px) and sits
+       uncluttered bottom-right on desktop (Progressier widget hidden on PC). -->
+  <a href="/admin/" id="adminFab" class="admin-fab" style="display:none" title="Admin" aria-label="Open admin hub">
+    <span class="admin-fab-icon">⚙</span>
+  </a>
 
   <div class="dash-footer">
     <a href="/legal.html" target="_blank">Terms of Service</a>
@@ -1604,6 +1635,12 @@ function isAdminToggleUser() {
   return _isAdminCached === true;
 }
 
+function refreshAdminFab() {
+  const fab = document.getElementById('adminFab');
+  if (!fab) return;
+  fab.style.display = _isAdminCached === true ? 'flex' : 'none';
+}
+
 async function handleMagicLink() {
   const idEl   = document.getElementById('identifierInput');
   const errDiv = document.getElementById('errorMsg');
@@ -2095,12 +2132,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const { data: { session } } = await sb.auth.getSession();
   _isAdminCached = (session?.user?.app_metadata && session.user.app_metadata.is_admin === true);
+  refreshAdminFab();
   if (session?.user) {
     await crossFadeToDashboard(session.user, document.getElementById('loginScreen'));
   }
 
   sb.auth.onAuthStateChange((event, newSession) => {
     _isAdminCached = (newSession?.user?.app_metadata && newSession.user.app_metadata.is_admin === true);
+    refreshAdminFab();
     if (event === 'PASSWORD_RECOVERY') {
       showRecovery();
     }
