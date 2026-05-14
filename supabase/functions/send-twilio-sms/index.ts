@@ -23,12 +23,14 @@ const TWILIO_FROM_NUMBER = Deno.env.get('TWILIO_FROM_NUMBER');
 const INTERNAL_SECRET    = Deno.env.get('INTERNAL_SECRET');
 
 Deno.serve(async (req) => {
-  if (new URL(req.url).searchParams.get('warmup') === '1') {
+  const url = new URL(req.url);
+  if (url.searchParams.get('warmup') === '1') {
     return new Response(JSON.stringify({ warmup: 'ok' }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
   }
+  const mode = url.searchParams.get('mode');
   if (req.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405 });
   }
@@ -41,6 +43,43 @@ Deno.serve(async (req) => {
 
     if (req.headers.get('X-Internal-Secret') !== INTERNAL_SECRET) {
       return json(401, { error: 'unauthorized' });
+    }
+
+    // ── Diagnostic mode ─────────────────────────────────────────────────────
+    // Probes the Twilio account state for debugging "SMS not arriving" issues.
+    // Returns: account type (Trial vs Full), TWILIO_FROM_NUMBER value, list of
+    // verified caller IDs, recent messages to optional `?to=+61...` target.
+    // No SMS is sent. Caller still needs valid X-Internal-Secret (above).
+    if (mode === 'diag') {
+      const credentials = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
+      const headers = { Authorization: `Basic ${credentials}` };
+
+      const accountPromise = fetch(`https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}.json`, { headers })
+        .then((r) => r.json()).catch((e) => ({ error: String(e?.message ?? e) }));
+      const callerIdsPromise = fetch(`https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/OutgoingCallerIds.json?PageSize=50`, { headers })
+        .then((r) => r.json()).catch((e) => ({ error: String(e?.message ?? e) }));
+      const probeTo = url.searchParams.get('to') ?? '';
+      const messagesPromise = probeTo
+        ? fetch(`https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json?To=${encodeURIComponent(probeTo)}&PageSize=10`, { headers })
+            .then((r) => r.json()).catch((e) => ({ error: String(e?.message ?? e) }))
+        : Promise.resolve({ note: 'pass ?to=+61XXXXXXXXX to query recent messages for that number' });
+
+      const [account, callerIds, messages] = await Promise.all([accountPromise, callerIdsPromise, messagesPromise]);
+
+      return json(200, {
+        diag: true,
+        account: {
+          friendly_name: account?.friendly_name,
+          type:          account?.type,            // "Trial" or "Full"
+          status:        account?.status,
+          sid:           account?.sid,
+        },
+        from_number: TWILIO_FROM_NUMBER,
+        verified_caller_ids: (callerIds?.outgoing_caller_ids ?? []).map((c: { phone_number?: string; friendly_name?: string }) => ({
+          phone: c.phone_number, name: c.friendly_name,
+        })),
+        recent_messages_to_probe_target: messages,
+      });
     }
 
     const body = await req.json().catch(() => null) as { to?: unknown; message?: unknown } | null;
