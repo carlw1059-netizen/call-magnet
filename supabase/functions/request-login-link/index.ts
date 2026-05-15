@@ -192,10 +192,16 @@ Deno.serve(async (req) => {
       // Try to shorten the magic-link URL via Rebrandly before SMSing. The
       // raw Supabase verify URL is ~180 chars — pushes the SMS to 2 segments
       // and looks unprofessional. Rebrandly shortens to ~25 chars.
-      // Falls back to the long URL if Rebrandly is unreachable / key missing
-      // / API errors. Never blocks the login flow.
+      // Retries up to 3 times with exponential backoff before falling back to
+      // the long URL. Rebrandly free tier: 5 links/min — backoff helps avoid
+      // hitting that wall on rapid successive logins.
+      // NOTE: admin.generateLink({ type: 'magiclink' }) triggers Supabase's
+      // built-in email mailer (GoTrue behaviour). To prevent double-delivery
+      // on the phone path, disable the Supabase SMTP provider in Dashboard:
+      // Authentication → Email → disable "Enable Email" or configure no SMTP.
+      // Our edge function controls all delivery explicitly via Resend/Twilio.
       let sms_url = login_url;
-      try {
+      const rebrandlyAttempt = async (): Promise<string | null> => {
         const rebRes = await fetch(`${SUPABASE_URL}/functions/v1/create-rebrandly-link`, {
           method:  'POST',
           headers: {
@@ -210,14 +216,35 @@ Deno.serve(async (req) => {
         });
         const rebData = await rebRes.json().catch(() => ({}));
         if (rebRes.ok && rebData?.ok && typeof rebData.short_url === 'string') {
-          sms_url = rebData.short_url;
-          console.log(`request-login-link: shortened to ${sms_url}`);
-        } else {
-          console.warn(`request-login-link: rebrandly shorten failed — falling back to long URL. detail=${JSON.stringify(rebData).slice(0, 200)}`);
+          return rebData.short_url;
         }
-      } catch (e) {
-        console.warn(`request-login-link: rebrandly exception — falling back to long URL: ${(e as Error)?.message ?? e}`);
+        console.warn(`request-login-link: rebrandly attempt failed — status=${rebRes.status} detail=${JSON.stringify(rebData).slice(0, 200)}`);
+        return null;
+      };
+      const REBRANDLY_DELAYS_MS = [0, 600, 1800]; // 3 attempts: immediate, 600ms, 1800ms
+      let shortened = false;
+      for (let attempt = 0; attempt < REBRANDLY_DELAYS_MS.length; attempt++) {
+        if (REBRANDLY_DELAYS_MS[attempt] > 0) {
+          await new Promise((r) => setTimeout(r, REBRANDLY_DELAYS_MS[attempt]));
+        }
+        try {
+          const short = await rebrandlyAttempt();
+          if (short) { sms_url = short; shortened = true; break; }
+        } catch (e) {
+          console.warn(`request-login-link: rebrandly exception attempt=${attempt}: ${(e as Error)?.message ?? e}`);
+        }
       }
+      if (!shortened) {
+        console.warn(`request-login-link: rebrandly all ${REBRANDLY_DELAYS_MS.length} attempts failed — using long URL (${login_url.length} chars)`);
+      }
+
+      // Vary SMS body slightly on each send. Identical content repeated to the
+      // same number is flagged as spam by AU carriers (Telstra/Optus). A short
+      // timestamp suffix makes each message unique without changing meaning.
+      const nowMin = new Date().toISOString().slice(0, 16).replace('T', ' '); // "2026-05-15 03:42"
+      const smsBody = `CallMagnet login: ${sms_url}\nSent ${nowMin} AEST. Tap to access your dashboard.`;
+
+      console.log(`request-login-link: sms channel — phone=${phone} short=${shortened} url_len=${sms_url.length} body_len=${smsBody.length}`);
 
       try {
         const smsRes = await fetch(`${SUPABASE_URL}/functions/v1/send-twilio-sms`, {
@@ -229,15 +256,15 @@ Deno.serve(async (req) => {
           },
           body: JSON.stringify({
             to:      phone,
-            message: `CallMagnet login: ${sms_url} (expires in 1 hour)`,
+            message: smsBody,
           }),
         });
-        const smsBody = await smsRes.text();
+        const smsRespBody = await smsRes.text();
         if (!smsRes.ok) {
-          console.warn(`twilio send failed (${smsRes.status}): ${smsBody}`);
-          return debugFail(500, { error: 'twilio_send_failed', status: smsRes.status, body: smsBody });
+          console.warn(`twilio send failed (${smsRes.status}): ${smsRespBody}`);
+          return debugFail(500, { error: 'twilio_send_failed', status: smsRes.status, body: smsRespBody });
         }
-        console.log(`request-login-link: sms dispatched, response=${smsBody}`);
+        console.log(`request-login-link: sms dispatched ok, twilio_response=${smsRespBody.slice(0, 200)}`);
       } catch (e) {
         const msg = (e as Error)?.message ?? String(e);
         console.warn(`twilio exception: ${msg}`);

@@ -309,10 +309,10 @@
   <div class="card success-card" id="successCard">
     <div class="check-circle">✓</div>
     <h2>Client created successfully</h2>
-    <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;">Login URL</div>
-    <div class="url-box" id="loginUrlBox"></div>
-    <button class="copy-btn" id="copyBtn" onclick="copyUrl()">Copy URL</button>
+    <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;">Login details sent by email</div>
+    <div class="url-box" id="loginUrlBox">callmagnet.com.au</div>
     <div class="sms-status" id="smsStatus"></div>
+    <div class="sms-status" id="emailStatus"></div>
     <button class="another-btn" onclick="resetForm()">Onboard another client</button>
   </div>
 </div>
@@ -522,29 +522,29 @@ async function submitForm() {
 function showSuccess(data, owner_phone) {
   document.getElementById('formCard').style.display = 'none';
   document.getElementById('successCard').classList.add('visible');
-  document.getElementById('loginUrlBox').textContent = data.login_url;
+
   const smsEl = document.getElementById('smsStatus');
   if (data.sms_sent) {
     smsEl.className = 'sms-status ok';
-    smsEl.textContent = '✓ Login link sent to ' + owner_phone;
+    smsEl.textContent = '✓ Welcome SMS sent to ' + owner_phone;
   } else if (data.sms_error) {
     smsEl.className = 'sms-status fail';
-    smsEl.textContent = '⚠️ SMS failed — give the client this URL manually. (' + data.sms_error + ')';
+    smsEl.textContent = '⚠️ SMS failed: ' + data.sms_error;
   } else {
     smsEl.className = 'sms-status fail';
-    smsEl.textContent = '⚠️ SMS not sent — give the client this URL manually.';
+    smsEl.textContent = '⚠️ SMS not sent.';
   }
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
 
-function copyUrl() {
-  const text = document.getElementById('loginUrlBox').textContent;
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.getElementById('copyBtn');
-    btn.classList.add('copied');
-    btn.textContent = '✓ Copied';
-    setTimeout(() => { btn.classList.remove('copied'); btn.textContent = 'Copy URL'; }, 2000);
-  });
+  const emailEl = document.getElementById('emailStatus');
+  if (data.welcome_email_sent) {
+    emailEl.className = 'sms-status ok';
+    emailEl.textContent = '✓ Welcome email sent (includes temp password)' + (data.is_new_user ? '' : ' — existing user, no new password');
+  } else if (data.welcome_email_error) {
+    emailEl.className = 'sms-status fail';
+    emailEl.textContent = '⚠️ Welcome email failed: ' + data.welcome_email_error;
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function resetForm() {

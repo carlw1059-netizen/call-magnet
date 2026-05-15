@@ -6,11 +6,13 @@
 //   1. Verify caller JWT and that caller.app_metadata.is_admin === true
 //   2. Validate inputs (E.164 phone, ABN, email, URL)
 //   3. Look up vertical config from verticals table — reject if unknown/inactive
-//   4. Create auth.users row (email + phone confirmed) or reuse if exists
+//   4. Create auth.users row (email + phone + temp password) or reuse if exists
+//      New users: must_change_password = true (forced change on first login)
+//      Reused users: password reset link sent instead of temp password
 //   5. INSERT clients row referencing same email
-//   6. Generate magic-link via supa.auth.admin.generateLink
-//   7. SMS the magic-link to owner_phone via send-twilio-sms helper
-//   8. Return { success, client_id, login_url, sms_sent, sms_error? }
+//   6. SMS brief onboarding notice to owner_phone via send-twilio-sms helper
+//   7. Send welcome email via Resend (includes temp password for new users)
+//   8. Return { success, client_id, sms_sent, sms_error?, welcome_email_sent }
 //
 // Always returns clear plain-English error messages. No stack traces leak.
 
@@ -154,15 +156,25 @@ Deno.serve(async (req) => {
     }
 
     // ── 4. Create (or reuse) auth user ─────────────────────────────────────
+    // Generate a 12-char temporary password for new users. Excludes visually
+    // ambiguous chars (0/O/l/I/1) so it can be typed from an email if needed.
+    const TEMP_PWD_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    const pwdBytes = new Uint8Array(12);
+    crypto.getRandomValues(pwdBytes);
+    const temp_password = Array.from(pwdBytes).map(b => TEMP_PWD_CHARS[b % TEMP_PWD_CHARS.length]).join('');
+
     let authUserId: string | null = null;
+    let isNewUser = false;
     const { data: existingList } = await supa.auth.admin.listUsers({ page: 1, perPage: 1000 });
     const existing = existingList?.users?.find((u) => (u.email ?? '').toLowerCase() === owner_email);
     if (existing) {
       authUserId = existing.id;
+      isNewUser  = false;
     } else {
       const { data: createRes, error: createErr } = await supa.auth.admin.createUser({
         email:         owner_email,
         phone:         owner_phone,
+        password:      temp_password,
         email_confirm: true,
         phone_confirm: true,
         user_metadata: { business_name },
@@ -171,6 +183,7 @@ Deno.serve(async (req) => {
         return json(500, { error: 'auth_user_create_failed', detail: createErr.message });
       }
       authUserId = createRes.user?.id ?? null;
+      isNewUser  = true;
     }
 
     // ── 5. Insert clients row ──────────────────────────────────────────────
@@ -189,6 +202,7 @@ Deno.serve(async (req) => {
         account_status:         'active',
         terms_accepted:         true,
         subscription_start:     new Date().toISOString(),
+        must_change_password:   isNewUser, // new users must set their own password on first login
       })
       .select('id')
       .single();
@@ -197,35 +211,24 @@ Deno.serve(async (req) => {
     }
     const client_id = insertedClient.id;
 
-    // ── 6. Generate magic link ─────────────────────────────────────────────
-    const { data: linkData, error: linkErr } = await supa.auth.admin.generateLink({
-      type:  'magiclink',
-      email: owner_email,
-      options: {
-        redirectTo: 'https://callmagnet.com.au/',
-      },
-    });
-    if (linkErr) {
-      // Don't fail the whole onboarding — client row exists, just no auto-login link
-      console.warn(`generateLink failed: ${linkErr.message}`);
-    }
-    const login_url = linkData?.properties?.action_link ?? 'https://callmagnet.com.au';
-
-    // ── 7. Send SMS via helper (if requested) ──────────────────────────────
+    // ── 6. Send onboarding SMS (brief notice — no login URL needed) ────────
+    // Clients now log in with email + password. The welcome email includes the
+    // temp password. SMS just signals that the account is ready.
     let sms_sent  = false;
     let sms_error: string | null = null;
     if (send_sms && INTERNAL_SECRET) {
       try {
+        const smsBody = `Welcome to CallMagnet, ${business_name}. Your account is ready — check your email for login details.`;
         const smsRes = await fetch(`${SUPABASE_URL}/functions/v1/send-twilio-sms`, {
           method:  'POST',
           headers: {
-            'Content-Type':     'application/json',
+            'Content-Type':      'application/json',
             'X-Internal-Secret': INTERNAL_SECRET,
-            Authorization:      `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+            Authorization:       `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
           },
           body: JSON.stringify({
             to:      owner_phone,
-            message: `Welcome to CallMagnet, ${business_name}. Tap to log in: ${login_url}`,
+            message: smsBody,
           }),
         });
         sms_sent = smsRes.ok;
@@ -242,31 +245,53 @@ Deno.serve(async (req) => {
       sms_error = 'INTERNAL_SECRET not configured — cannot call send-twilio-sms';
     }
 
-    // ── 8. Send branded onboarding welcome email via Resend (best-effort) ──
+    // ── 7. Send branded onboarding welcome email via Resend (best-effort) ──
+    // For new users: includes temp password and instructs them to change it.
+    // For re-onboarded users: temp password was NOT changed — they already have
+    // a password, so we omit it and direct them to Forgot Password if needed.
     let welcome_email_sent = false;
     let welcome_email_error: string | null = null;
     if (RESEND_API_KEY) {
       try {
         const escapedBiz = business_name.replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]!));
+        const loginPageUrl = 'https://callmagnet.com.au';
+
+        // Temp-password block: only shown for new users
+        const credentialBlock = isNewUser
+          ? `<div style="margin:0 0 24px;padding:18px;background:rgba(6,214,160,0.06);border:1px solid rgba(6,214,160,0.28);border-radius:10px;">
+          <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#06D6A0;font-weight:700;margin-bottom:10px;">Your login details</div>
+          <table style="width:100%;font-size:14px;line-height:1.6;color:rgba(255,255,255,0.85);border-collapse:collapse;">
+            <tr><td style="padding:2px 0;color:rgba(255,255,255,0.55);width:90px;">Email</td><td style="padding:2px 0;font-family:ui-monospace,monospace;font-weight:700;">${owner_email}</td></tr>
+            <tr><td style="padding:2px 0;color:rgba(255,255,255,0.55);">Password</td><td style="padding:2px 0;font-family:ui-monospace,monospace;font-weight:700;letter-spacing:0.08em;">${temp_password}</td></tr>
+          </table>
+          <p style="margin:10px 0 0;font-size:12px;color:rgba(255,255,255,0.5);">You'll be prompted to set a new password on first login.</p>
+        </div>`
+          : `<p style="margin:0 0 24px;font-size:14px;line-height:1.55;color:rgba(255,255,255,0.65);">Use your existing email and password to sign in. If you've forgotten your password, tap "Forgot password?" on the login page.</p>`;
+
+        const credentialText = isNewUser
+          ? `Your login details:\n  Email:    ${owner_email}\n  Password: ${temp_password}\n\nYou'll be prompted to set a new password on first login.\n\n`
+          : `Use your existing password to sign in. If you've forgotten it, use "Forgot password?" on the login page.\n\n`;
+
         const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="x-apple-disable-message-reformatting"><meta name="color-scheme" content="dark light"><meta name="supported-color-schemes" content="dark light"><title>Welcome to CallMagnet</title></head>
 <body style="margin:0;padding:0;background:#0E1419;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:rgba(255,255,255,0.92);-webkit-text-size-adjust:100%;">
-<div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:transparent;">Your CallMagnet dashboard is ready. Tap to log in.</div>
+<div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:transparent;">Your CallMagnet dashboard is ready.</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0E1419;">
   <tr><td align="center" style="padding:32px 16px 24px;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;background:rgba(255,255,255,0.04);border:1px solid rgba(6,214,160,0.22);border-radius:14px;">
       <tr><td style="padding:36px 30px 32px;color:rgba(255,255,255,0.92);">
         <div style="font-size:14px;letter-spacing:0.16em;color:#06D6A0;text-transform:uppercase;font-weight:700;margin-bottom:28px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">★ CallMagnet</div>
         <h1 style="margin:0 0 12px;font-size:24px;font-weight:600;color:rgba(255,255,255,0.92);letter-spacing:-0.01em;">Welcome, ${escapedBiz}.</h1>
-        <p style="margin:0 0 24px;font-size:15px;line-height:1.55;color:rgba(255,255,255,0.78);">Your CallMagnet account is set up. Tap below to log in and see your dashboard. You'll see SMS replies fire to customers in real time as soon as your phone forwarding is configured.</p>
+        <p style="margin:0 0 24px;font-size:15px;line-height:1.55;color:rgba(255,255,255,0.78);">Your CallMagnet account is set up. Log in to see your dashboard and watch SMS replies fire to customers in real time once your phone forwarding is configured.</p>
+        ${credentialBlock}
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding:0 0 24px;">
-          <a href="${login_url}" style="display:inline-block;background:#06D6A0;color:#0a1110;text-decoration:none;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;letter-spacing:0.01em;">Log in to CallMagnet</a>
+          <a href="${loginPageUrl}" style="display:inline-block;background:#06D6A0;color:#0a1110;text-decoration:none;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;letter-spacing:0.01em;">Go to CallMagnet</a>
         </td></tr></table>
         <div style="margin:0 0 24px;padding:18px 18px;background:rgba(6,214,160,0.06);border:1px solid rgba(6,214,160,0.18);border-radius:10px;">
           <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#06D6A0;font-weight:700;margin-bottom:10px;">Next steps</div>
           <ol style="margin:0;padding:0 0 0 20px;font-size:14px;line-height:1.55;color:rgba(255,255,255,0.85);">
-            <li style="margin-bottom:6px;">Log in with the button above</li>
-            <li style="margin-bottom:6px;">Open your dashboard and walk through the tiles</li>
+            <li style="margin-bottom:6px;">Log in at callmagnet.com.au with the details above</li>
+            <li style="margin-bottom:6px;">Walk through the dashboard tiles</li>
             <li>Reply to this email or text Carl if anything looks wrong</li>
           </ol>
         </div>
@@ -278,11 +303,11 @@ Deno.serve(async (req) => {
 </body></html>`;
         const text =
           `Welcome, ${business_name}.\n\n` +
-          `Your CallMagnet account is set up. Tap the link below to log in and see your dashboard. You'll see SMS replies fire to customers in real time as soon as your phone forwarding is configured.\n\n` +
-          `Log in: ${login_url}\n\n` +
+          `Your CallMagnet account is set up. Log in at ${loginPageUrl} to see your dashboard.\n\n` +
+          credentialText +
           `Next steps:\n` +
-          `1. Log in with the link above\n` +
-          `2. Open your dashboard and walk through the tiles\n` +
+          `1. Log in at callmagnet.com.au\n` +
+          `2. Walk through the dashboard tiles\n` +
           `3. Reply to this email or text Carl if anything looks wrong\n\n` +
           `CallMagnet — callmagnet.com.au\n`;
         const resendRes = await fetch('https://api.resend.com/emails', {
@@ -315,12 +340,12 @@ Deno.serve(async (req) => {
     return json(200, {
       success:    true,
       client_id,
-      login_url,
       sms_sent,
       sms_error,
       welcome_email_sent,
       welcome_email_error,
-      auth_user_id: authUserId,
+      auth_user_id:      authUserId,
+      is_new_user:       isNewUser,
     });
 
   } catch (err) {

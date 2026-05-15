@@ -777,19 +777,22 @@ body {
 <div class="login-screen" id="loginScreen">
   <div class="login-box">
     <div class="login-logo"><span class="star-pulse">★</span>CallMagnet</div>
-    <h1 class="login-heading" id="authHeading">Welcome back.</h1>
-    <p class="login-sub" id="authSub">Enter your email or mobile — we'll send a one-tap login link.</p>
+    <h1 class="login-heading">Welcome back.</h1>
+    <p class="login-sub">Sign in to view your recovery stats.</p>
     <div class="field">
-      <label>Email or mobile</label>
-      <input type="text" id="identifierInput" placeholder="you@example.com or 0412 345 678" autocomplete="username" />
+      <label>Email</label>
+      <input type="email" id="emailInput" placeholder="you@example.com" autocomplete="username email" />
     </div>
-    <button class="btn-primary" id="loginBtn" onclick="handleMagicLink()">Send login link</button>
+    <div class="field">
+      <label>Password</label>
+      <div class="password-wrap">
+        <input type="password" id="passwordInput" placeholder="Your password" autocomplete="current-password" />
+        <button class="eye-btn" type="button" aria-label="Show or hide password" onclick="togglePassword()">👁</button>
+      </div>
+    </div>
+    <span class="forgot-link" id="forgotLinkBtn" onclick="showForgot()">Forgot password?</span>
+    <button class="btn-primary" id="loginBtn" onclick="handleAuth()">Sign in</button>
     <div class="error-msg" id="errorMsg"></div>
-    <div class="success-msg" id="magicLinkSuccessMsg">Login link sent. Check your phone or inbox.</div>
-    <!-- legacy hidden inputs kept so existing JS references don't throw on load -->
-    <input type="hidden" id="emailInput" />
-    <input type="hidden" id="passwordInput" />
-    <input type="hidden" id="bizNameInput" />
   </div>
 </div>
 
@@ -1059,7 +1062,6 @@ let sb;
 let currentClient = null;
 let currentMode = 'week';
 let currentOffset = 0;
-let isSignup = false;
 let autoRefreshTimer = null;
 let bookingInFlight = false;
 let statsRequestId = 0;
@@ -1072,33 +1074,6 @@ function isAccountReadOnly() {
   return false;
 }
 
-function switchToSignup() {
-  isSignup = true;
-  document.getElementById('authHeading').textContent = 'Create account.';
-  document.getElementById('authSub').textContent = 'Start recovering missed revenue today.';
-  document.getElementById('bizNameField').style.display = 'block';
-  document.getElementById('rememberRow').style.display = 'none';
-  document.getElementById('forgotLinkBtn').style.display = 'none';
-  document.getElementById('loginBtn').textContent = 'Create account';
-  document.getElementById('authToggle').innerHTML = 'Already have an account? <span onclick="switchToLogin()">Sign in</span>';
-  document.getElementById('errorMsg').style.display = 'none';
-  document.getElementById('passwordInput').value = '';
-}
-
-function switchToLogin() {
-  isSignup = false;
-  document.getElementById('authHeading').textContent = 'Welcome back.';
-  document.getElementById('authSub').textContent = 'Sign in to view your recovery stats.';
-  document.getElementById('bizNameField').style.display = 'none';
-  document.getElementById('rememberRow').style.display = 'flex';
-  document.getElementById('forgotLinkBtn').style.display = 'block';
-  const btn = document.getElementById('loginBtn');
-  btn.disabled = false;
-  btn.textContent = 'Sign in';
-  document.getElementById('authToggle').innerHTML = 'Don\'t have an account? <span onclick="switchToSignup()">Sign up</span>';
-  document.getElementById('errorMsg').style.display = 'none';
-  document.getElementById('passwordInput').value = '';
-}
 
 function showForgot() {
   document.getElementById('loginScreen').style.display = 'none';
@@ -1110,7 +1085,7 @@ function showLogin() {
   document.getElementById('loginScreen').style.display = 'flex';
   const btn = document.getElementById('loginBtn');
   btn.disabled = false;
-  btn.textContent = isSignup ? 'Create account' : 'Sign in';
+  btn.textContent = 'Sign in';
 }
 
 function showRecovery() {
@@ -1167,6 +1142,16 @@ async function handleRecovery() {
       btn.textContent = 'Update password and sign in';
       return;
     }
+
+    // Clear must_change_password flag if this was a forced first-login change
+    if (currentClient?.must_change_password) {
+      await sb.from('clients')
+        .update({ must_change_password: false })
+        .eq('id', currentClient.id)
+        .catch(() => {}); // best-effort
+      if (currentClient) currentClient.must_change_password = false;
+    }
+
     okDiv.style.display = 'block';
     const { data: { user } } = await sb.auth.getUser();
     if (user) {
@@ -1195,49 +1180,33 @@ function togglePassword() {
 }
 
 async function handleAuth() {
-  const email = document.getElementById('emailInput').value.trim();
+  const email    = document.getElementById('emailInput').value.trim();
   const password = document.getElementById('passwordInput').value;
-  const btn = document.getElementById('loginBtn');
-  const errDiv = document.getElementById('errorMsg');
+  const btn      = document.getElementById('loginBtn');
+  const errDiv   = document.getElementById('errorMsg');
   errDiv.style.display = 'none';
+  if (!email || !password) {
+    errDiv.textContent = 'Enter your email and password.';
+    errDiv.style.display = 'block';
+    return;
+  }
   btn.disabled = true;
-  btn.textContent = isSignup ? 'Creating...' : 'Signing in...';
-
+  btn.textContent = 'Signing in...';
   try {
-    if (isSignup) {
-      const bizName = document.getElementById('bizNameInput').value.trim();
-      if (!bizName) {
-        errDiv.textContent = 'Please enter your business name.';
-        errDiv.style.display = 'block';
-        btn.disabled = false;
-        btn.textContent = 'Create account';
-        return;
-      }
-      const { error } = await sb.auth.signUp({ email, password, options: { data: { business_name: bizName } } });
-      if (error) {
-        errDiv.textContent = error.message;
-        errDiv.style.display = 'block';
-      } else {
-        document.getElementById('signupSuccessMsg').style.display = 'block';
-      }
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) {
+      errDiv.textContent = error.message;
+      errDiv.style.display = 'block';
       btn.disabled = false;
-      btn.textContent = 'Create account';
+      btn.textContent = 'Sign in';
     } else {
-      const { data, error } = await sb.auth.signInWithPassword({ email, password });
-      if (error) {
-        errDiv.textContent = error.message;
-        errDiv.style.display = 'block';
-        btn.disabled = false;
-        btn.textContent = 'Sign in';
-      } else {
-        await crossFadeToDashboard(data.user, document.getElementById('loginScreen'));
-      }
+      await crossFadeToDashboard(data.user, document.getElementById('loginScreen'));
     }
   } catch (e) {
     errDiv.textContent = 'Network error. Check your connection and try again.';
     errDiv.style.display = 'block';
     btn.disabled = false;
-    btn.textContent = isSignup ? 'Create account' : 'Sign in';
+    btn.textContent = 'Sign in';
   }
 }
 
@@ -1268,13 +1237,15 @@ async function handleLogout() {
   stopAutoRefresh();
   currentClient = null;
   document.getElementById('dash').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'flex';
-  try { await sb.auth.signOut(); } catch (e) { console.warn('signOut error:', e); }
+  const loginScreen = document.getElementById('loginScreen');
+  loginScreen.style.display = 'flex';
+  document.getElementById('emailInput').value    = '';
+  document.getElementById('passwordInput').value = '';
+  document.getElementById('errorMsg').style.display = 'none';
   const btn = document.getElementById('loginBtn');
   btn.disabled = false;
   btn.textContent = 'Sign in';
-  isSignup = false;
-  switchToLogin();
+  try { await sb.auth.signOut(); } catch (e) { console.warn('signOut error:', e); }
 }
 
 function showTermsModal() { document.getElementById('termsModal').classList.add('open'); }
@@ -1353,6 +1324,16 @@ async function crossFadeToDashboard(user, fromEl) {
       revert();
       return false;
     }
+    if (ok === 'must_change_password') {
+      // loadDashboard already called showRecovery(). Just clean up the fade.
+      dashEl.style.display = 'none';
+      dashEl.classList.remove('screen-fade-in');
+      if (fromEl) {
+        fromEl.classList.remove('screen-fade-out');
+        fromEl.style.display = 'none';
+      }
+      return false;
+    }
     if (skeletonEl) skeletonEl.style.display = 'none';
     if (mainEl) mainEl.style.display = '';
     return true;
@@ -1382,6 +1363,12 @@ async function loadDashboard(user, opts = {}) {
 
   if (typeof progressier !== 'undefined' && currentClient?.id) {
     progressier.add({ id: currentClient.id });
+  }
+
+  // First-login forced password change — must happen before any dashboard load
+  if (currentClient.must_change_password) {
+    showRecovery();
+    return 'must_change_password'; // signals crossFadeToDashboard to skip revert
   }
 
   if (!opts.skipScreenSwap) {
@@ -1641,47 +1628,6 @@ function refreshAdminFab() {
   fab.style.display = _isAdminCached === true ? 'flex' : 'none';
 }
 
-async function handleMagicLink() {
-  const idEl   = document.getElementById('identifierInput');
-  const errDiv = document.getElementById('errorMsg');
-  const okDiv  = document.getElementById('magicLinkSuccessMsg');
-  const btn    = document.getElementById('loginBtn');
-  if (errDiv) { errDiv.style.display = 'none'; errDiv.textContent = ''; }
-  if (okDiv)  { okDiv.style.display  = 'none'; }
-  const identifier = (idEl?.value ?? '').trim();
-  if (!identifier) {
-    if (errDiv) { errDiv.textContent = 'Enter your email or mobile number.'; errDiv.style.display = 'block'; }
-    return;
-  }
-  btn.disabled = true;
-  const originalLabel = btn.textContent;
-  btn.textContent = 'Sending…';
-  try {
-    const res = await fetch(SUPABASE_URL + '/functions/v1/request-login-link', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + SUPABASE_ANON_KEY },
-      body:    JSON.stringify({ identifier }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.ok) {
-      if (okDiv) {
-        okDiv.textContent = data.message || 'Login link sent. Check your phone or inbox.';
-        okDiv.style.display = 'block';
-      }
-      if (idEl) idEl.value = '';
-    } else {
-      if (errDiv) {
-        errDiv.textContent = data.detail || data.error || 'Could not send login link. Try again.';
-        errDiv.style.display = 'block';
-      }
-    }
-  } catch (e) {
-    if (errDiv) { errDiv.textContent = 'Network error. Try again.'; errDiv.style.display = 'block'; }
-  } finally {
-    btn.disabled = false;
-    btn.textContent = originalLabel || 'Send login link';
-  }
-}
 
 function getDashboardMode() {
   if (isAdminToggleUser()) {
@@ -2119,15 +2065,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     logBooking();
   });
 
-  // Magic-link form: Enter submits.
-  const idEl = document.getElementById('identifierInput');
-  if (idEl) {
-    idEl.addEventListener('keydown', e => { if (e.key === 'Enter') handleMagicLink(); });
-  }
-  // Legacy recovery-screen handlers — kept in case Supabase fires PASSWORD_RECOVERY.
-  const recoveryPass = document.getElementById('recoveryPassInput');
+  // Login form: Enter on either field submits.
+  const emailInputEl    = document.getElementById('emailInput');
+  const passwordInputEl = document.getElementById('passwordInput');
+  if (emailInputEl)    emailInputEl.addEventListener('keydown',    e => { if (e.key === 'Enter') handleAuth(); });
+  if (passwordInputEl) passwordInputEl.addEventListener('keydown', e => { if (e.key === 'Enter') handleAuth(); });
+
+  // Recovery-screen: Enter submits.
+  const recoveryPass    = document.getElementById('recoveryPassInput');
   const recoveryConfirm = document.getElementById('recoveryPassConfirm');
-  if (recoveryPass) recoveryPass.addEventListener('keydown', e => { if (e.key === 'Enter') handleRecovery(); });
+  if (recoveryPass)    recoveryPass.addEventListener('keydown',    e => { if (e.key === 'Enter') handleRecovery(); });
   if (recoveryConfirm) recoveryConfirm.addEventListener('keydown', e => { if (e.key === 'Enter') handleRecovery(); });
 
   const { data: { session } } = await sb.auth.getSession();
