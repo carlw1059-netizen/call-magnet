@@ -100,9 +100,10 @@ Deno.serve(async (req) => {
 
     const credentials = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
     const params = new URLSearchParams({
-      To:   to,
-      From: TWILIO_FROM_NUMBER,
-      Body: message,
+      To:             to,
+      From:           TWILIO_FROM_NUMBER,
+      Body:           message,
+      StatusCallback: 'https://iskvvnhacqdxybpmwuni.supabase.co/functions/v1/twilio-sms-status',
     });
 
     const twilioRes = await fetch(
