@@ -17,10 +17,12 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-const TWILIO_ACCOUNT_SID = Deno.env.get('TWILIO_ACCOUNT_SID');
-const TWILIO_AUTH_TOKEN  = Deno.env.get('TWILIO_AUTH_TOKEN');
-const TWILIO_FROM_NUMBER = Deno.env.get('TWILIO_FROM_NUMBER');
-const INTERNAL_SECRET    = Deno.env.get('INTERNAL_SECRET');
+const TWILIO_ACCOUNT_SID        = Deno.env.get('TWILIO_ACCOUNT_SID');
+const TWILIO_AUTH_TOKEN         = Deno.env.get('TWILIO_AUTH_TOKEN');
+const TWILIO_FROM_NUMBER        = Deno.env.get('TWILIO_FROM_NUMBER');
+const INTERNAL_SECRET           = Deno.env.get('INTERNAL_SECRET');
+const SUPABASE_URL              = Deno.env.get('SUPABASE_URL');
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
 Deno.serve(async (req) => {
   const url = new URL(req.url);
@@ -82,12 +84,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    const body = await req.json().catch(() => null) as { to?: unknown; message?: unknown } | null;
+    const body = await req.json().catch(() => null) as { to?: unknown; message?: unknown; sms_event_id?: unknown } | null;
     if (!body || typeof body !== 'object') {
       return json(400, { error: 'invalid_body', detail: 'JSON body with to and message required' });
     }
-    const to      = typeof body.to === 'string' ? body.to.trim() : '';
-    const message = typeof body.message === 'string' ? body.message : '';
+    const to           = typeof body.to === 'string' ? body.to.trim() : '';
+    const message      = typeof body.message === 'string' ? body.message : '';
+    const smsEventId   = typeof body.sms_event_id === 'string' ? body.sms_event_id : null;
     if (!to || !message) {
       return json(400, { error: 'missing_required_field', detail: 'to and message are both required' });
     }
@@ -125,8 +128,22 @@ Deno.serve(async (req) => {
     }
 
     const data = await twilioRes.json();
-    console.log(`send-twilio-sms: ok to=${to} sid=${data?.sid ?? '(none)'} status=${data?.status ?? '(none)'}`);
-    return json(200, { ok: true, sid: data?.sid ?? null, status: data?.status ?? null });
+    const messageSid = data?.sid ?? null;
+    console.log(`send-twilio-sms: ok to=${to} sid=${messageSid ?? '(none)'} status=${data?.status ?? '(none)'}`);
+
+    if (smsEventId && messageSid && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+      fetch(`${SUPABASE_URL}/rest/v1/sms_events?id=eq.${encodeURIComponent(smsEventId)}`, {
+        method:  'PATCH',
+        headers: {
+          apikey:         SUPABASE_SERVICE_ROLE_KEY,
+          Authorization:  `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ twilio_message_sid: messageSid }),
+      }).catch((e) => console.warn(`send-twilio-sms: failed to update sms_events sid link: ${e}`));
+    }
+
+    return json(200, { ok: true, sid: messageSid, status: data?.status ?? null });
 
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : String(err);
