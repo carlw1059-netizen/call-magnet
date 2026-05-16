@@ -106,6 +106,23 @@ Deno.serve(async (req) => {
       return json(500, { error: 'config_error', detail: 'RESEND_API_KEY not configured' });
     }
 
+    // DST self-gate: two cron entries fire this function (13:00 UTC for AEST
+    // winter, 12:00 UTC for AEDT summer). Only the one landing on Melbourne
+    // hour 23 should proceed; the other returns immediately without touching
+    // the DB or sending emails.
+    const melbourneHour = parseInt(
+      new Intl.DateTimeFormat('en-AU', {
+        hour:     'numeric',
+        hour12:   false,
+        timeZone: 'Australia/Melbourne',
+      }).format(new Date()),
+      10,
+    );
+    if (melbourneHour !== 23) {
+      console.log(`send-daily-summary: skipping — Melbourne hour=${melbourneHour}, expected 23`);
+      return json(200, { skipped: true, reason: 'not 23:00 Melbourne time' });
+    }
+
     // Compute today's date in Melbourne calendar terms — used as the
     // summary_date key for daily_summary_runs and in the email subject.
     const now            = new Date();

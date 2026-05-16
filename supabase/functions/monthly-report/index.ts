@@ -4,9 +4,8 @@
 // Idempotency: monthly_reports UNIQUE (client_id, period_month).
 // Auth: shared-secret guard via X-Internal-Secret header — same pattern as
 // send-pushover-alert / save-push-subscription / send-client-notification /
-// send-daily-summary. Reads INTERNAL_SECRET from Edge Functions Vault, with
-// PUSHOVER_INTERNAL_SECRET fallback during the rolling rename. The deprecated
-// SUPABASE_SERVICE_ROLE_KEY env var is still used internally for supabase-js
+// send-daily-summary. Reads INTERNAL_SECRET from Edge Functions Vault.
+// The deprecated SUPABASE_SERVICE_ROLE_KEY env var is still used internally for supabase-js
 // createClient (PostgREST DB access) — Supabase's deprecation note only
 // affects auth-gate use, not service-role identity for DB calls.
 //
@@ -26,7 +25,7 @@ import { BRAND, escapeHtml as sharedEscapeHtml, renderEmailShell } from '../_sha
 // ─── env ──────────────────────────────────────────────────────────────────
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const INTERNAL_SECRET           = Deno.env.get('INTERNAL_SECRET') ?? Deno.env.get('PUSHOVER_INTERNAL_SECRET');
+const INTERNAL_SECRET           = Deno.env.get('INTERNAL_SECRET');
 const RESEND_API_KEY            = Deno.env.get('RESEND_API_KEY')!;
 const BLOCKED_CLIENT_IDS = (Deno.env.get('BLOCKED_CLIENT_IDS') ?? '')
   .split(',').map(s => s.trim()).filter(Boolean);
