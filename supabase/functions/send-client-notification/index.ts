@@ -191,20 +191,34 @@ Deno.serve(async (req) => {
   }
 
   try {
-    if (
-      !INTERNAL_SECRET ||
-      !VAPID_PUBLIC_KEY ||
-      !VAPID_PRIVATE_KEY ||
-      !VAPID_SUBJECT
-    ) {
-      console.error(
-        'send-client-notification: missing required env vars (INTERNAL_SECRET, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, or VAPID_SUBJECT)',
-      );
-      return json(500, { error: 'config_error', detail: 'required Vault secrets not configured' });
+    if (!INTERNAL_SECRET) {
+      console.error('send-client-notification: INTERNAL_SECRET missing from env');
+      return json(500, { error: 'config_error', detail: 'INTERNAL_SECRET not configured in Vault' });
     }
 
     if (req.headers.get('X-Internal-Secret') !== INTERNAL_SECRET) {
       return json(401, { error: 'unauthorized' });
+    }
+
+    // VAPID keys are required for Web Push but not for email. If missing, log a
+    // loud error, fire a Pushover alert (fire-and-forget), and continue — email
+    // will still deliver. Push resumes automatically once keys are seeded.
+    const vapidAvailable = Boolean(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY && VAPID_SUBJECT);
+    if (!vapidAvailable) {
+      console.error('send-client-notification: VAPID keys missing from Vault — Web Push disabled, email will still send');
+      fetch(`${SUPABASE_URL}/functions/v1/send-pushover-alert`, {
+        method:  'POST',
+        headers: {
+          'Content-Type':      'application/json',
+          'X-Internal-Secret': INTERNAL_SECRET,
+          Authorization:       `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+        body: JSON.stringify({
+          title:    '⚠️ VAPID keys missing',
+          message:  'send-client-notification: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, or VAPID_SUBJECT not set in Edge Functions Vault. Web Push is disabled — email only. Seed the keys to re-enable.',
+          priority: 1,
+        }),
+      }).catch(() => {});
     }
 
     const body = await req.json().catch(() => null) as
@@ -354,12 +368,12 @@ Deno.serve(async (req) => {
     }
     const subscriptions = await subsRes.json() as SubscriptionRow[];
 
-    // ── configure web-push (idempotent at function-instance level) ──────────
-    webPush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
-
-    // ── fan out web push in parallel; one failure must not abort others ─────
+    // ── configure web-push and fan out (skipped gracefully if VAPID keys missing) ──
+    if (vapidAvailable) {
+      webPush.setVapidDetails(VAPID_SUBJECT!, VAPID_PUBLIC_KEY!, VAPID_PRIVATE_KEY!);
+    }
     const pushPayload = JSON.stringify({ title, body: msg, event, context });
-    const pushResults = await Promise.allSettled(
+    const pushResults = vapidAvailable ? await Promise.allSettled(
       subscriptions.map(async (sub) => {
         try {
           await webPush.sendNotification(
@@ -372,7 +386,7 @@ Deno.serve(async (req) => {
           return { id: sub.id, ok: false as const, status, message: String((e as Error)?.message ?? e) };
         }
       }),
-    );
+    ) : [];
 
     let pushSent   = 0;
     let pushFailed = 0;

@@ -20,7 +20,7 @@
 // distinctive multi-section card layout (header bar, hero stat, 2×2 grid,
 // footer note); the run-summary alert email uses the standard renderEmailShell.
 
-import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import { BRAND, escapeHtml as sharedEscapeHtml, renderEmailShell } from '../_shared/emailStyles.ts';
 
 // ─── env ──────────────────────────────────────────────────────────────────

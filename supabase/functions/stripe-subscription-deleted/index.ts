@@ -28,6 +28,11 @@ Deno.serve(async (req) => {
       return new Response('Invalid signature', { status: 400 })
     }
 
+    // Replay attack protection: reject webhooks more than 5 minutes old
+    const webhookTimestamp = parseInt(timestampMatch[1], 10)
+    if (Math.abs(Date.now() / 1000 - webhookTimestamp) > 300) {
+      return new Response('Webhook timestamp too old', { status: 400 })
+    }
 
     const signedPayload = `${timestampMatch[1]}.${body}`
     const encoder = new TextEncoder()

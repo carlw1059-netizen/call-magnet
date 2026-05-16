@@ -12,7 +12,31 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { BRAND, escapeHtml, renderEmailShell } from "../_shared/emailStyles.ts";
 
-Deno.serve(async () => {
+const INTERNAL_SECRET = Deno.env.get('INTERNAL_SECRET');
+
+Deno.serve(async (req) => {
+  if (new URL(req.url).searchParams.get('warmup') === '1') {
+    return new Response(JSON.stringify({ warmup: 'ok' }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  if (!INTERNAL_SECRET) {
+    console.error('quick-responder: INTERNAL_SECRET missing from env');
+    return new Response(JSON.stringify({ error: 'config_error', detail: 'shared secret not configured in Vault' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  if (req.headers.get('X-Internal-Secret') !== INTERNAL_SECRET) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
