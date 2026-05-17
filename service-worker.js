@@ -1,12 +1,12 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
 // Last bumped: 16 May 2026 — email+password login replaces magic-link; must_change_password first-login flow
-const CACHE_VERSION = 'callmagnet-v49-email-password-login-2026-05-16';
+const CACHE_VERSION = 'callmagnet-v50-android-pwa-manifest-fix-2026-05-17';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
 const STATIC_ASSETS = [
-  '/manifest.json',
+  '/manifest.json?v=2026-05-17',
   '/favicon.ico?v=2026-05-14',
   '/favicon-16x16.png?v=2026-05-14',
   '/favicon-32x32.png?v=2026-05-14',
