@@ -219,6 +219,31 @@ Deno.serve(async (req) => {
     if (send_sms && INTERNAL_SECRET) {
       try {
         const smsBody = `Welcome to CallMagnet, ${business_name}. Your account is ready — check your email for login details.`;
+
+        // Insert sms_events row before sending so delivery can be tracked via
+        // twilio-sms-status StatusCallback. Best-effort: SMS send continues if
+        // the insert fails (non-fatal).
+        let sms_event_id: string | null = null;
+        try {
+          const { data: smsEventRow, error: smsEventErr } = await supa
+            .from('sms_events')
+            .insert({
+              client_id:       client_id,
+              customer_number: owner_phone,
+              client_number:   twilio_number,
+              message_body:    smsBody,
+            })
+            .select('id')
+            .single();
+          if (smsEventErr) {
+            console.warn(`create-client: sms_events insert failed — ${smsEventErr.message}`);
+          } else {
+            sms_event_id = smsEventRow?.id ?? null;
+          }
+        } catch (e) {
+          console.warn(`create-client: sms_events insert exception — ${(e as Error)?.message ?? e}`);
+        }
+
         const smsRes = await fetch(`${SUPABASE_URL}/functions/v1/send-twilio-sms`, {
           method:  'POST',
           headers: {
@@ -229,6 +254,7 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             to:      owner_phone,
             message: smsBody,
+            ...(sms_event_id ? { sms_event_id } : {}),
           }),
         });
         sms_sent = smsRes.ok;

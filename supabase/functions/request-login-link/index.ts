@@ -62,6 +62,10 @@ Deno.serve(async (req) => {
     let email: string | null = null;
     let phone: string | null = null;
     let channel: 'email' | 'sms'   = 'email';
+    // Populated on the phone path when a clients row is found — used for
+    // sms_events tracking and rate limiting.
+    let smsClientId: string | null = null;
+    let smsClientTwilioNumber: string | null = null;
 
     if (isEmail) {
       email   = identifier.toLowerCase();
@@ -82,11 +86,13 @@ Deno.serve(async (req) => {
       //      (e.g. Carl's own founder account, pre-clients-row users)
       const { data: clientByPhone } = await supa
         .from('clients')
-        .select('email')
+        .select('email, id, twilio_number')
         .eq('owner_phone', phone)
         .limit(1);
       if (clientByPhone && clientByPhone.length > 0 && clientByPhone[0].email) {
-        email = clientByPhone[0].email;
+        email                 = clientByPhone[0].email;
+        smsClientId           = clientByPhone[0].id           ?? null;
+        smsClientTwilioNumber = clientByPhone[0].twilio_number ?? null;
         console.log(`request-login-link: matched email=${email} via clients.owner_phone`);
       } else {
         // Fallback — listUsers and match by auth.users.phone
@@ -109,6 +115,21 @@ Deno.serve(async (req) => {
     }
 
     if (!email) return json(200, GENERIC_OK);
+
+    // Rate-limit login-link SMS: max 3 per phone per hour.
+    // Prevents magic-link spam for any known owner phone. Always returns the
+    // generic success response so the caller can't tell it was blocked.
+    if (channel === 'sms' && phone) {
+      const { count: recentCount } = await supa
+        .from('sms_events')
+        .select('id', { count: 'exact', head: true })
+        .eq('customer_number', phone)
+        .gte('received_at', new Date(Date.now() - 3600_000).toISOString());
+      if ((recentCount ?? 0) >= 3) {
+        console.warn(`request-login-link: rate limit hit — phone=${phone} had ${recentCount ?? 0} SMS in last hour`);
+        return json(200, GENERIC_OK);
+      }
+    }
 
     // Generate magic link server-side. Pin redirectTo to HTTPS + trailing slash
     // so the URL falls inside the PWA scope ("/" per manifest.json) and the
@@ -246,6 +267,34 @@ Deno.serve(async (req) => {
 
       console.log(`request-login-link: sms channel — phone=${phone} short=${shortened} url_len=${sms_url.length} body_len=${smsBody.length}`);
 
+      // Insert sms_events row before sending so:
+      //   1. The row exists for the rate-limit counter before delivery completes.
+      //   2. twilio-sms-status can update delivery_status via sms_event_id.
+      // Only inserted when we have a clients row (smsClientId non-null).
+      // Best-effort: SMS send continues even if the insert fails.
+      let sms_event_id: string | null = null;
+      if (smsClientId && smsClientTwilioNumber) {
+        try {
+          const { data: smsEvtRow, error: smsEvtErr } = await supa
+            .from('sms_events')
+            .insert({
+              client_id:       smsClientId,
+              customer_number: phone,
+              client_number:   smsClientTwilioNumber,
+              message_body:    smsBody,
+            })
+            .select('id')
+            .single();
+          if (smsEvtErr) {
+            console.warn(`request-login-link: sms_events insert failed — ${smsEvtErr.message}`);
+          } else {
+            sms_event_id = smsEvtRow?.id ?? null;
+          }
+        } catch (e) {
+          console.warn(`request-login-link: sms_events insert exception — ${(e as Error)?.message ?? e}`);
+        }
+      }
+
       try {
         const smsRes = await fetch(`${SUPABASE_URL}/functions/v1/send-twilio-sms`, {
           method:  'POST',
@@ -257,6 +306,7 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             to:      phone,
             message: smsBody,
+            ...(sms_event_id ? { sms_event_id } : {}),
           }),
         });
         const smsRespBody = await smsRes.text();

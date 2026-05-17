@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
 
 
     const clientsRes = await fetch(
-      `${supabaseUrl}/rest/v1/clients?account_status=eq.active&select=*`,
+      `${supabaseUrl}/rest/v1/clients?account_status=eq.active&is_test_account=eq.false&select=*`,
       { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }
     );
     const clients = await clientsRes.json();
@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
 
 
     const cancelRes = await fetch(
-      `${supabaseUrl}/rest/v1/clients?cancellation_scheduled=eq.true&account_status=eq.active&select=*`,
+      `${supabaseUrl}/rest/v1/clients?cancellation_scheduled=eq.true&account_status=eq.active&is_test_account=eq.false&select=*`,
       { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }
     );
     const cancelClients = await cancelRes.json();
