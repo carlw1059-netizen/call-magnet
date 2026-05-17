@@ -103,13 +103,13 @@ exports.handler = async function (context, event, callback) {
   // If template still has [LINK] placeholder, substitute the actual rebrandly URL
   // so Twilio Studio doesn't have to. Keeps Liquid template trivial:
   //   {{widgets.fetch_client.parsed.customer_sms_template}} Reply STOP to opt out
-  const url = booking_url || 'https://callmagnet.com.au';
-  const tmpl = (customer_sms_template || FALLBACK.customer_sms_template).replace(/\[LINK\]/g, url);
+  const bookingUrl = booking_url || 'https://callmagnet.com.au';
+  const tmpl = (customer_sms_template || FALLBACK.customer_sms_template).replace(/\[LINK\]/g, bookingUrl);
 
   return callback(null, {
     vertical:              vertical      || 'default',
     business_name:         business_name || 'us',
-    booking_url:           url,
+    booking_url:           bookingUrl,
     customer_sms_template: tmpl,
   });
 };
