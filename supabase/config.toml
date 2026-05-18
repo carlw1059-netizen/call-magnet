@@ -451,6 +451,18 @@ verify_jwt = false
 [functions.twilio-sms-status]
 verify_jwt = false
 
+# get-booking-url is called by real customers tapping their SMS booking link —
+# they carry no Supabase JWT. verify_jwt = false is the correct posture here;
+# the function itself carries no INTERNAL_SECRET guard by design.
+[functions.get-booking-url]
+verify_jwt = false
+
+# quick-responder is dispatched by dispatch_quick_responder() (pg_cron) which
+# sends only X-Internal-Secret — no JWT. Must be false so the gateway passes
+# the dispatch through, and so warmup pings (GET ?warmup=1) are not 401'd.
+[functions.quick-responder]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

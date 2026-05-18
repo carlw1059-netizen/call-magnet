@@ -6,11 +6,35 @@
 // Day 14 + Day 30 keep their distinctive layouts (big stat tower, accent-tinted
 // cards, "View dashboard" CTA button); the run alert email uses the standard
 // renderEmailShell.
+//
+// STATUS (Batch 5): deployed but NOT yet scheduled via pg_cron — this function
+// is dead code until a dispatch migration is added. Guards (INTERNAL_SECRET +
+// is_test_account) were added pre-emptively: the function is reachable via its
+// URL by any Supabase-authenticated caller, so unguarded code would allow
+// Day14/Day30 email blasts to all live clients on manual invocation.
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { BRAND, escapeHtml, renderEmailShell } from "../_shared/emailStyles.ts";
 
-Deno.serve(async () => {
+const INTERNAL_SECRET = Deno.env.get('INTERNAL_SECRET');
+
+Deno.serve(async (req) => {
+  // Warmup — return before any DB or email work.
+  if (new URL(req.url).searchParams.get('warmup') === '1') {
+    return new Response(JSON.stringify({ warmup: 'ok' }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Auth guard — only internal callers (pg_cron dispatcher) may trigger this.
+  if (!INTERNAL_SECRET || req.headers.get('X-Internal-Secret') !== INTERNAL_SECRET) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
@@ -26,7 +50,7 @@ Deno.serve(async () => {
 
     const now = new Date()
     const clientsRes = await fetch(
-      `${supabaseUrl}/rest/v1/clients?account_status=eq.active&select=*`,
+      `${supabaseUrl}/rest/v1/clients?account_status=eq.active&is_test_account=eq.false&select=*`,
       { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }
     )
     const clients = await clientsRes.json()

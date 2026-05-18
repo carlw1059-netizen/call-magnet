@@ -6,12 +6,19 @@ Deno.serve(async (req) => {
     return new Response('ok', { headers: { 'Access-Control-Allow-Origin': '*' } })
   }
 
+  // Warmup — return before body parsing so the 300-second replay guard is
+  // never reached. Stripe sends POST; warmup pings arrive as GET ?warmup=1.
+  if (new URL(req.url).searchParams.get('warmup') === '1') {
+    return new Response(JSON.stringify({ warmup: 'ok' }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET_CANCELLED')
-
 
     const body = await req.text()
     const signature = req.headers.get('stripe-signature')

@@ -58,8 +58,10 @@ Deno.serve(async (req) => {
     }
 
     // ── look up client by their Twilio number ─────────────────────────────
+    // is_test_account=eq.false: prevent test accounts from processing real
+    // missed calls and generating sms_events rows in production pipelines.
     const lookupRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/clients?twilio_number=eq.${encodeURIComponent(to)}&select=id,business_name`,
+      `${SUPABASE_URL}/rest/v1/clients?twilio_number=eq.${encodeURIComponent(to)}&is_test_account=eq.false&select=id,business_name`,
       {
         headers: {
           apikey: SUPABASE_SERVICE_ROLE_KEY,
