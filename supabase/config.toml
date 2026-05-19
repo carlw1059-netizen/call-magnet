@@ -463,6 +463,13 @@ verify_jwt = false
 [functions.quick-responder]
 verify_jwt = false
 
+# send-missed-call-sms is called directly by Twilio Studio's HTTP widget —
+# Studio carries no Supabase JWT. URL is the secret (same posture as
+# twilio-missed-call). A future hardening pass can add Twilio request-signature
+# verification.
+[functions.send-missed-call-sms]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

@@ -117,7 +117,11 @@ Deno.serve(async (req) => {
     }
 
     const inserted = await insertRes.json() as { id: string }[];
-    return json(200, { ok: true, id: inserted[0]?.id, client_id: clientId });
+    const smsEventId = inserted[0]?.id ?? null;
+    // sms_event_id is an explicit alias for id — Studio's send_sms widget
+    // references {{widgets.http_1.body.sms_event_id}} to link the Twilio
+    // MessageSid back to this row once the SMS is sent.
+    return json(200, { ok: true, id: smsEventId, sms_event_id: smsEventId, client_id: clientId });
 
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : String(err);
