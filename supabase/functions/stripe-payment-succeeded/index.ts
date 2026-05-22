@@ -80,7 +80,10 @@ Deno.serve(async (req) => {
 
 
     if (event.type === 'invoice.payment_succeeded') {
-      const stripeCustomerId = event.data.object.customer
+      const stripeCustomerId      = event.data.object.customer
+      const stripeSubscriptionId  = typeof event.data.object.subscription === 'string'
+        ? event.data.object.subscription
+        : null
 
 
 
@@ -119,7 +122,10 @@ Deno.serve(async (req) => {
             'Content-Type': 'application/json',
             Prefer: 'return=minimal'
           },
-          body: JSON.stringify({ account_status: 'active' })
+          body: JSON.stringify({
+            account_status: 'active',
+            ...(stripeSubscriptionId ? { stripe_subscription_id: stripeSubscriptionId } : {}),
+          })
         }
       )
       console.log(`Reactivated account for ${client.business_name}`)

@@ -470,6 +470,19 @@ verify_jwt = false
 [functions.send-missed-call-sms]
 verify_jwt = false
 
+# submit-cancellation is called by cancel.html (client self-service). The client
+# sends their Supabase JWT in the Authorization header. verify_jwt = false so
+# this function can validate the JWT manually via /auth/v1/user and return
+# tailored errors (rather than the gateway's generic 401).
+[functions.submit-cancellation]
+verify_jwt = false
+
+# admin-cancel-client is called by admin/clients.html. The admin sends their
+# Supabase JWT; the function validates it and checks app_metadata.is_admin.
+# verify_jwt = false for the same reason as submit-cancellation.
+[functions.admin-cancel-client]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

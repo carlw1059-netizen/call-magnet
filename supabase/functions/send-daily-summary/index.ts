@@ -141,7 +141,7 @@ Deno.serve(async (req) => {
     // is `account_status` (subscription_status doesn't exist on clients).
     // Filtering on account_status as the only correct interpretation.
     const clientsRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/clients?account_status=eq.active&select=id,business_name,email,vertical`,
+      `${SUPABASE_URL}/rest/v1/clients?account_status=eq.active&cancellation_scheduled=eq.false&select=id,business_name,email,vertical`,
       {
         headers: {
           apikey:        SUPABASE_SERVICE_ROLE_KEY,
