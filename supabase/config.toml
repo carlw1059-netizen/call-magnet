@@ -483,6 +483,13 @@ verify_jwt = false
 [functions.admin-cancel-client]
 verify_jwt = false
 
+# upload-middle-man-background: accepts authenticated uploads from clients and
+# admin. verify_jwt = true so the Supabase gateway rejects missing/invalid JWTs
+# before the function runs. The function then performs its own two-tier check
+# (ownership OR admin) using supa.auth.getUser().
+[functions.upload-middle-man-background]
+verify_jwt = true
+
 [analytics]
 enabled = true
 port = 54327
