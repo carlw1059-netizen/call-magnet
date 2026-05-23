@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
     }
 
     if (!recipientId && adminEmail) {
-      // Look up client row by admin email
+      // Look up client row by admin email (works if admin also has a client account)
       const lookupRes = await fetch(
         `${SUPABASE_URL}/rest/v1/clients?email=eq.${encodeURIComponent(adminEmail)}&select=id&limit=1`,
         {
@@ -94,9 +94,28 @@ Deno.serve(async (req) => {
     }
 
     if (!recipientId) {
+      // Final fallback: the test account is Carl's demo account — his device is
+      // registered in Progressier under that client's id. Use it as the push target.
+      console.log('send-test-notification: no client row for admin email, falling back to test account');
+      const testRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/clients?is_test_account=eq.true&select=id&limit=1`,
+        {
+          headers: {
+            apikey:        SUPABASE_SERVICE_ROLE_KEY,
+            Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          },
+        },
+      );
+      if (testRes.ok) {
+        const testRows = await testRes.json() as { id: string }[];
+        if (testRows.length > 0) recipientId = testRows[0].id;
+      }
+    }
+
+    if (!recipientId) {
       return json(422, {
         error: 'no_recipient',
-        detail: 'Pass client_id in the request body, or ensure the admin account has a matching client row.',
+        detail: 'Could not find a Progressier recipient. Pass client_id in the request body, or ensure a test account exists.',
       });
     }
 
