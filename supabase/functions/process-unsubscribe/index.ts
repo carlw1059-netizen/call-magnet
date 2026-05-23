@@ -82,8 +82,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       return json(400, { ok: false, error: 'validation_failed', detail: 'token is required' });
     }
     if (choice !== 'until_next_call' && choice !== 'forever') {
-      return json(400, { ok: false, error: 'validation_failed',
-                          detail: "choice must be 'until_next_call' or 'forever'" });
+      return json(400, { ok: false, error: 'invalid_choice' });
     }
     if (cameFrom !== null && !['sms', 'middle_man', 'admin'].includes(cameFrom)) {
       return json(400, { ok: false, error: 'validation_failed',
