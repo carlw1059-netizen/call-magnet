@@ -822,18 +822,22 @@ body {
   .admin-panel-testing { display: none; }
 }
 /* ── Dashboard admin sidebar (desktop, admin only) ───────────────────────── */
+/* Base: always hidden. JS adds .visible; the desktop media query then applies
+   position:fixed + flex layout. This base rule prevents any inline rendering
+   on unsupported viewports or before the JS runs. */
+.dash-admin-sidebar { display: none; }
+
 @media (min-width: 768px) {
-  .dash-admin-sidebar {
+  .dash-admin-sidebar.visible {
+    display: flex; flex-direction: column;
     position: fixed; left: 0; top: 0; bottom: 0;
     width: 220px; z-index: 40;
     background: #0E1419;
     border-right: 1px solid rgba(6,214,160,0.13);
     padding: 80px 0 24px; /* 80px clears the topbar height */
-    display: none; flex-direction: column;
     overflow-y: auto;
   }
-  .dash-admin-sidebar.visible { display: flex; }
-  /* Push .main right when sidebar is open */
+  /* Push .main right when sidebar is visible */
   #adminSidebar.visible ~ .main {
     margin-left: 220px;
   }
@@ -856,6 +860,7 @@ body {
   .dash-admin-sidebar-link.cancel-link:hover { background: rgba(204,85,0,0.08); }
   .dash-admin-sidebar-link:disabled { opacity: 0.55; cursor: default; }
 }
+/* Belt-and-braces: never show on mobile even if .visible is set by JS */
 @media (max-width: 767px) {
   .dash-admin-sidebar { display: none !important; }
 }
@@ -1751,16 +1756,25 @@ async function loadStats() {
 // downstream call sites (renderTilesForMode, vertical toggle visibility,
 // etc.) can read it synchronously.
 let _isAdminCached = false;
+let _adminUserEmail = '';
+// Only this email address should see the admin FAB and sidebar.
+// car312@hotmail.com also has is_admin=true in app_metadata (test account)
+// but must NOT see admin UI elements.
+const REAL_ADMIN_EMAIL = 'carlw1059@gmail.com';
 
 function isAdminToggleUser() {
   return _isAdminCached === true;
 }
 
 function refreshAdminFab() {
+  // Gate admin UI on both the is_admin flag AND the real admin email.
+  // This prevents the test account (which shares is_admin=true) from seeing
+  // the admin FAB and sidebar.
+  const showAdmin = _isAdminCached === true && _adminUserEmail.toLowerCase() === REAL_ADMIN_EMAIL;
   const fab = document.getElementById('adminFab');
-  if (fab) fab.style.display = _isAdminCached === true ? 'flex' : 'none';
+  if (fab) fab.style.display = showAdmin ? 'flex' : 'none';
   const sidebar = document.getElementById('adminSidebar');
-  if (sidebar) sidebar.classList.toggle('visible', _isAdminCached === true);
+  if (sidebar) sidebar.classList.toggle('visible', showAdmin);
 }
 
 
@@ -2214,6 +2228,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const { data: { session } } = await sb.auth.getSession();
   _isAdminCached = (session?.user?.app_metadata && session.user.app_metadata.is_admin === true);
+  _adminUserEmail = session?.user?.email ?? '';
   refreshAdminFab();
   if (session?.user) {
     await crossFadeToDashboard(session.user, document.getElementById('loginScreen'));
@@ -2221,6 +2236,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   sb.auth.onAuthStateChange((event, newSession) => {
     _isAdminCached = (newSession?.user?.app_metadata && newSession.user.app_metadata.is_admin === true);
+    _adminUserEmail = newSession?.user?.email ?? '';
     refreshAdminFab();
     if (event === 'PASSWORD_RECOVERY') {
       showRecovery();
