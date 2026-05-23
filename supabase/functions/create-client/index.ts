@@ -86,6 +86,18 @@ Deno.serve(async (req) => {
       : '';
     const send_sms      = body.send_sms !== false; // default true
 
+    // ── Middle Man optional fields ─────────────────────────────────────────
+    const middle_man_slug_raw = typeof body.middle_man_slug === 'string'
+      ? body.middle_man_slug.trim().toLowerCase()
+      : null;
+    const middle_man_slug = middle_man_slug_raw && middle_man_slug_raw.length > 0
+      ? middle_man_slug_raw
+      : null;
+    // middle_man_buttons: accept array or null/undefined
+    const middle_man_buttons = Array.isArray(body.middle_man_buttons)
+      ? body.middle_man_buttons
+      : [];
+
     if (!business_name) return json(400, { error: 'missing_field', field: 'business_name' });
     if (!vertical)      return json(400, { error: 'missing_field', field: 'vertical' });
     if (!twilio_number) return json(400, { error: 'missing_field', field: 'twilio_number' });
@@ -107,6 +119,12 @@ Deno.serve(async (req) => {
     }
     if (!/^https?:\/\//.test(rebrandly_url)) {
       return json(400, { error: 'invalid_url', field: 'rebrandly_url', detail: 'must start with http:// or https://' });
+    }
+    if (middle_man_slug && !/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/.test(middle_man_slug)) {
+      return json(400, { error: 'invalid_slug', detail: 'middle_man_slug must be lowercase letters, digits, and hyphens only (no leading/trailing hyphens), max 50 chars' });
+    }
+    if (middle_man_slug && middle_man_slug.length > 50) {
+      return json(400, { error: 'invalid_slug', detail: 'middle_man_slug must be 50 characters or fewer' });
     }
 
     // ── 3. Look up vertical config ─────────────────────────────────────────
@@ -190,26 +208,37 @@ Deno.serve(async (req) => {
     }
 
     // ── 5. Insert clients row ──────────────────────────────────────────────
+    const clientInsertPayload: Record<string, unknown> = {
+      business_name,
+      email:                  owner_email,
+      owner_phone,
+      twilio_number,
+      vertical,
+      booking_url:            rebrandly_url,
+      avg_job_value,
+      abn,
+      customer_sms_template,
+      account_status:         'active',
+      terms_accepted:         true,
+      subscription_start:     new Date().toISOString(),
+      must_change_password:   isNewUser,
+      middle_man_buttons:     middle_man_buttons,
+    };
+    // Only include slug if provided — omitting lets the column stay NULL
+    if (middle_man_slug) {
+      clientInsertPayload.middle_man_slug = middle_man_slug;
+    }
+
     const { data: insertedClient, error: insertErr } = await supa
       .from('clients')
-      .insert({
-        business_name,
-        email:                  owner_email,
-        owner_phone,
-        twilio_number,
-        vertical,
-        booking_url:            rebrandly_url,
-        avg_job_value,
-        abn,
-        customer_sms_template,
-        account_status:         'active',
-        terms_accepted:         true,
-        subscription_start:     new Date().toISOString(),
-        must_change_password:   isNewUser, // new users must set their own password on first login
-      })
+      .insert(clientInsertPayload)
       .select('id')
       .single();
     if (insertErr) {
+      // Unique constraint on middle_man_slug → return a clear 409 not a 500
+      if (insertErr.code === '23505' && insertErr.message.includes('middle_man_slug')) {
+        return json(409, { error: 'slug_taken', detail: `The Middle Man slug "${middle_man_slug}" is already in use. Choose a different slug.` });
+      }
       return json(500, { error: 'client_insert_failed', detail: insertErr.message });
     }
     const client_id = insertedClient.id;

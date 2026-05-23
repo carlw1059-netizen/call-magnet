@@ -236,6 +236,77 @@
     .tools-sidebar { display: none; }
     .tools-main { padding: 1.5rem 1rem 4rem; }
   }
+
+  /* ── Middle Man section ──────────────────────────────────────────────── */
+  .mm-section { margin: 1.25rem 0 0.75rem; }
+  .mm-section-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 10px; display: block;
+  }
+  /* slug field with inline prefix */
+  .slug-wrap {
+    display: flex; align-items: stretch;
+    border: 1px solid var(--accent-border); border-radius: 8px; overflow: hidden;
+    background: rgba(0,0,0,0.3);
+    transition: box-shadow 0.15s, border-color 0.15s;
+  }
+  .slug-wrap:focus-within {
+    border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .slug-prefix {
+    padding: 11px 8px 11px 12px; font-size: 13px;
+    color: rgba(255,255,255,0.35); white-space: nowrap; user-select: none;
+    background: transparent; flex-shrink: 0;
+  }
+  .slug-input {
+    flex: 1; padding: 11px 12px 11px 0; font-size: 15px; font-family: inherit;
+    background: transparent; color: var(--text);
+    border: none; outline: none;
+    min-width: 0;
+  }
+  /* button builder */
+  .btn-builder { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+  .btn-row {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 7px; padding: 8px 10px;
+  }
+  .btn-order {
+    width: 46px; flex-shrink: 0; padding: 5px 4px;
+    background: rgba(0,0,0,0.3); color: var(--text);
+    border: 1px solid var(--accent-border); border-radius: 5px;
+    font-size: 13px; font-family: inherit; outline: none;
+    -webkit-appearance: none; appearance: none; text-align: center;
+  }
+  .btn-enabled-wrap {
+    flex-shrink: 0; display: flex; align-items: center;
+  }
+  .btn-enabled {
+    width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer;
+  }
+  .btn-label-input {
+    flex: 1; padding: 5px 8px; font-size: 14px; font-family: inherit;
+    background: rgba(0,0,0,0.25); color: var(--text);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 5px;
+    outline: none; min-width: 0;
+    transition: border-color 0.15s;
+  }
+  .btn-label-input:focus { border-color: var(--accent); }
+  .btn-delete {
+    flex-shrink: 0; background: transparent; border: none;
+    color: var(--red); font-size: 18px; cursor: pointer;
+    line-height: 1; padding: 0 2px; font-family: inherit;
+    opacity: 0.7; transition: opacity 0.12s;
+  }
+  .btn-delete:hover { opacity: 1; }
+  .add-btn-link {
+    display: inline-block; font-size: 13px; color: var(--accent);
+    background: transparent; border: none; cursor: pointer;
+    font-family: inherit; padding: 2px 0; letter-spacing: 0.02em;
+    text-decoration: none;
+  }
+  .add-btn-link:hover { text-decoration: underline; }
+  .add-btn-link:disabled { color: var(--muted); cursor: default; text-decoration: none; }
 </style>
 </head>
 <body>
@@ -328,6 +399,30 @@
       <input type="url" id="rebrandlyUrlInput" placeholder="https://rebrand.ly/their-slug" />
     </div>
 
+    <!-- ── Middle Man section ─────────────────────────────────────────── -->
+    <div class="mm-section">
+      <div class="field" style="margin-bottom:0.75rem">
+        <label>Middle Man page URL</label>
+        <div class="slug-wrap">
+          <span class="slug-prefix">callmagnet.com.au/b/</span>
+          <input type="text" id="slugInput" class="slug-input"
+            placeholder="brunswick-bistro"
+            maxlength="50"
+            autocomplete="off"
+            spellcheck="false"
+            inputmode="url" />
+        </div>
+        <div class="hint">Customers visit this URL after tapping the SMS link</div>
+      </div>
+
+      <div class="field" style="margin-bottom:0">
+        <label>Customer buttons <span class="opt">— max 6</span></label>
+        <div class="btn-builder" id="btnBuilder"></div>
+        <button type="button" class="add-btn-link" id="addBtnLink" onclick="addButtonRow()">+ Add button</button>
+        <div class="hint" style="margin-top:6px">What can customers tap on the Middle Man page?</div>
+      </div>
+    </div>
+
     <div class="sms-section">
       <div class="field" style="margin-bottom:0">
         <label>
@@ -375,6 +470,164 @@ let sb = null;
 let session = null;
 let verticals = [];
 let sendSmsOn = true;
+
+// ── Button builder state ─────────────────────────────────────────────────
+// buttonsDirty = true once admin manually edits buttons; prevents auto-replace
+// on vertical change.
+let buttonsDirty = false;
+
+const BUTTON_DEFAULTS = {
+  restaurant:   [
+    { label: 'Book a table',       sort_order: 1, enabled: true },
+    { label: 'Change my booking',  sort_order: 2, enabled: true },
+    { label: 'Cancel my booking',  sort_order: 3, enabled: true },
+    { label: 'Something else',     sort_order: 4, enabled: true },
+  ],
+  barber:       [
+    { label: 'Book appointment',   sort_order: 1, enabled: true },
+    { label: 'Change appointment', sort_order: 2, enabled: true },
+    { label: 'Cancel',             sort_order: 3, enabled: true },
+    { label: 'Something else',     sort_order: 4, enabled: true },
+  ],
+  hairdresser:  [
+    { label: 'Book appointment',   sort_order: 1, enabled: true },
+    { label: 'Change appointment', sort_order: 2, enabled: true },
+    { label: 'Cancel',             sort_order: 3, enabled: true },
+    { label: 'Something else',     sort_order: 4, enabled: true },
+  ],
+};
+const BUTTON_DEFAULTS_FALLBACK = [
+  { label: 'Make a booking',    sort_order: 1, enabled: true },
+  { label: 'Change my booking', sort_order: 2, enabled: true },
+  { label: 'Cancel',            sort_order: 3, enabled: true },
+  { label: 'Something else',    sort_order: 4, enabled: true },
+];
+
+/** Convert business name to a valid slug. */
+function generateSlug(name) {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-{2,}/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 50);
+}
+
+/** Sanitise slug input as the admin types (keep only valid chars). */
+function sanitiseSlugInput(raw) {
+  return raw.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/-{2,}/g, '-').slice(0, 50);
+}
+
+/** Render button rows in #btnBuilder from a buttons array. */
+function renderButtonRows(buttons) {
+  const builder = document.getElementById('btnBuilder');
+  builder.innerHTML = '';
+  buttons.forEach(b => addButtonRow(b));
+  refreshAddBtnState();
+}
+
+/** Add one button row. If btn supplied, pre-fills values; otherwise blank. */
+function addButtonRow(btn) {
+  const builder = document.getElementById('btnBuilder');
+  const count = builder.children.length;
+  if (count >= 6) return;
+
+  const defaultOrder = count + 1;
+  const label      = (btn && btn.label      != null) ? btn.label      : '';
+  const sortOrder  = (btn && btn.sort_order != null) ? btn.sort_order : defaultOrder;
+  const enabled    = (btn && btn.enabled    != null) ? btn.enabled    : true;
+
+  const row = document.createElement('div');
+  row.className = 'btn-row';
+
+  // Sort order dropdown (1–6)
+  const orderOptions = [1,2,3,4,5,6].map(n =>
+    '<option value="' + n + '"' + (n === sortOrder ? ' selected' : '') + '>' + n + '</option>'
+  ).join('');
+  const orderSel = document.createElement('select');
+  orderSel.className = 'btn-order';
+  orderSel.innerHTML = orderOptions;
+  orderSel.setAttribute('aria-label', 'Sort order');
+  orderSel.addEventListener('change', () => { buttonsDirty = true; });
+
+  // Enabled checkbox
+  const checkWrap = document.createElement('label');
+  checkWrap.className = 'btn-enabled-wrap';
+  checkWrap.title = 'Enabled';
+  const chk = document.createElement('input');
+  chk.type = 'checkbox';
+  chk.className = 'btn-enabled';
+  chk.checked = enabled;
+  chk.setAttribute('aria-label', 'Enabled');
+  chk.addEventListener('change', () => { buttonsDirty = true; });
+  checkWrap.appendChild(chk);
+
+  // Label input
+  const labelInput = document.createElement('input');
+  labelInput.type = 'text';
+  labelInput.className = 'btn-label-input';
+  labelInput.value = label;
+  labelInput.maxLength = 40;
+  labelInput.placeholder = 'Button label…';
+  labelInput.addEventListener('input', () => { buttonsDirty = true; });
+
+  // Delete button
+  const delBtn = document.createElement('button');
+  delBtn.type = 'button';
+  delBtn.className = 'btn-delete';
+  delBtn.textContent = '×';
+  delBtn.setAttribute('aria-label', 'Remove button');
+  delBtn.addEventListener('click', () => {
+    row.remove();
+    buttonsDirty = true;
+    refreshAddBtnState();
+  });
+
+  row.appendChild(orderSel);
+  row.appendChild(checkWrap);
+  row.appendChild(labelInput);
+  row.appendChild(delBtn);
+  builder.appendChild(row);
+  refreshAddBtnState();
+}
+
+/** Enable/disable "+ Add button" based on current row count. */
+function refreshAddBtnState() {
+  const builder = document.getElementById('btnBuilder');
+  const link = document.getElementById('addBtnLink');
+  if (!link) return;
+  const atMax = builder.children.length >= 6;
+  link.disabled = atMax;
+  link.style.pointerEvents = atMax ? 'none' : '';
+  link.style.opacity = atMax ? '0.4' : '';
+}
+
+/** Collect button data from the builder UI. */
+function collectButtons() {
+  const rows = document.querySelectorAll('#btnBuilder .btn-row');
+  const result = [];
+  rows.forEach(row => {
+    const labelVal = row.querySelector('.btn-label-input').value.trim();
+    if (!labelVal) return; // skip blank rows
+    result.push({
+      label:      labelVal,
+      sort_order: parseInt(row.querySelector('.btn-order').value, 10) || 1,
+      enabled:    row.querySelector('.btn-enabled').checked,
+    });
+  });
+  return result;
+}
+
+/** Pre-fill buttons from vertical, respecting buttonsDirty flag. */
+function prefillButtonsFromVertical() {
+  if (buttonsDirty) return;
+  const vertical = document.getElementById('verticalSelect').value;
+  const defaults = BUTTON_DEFAULTS[vertical] || BUTTON_DEFAULTS_FALLBACK;
+  renderButtonRows(defaults);
+  buttonsDirty = false; // renderButtonRows may have triggered listeners
+}
 
 function showState(id) {
   ['gateLoading','gateLogin','gateForbidden'].forEach(s => {
@@ -515,6 +768,8 @@ async function submitForm() {
   const avg_job_value = avg_raw ? Number(avg_raw) : null;
   const rebrandly_url = document.getElementById('rebrandlyUrlInput').value.trim();
   const customer_sms_template = (document.getElementById('smsTemplateInput').value || '').trim();
+  const middle_man_slug    = document.getElementById('slugInput').value.trim() || null;
+  const middle_man_buttons = collectButtons();
 
   if (!business_name) return showError('Business name is required.');
   if (!vertical)      return showError('Pick a vertical.');
@@ -523,6 +778,7 @@ async function submitForm() {
   if (!twilio_number || !/^\+614\d{8}$/.test(twilio_number)) return showError('Twilio number must be a valid AU mobile (+614XXXXXXXX).');
   if (abn && abn.length !== 11) return showError('ABN must be 11 digits.');
   if (!rebrandly_url || !/^https?:\/\//.test(rebrandly_url)) return showError('Booking link must start with https://');
+  if (middle_man_slug && !/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/.test(middle_man_slug)) return showError('Middle Man slug can only contain lowercase letters, digits, and hyphens (no leading/trailing hyphens).');
   if (!customer_sms_template) return showError('Customer SMS message is required.');
   if (!/^Hi\b/i.test(customer_sms_template)) return showError('Customer SMS must start with "Hi" (brand voice rule).');
   if (/callmagnet\.com\.au/i.test(customer_sms_template)) return showError('Customer SMS must not mention callmagnet.com.au (customer-facing — brand stays invisible).');
@@ -549,7 +805,9 @@ async function submitForm() {
         avg_job_value,
         rebrandly_url,
         customer_sms_template,
-        send_sms: sendSmsOn
+        send_sms: sendSmsOn,
+        middle_man_slug:    middle_man_slug || null,
+        middle_man_buttons: middle_man_buttons,
       })
     });
     const data = await res.json().catch(() => ({}));
@@ -604,9 +862,12 @@ function resetForm() {
   document.getElementById('twilioNumberInput').value = '';
   document.getElementById('abnInput').value = '';
   document.getElementById('rebrandlyUrlInput').value = '';
+  document.getElementById('slugInput').value = '';
   smsDirty = false;
+  buttonsDirty = false;
   prefillAvgFromVertical();
   prefillSmsFromVertical();
+  prefillButtonsFromVertical();
   updateSmsCounter();
   document.getElementById('formCard').style.display = 'block';
   const btn = document.getElementById('submitBtn');
@@ -697,6 +958,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     prefillAvgFromVertical();
     smsDirty = false;
     prefillSmsFromVertical();
+    prefillButtonsFromVertical();
   });
 
   // SMS textarea: track manual edits + live char counter
@@ -718,6 +980,30 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (formatted) el.value = formatted;
     });
   });
+
+  // Slug field: sanitise on input, auto-generate from business name on blur if empty
+  const slugEl = document.getElementById('slugInput');
+  slugEl.addEventListener('input', () => {
+    slugEl.value = sanitiseSlugInput(slugEl.value);
+  });
+  slugEl.addEventListener('blur', () => {
+    if (!slugEl.value.trim()) {
+      const biz = document.getElementById('businessNameInput').value.trim();
+      if (biz) slugEl.value = generateSlug(biz);
+    }
+  });
+
+  // Business name blur: also auto-generate slug if slug is still empty
+  document.getElementById('businessNameInput').addEventListener('blur', () => {
+    const slugCurrent = document.getElementById('slugInput').value.trim();
+    if (!slugCurrent) {
+      const biz = document.getElementById('businessNameInput').value.trim();
+      if (biz) document.getElementById('slugInput').value = generateSlug(biz);
+    }
+  });
+
+  // Pre-fill buttons from initial vertical
+  prefillButtonsFromVertical();
 });
 </script>
 </body>

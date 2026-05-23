@@ -1,0 +1,12 @@
+# Netlify configuration for callmagnet.com.au
+#
+# The /b/* rewrite serves the Middle Man landing page for any slug.
+# e.g. callmagnet.com.au/b/brunswick-bistro → /b.html (status 200, not a redirect)
+# The page reads window.location.pathname to extract the slug.
+#
+# All other existing .html pages are served as-is; no existing routes are affected.
+
+[[redirects]]
+  from   = "/b/*"
+  to     = "/b.html"
+  status = 200
