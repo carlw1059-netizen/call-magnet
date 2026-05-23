@@ -150,6 +150,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/admin/admin-nav.js"></script>
 <script>
 const SUPABASE_URL = 'https://iskvvnhacqdxybpmwuni.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
@@ -231,6 +232,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('signoutBtn').style.display = 'block';
     return;
   }
+  window.refreshAdminFab(session);
 
   document.getElementById('gateLoading').classList.remove('visible');
   document.getElementById('signoutBtn').style.display = 'block';
