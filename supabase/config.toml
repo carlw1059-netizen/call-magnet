@@ -490,6 +490,9 @@ verify_jwt = false
 [functions.upload-middle-man-background]
 verify_jwt = true
 
+[functions.process-unsubscribe]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
