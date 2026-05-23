@@ -201,10 +201,53 @@
     border-radius: 50%; animation: spin 0.8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+  /* ── Tools sidebar layout ─────────────────────────────────────────────── */
+  body { padding: 0; } /* padding moves to .tools-main */
+  .page-layout { display: flex; min-height: 100vh; }
+  .tools-sidebar {
+    width: 200px; flex-shrink: 0;
+    background: rgba(255,255,255,0.025);
+    border-right: 1px solid rgba(6,214,160,0.12);
+    padding: 1.75rem 0 2rem;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    display: flex; flex-direction: column;
+  }
+  .tools-sidebar-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--accent);
+    padding: 0 16px 12px; display: block;
+  }
+  .tools-sidebar-link {
+    display: block; width: 100%; padding: 10px 16px;
+    font-size: 13px; color: rgba(255,255,255,0.65); text-decoration: none;
+    cursor: pointer; background: transparent; border: none;
+    text-align: left; font-family: inherit; line-height: 1.4;
+    transition: background 0.12s, color 0.12s;
+  }
+  .tools-sidebar-link:hover { background: rgba(6,214,160,0.07); color: rgba(255,255,255,0.92); }
+  .tools-sidebar-link.active { color: var(--accent); background: rgba(6,214,160,0.09); font-weight: 600; }
+  .tools-sidebar-link.cancel-link { color: #CC5500; }
+  .tools-sidebar-link.cancel-link:hover { background: rgba(204,85,0,0.08); }
+  .tools-main { flex: 1; padding: 1.5rem 1.5rem 4rem; min-width: 0; }
+  @media (max-width: 767px) {
+    .tools-sidebar { display: none; }
+    .tools-main { padding: 1.5rem 1rem 4rem; }
+  }
 </style>
 </head>
 <body>
 
+<div class="page-layout">
+
+<aside class="tools-sidebar">
+  <span class="tools-sidebar-label">Tools</span>
+  <a href="/admin/onboard.html" class="tools-sidebar-link active">Onboard new client</a>
+  <a href="/admin/clients.html" class="tools-sidebar-link">Manage clients</a>
+  <a href="/cancel.html" class="tools-sidebar-link cancel-link">Cancel subscription</a>
+  <button class="tools-sidebar-link" id="testNotifBtn" onclick="sendTestNotification()">Send test notification</button>
+</aside>
+
+<main class="tools-main">
 <div class="wrap">
   <div class="topbar">
     <div class="logo"><span class="star">★</span>CallMagnet — Admin</div>
@@ -315,7 +358,9 @@
     <div class="sms-status" id="emailStatus"></div>
     <button class="another-btn" onclick="resetForm()">Onboard another client</button>
   </div>
-</div>
+</div><!-- /.wrap -->
+</main><!-- /.tools-main -->
+</div><!-- /.page-layout -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -569,6 +614,41 @@ function resetForm() {
 async function handleSignout() {
   await sb.auth.signOut();
   window.location.href = '/';
+}
+
+async function sendTestNotification() {
+  const btn = document.getElementById('testNotifBtn');
+  if (!btn || btn.disabled) return;
+  const orig = btn.textContent;
+  btn.textContent = 'Sending…';
+  btn.disabled = true;
+  try {
+    if (!session) {
+      btn.textContent = 'Not signed in';
+      setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 2500);
+      return;
+    }
+    const res = await fetch(SUPABASE_URL + '/functions/v1/send-test-notification', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + session.access_token,
+        'apikey': SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({})
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      btn.textContent = '✓ Sent!';
+      setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 2500);
+    } else {
+      btn.textContent = 'Failed: ' + (data.error || res.status);
+      setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 3000);
+    }
+  } catch (e) {
+    btn.textContent = 'Error';
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 3000);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {

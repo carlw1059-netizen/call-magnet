@@ -821,6 +821,44 @@ body {
 @media (max-width: 767px) {
   .admin-panel-testing { display: none; }
 }
+/* ── Dashboard admin sidebar (desktop, admin only) ───────────────────────── */
+@media (min-width: 768px) {
+  .dash-admin-sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0;
+    width: 220px; z-index: 40;
+    background: #0E1419;
+    border-right: 1px solid rgba(6,214,160,0.13);
+    padding: 80px 0 24px; /* 80px clears the topbar height */
+    display: none; flex-direction: column;
+    overflow-y: auto;
+  }
+  .dash-admin-sidebar.visible { display: flex; }
+  /* Push .main right when sidebar is open */
+  #adminSidebar.visible ~ .main {
+    margin-left: 220px;
+  }
+  .dash-admin-sidebar-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #06D6A0;
+    padding: 0 18px 10px; display: block;
+  }
+  .dash-admin-sidebar-link {
+    display: block; width: 100%; padding: 11px 18px;
+    font-size: 13px; color: rgba(255,255,255,0.65); text-decoration: none;
+    cursor: pointer; background: transparent; border: none;
+    text-align: left; font-family: var(--font-body); line-height: 1.4;
+    transition: background 0.12s, color 0.12s;
+  }
+  .dash-admin-sidebar-link:hover {
+    background: rgba(6,214,160,0.07); color: rgba(255,255,255,0.92);
+  }
+  .dash-admin-sidebar-link.cancel-link { color: #CC5500; }
+  .dash-admin-sidebar-link.cancel-link:hover { background: rgba(204,85,0,0.08); }
+  .dash-admin-sidebar-link:disabled { opacity: 0.55; cursor: default; }
+}
+@media (max-width: 767px) {
+  .dash-admin-sidebar { display: none !important; }
+}
 </style>
 <link rel="manifest" href="/manifest.json?v=2026-05-17"/>
 <script defer src="https://progressier.app/9kXZoGF2Dlfeqec880My/script.js"></script>
@@ -942,6 +980,15 @@ body {
     <div class="skeleton skeleton-line medium"></div>
     <div class="skeleton skeleton-line long"></div>
   </div>
+
+  <!-- Admin sidebar — desktop only, visible when _isAdminCached === true -->
+  <aside id="adminSidebar" class="dash-admin-sidebar" aria-label="Admin tools">
+    <span class="dash-admin-sidebar-label">Tools</span>
+    <a href="/admin/onboard.html" class="dash-admin-sidebar-link">Onboard new client</a>
+    <a href="/admin/clients.html" class="dash-admin-sidebar-link">Manage clients</a>
+    <a href="/cancel.html" class="dash-admin-sidebar-link cancel-link">Cancel subscription</a>
+    <button class="dash-admin-sidebar-link" id="sidebarTestNotifBtn" onclick="sendTestNotification()">Send test notification</button>
+  </aside>
 
   <div class="main">
     <div class="biz-header">
@@ -1711,8 +1758,9 @@ function isAdminToggleUser() {
 
 function refreshAdminFab() {
   const fab = document.getElementById('adminFab');
-  if (!fab) return;
-  fab.style.display = _isAdminCached === true ? 'flex' : 'none';
+  if (fab) fab.style.display = _isAdminCached === true ? 'flex' : 'none';
+  const sidebar = document.getElementById('adminSidebar');
+  if (sidebar) sidebar.classList.toggle('visible', _isAdminCached === true);
 }
 
 
