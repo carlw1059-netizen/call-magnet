@@ -116,6 +116,16 @@ Deno.serve(async (req) => {
 
     if (!email) return json(200, GENERIC_OK);
 
+    // Block magic links for the admin account — admin must authenticate via
+    // password only. Magic-link tokens sitting in an email inbox are an account
+    // takeover vector. Return GENERIC_OK (identical to the "no account found"
+    // response) so an attacker cannot tell from the response whether the admin
+    // email is blocked or simply doesn't exist.
+    if (email === 'car312@hotmail.com') {
+      console.log('request-login-link: blocked magic link attempt for admin email');
+      return json(200, GENERIC_OK);
+    }
+
     // Rate-limit login-link SMS: max 3 per phone per hour.
     // Prevents magic-link spam for any known owner phone. Always returns the
     // generic success response so the caller can't tell it was blocked.
