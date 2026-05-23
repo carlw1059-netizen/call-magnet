@@ -64,8 +64,10 @@ Deno.serve(async (req) => {
     if (appMeta?.is_admin !== true) {
       return json(403, { error: 'forbidden', detail: 'admin access required' });
     }
-
     const adminEmail = typeof claims.email === 'string' ? claims.email.trim() : '';
+    if (adminEmail.toLowerCase() !== 'car312@hotmail.com') {
+      return json(403, { error: 'forbidden', detail: 'admin email mismatch' });
+    }
 
     // ── Resolve Progressier subscriber ID ────────────────────────────────────
     // Prefer client_id from the request body; fall back to admin's own client row.

@@ -64,6 +64,9 @@ Deno.serve(async (req) => {
     if (!isAdmin) {
       return json(403, { error: 'not_admin', detail: 'caller does not have is_admin flag in app_metadata' });
     }
+    if ((userData.user.email ?? '').toLowerCase() !== 'car312@hotmail.com') {
+      return json(403, { error: 'forbidden', detail: 'admin email mismatch' });
+    }
 
     // ── 2. Parse + validate body ───────────────────────────────────────────
     const body = await req.json().catch(() => null) as Record<string, unknown> | null;

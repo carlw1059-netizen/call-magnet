@@ -58,6 +58,9 @@ Deno.serve(async (req) => {
     if (userJson.app_metadata?.is_admin !== true) {
       return json(403, { error: 'forbidden', detail: 'Admin access required' });
     }
+    if ((userJson.email ?? '').toLowerCase() !== 'car312@hotmail.com') {
+      return json(403, { error: 'forbidden', detail: 'admin email mismatch' });
+    }
 
     // ── Parse body ────────────────────────────────────────────────────────────
     const body = await req.json().catch(() => null) as {
