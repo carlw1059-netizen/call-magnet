@@ -163,6 +163,8 @@
           <span class="admin-panel-section-label">Clients</span>
           <a href="/admin/onboard.html" class="admin-panel-link">Onboard new client</a>
           <a href="/admin/clients.html" class="admin-panel-link">Manage clients</a>
+          <a href="/admin/middle-man.html" class="admin-panel-link">Middle Man</a>
+          <a href="/admin/unsubscribes.html" class="admin-panel-link">Unsubscribes</a>
         </div>
         <div class="admin-panel-section">
           <span class="admin-panel-section-label">Subscription</span>

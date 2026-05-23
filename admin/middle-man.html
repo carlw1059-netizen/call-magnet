@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0E1419">
+<title>CallMagnet — Middle Man Manager</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #0E1419; min-height: 100vh; overscroll-behavior: none; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    color: rgba(255,255,255,0.92);
+    -webkit-font-smoothing: antialiased;
+    padding: 1.5rem 1rem 5rem;
+  }
+  :root {
+    --bg:           #0E1419;
+    --accent:       #06D6A0;
+    --accent-glow:  rgba(6, 214, 160, 0.18);
+    --accent-border:rgba(6, 214, 160, 0.25);
+    --accent-soft:  rgba(6, 214, 160, 0.08);
+    --red:          #CC5500;
+    --red-glow:     rgba(204, 85, 0, 0.18);
+    --red-border:   rgba(204, 85, 0, 0.4);
+    --text:         rgba(255,255,255,0.92);
+    --muted:        rgba(255,255,255,0.55);
+    --glass:        rgba(255,255,255,0.04);
+  }
+  .wrap { max-width: 640px; margin: 0 auto; }
+  .topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.5rem 0 1.5rem;
+  }
+  .logo { font-weight: 700; font-size: 16px; letter-spacing: 0.06em; color: var(--accent); text-transform: uppercase; }
+  .logo .star { display: inline-block; margin-right: 4px; }
+  .nav-links { display: flex; gap: 8px; }
+  .nav-btn {
+    background: transparent; border: 1px solid var(--accent-border); color: var(--accent);
+    padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;
+    font-family: inherit; letter-spacing: 0.04em; text-decoration: none; display: inline-block;
+  }
+  .nav-btn:hover { background: var(--accent-soft); }
+
+  /* ── Gate states ─────────────────────────────────────────────────────── */
+  .gate-state { text-align: center; padding: 3rem 1rem; display: none; }
+  .gate-state.visible { display: block; }
+  .gate-state h2 { font-size: 18px; color: var(--text); margin-bottom: 0.5rem; }
+  .gate-state p { font-size: 14px; color: var(--muted); }
+  .spinner {
+    display: inline-block; width: 32px; height: 32px;
+    border: 3px solid var(--accent-border); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Page header ─────────────────────────────────────────────────────── */
+  .page-title { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 0.3rem; }
+  .page-subtitle { font-size: 13px; color: var(--muted); margin-bottom: 1.5rem; }
+
+  /* ── Client card ─────────────────────────────────────────────────────── */
+  .client-card {
+    background: var(--glass);
+    border: 1px solid var(--accent-border);
+    border-radius: 14px;
+    padding: 1.25rem 1.25rem 1rem;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 24px var(--accent-glow);
+    margin-bottom: 1rem;
+  }
+
+  /* card header */
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;
+  }
+  .card-header-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .card-biz-name { font-size: 15px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vertical-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px;
+    font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap;
+    flex-shrink: 0;
+    background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-border);
+  }
+
+  /* enabled toggle row */
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 12px;
+    gap: 8px;
+  }
+  .toggle-row-label { font-size: 13px; color: var(--text); }
+  .toggle-row-right { display: flex; align-items: center; gap: 10px; }
+  .live-link {
+    font-size: 11px; color: var(--accent); text-decoration: none;
+    letter-spacing: 0.04em; white-space: nowrap;
+  }
+  .live-link:hover { text-decoration: underline; }
+  .toggle-switch {
+    position: relative; width: 40px; height: 24px; background: rgba(255,255,255,0.1);
+    border-radius: 12px; cursor: pointer; transition: background 0.2s; flex-shrink: 0;
+    border: none; -webkit-appearance: none; appearance: none; padding: 0;
+  }
+  .toggle-switch.on { background: var(--accent); }
+  .toggle-switch::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 20px; height: 20px; background: #fff; border-radius: 50%;
+    transition: left 0.2s; pointer-events: none;
+  }
+  .toggle-switch.on::after { left: 18px; }
+  .toggle-switch:disabled { opacity: 0.5; cursor: wait; }
+
+  /* content row: thumbnail + promo text */
+  .content-row {
+    display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px;
+  }
+  .thumb-wrap {
+    width: 80px; height: 80px; flex-shrink: 0;
+    border-radius: 8px; overflow: hidden;
+    background: #1C2730; border: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .thumb-wrap img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .thumb-placeholder { font-size: 28px; color: rgba(6,214,160,0.4); user-select: none; }
+
+  .promo-wrap { flex: 1; min-width: 0; }
+  .promo-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 5px; display: flex;
+    justify-content: space-between; align-items: baseline;
+  }
+  .promo-counter { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--muted); }
+  .promo-input {
+    width: 100%; padding: 8px 10px; font-size: 13px; font-family: inherit;
+    background: rgba(0,0,0,0.3); color: var(--text);
+    border: 1px solid var(--accent-border); border-radius: 7px;
+    outline: none; resize: none; line-height: 1.4;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    display: block;
+  }
+  .promo-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .promo-save-btn {
+    margin-top: 5px; padding: 5px 12px; font-size: 12px; font-weight: 600;
+    background: transparent; color: var(--accent);
+    border: 1px solid var(--accent-border); border-radius: 6px;
+    cursor: pointer; font-family: inherit; transition: background 0.12s;
+  }
+  .promo-save-btn:hover:not(:disabled) { background: var(--accent-soft); }
+  .promo-save-btn:disabled { opacity: 0.5; cursor: wait; }
+  .promo-saved-msg {
+    display: inline-block; font-size: 11px; color: var(--accent); margin-left: 6px;
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .promo-saved-msg.visible { opacity: 1; }
+
+  /* footer row: upload + updated at */
+  .card-footer {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    flex-wrap: wrap;
+  }
+  .upload-btn {
+    padding: 7px 14px; font-size: 12px; font-weight: 600;
+    background: transparent; color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 7px;
+    cursor: pointer; font-family: inherit; transition: background 0.12s;
+  }
+  .upload-btn:hover:not(:disabled) { background: var(--accent-soft); }
+  .upload-btn:disabled { opacity: 0.5; cursor: wait; }
+  .upload-progress {
+    font-size: 11px; color: var(--muted); margin-left: 4px;
+  }
+  .upload-err {
+    font-size: 11px; color: var(--red); margin-top: 4px; display: none;
+  }
+  .upload-err.visible { display: block; }
+  .updated-at { font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+  /* global error */
+  .page-error {
+    font-size: 13px; color: var(--red); background: var(--red-glow);
+    border: 1px solid var(--red-border); border-radius: 8px;
+    padding: 10px 12px; margin-bottom: 1rem; display: none;
+  }
+  .page-error.visible { display: block; }
+
+  /* skeleton loading cards */
+  @keyframes pulse { 0%,100% { opacity: 0.35; } 50% { opacity: 0.7; } }
+  .skeleton-card {
+    background: var(--glass); border: 1px solid var(--accent-border); border-radius: 14px;
+    padding: 1.25rem; margin-bottom: 1rem;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  .skel-line {
+    background: rgba(255,255,255,0.08); border-radius: 4px; margin-bottom: 10px;
+  }
+  .skel-h { height: 16px; }
+  .skel-sm { height: 12px; width: 60%; }
+  .skel-box { height: 80px; width: 80px; border-radius: 8px; display: inline-block; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="logo"><span class="star">★</span>CallMagnet — Admin</div>
+    <div class="nav-links">
+      <a href="/admin/clients.html" class="nav-btn">Clients</a>
+      <button class="nav-btn" id="signoutBtn" style="display:none" onclick="handleSignout()">Sign out</button>
+    </div>
+  </div>
+
+  <!-- Gate states -->
+  <div class="gate-state visible" id="gateLoading">
+    <div class="spinner"></div>
+    <h2 style="margin-top:1rem">Checking access…</h2>
+  </div>
+  <div class="gate-state" id="gateLogin">
+    <h2>Sign in required</h2>
+    <p>You need to sign in as an admin to use this page.</p>
+    <p style="margin-top:1rem"><a href="/" style="color:var(--accent)">Go to login →</a></p>
+  </div>
+  <div class="gate-state" id="gateForbidden">
+    <h2>Not authorized</h2>
+    <p>This page is for admin users only.</p>
+    <p style="margin-top:1rem"><a href="/" style="color:var(--accent)">Back to dashboard →</a></p>
+  </div>
+
+  <!-- Main content -->
+  <div id="mainContent" style="display:none">
+    <h1 class="page-title">Middle Man Manager</h1>
+    <p class="page-subtitle">Upload backgrounds and manage content per client</p>
+
+    <div class="page-error" id="pageError"></div>
+
+    <!-- Skeleton loaders (shown while fetching) -->
+    <div id="skeletons">
+      <div class="skeleton-card"><div class="skel-line skel-h"></div><div class="skel-line skel-sm"></div><div class="skel-line" style="height:80px"></div></div>
+      <div class="skeleton-card"><div class="skel-line skel-h"></div><div class="skel-line skel-sm"></div><div class="skel-line" style="height:80px"></div></div>
+      <div class="skeleton-card"><div class="skel-line skel-h"></div><div class="skel-line skel-sm"></div><div class="skel-line" style="height:80px"></div></div>
+    </div>
+
+    <div id="clientCards"></div>
+  </div>
+</div>
+
+<!-- Hidden file input shared across all cards -->
+<input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.mp4,.webm,image/jpeg,image/png,video/mp4,video/webm"
+       style="display:none" />
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/admin/admin-nav.js"></script>
+<script>
+const SUPABASE_URL     = 'https://iskvvnhacqdxybpmwuni.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
+
+let sb = null;
+let session = null;
+
+// ── Upload helpers ───────────────────────────────────────────────────────────
+
+// Track which client card's upload button triggered the file picker
+let activeUploadClientId = null;
+let activeUploadCard     = null;
+
+function triggerUpload(clientId, cardEl) {
+  activeUploadClientId = clientId;
+  activeUploadCard     = cardEl;
+  document.getElementById('fileInput').value = '';
+  document.getElementById('fileInput').click();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('fileInput').addEventListener('change', handleFileSelected);
+});
+
+function handleFileSelected(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file || !activeUploadClientId || !activeUploadCard) return;
+  uploadFile(activeUploadClientId, file, activeUploadCard);
+}
+
+function uploadFile(clientId, file, cardEl) {
+  const btn      = cardEl.querySelector('.upload-btn');
+  const progress = cardEl.querySelector('.upload-progress');
+  const errEl    = cardEl.querySelector('.upload-err');
+
+  btn.disabled = true;
+  btn.textContent = 'Uploading…';
+  errEl.classList.remove('visible');
+
+  const fd = new FormData();
+  fd.append('client_id', clientId);
+  fd.append('file', file);
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', SUPABASE_URL + '/functions/v1/upload-middle-man-background');
+  xhr.setRequestHeader('Authorization', 'Bearer ' + session.access_token);
+  xhr.setRequestHeader('apikey', SUPABASE_ANON_KEY);
+
+  xhr.upload.addEventListener('progress', function(ev) {
+    if (ev.lengthComputable) {
+      const pct = Math.round((ev.loaded / ev.total) * 100);
+      progress.textContent = pct + '%';
+    }
+  });
+
+  xhr.addEventListener('load', function() {
+    btn.disabled = false;
+    btn.textContent = 'Upload background';
+    progress.textContent = '';
+
+    let resp;
+    try { resp = JSON.parse(xhr.responseText); } catch { resp = {}; }
+
+    if (xhr.status !== 200 || !resp.ok) {
+      const detail = resp.detail || resp.error || ('HTTP ' + xhr.status);
+      errEl.textContent = 'Upload failed: ' + detail;
+      errEl.classList.add('visible');
+      return;
+    }
+
+    // Refresh thumbnail
+    const newUrl = resp.urls && (resp.urls.portrait || resp.urls.video || Object.values(resp.urls)[0]);
+    if (newUrl) {
+      const thumbWrap = cardEl.querySelector('.thumb-wrap');
+      thumbWrap.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = newUrl + '?t=' + Date.now(); // cache-bust
+      img.alt = '';
+      thumbWrap.appendChild(img);
+    }
+
+    // Update timestamp
+    if (resp.updated_at) {
+      const tsEl = cardEl.querySelector('.updated-at');
+      if (tsEl) tsEl.textContent = 'Updated ' + relativeTime(resp.updated_at);
+    }
+  });
+
+  xhr.addEventListener('error', function() {
+    btn.disabled = false;
+    btn.textContent = 'Upload background';
+    progress.textContent = '';
+    errEl.textContent = 'Network error — upload failed';
+    errEl.classList.add('visible');
+  });
+
+  xhr.send(fd);
+}
+
+// ── Toggle middle_man_enabled ───────────────────────────────────────────────
+
+async function toggleEnabled(clientId, toggleEl) {
+  const newVal = !toggleEl.classList.contains('on');
+  toggleEl.disabled = true;
+
+  try {
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/clients?id=eq.' + encodeURIComponent(clientId),
+      {
+        method: 'PATCH',
+        headers: {
+          apikey:         SUPABASE_ANON_KEY,
+          Authorization:  'Bearer ' + session.access_token,
+          'Content-Type': 'application/json',
+          Prefer:         'return=minimal',
+        },
+        body: JSON.stringify({ middle_man_enabled: newVal }),
+      }
+    );
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      alert('Toggle failed: ' + (body.message || body.details || res.status));
+    } else {
+      toggleEl.classList.toggle('on', newVal);
+    }
+  } catch (e) {
+    alert('Network error: ' + e.message);
+  } finally {
+    toggleEl.disabled = false;
+  }
+}
+
+// ── Save promo text ─────────────────────────────────────────────────────────
+
+async function savePromoText(clientId, promoInput, saveBtn, savedMsg) {
+  const text = promoInput.value.trim();
+  if (text.length > 80) {
+    alert('Promo text must be 80 characters or fewer.');
+    return;
+  }
+
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving…';
+
+  try {
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/clients?id=eq.' + encodeURIComponent(clientId),
+      {
+        method: 'PATCH',
+        headers: {
+          apikey:         SUPABASE_ANON_KEY,
+          Authorization:  'Bearer ' + session.access_token,
+          'Content-Type': 'application/json',
+          Prefer:         'return=minimal',
+        },
+        body: JSON.stringify({ middle_man_promo_text: text || null }),
+      }
+    );
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      alert('Save failed: ' + (body.message || body.details || res.status));
+    } else {
+      savedMsg.classList.add('visible');
+      setTimeout(() => savedMsg.classList.remove('visible'), 2000);
+    }
+  } catch (e) {
+    alert('Network error: ' + e.message);
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save';
+  }
+}
+
+// ── Utilities ───────────────────────────────────────────────────────────────
+
+function escHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function relativeTime(iso) {
+  if (!iso) return '—';
+  const diff = Date.now() - new Date(iso).getTime();
+  const min  = Math.floor(diff / 60000);
+  if (min < 2)   return 'just now';
+  if (min < 60)  return min + 'm ago';
+  const hr = Math.floor(min / 60);
+  if (hr < 24)   return hr + 'h ago';
+  return Math.floor(hr / 24) + 'd ago';
+}
+
+// ── Render ──────────────────────────────────────────────────────────────────
+
+function buildCard(client) {
+  const card = document.createElement('div');
+  card.className = 'client-card';
+  card.dataset.clientId = client.id;
+
+  // Header: name + vertical badge
+  const header = document.createElement('div');
+  header.className = 'card-header';
+  header.innerHTML = `
+    <div class="card-header-left">
+      <span class="card-biz-name">${escHtml(client.business_name)}</span>
+      <span class="vertical-badge">${escHtml(client.vertical || 'unknown')}</span>
+    </div>
+  `;
+  card.appendChild(header);
+
+  // Toggle row + live link
+  const toggleRow = document.createElement('div');
+  toggleRow.className = 'toggle-row';
+
+  const toggleLabel = document.createElement('span');
+  toggleLabel.className = 'toggle-row-label';
+  toggleLabel.textContent = 'Middle Man enabled';
+
+  const toggleRight = document.createElement('div');
+  toggleRight.className = 'toggle-row-right';
+
+  // Live page link (only if slug is set)
+  if (client.middle_man_slug) {
+    const liveLink = document.createElement('a');
+    liveLink.className = 'live-link';
+    liveLink.href      = 'https://callmagnet.com.au/b/' + encodeURIComponent(client.middle_man_slug);
+    liveLink.target    = '_blank';
+    liveLink.rel       = 'noopener noreferrer';
+    liveLink.textContent = 'View live →';
+    toggleRight.appendChild(liveLink);
+  }
+
+  const toggleBtn = document.createElement('button');
+  toggleBtn.type      = 'button';
+  toggleBtn.className = 'toggle-switch' + (client.middle_man_enabled ? ' on' : '');
+  toggleBtn.title     = client.middle_man_enabled ? 'Disable Middle Man' : 'Enable Middle Man';
+  toggleBtn.setAttribute('aria-label', 'Toggle Middle Man enabled');
+  toggleBtn.addEventListener('click', () => toggleEnabled(client.id, toggleBtn));
+  toggleRight.appendChild(toggleBtn);
+
+  toggleRow.appendChild(toggleLabel);
+  toggleRow.appendChild(toggleRight);
+  card.appendChild(toggleRow);
+
+  // Content row: thumbnail + promo text
+  const contentRow = document.createElement('div');
+  contentRow.className = 'content-row';
+
+  // Thumbnail
+  const thumbWrap = document.createElement('div');
+  thumbWrap.className = 'thumb-wrap';
+  if (client.middle_man_background_url) {
+    const img = document.createElement('img');
+    img.src = client.middle_man_background_url;
+    img.alt = 'Background';
+    thumbWrap.appendChild(img);
+  } else {
+    const ph = document.createElement('span');
+    ph.className = 'thumb-placeholder';
+    ph.textContent = '★';
+    thumbWrap.appendChild(ph);
+  }
+  contentRow.appendChild(thumbWrap);
+
+  // Promo text
+  const promoWrap = document.createElement('div');
+  promoWrap.className = 'promo-wrap';
+
+  const promoLabelEl = document.createElement('div');
+  promoLabelEl.className = 'promo-label';
+  const promoText = client.middle_man_promo_text || '';
+  promoLabelEl.innerHTML = `<span>Promo text</span><span class="promo-counter">${promoText.length}/80</span>`;
+
+  const promoInput = document.createElement('textarea');
+  promoInput.className = 'promo-input';
+  promoInput.rows      = 2;
+  promoInput.maxLength = 80;
+  promoInput.placeholder = 'Short message shown to customers…';
+  promoInput.value     = promoText;
+  promoInput.addEventListener('input', () => {
+    promoLabelEl.querySelector('.promo-counter').textContent = promoInput.value.length + '/80';
+  });
+
+  const promoFooter = document.createElement('div');
+  promoFooter.style.cssText = 'display:flex;align-items:center;margin-top:5px;';
+  const saveBtn = document.createElement('button');
+  saveBtn.className   = 'promo-save-btn';
+  saveBtn.textContent = 'Save';
+  const savedMsg = document.createElement('span');
+  savedMsg.className  = 'promo-saved-msg';
+  savedMsg.textContent = '✓ Saved';
+  saveBtn.addEventListener('click', () => savePromoText(client.id, promoInput, saveBtn, savedMsg));
+  promoFooter.appendChild(saveBtn);
+  promoFooter.appendChild(savedMsg);
+
+  promoWrap.appendChild(promoLabelEl);
+  promoWrap.appendChild(promoInput);
+  promoWrap.appendChild(promoFooter);
+  contentRow.appendChild(promoWrap);
+  card.appendChild(contentRow);
+
+  // Card footer: upload button + timestamp
+  const cardFooter = document.createElement('div');
+  cardFooter.className = 'card-footer';
+
+  const uploadWrap = document.createElement('div');
+  const uploadBtn = document.createElement('button');
+  uploadBtn.type      = 'button';
+  uploadBtn.className = 'upload-btn';
+  uploadBtn.textContent = 'Upload background';
+  uploadBtn.addEventListener('click', () => triggerUpload(client.id, card));
+  const uploadProgress = document.createElement('span');
+  uploadProgress.className = 'upload-progress';
+  const uploadErr = document.createElement('div');
+  uploadErr.className = 'upload-err';
+  uploadWrap.appendChild(uploadBtn);
+  uploadWrap.appendChild(uploadProgress);
+  uploadWrap.appendChild(uploadErr);
+
+  const updatedAt = document.createElement('span');
+  updatedAt.className = 'updated-at';
+  updatedAt.textContent = client.middle_man_updated_at
+    ? 'Updated ' + relativeTime(client.middle_man_updated_at)
+    : 'Never updated';
+
+  cardFooter.appendChild(uploadWrap);
+  cardFooter.appendChild(updatedAt);
+  card.appendChild(cardFooter);
+
+  return card;
+}
+
+// ── Load clients ─────────────────────────────────────────────────────────────
+
+async function loadClients() {
+  const fields = [
+    'id','business_name','vertical','account_status',
+    'middle_man_enabled','middle_man_background_url','middle_man_background_type',
+    'middle_man_promo_text','middle_man_slug','middle_man_updated_at',
+  ].join(',');
+
+  const res = await fetch(
+    SUPABASE_URL + '/rest/v1/clients?select=' + fields + '&order=business_name.asc',
+    {
+      headers: {
+        apikey:        SUPABASE_ANON_KEY,
+        Authorization: 'Bearer ' + session.access_token,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error('Failed to load clients: ' + res.status);
+  }
+
+  const clients = await res.json();
+  document.getElementById('skeletons').style.display = 'none';
+
+  if (!clients.length) {
+    const empty = document.createElement('p');
+    empty.style.cssText = 'text-align:center;color:var(--muted);padding:2rem 0;font-size:14px;';
+    empty.textContent = 'No clients found.';
+    document.getElementById('clientCards').appendChild(empty);
+    return;
+  }
+
+  const wrap = document.getElementById('clientCards');
+  clients.forEach(c => wrap.appendChild(buildCard(c)));
+}
+
+// ── Auth + boot ──────────────────────────────────────────────────────────────
+
+function showGate(id) {
+  ['gateLoading','gateLogin','gateForbidden'].forEach(g => {
+    document.getElementById(g).classList.toggle('visible', g === id);
+  });
+}
+
+async function handleSignout() {
+  await sb.auth.signOut();
+  window.location.href = '/';
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      persistSession: true, storage: window.localStorage,
+      storageKey: 'callmagnet-auth-token',
+      autoRefreshToken: true, detectSessionInUrl: true,
+    },
+  });
+
+  const { data: { session: s } } = await sb.auth.getSession();
+  session = s;
+
+  if (!session) { showGate('gateLogin'); return; }
+
+  const isAdmin    = session.user?.app_metadata?.is_admin === true;
+  const adminEmail = (session.user?.email || '').toLowerCase();
+  if (!isAdmin || adminEmail !== 'car312@hotmail.com') {
+    showGate('gateForbidden');
+    document.getElementById('signoutBtn').style.display = 'block';
+    return;
+  }
+
+  showGate(null); // hide all gates
+  window.refreshAdminFab(session);
+  document.getElementById('signoutBtn').style.display = 'block';
+  document.getElementById('mainContent').style.display = 'block';
+
+  try {
+    await loadClients();
+  } catch (e) {
+    document.getElementById('skeletons').style.display = 'none';
+    const errEl = document.getElementById('pageError');
+    errEl.textContent = 'Could not load clients: ' + e.message;
+    errEl.classList.add('visible');
+  }
+});
+
+function showGate(id) {
+  ['gateLoading','gateLogin','gateForbidden'].forEach(g => {
+    document.getElementById(g).classList.toggle('visible', g === id);
+  });
+}
+</script>
+
+<!--
+  NOTE: middle_man_show_whats_on column does not yet exist on public.clients.
+  To add it, apply a migration:
+    ALTER TABLE public.clients
+      ADD COLUMN IF NOT EXISTS middle_man_show_whats_on boolean NOT NULL DEFAULT false;
+  Once applied, add a toggle row alongside middle_man_enabled in buildCard().
+-->
+
+</body>
+</html>
