@@ -496,6 +496,12 @@ verify_jwt = false
 [functions.log-middle-man-tap]
 verify_jwt = false
 
+# update-rebrandly-destination is called by the admin Middle Man page to sync
+# the Rebrandly link destination when middle_man_enabled is toggled. Admin JWT
+# required; dual gate (is_admin + email) enforced inside the function.
+[functions.update-rebrandly-destination]
+verify_jwt = true
+
 [analytics]
 enabled = true
 port = 54327
