@@ -23,13 +23,11 @@
     position: fixed;
     inset: 0;
     z-index: 0;
-    background: #0E1419;
+    background-color: #0E1419; /* FIX 4: charcoal always visible — no transparency gap */
     background-size: cover;
     background-position: center;
-    opacity: 0;
-    transition: opacity 0.5s ease;
+    /* opacity is 1 by default — no fade-in flash when no image is set */
   }
-  #bgFixed.loaded { opacity: 1; }
   #bgOverlay {
     position: fixed;
     inset: 0;
@@ -142,12 +140,12 @@
   /* ── Page header (business name + promo) ────────────────────────────────── */
   .page-header {
     flex-shrink: 0;
-    padding: 52px 20px 16px;
+    padding: 44px 20px 12px; /* FIX 3: reduced from 52px top */
   }
   .page-header.compact {
-    /* No background image — smaller, max 120px */
+    /* No background image — tight header, buttons close to business name */
     max-height: 120px;
-    padding: 36px 20px 12px;
+    padding: 28px 20px 8px; /* FIX 3: reduced from 36px top / 12px bottom */
     overflow: hidden;
   }
   .hero-business-name {
@@ -195,7 +193,7 @@
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.4);
+    color: rgba(255,255,255,0.45); /* FIX 2: muted hint, not a heading */
     margin-bottom: 12px;
     padding: 0 24px;
   }
@@ -205,7 +203,8 @@
 
   .tap-btn {
     display: block;
-    width: calc(100% - 48px);
+    width: calc(100% - 96px); /* FIX 1: narrower, more centred */
+    max-width: 360px;          /* FIX 1: never wider than 360px */
     margin: 0 auto;
     padding: 16px 24px;
     background: rgba(0,0,0,0.75);
@@ -938,23 +937,17 @@
         : JSON.parse(client.middle_man_buttons || '[]');
     } catch (_) { buttons = []; }
 
-    // ── FIX 6: Full-screen background ─────────────────────────────────────
+    // ── Full-screen background ────────────────────────────────────────────
+    // FIX 4: #bgFixed always has background-color:#0E1419 (charcoal) as base.
+    // No opacity flash — charcoal is visible immediately from CSS.
     if (bgUrl) {
-      var bgFixed = document.getElementById('bgFixed');
-      bgFixed.style.backgroundImage = 'url(' + JSON.stringify(bgUrl) + ')';
-      // Fade in once loaded
-      var img = new Image();
-      img.onload  = function() { bgFixed.classList.add('loaded'); };
-      img.onerror = function() { bgFixed.classList.add('loaded'); }; // show even if partial
-      img.src = bgUrl;
-
-      // FIX 5: spacer expands to push buttons into lower half
+      document.getElementById('bgFixed').style.backgroundImage = 'url(' + JSON.stringify(bgUrl) + ')';
+      // Spacer expands to push buttons into lower half of screen
       document.getElementById('contentSpacer').classList.add('expanded');
     } else {
-      // No image — compact header, no spacer
-      document.getElementById('bgFixed').classList.add('loaded'); // just show dark bg
+      // No image — compact header, buttons close to business name (FIX 3)
       document.getElementById('pageHeader').classList.add('compact');
-      // Overlay not needed without image — tone it down
+      // No gradient overlay needed without a photo behind it
       document.getElementById('bgOverlay').style.background = 'none';
     }
 
