@@ -496,6 +496,11 @@ verify_jwt = false
 [functions.log-middle-man-tap]
 verify_jwt = false
 
+# submit-middle-man-form handles all inline form submissions from the Middle Man
+# customer-facing landing page (/b/<slug>). Public endpoint — no JWT needed.
+[functions.submit-middle-man-form]
+verify_jwt = false
+
 # update-rebrandly-destination is called by the admin Middle Man page to sync
 # the Rebrandly link destination when middle_man_enabled is toggled. Admin JWT
 # required; dual gate (is_admin + email) enforced inside the function.

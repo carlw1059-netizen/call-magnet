@@ -7,8 +7,10 @@
 <title>CallMagnet</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
   html, body {
-    height: 100%; min-height: 100%;
+    height: 100%;
+    min-height: 100%;
     background: #0E1419;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     color: #fff;
@@ -16,47 +18,122 @@
     overscroll-behavior: none;
   }
 
-  /* ── fade-in animation ─────────────────────────────────────────────────── */
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  #app { animation: fadeIn 0.4s ease both; }
-
-  /* ── full-screen layout ────────────────────────────────────────────────── */
+  /* ── App shell ──────────────────────────────────────────────────────────── */
   #app {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    min-height: 100dvh; /* dynamic viewport on iOS */
+    min-height: 100dvh;
+    animation: fadeIn 0.4s ease both;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ── Loading / not-found states ─────────────────────────────────────────── */
+  .state-cover {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    text-align: center;
+  }
+  .state-cover h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.85);
+    margin-bottom: 10px;
+  }
+  .state-cover p {
+    font-size: 14px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.5;
   }
 
-  /* ── hero / background area (top 35%) ─────────────────────────────────── */
+  /* ── Skeleton loading ───────────────────────────────────────────────────── */
+  #skeleton {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  .skel-hero {
+    height: 35vh;
+    height: 35dvh;
+    background: #1C2730;
+    position: relative;
+    overflow: hidden;
+  }
+  .skel-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.04) 50%, transparent 75%);
+    animation: shimmer 1.4s infinite;
+    background-size: 200% 100%;
+  }
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  .skel-content {
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .skel-btn {
+    height: 52px;
+    border-radius: 12px;
+    background: #1C2730;
+    position: relative;
+    overflow: hidden;
+  }
+  .skel-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.04) 50%, transparent 75%);
+    animation: shimmer 1.4s infinite;
+    background-size: 200% 100%;
+  }
+
+  /* ── Main page ──────────────────────────────────────────────────────────── */
+  #mainPage {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  #mainPage.visible {
+    display: flex;
+    animation: fadeIn 0.4s ease both;
+  }
+
+  /* ── Hero ───────────────────────────────────────────────────────────────── */
   .hero {
     position: relative;
     flex: 0 0 35vh;
     flex: 0 0 35dvh;
     overflow: hidden;
-    background: #1C2730; /* fallback charcoal */
+    background: #1C2730;
     display: flex;
     align-items: flex-end;
   }
-  .hero-img {
+  .hero-bg {
     position: absolute;
     inset: 0;
-    width: 100%; height: 100%;
-    object-fit: cover;
-    object-position: center top;
-    display: block;
+    background-size: cover;
+    background-position: center top;
+    opacity: 0;
+    transition: opacity 0.5s ease;
   }
-  /* dark gradient overlay so white text always readable */
-  .hero::after {
-    content: '';
+  .hero-bg.loaded { opacity: 1; }
+  .hero-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(
-      to bottom,
-      rgba(14,20,25,0.15) 0%,
-      rgba(14,20,25,0.55) 60%,
-      rgba(14,20,25,0.88) 100%
-    );
+    background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(14,20,25,0.95) 100%);
+    z-index: 1;
   }
   .hero-no-image {
     position: absolute;
@@ -64,17 +141,18 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 0;
   }
   .hero-no-image .star-icon {
-    font-size: 64px;
+    font-size: 72px;
     color: #06D6A0;
-    opacity: 0.45;
+    opacity: 0.35;
     user-select: none;
   }
   .hero-text {
-    position: relative; /* above overlay */
-    z-index: 1;
-    padding: 0 20px 20px;
+    position: relative;
+    z-index: 2;
+    padding: 0 20px 18px;
     width: 100%;
   }
   .hero-business-name {
@@ -83,40 +161,52 @@
     color: #fff;
     line-height: 1.2;
     letter-spacing: -0.01em;
-    text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+    text-shadow: 0 1px 8px rgba(0,0,0,0.7);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .hero-promo {
+    font-size: 13px;
+    color: #06D6A0;
+    margin-top: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
   }
 
-  /* ── content area (below hero) ─────────────────────────────────────────── */
+  /* ── Content ─────────────────────────────────────────────────────────────── */
   .content {
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 20px 20px 12px;
+    padding: 20px 20px 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
-  /* ── promo text ─────────────────────────────────────────────────────────── */
-  .promo-text {
-    font-size: 15px;
-    color: rgba(255,255,255,0.88);
-    line-height: 1.5;
-    margin-bottom: 20px;
-    text-align: center;
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 14px;
   }
 
-  /* ── button stack ───────────────────────────────────────────────────────── */
-  .buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    flex: 1;
-  }
+  /* ── Buttons ─────────────────────────────────────────────────────────────── */
+  .buttons { display: flex; flex-direction: column; gap: 8px; }
+
   .tap-btn {
     display: block;
     width: 100%;
-    padding: 16px;
+    height: 52px;
+    padding: 0 16px;
     background: transparent;
-    border: 1px solid #06D6A0;
-    border-radius: 8px;
+    border: 1.5px solid #06D6A0;
+    border-radius: 12px;
     color: #fff;
     font-size: 15px;
     font-weight: 500;
@@ -129,267 +219,821 @@
     -webkit-tap-highlight-color: transparent;
     user-select: none;
   }
-  .tap-btn:active, .tap-btn.tapped {
-    background: #06D6A0;
-    color: #0E1419;
-    transform: scale(0.98);
+  .tap-btn:active, .tap-btn.pressed {
+    background: rgba(6,214,160,0.12);
+    transform: scale(0.97);
   }
-
-  /* ── "no booking url" feedback message ─────────────────────────────────── */
-  .no-url-msg {
-    text-align: center;
-    margin-top: 16px;
-    font-size: 14px;
-    color: rgba(255,255,255,0.65);
-    display: none;
-  }
-  .no-url-msg.visible { display: block; }
-
-  /* ── footer ─────────────────────────────────────────────────────────────── */
-  .footer {
-    text-align: center;
-    padding: 16px 0 20px;
-    font-size: 11px;
-    color: rgba(255,255,255,0.28);
-    letter-spacing: 0.04em;
-    flex-shrink: 0;
-  }
-  .footer .star { color: rgba(6,214,160,0.55); }
-
-  /* ── not-found / error states ───────────────────────────────────────────── */
-  .state-msg {
-    flex: 1;
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 40px 24px;
-  }
-  .state-msg.visible { display: flex; }
-  .state-msg h2 { font-size: 20px; font-weight: 600; color: rgba(255,255,255,0.85); margin-bottom: 10px; }
-  .state-msg p  { font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.5; }
-
-  /* ── loading spinner ────────────────────────────────────────────────────── */
-  .spinner-wrap {
-    flex: 1;
+  /* booking btn = anchor for no-JS graceful degradation */
+  a.tap-btn {
     display: flex;
     align-items: center;
     justify-content: center;
+    text-decoration: none;
   }
-  .spinner {
-    width: 32px; height: 32px;
-    border: 3px solid rgba(6,214,160,0.2);
-    border-top-color: #06D6A0;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+
+  /* ── "See what's on" section ─────────────────────────────────────────────── */
+  .whats-on-divider {
+    margin: 16px 0 14px;
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.08);
   }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  .whats-on-btn {
+    display: block;
+    width: 100%;
+    height: 44px;
+    padding: 0 16px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+    color: rgba(255,255,255,0.65);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.12s, color 0.12s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    margin-bottom: 0;
+  }
+  .whats-on-btn:active { background: rgba(255,255,255,0.05); }
+  .whats-on-content {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.35s ease;
+  }
+  .whats-on-content.open { max-height: 600px; }
+  .whats-on-inner {
+    padding-top: 14px;
+  }
+  .whats-on-img {
+    width: 100%;
+    border-radius: 8px;
+    display: block;
+    margin-bottom: 10px;
+  }
+  .whats-on-text {
+    font-size: 14px;
+    color: rgba(255,255,255,0.75);
+    line-height: 1.5;
+  }
+
+  /* ── Inline forms ────────────────────────────────────────────────────────── */
+  .form-wrap {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease;
+  }
+  .form-wrap.open { max-height: 1200px; }
+
+  .inline-form {
+    background: #141C23;
+    border: 1px solid rgba(6,214,160,0.25);
+    border-radius: 12px;
+    padding: 18px 16px 16px;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .form-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 2px;
+  }
+
+  .field-wrap { display: flex; flex-direction: column; gap: 4px; }
+  .field-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.55);
+    letter-spacing: 0.02em;
+  }
+  .field-input,
+  .field-select,
+  .field-textarea {
+    width: 100%;
+    padding: 11px 13px;
+    background: #1C2730;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: border-color 0.15s;
+  }
+  .field-input:focus,
+  .field-select:focus,
+  .field-textarea:focus {
+    border-color: #06D6A0;
+  }
+  .field-input::placeholder,
+  .field-textarea::placeholder { color: rgba(255,255,255,0.3); }
+  .field-input.error,
+  .field-select.error,
+  .field-textarea.error { border-color: #E84A5F; }
+  .field-error {
+    font-size: 12px;
+    color: #E84A5F;
+    display: none;
+  }
+  .field-error.visible { display: block; }
+
+  .field-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(255,255,255,0.4)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 13px center;
+    padding-right: 36px;
+  }
+  .field-select option { background: #1C2730; color: #fff; }
+
+  .field-textarea {
+    resize: none;
+    min-height: 80px;
+    line-height: 1.4;
+  }
+  .field-counter {
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+    text-align: right;
+  }
+
+  .submit-btn {
+    width: 100%;
+    height: 50px;
+    background: #06D6A0;
+    border: none;
+    border-radius: 10px;
+    color: #0E1419;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: opacity 0.12s, transform 0.08s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .submit-btn:active { transform: scale(0.98); }
+  .submit-btn:disabled { opacity: 0.5; cursor: default; }
+  .submit-btn.loading { opacity: 0.7; }
+
+  /* ── Success state ───────────────────────────────────────────────────────── */
+  .success-state {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 24px 16px 20px;
+    animation: fadeIn 0.3s ease both;
+  }
+  .success-state.visible { display: flex; }
+  .success-icon {
+    width: 52px;
+    height: 52px;
+    margin-bottom: 14px;
+    color: #06D6A0;
+  }
+  .success-heading {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  .success-msg {
+    font-size: 14px;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.5;
+  }
+
+  /* ── Footer ─────────────────────────────────────────────────────────────── */
+  .footer {
+    text-align: center;
+    padding: 20px 0 24px;
+    flex-shrink: 0;
+  }
+  .footer-powered {
+    font-size: 11px;
+    color: rgba(255,255,255,0.28);
+    letter-spacing: 0.04em;
+  }
+  .footer-powered .star { color: rgba(6,214,160,0.55); }
+  .footer-stop {
+    display: block;
+    margin-top: 6px;
+    font-size: 10px;
+    color: rgba(255,255,255,0.2);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+  }
+  .footer-stop:hover { color: rgba(255,255,255,0.4); }
 </style>
 </head>
 <body>
 
 <div id="app">
-  <!-- Loading state (default until JS runs) -->
-  <div class="spinner-wrap" id="stateLoading">
-    <div class="spinner"></div>
+
+  <!-- Skeleton loading state -->
+  <div id="skeleton">
+    <div class="skel-hero"></div>
+    <div class="skel-content">
+      <div class="skel-btn"></div>
+      <div class="skel-btn"></div>
+      <div class="skel-btn"></div>
+      <div class="skel-btn"></div>
+    </div>
   </div>
 
-  <!-- Not found state -->
-  <div class="state-msg" id="stateNotFound">
+  <!-- Not-found state (hidden by default) -->
+  <div id="stateNotFound" class="state-cover" style="display:none">
     <h2>This page isn't available</h2>
     <p>The link you followed may have expired or the business is no longer active.</p>
   </div>
 
   <!-- Main page (hidden until client loaded) -->
-  <div id="mainPage" style="display:none; flex:1; display:none; flex-direction:column; min-height:100vh; min-height:100dvh;">
+  <div id="mainPage">
 
     <!-- Hero -->
     <div class="hero" id="hero">
-      <!-- Background image injected by JS -->
-      <div class="hero-no-image" id="heroNoImage" style="display:none">
+      <div class="hero-bg"   id="heroBg"></div>
+      <div class="hero-overlay" id="heroOverlay" style="display:none"></div>
+      <div class="hero-no-image" id="heroNoImage">
         <span class="star-icon">★</span>
       </div>
       <div class="hero-text">
         <div class="hero-business-name" id="heroBusinessName"></div>
+        <div class="hero-promo" id="heroPromo" style="display:none"></div>
       </div>
     </div>
 
     <!-- Content -->
-    <div class="content">
-      <div class="promo-text" id="promoText" style="display:none"></div>
+    <div class="content" id="content">
+      <div class="section-label">How can we help?</div>
       <div class="buttons" id="buttonsWrap"></div>
-      <div class="no-url-msg" id="noUrlMsg">We'll be in touch soon.</div>
+
+      <!-- "See what's on" section — injected if middle_man_show_whats_on = true -->
+      <div id="whatsOnSection" style="display:none">
+        <hr class="whats-on-divider">
+        <button class="whats-on-btn" id="whatsOnBtn" type="button">See what's on ↓</button>
+        <div class="whats-on-content" id="whatsOnContent">
+          <div class="whats-on-inner" id="whatsOnInner"></div>
+        </div>
+      </div>
     </div>
 
     <!-- Footer -->
-    <div class="footer">Powered by <span class="star">★</span> CallMagnet</div>
-  </div>
-</div>
+    <div class="footer">
+      <div class="footer-powered">Powered by <span class="star">★</span> CallMagnet</div>
+      <a class="footer-stop" href="https://callmagnet.com.au" id="stopTextsLink">Stop these texts</a>
+    </div>
+
+  </div><!-- /mainPage -->
+
+</div><!-- /app -->
 
 <script>
 (function () {
   'use strict';
 
-  var SUPABASE_URL     = 'https://iskvvnhacqdxybpmwuni.supabase.co';
-  var SUPABASE_ANON    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
-  var FUNCTION_URL     = SUPABASE_URL + '/functions/v1/log-middle-man-tap';
+  var SUPABASE_URL  = 'https://iskvvnhacqdxybpmwuni.supabase.co';
+  var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
+  var FORM_FUNC_URL = SUPABASE_URL + '/functions/v1/submit-middle-man-form';
+  var LOG_FUNC_URL  = SUPABASE_URL + '/functions/v1/log-middle-man-tap';
 
-  // ── Extract slug from pathname: /b/brunswick-bistro → "brunswick-bistro" ──
+  // ── Globals set during render ─────────────────────────────────────────────
+  var gSlug        = '';
+  var gClient      = null;
+  var gOpenFormKey = null; // which button currently has a form open
+
+  // ── Extract slug from /b/<slug> ───────────────────────────────────────────
   function extractSlug() {
     var parts = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/');
-    // parts[0] = 'b', parts[1] = slug
-    if (parts.length >= 2 && parts[0] === 'b') {
-      return parts[1] || '';
-    }
-    return '';
+    return (parts.length >= 2 && parts[0] === 'b') ? (parts[1] || '') : '';
   }
 
-  function showState(id) {
-    document.getElementById('stateLoading').style.display  = 'none';
-    document.getElementById('stateNotFound').classList.remove('visible');
-    document.getElementById('mainPage').style.display      = 'none';
-    if (id === 'loading') {
-      document.getElementById('stateLoading').style.display = 'flex';
-    } else if (id === 'notFound') {
-      document.getElementById('stateNotFound').classList.add('visible');
-    } else if (id === 'main') {
-      document.getElementById('mainPage').style.display = 'flex';
-    }
+  // ── Show/hide top-level states ────────────────────────────────────────────
+  function showMain() {
+    document.getElementById('skeleton').style.display    = 'none';
+    document.getElementById('stateNotFound').style.display = 'none';
+    document.getElementById('mainPage').classList.add('visible');
+  }
+  function showNotFound() {
+    document.getElementById('skeleton').style.display    = 'none';
+    document.getElementById('mainPage').classList.remove('visible');
+    document.getElementById('stateNotFound').style.display = 'flex';
   }
 
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, function(c) {
-      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
-    });
-  }
-
-  // ── Fetch client data from Supabase REST API ──────────────────────────────
+  // ── Fetch client from Supabase REST (anon key) ────────────────────────────
   async function fetchClient(slug) {
     var url = SUPABASE_URL + '/rest/v1/clients'
       + '?middle_man_slug=eq.' + encodeURIComponent(slug)
       + '&account_status=eq.active'
-      + '&select=business_name,middle_man_background_url,middle_man_promo_text,middle_man_buttons,booking_url,vertical'
+      + '&select=business_name,middle_man_background_url,middle_man_promo_text,'
+      + 'middle_man_buttons,middle_man_show_whats_on,booking_url,vertical'
       + '&limit=1';
     var res = await fetch(url, {
-      headers: {
-        'apikey':        SUPABASE_ANON,
-        'Authorization': 'Bearer ' + SUPABASE_ANON,
-      }
+      headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON },
     });
     if (!res.ok) throw new Error('Lookup failed: ' + res.status);
     var rows = await res.json();
     return rows.length > 0 ? rows[0] : null;
   }
 
-  // ── Render the page from client data ─────────────────────────────────────
-  function render(client, slug) {
-    // Hero background
-    var hero = document.getElementById('hero');
-    if (client.middle_man_background_url) {
-      var img = document.createElement('img');
-      img.className = 'hero-img';
-      img.src = client.middle_man_background_url;
-      img.alt = '';
-      img.setAttribute('aria-hidden', 'true');
-      hero.insertBefore(img, hero.firstChild);
-      document.getElementById('heroNoImage').style.display = 'none';
+  // ── Classify button label → form type ────────────────────────────────────
+  function classifyLabel(label) {
+    var l = label.toLowerCase().trim();
+    // Direct booking (no form)
+    if (l.indexOf('book') !== -1 && l.indexOf('change') === -1 && l.indexOf('cancel') === -1) return 'booking';
+    if (l.indexOf('make a booking') !== -1 || l.indexOf('new booking') !== -1) return 'booking';
+    // Change / cancel
+    if (l.indexOf('change') !== -1 || l.indexOf('cancel') !== -1 || l.indexOf('reschedule') !== -1) return 'change_cancel';
+    // Function enquiry
+    if (l.indexOf('function') !== -1 || l.indexOf('event') !== -1 || l.indexOf('private') !== -1) return 'function';
+    // Late arrival
+    if (l.indexOf('late') !== -1 || l.indexOf('running late') !== -1 || l.indexOf('arrival') !== -1) return 'late_arrival';
+    // Lost & found
+    if (l.indexOf('lost') !== -1 || l.indexOf('found') !== -1 || l.indexOf('left something') !== -1) return 'lost_found';
+    // Fallback
+    return 'something_else';
+  }
+
+  // ── AU phone validation (client-side) ─────────────────────────────────────
+  function isValidAuPhone(v) {
+    return /^(\+614\d{8}|04\d{8}|4\d{8}|614\d{8}|0[2-9]\d{8})$/.test(v.replace(/\s+/g, ''));
+  }
+
+  // ── Escape HTML ───────────────────────────────────────────────────────────
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function(c) {
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  // ── Success state SVG ─────────────────────────────────────────────────────
+  var CHECK_SVG = '<svg class="success-icon" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">'
+    + '<circle cx="26" cy="26" r="25" stroke="currentColor" stroke-width="2" opacity="0.3"/>'
+    + '<path d="M15 26l8 8 14-14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'
+    + '</svg>';
+
+  // ── Success messages by form type ─────────────────────────────────────────
+  function successMsg(formType, name, businessName) {
+    switch (formType) {
+      case 'change_cancel':
+        return "We've sent your request through. You'll receive a confirmation once your booking is updated.";
+      case 'function':
+        return esc(businessName) + ' will be in touch about your function enquiry.';
+      case 'late_arrival':
+        return "We've let them know you're on your way.";
+      case 'lost_found':
+        return "We'll look into it and give you a call if we find it.";
+      default:
+        return esc(businessName) + ' has received your message and will be in touch shortly.';
+    }
+  }
+
+  // ── Build an inline form HTML string ─────────────────────────────────────
+  function buildFormHtml(formType) {
+    var nameField = ''
+      + '<div class="field-wrap">'
+      + '<label class="field-label">Your name</label>'
+      + '<input class="field-input" type="text" data-field="name" placeholder="Your name" autocomplete="name">'
+      + '<span class="field-error" data-err="name">Please enter your name.</span>'
+      + '</div>';
+
+    var phoneField = ''
+      + '<div class="field-wrap">'
+      + '<label class="field-label">Your phone</label>'
+      + '<input class="field-input" type="tel" data-field="phone" placeholder="04XX XXX XXX" autocomplete="tel" inputmode="tel">'
+      + '<span class="field-error" data-err="phone">Please enter a valid Australian phone number.</span>'
+      + '</div>';
+
+    var noteField = ''
+      + '<div class="field-wrap">'
+      + '<label class="field-label">Note <span style="color:rgba(255,255,255,0.3)">(optional)</span></label>'
+      + '<textarea class="field-textarea" data-field="note" placeholder="Anything else we should know?" maxlength="200"></textarea>'
+      + '<div class="field-counter"><span data-counter="note">0</span>/200</div>'
+      + '</div>';
+
+    var inner = '';
+
+    if (formType === 'change_cancel') {
+      inner = nameField + phoneField
+        + '<div class="field-wrap">'
+        + '<label class="field-label">Original booking</label>'
+        + '<input class="field-input" type="text" data-field="original_booking_time" placeholder="e.g. Friday 7pm, table for 4">'
+        + '<span class="field-error" data-err="original_booking_time">Please enter your original booking details.</span>'
+        + '</div>'
+        + '<div class="field-wrap">'
+        + '<label class="field-label">What do you need?</label>'
+        + '<select class="field-select" data-field="requested_change_type">'
+        + '<option value="">Select one…</option>'
+        + '<option value="Change to a new time">Change to a new time</option>'
+        + '<option value="Cancel my booking">Cancel my booking</option>'
+        + '</select>'
+        + '<span class="field-error" data-err="requested_change_type">Please select an option.</span>'
+        + '</div>'
+        + '<div class="field-wrap" id="newTimeWrap" style="display:none">'
+        + '<label class="field-label">New time</label>'
+        + '<input class="field-input" type="text" data-field="new_time" placeholder="e.g. Saturday 8pm">'
+        + '</div>'
+        + noteField;
+    } else if (formType === 'function') {
+      inner = nameField + phoneField
+        + '<div class="field-wrap">'
+        + '<label class="field-label">Date of function</label>'
+        + '<input class="field-input" type="text" data-field="original_booking_time" placeholder="e.g. Saturday 14 June">'
+        + '<span class="field-error" data-err="original_booking_time">Please enter the date.</span>'
+        + '</div>'
+        + '<div class="field-wrap">'
+        + '<label class="field-label">Number of guests</label>'
+        + '<input class="field-input" type="number" data-field="guests" placeholder="e.g. 30" min="1" max="500" inputmode="numeric">'
+        + '<span class="field-error" data-err="guests">Please enter the number of guests.</span>'
+        + '</div>'
+        + noteField;
+    } else if (formType === 'late_arrival') {
+      inner = nameField + phoneField
+        + '<div class="field-wrap">'
+        + '<label class="field-label">Your booking time</label>'
+        + '<input class="field-input" type="text" data-field="original_booking_time" placeholder="e.g. 7:30pm table for 2">'
+        + '<span class="field-error" data-err="original_booking_time">Please enter your booking time.</span>'
+        + '</div>'
+        + '<div class="field-wrap">'
+        + '<label class="field-label">How late are you running?</label>'
+        + '<input class="field-input" type="text" data-field="note" placeholder="e.g. about 15 minutes">'
+        + '<span class="field-error" data-err="note">Please enter how late you\'ll be.</span>'
+        + '</div>';
+    } else if (formType === 'lost_found') {
+      inner = nameField + phoneField
+        + '<div class="field-wrap">'
+        + '<label class="field-label">When were you here?</label>'
+        + '<input class="field-input" type="text" data-field="original_booking_time" placeholder="e.g. last Friday night">'
+        + '<span class="field-error" data-err="original_booking_time">Please enter when you were here.</span>'
+        + '</div>'
+        + '<div class="field-wrap">'
+        + '<label class="field-label">What did you lose?</label>'
+        + '<input class="field-input" type="text" data-field="lost_item" placeholder="e.g. black iPhone 15">'
+        + '<span class="field-error" data-err="lost_item">Please describe what you lost.</span>'
+        + '</div>'
+        + noteField;
     } else {
-      document.getElementById('heroNoImage').style.display = 'flex';
+      // something_else
+      inner = nameField + phoneField
+        + '<div class="field-wrap">'
+        + '<label class="field-label">Message</label>'
+        + '<textarea class="field-textarea" data-field="note" placeholder="How can we help?" maxlength="200"></textarea>'
+        + '<div class="field-counter"><span data-counter="note">0</span>/200</div>'
+        + '<span class="field-error" data-err="note">Please enter a message.</span>'
+        + '</div>';
     }
 
-    // Business name
-    document.getElementById('heroBusinessName').textContent = client.business_name || '';
+    var titles = {
+      change_cancel: 'Change or cancel booking',
+      function:      'Function enquiry',
+      late_arrival:  'Running late',
+      lost_found:    'Lost & found',
+      something_else:'Send us a message',
+    };
+    var submitLabels = {
+      change_cancel: 'Send request',
+      function:      'Send enquiry',
+      late_arrival:  'Let them know',
+      lost_found:    'Send report',
+      something_else:'Send message',
+    };
 
-    // Promo text
-    var promoEl = document.getElementById('promoText');
-    if (client.middle_man_promo_text) {
-      promoEl.textContent = client.middle_man_promo_text;
-      promoEl.style.display = 'block';
-    }
+    return '<div class="inline-form" data-form-type="' + formType + '">'
+      + '<div class="form-title">' + esc(titles[formType] || 'Send us a message') + '</div>'
+      + inner
+      + '<button class="submit-btn" type="button" data-submit>' + esc(submitLabels[formType] || 'Send') + '</button>'
+      + '</div>';
+  }
 
-    // Buttons
-    var buttons = [];
-    try {
-      buttons = Array.isArray(client.middle_man_buttons) ? client.middle_man_buttons : [];
-    } catch (_) { buttons = []; }
+  // ── Attach form event listeners ───────────────────────────────────────────
+  function attachFormListeners(formWrap, formType, btnKey, businessName) {
+    var form = formWrap.querySelector('.inline-form');
+    if (!form) return;
 
-    var enabled = buttons
-      .filter(function(b) { return b && b.enabled !== false; })
-      .sort(function(a, b) { return (a.sort_order || 0) - (b.sort_order || 0); });
-
-    var wrap = document.getElementById('buttonsWrap');
-    if (enabled.length === 0) {
-      wrap.style.display = 'none';
-    } else {
-      enabled.forEach(function(btn) {
-        var el = document.createElement('button');
-        el.className = 'tap-btn';
-        el.textContent = btn.label || '';
-        el.setAttribute('data-intent', btn.label || '');
-        el.addEventListener('click', function() {
-          handleTap(el, client, slug);
+    // Character counter on textareas
+    form.querySelectorAll('textarea[data-field]').forEach(function(ta) {
+      var field = ta.getAttribute('data-field');
+      var counterEl = form.querySelector('[data-counter="' + field + '"]');
+      if (counterEl) {
+        ta.addEventListener('input', function() {
+          counterEl.textContent = ta.value.length;
         });
-        wrap.appendChild(el);
+      }
+    });
+
+    // Change/cancel: show/hide new-time field
+    var changeTypeSelect = form.querySelector('[data-field="requested_change_type"]');
+    var newTimeWrap      = form.querySelector('#newTimeWrap');
+    if (changeTypeSelect && newTimeWrap) {
+      changeTypeSelect.addEventListener('change', function() {
+        newTimeWrap.style.display = (changeTypeSelect.value === 'Change to a new time') ? 'block' : 'none';
       });
     }
 
-    // Page title
-    document.title = client.business_name || 'CallMagnet';
+    // Submit
+    var submitBtn = form.querySelector('[data-submit]');
+    if (!submitBtn) return;
 
-    showState('main');
+    submitBtn.addEventListener('click', function() {
+      if (submitBtn.disabled) return;
+
+      // ── Validate ──────────────────────────────────────────────────────────
+      var isValid = true;
+
+      function getField(name) {
+        var el = form.querySelector('[data-field="' + name + '"]');
+        return el ? el.value.trim() : '';
+      }
+      function markErr(name, show) {
+        var el   = form.querySelector('[data-field="' + name + '"]');
+        var errEl = form.querySelector('[data-err="' + name + '"]');
+        if (el)    el.classList.toggle('error', show);
+        if (errEl) errEl.classList.toggle('visible', show);
+        if (show) isValid = false;
+      }
+
+      var name  = getField('name');
+      var phone = getField('phone');
+      markErr('name',  !name);
+      markErr('phone', !phone || !isValidAuPhone(phone));
+
+      if (formType === 'change_cancel') {
+        markErr('original_booking_time', !getField('original_booking_time'));
+        var rct = getField('requested_change_type');
+        markErr('requested_change_type', !rct);
+        // new_time only required when "Change to a new time" chosen
+        // (we don't force it here, just collect it if present)
+      } else if (formType === 'function') {
+        markErr('original_booking_time', !getField('original_booking_time'));
+        markErr('guests', !getField('guests'));
+      } else if (formType === 'late_arrival') {
+        markErr('original_booking_time', !getField('original_booking_time'));
+        markErr('note', !getField('note'));
+      } else if (formType === 'lost_found') {
+        markErr('original_booking_time', !getField('original_booking_time'));
+        markErr('lost_item', !getField('lost_item'));
+      } else {
+        // something_else
+        markErr('note', !getField('note'));
+      }
+
+      if (!isValid) return;
+
+      // ── Build payload ──────────────────────────────────────────────────────
+      var payload = {
+        slug:        gSlug,
+        form_type:   formType,
+        caller_name: name,
+        caller_phone: phone,
+      };
+
+      var obt  = getField('original_booking_time');
+      var note = getField('note');
+
+      if (obt) payload.original_booking_time = obt;
+
+      if (formType === 'change_cancel') {
+        var rctVal   = getField('requested_change_type');
+        var newTime  = getField('new_time');
+        var reqChange = rctVal;
+        if (rctVal === 'Change to a new time' && newTime) {
+          reqChange = 'Change to: ' + newTime;
+        }
+        payload.requested_change = reqChange;
+        if (note) payload.note = note;
+      } else if (formType === 'function') {
+        var guests = getField('guests');
+        payload.note = 'Guests: ' + guests + (note ? '. ' + note : '');
+      } else if (formType === 'lost_found') {
+        var lostItem = getField('lost_item');
+        payload.note = 'Lost: ' + lostItem + (note ? '. ' + note : '');
+      } else {
+        if (note) payload.note = note;
+      }
+
+      // ── Submit ────────────────────────────────────────────────────────────
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending…';
+      submitBtn.classList.add('loading');
+
+      fetch(FORM_FUNC_URL, {
+        method:  'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey':        SUPABASE_ANON,
+        },
+        body: JSON.stringify(payload),
+      })
+      .then(function() { showSuccess(formWrap, name, formType, businessName); })
+      .catch(function() { showSuccess(formWrap, name, formType, businessName); });
+      // Always show success — never block the customer with an error
+    });
+  }
+
+  // ── Show success state ────────────────────────────────────────────────────
+  function showSuccess(formWrap, name, formType, businessName) {
+    var formEl = formWrap.querySelector('.inline-form');
+    if (formEl) formEl.style.display = 'none';
+
+    var successEl = document.createElement('div');
+    successEl.className = 'success-state visible';
+    successEl.innerHTML = CHECK_SVG
+      + '<div class="success-heading">Got it, ' + esc(name) + '</div>'
+      + '<div class="success-msg">' + successMsg(formType, name, businessName) + '</div>';
+    formWrap.appendChild(successEl);
   }
 
   // ── Handle button tap ─────────────────────────────────────────────────────
-  function handleTap(btnEl, client, slug) {
-    var intent = btnEl.getAttribute('data-intent') || '';
-    btnEl.classList.add('tapped');
+  function handleTap(btnEl, btnKey, formType, client, bookingUrl) {
+    // Visual feedback
+    btnEl.classList.add('pressed');
+    setTimeout(function() { btnEl.classList.remove('pressed'); }, 180);
 
-    // 1. Fire-and-forget log (don't await)
-    fetch(FUNCTION_URL, {
+    // Log the tap (fire-and-forget)
+    fetch(LOG_FUNC_URL, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug: slug, intent: intent }),
-    }).catch(function() {/* silent — never block redirect */});
+      body: JSON.stringify({ slug: gSlug, intent: btnEl.textContent.trim() }),
+    }).catch(function() {});
 
-    // 2. Redirect after 300ms (gives the tap animation time to show)
-    var bookingUrl = (client.booking_url || '').trim();
-    if (bookingUrl) {
-      setTimeout(function() {
-        window.location.href = bookingUrl;
-      }, 300);
+    if (formType === 'booking') {
+      // Direct redirect
+      if (bookingUrl) {
+        setTimeout(function() { window.location.href = bookingUrl; }, 220);
+      }
+      return;
+    }
+
+    // Toggle form
+    var formWrap = document.getElementById('form-' + btnKey);
+    if (!formWrap) return;
+
+    var isOpen = formWrap.classList.contains('open');
+
+    // Close any currently-open form
+    if (gOpenFormKey !== null && gOpenFormKey !== btnKey) {
+      var prevWrap = document.getElementById('form-' + gOpenFormKey);
+      if (prevWrap) prevWrap.classList.remove('open');
+    }
+
+    if (isOpen) {
+      formWrap.classList.remove('open');
+      gOpenFormKey = null;
     } else {
-      // No booking URL — show "we'll be in touch" message
+      formWrap.classList.add('open');
+      gOpenFormKey = btnKey;
+      // Smooth scroll to form
       setTimeout(function() {
-        btnEl.classList.remove('tapped');
-        document.getElementById('noUrlMsg').classList.add('visible');
-      }, 300);
+        formWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 50);
     }
   }
 
-  // ── Boot ─────────────────────────────────────────────────────────────────
-  async function boot() {
-    showState('loading');
+  // ── Render the full page from client data ─────────────────────────────────
+  function render(client, slug) {
+    gSlug   = slug;
+    gClient = client;
 
-    var slug = extractSlug();
-    if (!slug) {
-      showState('notFound');
-      return;
+    var bgUrl      = client.middle_man_background_url || '';
+    var businessName = client.business_name || '';
+    var promoText  = client.middle_man_promo_text || '';
+    var buttons    = [];
+    var bookingUrl = (client.booking_url || '').trim();
+    var showWhatsOn = client.middle_man_show_whats_on === true;
+
+    try {
+      buttons = Array.isArray(client.middle_man_buttons) ? client.middle_man_buttons : JSON.parse(client.middle_man_buttons || '[]');
+    } catch (_) { buttons = []; }
+
+    // ── Hero ───────────────────────────────────────────────────────────────
+    if (bgUrl) {
+      document.getElementById('heroNoImage').style.display = 'none';
+      document.getElementById('heroOverlay').style.display = 'block';
+      // Lazy-load bg after render
+      setTimeout(function() {
+        var heroBg = document.getElementById('heroBg');
+        heroBg.style.backgroundImage = 'url(' + JSON.stringify(bgUrl) + ')';
+        // Trigger transition once image is in cache
+        var img = new Image();
+        img.onload = function() { heroBg.classList.add('loaded'); };
+        img.src = bgUrl;
+      }, 0);
+    } else {
+      document.getElementById('heroOverlay').style.display = 'block';
     }
+
+    document.getElementById('heroBusinessName').textContent = businessName;
+    document.title = businessName || 'CallMagnet';
+
+    if (promoText) {
+      var promoEl = document.getElementById('heroPromo');
+      promoEl.textContent = promoText;
+      promoEl.style.display = 'block';
+    }
+
+    // ── Buttons ────────────────────────────────────────────────────────────
+    var enabled = buttons
+      .filter(function(b) { return b && b.enabled !== false; })
+      .sort(function(a, b) { return (a.sort_order || 0) - (b.sort_order || 0); })
+      .slice(0, 6);
+
+    var wrap = document.getElementById('buttonsWrap');
+
+    enabled.forEach(function(btn, idx) {
+      var label    = (btn.label || '').trim();
+      var formType = classifyLabel(label);
+      var btnKey   = 'btn' + idx;
+
+      // Button element
+      var btnEl;
+      if (formType === 'booking' && bookingUrl) {
+        // Use <a> for graceful no-JS degradation on booking buttons
+        btnEl = document.createElement('a');
+        btnEl.href = bookingUrl;
+        btnEl.className = 'tap-btn';
+        btnEl.textContent = label;
+        btnEl.addEventListener('click', function(e) {
+          e.preventDefault();
+          handleTap(btnEl, btnKey, formType, client, bookingUrl);
+        });
+      } else {
+        btnEl = document.createElement('button');
+        btnEl.className = 'tap-btn';
+        btnEl.type = 'button';
+        btnEl.textContent = label;
+        btnEl.addEventListener('click', function() {
+          handleTap(btnEl, btnKey, formType, client, bookingUrl);
+        });
+      }
+
+      wrap.appendChild(btnEl);
+
+      // Form container (for non-booking buttons)
+      if (formType !== 'booking') {
+        var formWrap = document.createElement('div');
+        formWrap.className = 'form-wrap';
+        formWrap.id = 'form-' + btnKey;
+        formWrap.innerHTML = buildFormHtml(formType);
+        wrap.appendChild(formWrap);
+        attachFormListeners(formWrap, formType, btnKey, businessName);
+      }
+    });
+
+    if (enabled.length === 0) {
+      wrap.style.display = 'none';
+    }
+
+    // ── "See what's on" ───────────────────────────────────────────────────
+    if (showWhatsOn) {
+      document.getElementById('whatsOnSection').style.display = 'block';
+
+      var whatsOnInner = document.getElementById('whatsOnInner');
+      if (bgUrl) {
+        var img = document.createElement('img');
+        img.className = 'whats-on-img';
+        img.src = bgUrl;
+        img.alt = businessName;
+        whatsOnInner.appendChild(img);
+      }
+      if (promoText) {
+        var p = document.createElement('p');
+        p.className = 'whats-on-text';
+        p.textContent = promoText;
+        whatsOnInner.appendChild(p);
+      }
+
+      var whatsOnBtn     = document.getElementById('whatsOnBtn');
+      var whatsOnContent = document.getElementById('whatsOnContent');
+      whatsOnBtn.addEventListener('click', function() {
+        var open = whatsOnContent.classList.toggle('open');
+        whatsOnBtn.textContent = open ? "See what's on ↑" : "See what's on ↓";
+      });
+    }
+
+    showMain();
+  }
+
+  // ── Boot ──────────────────────────────────────────────────────────────────
+  async function boot() {
+    var slug = extractSlug();
+    if (!slug) { showNotFound(); return; }
 
     var client;
     try {
       client = await fetchClient(slug);
     } catch (err) {
       console.error('b.html: fetch error', err);
-      showState('notFound');
+      showNotFound();
       return;
     }
 
-    if (!client) {
-      showState('notFound');
-      return;
-    }
+    if (!client) { showNotFound(); return; }
 
     render(client, slug);
   }
