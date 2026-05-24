@@ -18,8 +18,36 @@
     overscroll-behavior: none;
   }
 
+  /* ── Full-screen background layer (behind everything) ───────────────────── */
+  #bgFixed {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: #0E1419;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  #bgFixed.loaded { opacity: 1; }
+  #bgOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+      to bottom,
+      rgba(14,20,25,0.15) 0%,
+      rgba(14,20,25,0.45) 35%,
+      rgba(14,20,25,0.80) 65%,
+      rgba(14,20,25,0.94) 100%
+    );
+    pointer-events: none;
+  }
+
   /* ── App shell ──────────────────────────────────────────────────────────── */
   #app {
+    position: relative;
+    z-index: 2;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -28,7 +56,7 @@
   }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-  /* ── Loading / not-found states ─────────────────────────────────────────── */
+  /* ── Not-found / error state ────────────────────────────────────────────── */
   .state-cover {
     flex: 1;
     display: flex;
@@ -56,18 +84,17 @@
     flex-direction: column;
     flex: 1;
   }
-  .skel-hero {
-    height: 35vh;
-    height: 35dvh;
-    background: #1C2730;
+  .skel-header {
+    height: 80px;
+    background: rgba(255,255,255,0.03);
     position: relative;
     overflow: hidden;
   }
-  .skel-hero::after {
+  .skel-header::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.04) 50%, transparent 75%);
+    background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.05) 50%, transparent 75%);
     animation: shimmer 1.4s infinite;
     background-size: 200% 100%;
   }
@@ -75,8 +102,9 @@
     0%   { background-position: 200% 0; }
     100% { background-position: -200% 0; }
   }
-  .skel-content {
-    padding: 24px 20px;
+  .skel-spacer { flex: 1; }
+  .skel-buttons {
+    padding: 0 24px 20px;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -84,7 +112,7 @@
   .skel-btn {
     height: 52px;
     border-radius: 12px;
-    background: #1C2730;
+    background: rgba(255,255,255,0.05);
     position: relative;
     overflow: hidden;
   }
@@ -92,7 +120,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.04) 50%, transparent 75%);
+    background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.05) 50%, transparent 75%);
     animation: shimmer 1.4s infinite;
     background-size: 200% 100%;
   }
@@ -104,56 +132,23 @@
     flex: 1;
     min-height: 100vh;
     min-height: 100dvh;
+    background: transparent;
   }
   #mainPage.visible {
     display: flex;
     animation: fadeIn 0.4s ease both;
   }
 
-  /* ── Hero ───────────────────────────────────────────────────────────────── */
-  .hero {
-    position: relative;
-    flex: 0 0 35vh;
-    flex: 0 0 35dvh;
+  /* ── Page header (business name + promo) ────────────────────────────────── */
+  .page-header {
+    flex-shrink: 0;
+    padding: 52px 20px 16px;
+  }
+  .page-header.compact {
+    /* No background image — smaller, max 120px */
+    max-height: 120px;
+    padding: 36px 20px 12px;
     overflow: hidden;
-    background: #1C2730;
-    display: flex;
-    align-items: flex-end;
-  }
-  .hero-bg {
-    position: absolute;
-    inset: 0;
-    background-size: cover;
-    background-position: center top;
-    opacity: 0;
-    transition: opacity 0.5s ease;
-  }
-  .hero-bg.loaded { opacity: 1; }
-  .hero-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(14,20,25,0.95) 100%);
-    z-index: 1;
-  }
-  .hero-no-image {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 0;
-  }
-  .hero-no-image .star-icon {
-    font-size: 72px;
-    color: #06D6A0;
-    opacity: 0.35;
-    user-select: none;
-  }
-  .hero-text {
-    position: relative;
-    z-index: 2;
-    padding: 0 20px 18px;
-    width: 100%;
   }
   .hero-business-name {
     font-size: 22px;
@@ -161,7 +156,7 @@
     color: #fff;
     line-height: 1.2;
     letter-spacing: -0.01em;
-    text-shadow: 0 1px 8px rgba(0,0,0,0.7);
+    text-shadow: 0 1px 8px rgba(0,0,0,0.8);
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -174,17 +169,25 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+    text-shadow: 0 1px 4px rgba(0,0,0,0.7);
   }
 
-  /* ── Content ─────────────────────────────────────────────────────────────── */
+  /* ── Flexible spacer — pushes buttons to lower half when bg image present ─ */
+  #contentSpacer {
+    flex: 0 0 0;
+    min-height: 0;
+    transition: flex-basis 0.3s ease;
+  }
+  #contentSpacer.expanded { flex: 1; min-height: 20px; }
+
+  /* ── Content / buttons area ─────────────────────────────────────────────── */
   .content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 20px 20px 0;
+    flex-shrink: 0;
+    padding: 0 0 12px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    max-height: 70vh;
+    max-height: 70dvh;
   }
 
   .section-label {
@@ -192,8 +195,9 @@
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.35);
-    margin-bottom: 14px;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 12px;
+    padding: 0 24px;
   }
 
   /* ── Buttons ─────────────────────────────────────────────────────────────── */
@@ -201,60 +205,53 @@
 
   .tap-btn {
     display: block;
-    width: 100%;
-    height: 52px;
-    padding: 0 16px;
-    background: transparent;
-    border: 1.5px solid #06D6A0;
+    width: calc(100% - 48px);
+    margin: 0 auto;
+    padding: 16px 24px;
+    background: rgba(0,0,0,0.75);
+    border: 2px solid #06D6A0; /* overridden per-button in JS */
     border-radius: 12px;
-    color: #fff;
+    color: #06D6A0;             /* overridden per-button in JS */
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 600;
     font-family: inherit;
     cursor: pointer;
     text-align: center;
     letter-spacing: 0.01em;
     line-height: 1.3;
-    transition: background 0.12s, color 0.12s, transform 0.08s;
+    transition: opacity 0.12s, transform 0.08s;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
+    text-decoration: none;
   }
   .tap-btn:active, .tap-btn.pressed {
-    background: rgba(6,214,160,0.12);
+    opacity: 0.72;
     transform: scale(0.97);
-  }
-  /* booking btn = anchor for no-JS graceful degradation */
-  a.tap-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
   }
 
   /* ── "See what's on" section ─────────────────────────────────────────────── */
   .whats-on-divider {
-    margin: 16px 0 14px;
+    margin: 12px 24px 12px;
     border: none;
     border-top: 1px solid rgba(255,255,255,0.08);
   }
   .whats-on-btn {
     display: block;
-    width: 100%;
-    height: 44px;
-    padding: 0 16px;
+    width: calc(100% - 48px);
+    margin: 0 auto;
+    padding: 12px 16px;
     background: transparent;
     border: 1px solid rgba(255,255,255,0.2);
     border-radius: 10px;
-    color: rgba(255,255,255,0.65);
+    color: rgba(255,255,255,0.55);
     font-size: 13px;
     font-weight: 500;
     font-family: inherit;
     cursor: pointer;
     text-align: center;
-    transition: background 0.12s, color 0.12s;
+    transition: background 0.12s;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
-    margin-bottom: 0;
   }
   .whats-on-btn:active { background: rgba(255,255,255,0.05); }
   .whats-on-content {
@@ -264,7 +261,7 @@
   }
   .whats-on-content.open { max-height: 600px; }
   .whats-on-inner {
-    padding-top: 14px;
+    padding: 14px 24px 0;
   }
   .whats-on-img {
     width: 100%;
@@ -283,15 +280,16 @@
     overflow: hidden;
     max-height: 0;
     transition: max-height 0.3s ease;
+    margin: 0 24px;
   }
   .form-wrap.open { max-height: 1200px; }
 
   .inline-form {
-    background: #141C23;
-    border: 1px solid rgba(6,214,160,0.25);
+    background: rgba(14,20,25,0.92);
+    border: 1px solid rgba(255,255,255,0.12);
     border-radius: 12px;
     padding: 18px 16px 16px;
-    margin-top: 10px;
+    margin-top: 8px;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -305,18 +303,25 @@
   }
 
   .field-wrap { display: flex; flex-direction: column; gap: 4px; }
+
+  /* FIX 4: Field labels bright white */
   .field-label {
     font-size: 12px;
     font-weight: 500;
-    color: rgba(255,255,255,0.55);
+    color: #FFFFFF;
     letter-spacing: 0.02em;
   }
+  .field-label .opt {
+    color: rgba(255,255,255,0.35);
+    font-weight: 400;
+  }
+
   .field-input,
   .field-select,
   .field-textarea {
     width: 100%;
     padding: 11px 13px;
-    background: #1C2730;
+    background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.12);
     border-radius: 8px;
     color: #fff;
@@ -330,13 +335,14 @@
   .field-input:focus,
   .field-select:focus,
   .field-textarea:focus {
-    border-color: #06D6A0;
+    border-color: rgba(255,255,255,0.4);
   }
   .field-input::placeholder,
-  .field-textarea::placeholder { color: rgba(255,255,255,0.3); }
+  .field-textarea::placeholder { color: rgba(255,255,255,0.28); }
   .field-input.error,
   .field-select.error,
   .field-textarea.error { border-color: #E84A5F; }
+
   .field-error {
     font-size: 12px;
     color: #E84A5F;
@@ -379,7 +385,6 @@
   }
   .submit-btn:active { transform: scale(0.98); }
   .submit-btn:disabled { opacity: 0.5; cursor: default; }
-  .submit-btn.loading { opacity: 0.7; }
 
   /* ── Success state ───────────────────────────────────────────────────────── */
   .success-state {
@@ -388,9 +393,11 @@
     align-items: center;
     text-align: center;
     padding: 24px 16px 20px;
+  }
+  .success-state.visible {
+    display: flex;
     animation: fadeIn 0.3s ease both;
   }
-  .success-state.visible { display: flex; }
   .success-icon {
     width: 52px;
     height: 52px;
@@ -412,7 +419,7 @@
   /* ── Footer ─────────────────────────────────────────────────────────────── */
   .footer {
     text-align: center;
-    padding: 20px 0 24px;
+    padding: 14px 0 20px;
     flex-shrink: 0;
   }
   .footer-powered {
@@ -422,8 +429,8 @@
   }
   .footer-powered .star { color: rgba(6,214,160,0.55); }
   .footer-stop {
-    display: block;
-    margin-top: 6px;
+    display: inline-block;
+    margin-top: 5px;
     font-size: 10px;
     color: rgba(255,255,255,0.2);
     text-decoration: none;
@@ -434,12 +441,17 @@
 </head>
 <body>
 
+<!-- Full-screen background layers (z-index 0 and 1) -->
+<div id="bgFixed"></div>
+<div id="bgOverlay"></div>
+
 <div id="app">
 
   <!-- Skeleton loading state -->
   <div id="skeleton">
-    <div class="skel-hero"></div>
-    <div class="skel-content">
+    <div class="skel-header"></div>
+    <div class="skel-spacer"></div>
+    <div class="skel-buttons">
       <div class="skel-btn"></div>
       <div class="skel-btn"></div>
       <div class="skel-btn"></div>
@@ -456,25 +468,21 @@
   <!-- Main page (hidden until client loaded) -->
   <div id="mainPage">
 
-    <!-- Hero -->
-    <div class="hero" id="hero">
-      <div class="hero-bg"   id="heroBg"></div>
-      <div class="hero-overlay" id="heroOverlay" style="display:none"></div>
-      <div class="hero-no-image" id="heroNoImage">
-        <span class="star-icon">★</span>
-      </div>
-      <div class="hero-text">
-        <div class="hero-business-name" id="heroBusinessName"></div>
-        <div class="hero-promo" id="heroPromo" style="display:none"></div>
-      </div>
+    <!-- Small header — business name + promo text -->
+    <div class="page-header" id="pageHeader">
+      <div class="hero-business-name" id="heroBusinessName"></div>
+      <div class="hero-promo" id="heroPromo" style="display:none"></div>
     </div>
 
-    <!-- Content -->
+    <!-- Flexible spacer: expands to push buttons to lower screen when bg image present -->
+    <div id="contentSpacer"></div>
+
+    <!-- Buttons + forms -->
     <div class="content" id="content">
       <div class="section-label">How can we help?</div>
       <div class="buttons" id="buttonsWrap"></div>
 
-      <!-- "See what's on" section — injected if middle_man_show_whats_on = true -->
+      <!-- "See what's on" — injected if middle_man_show_whats_on = true -->
       <div id="whatsOnSection" style="display:none">
         <hr class="whats-on-divider">
         <button class="whats-on-btn" id="whatsOnBtn" type="button">See what's on ↓</button>
@@ -503,27 +511,44 @@
   var FORM_FUNC_URL = SUPABASE_URL + '/functions/v1/submit-middle-man-form';
   var LOG_FUNC_URL  = SUPABASE_URL + '/functions/v1/log-middle-man-tap';
 
-  // ── Globals set during render ─────────────────────────────────────────────
-  var gSlug        = '';
-  var gClient      = null;
-  var gOpenFormKey = null; // which button currently has a form open
+  // ── Neon colour palette — position 1-6 (index 0-5) ───────────────────────
+  var NEON = ['#00D4FF','#FF6B00','#39FF14','#FF10F0','#FFE600','#BF00FF'];
 
-  // ── Extract slug from /b/<slug> ───────────────────────────────────────────
+  // ── Globals ───────────────────────────────────────────────────────────────
+  var gSlug        = '';
+  var gOpenFormKey = null;
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
   function extractSlug() {
     var parts = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/');
     return (parts.length >= 2 && parts[0] === 'b') ? (parts[1] || '') : '';
   }
 
-  // ── Show/hide top-level states ────────────────────────────────────────────
   function showMain() {
-    document.getElementById('skeleton').style.display    = 'none';
+    document.getElementById('skeleton').style.display      = 'none';
     document.getElementById('stateNotFound').style.display = 'none';
     document.getElementById('mainPage').classList.add('visible');
   }
   function showNotFound() {
-    document.getElementById('skeleton').style.display    = 'none';
+    document.getElementById('skeleton').style.display      = 'none';
     document.getElementById('mainPage').classList.remove('visible');
     document.getElementById('stateNotFound').style.display = 'flex';
+  }
+
+  // ── Convert #RRGGBB → rgba(r,g,b,a) ──────────────────────────────────────
+  function hexRgba(hex, a) {
+    var r = parseInt(hex.slice(1,3), 16);
+    var g = parseInt(hex.slice(3,5), 16);
+    var b = parseInt(hex.slice(5,7), 16);
+    return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+  }
+
+  // ── Apply neon style to a button element by position index (0-based) ─────
+  function applyNeon(el, idx) {
+    var c = NEON[Math.min(idx, NEON.length - 1)];
+    el.style.borderColor = c;
+    el.style.color       = c;
+    el.style.boxShadow   = '0 0 8px ' + c + ', 0 0 20px ' + hexRgba(c, 0.3);
   }
 
   // ── Fetch client from Supabase REST (anon key) ────────────────────────────
@@ -542,14 +567,14 @@
     return rows.length > 0 ? rows[0] : null;
   }
 
-  // ── Classify button label → form type ────────────────────────────────────
+  // ── Classify label → form type ────────────────────────────────────────────
   function classifyLabel(label) {
     var l = label.toLowerCase().trim();
-    // Direct booking (no form)
-    if (l.indexOf('book') !== -1 && l.indexOf('change') === -1 && l.indexOf('cancel') === -1) return 'booking';
-    if (l.indexOf('make a booking') !== -1 || l.indexOf('new booking') !== -1) return 'booking';
-    // Change / cancel
+    // Change / cancel (check before "book" so "cancel my booking" → change_cancel)
     if (l.indexOf('change') !== -1 || l.indexOf('cancel') !== -1 || l.indexOf('reschedule') !== -1) return 'change_cancel';
+    // Direct booking
+    if (l.indexOf('book') !== -1) return 'booking';
+    if (l.indexOf('make a booking') !== -1 || l.indexOf('new booking') !== -1) return 'booking';
     // Function enquiry
     if (l.indexOf('function') !== -1 || l.indexOf('event') !== -1 || l.indexOf('private') !== -1) return 'function';
     // Late arrival
@@ -560,7 +585,19 @@
     return 'something_else';
   }
 
-  // ── AU phone validation (client-side) ─────────────────────────────────────
+  // ── Emoji for a button label ──────────────────────────────────────────────
+  function labelEmoji(label) {
+    var l = label.toLowerCase();
+    if (l.indexOf('change') !== -1 || l.indexOf('alter') !== -1 || l.indexOf('cancel') !== -1) return '✏️'; // ✏️
+    if (l.indexOf('book') !== -1) return '🍽️'; // 🍽️
+    if (l.indexOf('function') !== -1 || l.indexOf('event') !== -1) return '🎁'; // 🎁
+    if (l.indexOf('lost') !== -1 || l.indexOf('found') !== -1) return '❓'; // ❓
+    if (l.indexOf('late') !== -1 || l.indexOf('running') !== -1) return '🏃'; // 🏃
+    if (l.indexOf('something else') !== -1 || l.indexOf('enquiry') !== -1 || l.indexOf('other') !== -1) return '📣'; // 📣
+    return '📣'; // 📣 default
+  }
+
+  // ── AU phone validation ───────────────────────────────────────────────────
   function isValidAuPhone(v) {
     return /^(\+614\d{8}|04\d{8}|4\d{8}|614\d{8}|0[2-9]\d{8})$/.test(v.replace(/\s+/g, ''));
   }
@@ -572,29 +609,24 @@
     });
   }
 
-  // ── Success state SVG ─────────────────────────────────────────────────────
+  // ── Check SVG ────────────────────────────────────────────────────────────
   var CHECK_SVG = '<svg class="success-icon" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">'
     + '<circle cx="26" cy="26" r="25" stroke="currentColor" stroke-width="2" opacity="0.3"/>'
     + '<path d="M15 26l8 8 14-14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'
     + '</svg>';
 
-  // ── Success messages by form type ─────────────────────────────────────────
-  function successMsg(formType, name, businessName) {
+  // ── Success messages ──────────────────────────────────────────────────────
+  function successMsg(formType, businessName) {
     switch (formType) {
-      case 'change_cancel':
-        return "We've sent your request through. You'll receive a confirmation once your booking is updated.";
-      case 'function':
-        return esc(businessName) + ' will be in touch about your function enquiry.';
-      case 'late_arrival':
-        return "We've let them know you're on your way.";
-      case 'lost_found':
-        return "We'll look into it and give you a call if we find it.";
-      default:
-        return esc(businessName) + ' has received your message and will be in touch shortly.';
+      case 'change_cancel':  return "We’ve sent your request through. You’ll receive a confirmation once your booking is updated.";
+      case 'function':       return esc(businessName) + ' will be in touch about your function enquiry.';
+      case 'late_arrival':   return "We’ve let them know you’re on your way.";
+      case 'lost_found':     return "We’ll look into it and give you a call if we find it.";
+      default:               return esc(businessName) + ' has received your message and will be in touch shortly.';
     }
   }
 
-  // ── Build an inline form HTML string ─────────────────────────────────────
+  // ── Build inline form HTML ────────────────────────────────────────────────
   function buildFormHtml(formType) {
     var nameField = ''
       + '<div class="field-wrap">'
@@ -610,15 +642,14 @@
       + '<span class="field-error" data-err="phone">Please enter a valid Australian phone number.</span>'
       + '</div>';
 
-    var noteField = ''
+    var noteFieldOpt = ''
       + '<div class="field-wrap">'
-      + '<label class="field-label">Note <span style="color:rgba(255,255,255,0.3)">(optional)</span></label>'
+      + '<label class="field-label">Note <span class="opt">(optional)</span></label>'
       + '<textarea class="field-textarea" data-field="note" placeholder="Anything else we should know?" maxlength="200"></textarea>'
       + '<div class="field-counter"><span data-counter="note">0</span>/200</div>'
       + '</div>';
 
     var inner = '';
-
     if (formType === 'change_cancel') {
       inner = nameField + phoneField
         + '<div class="field-wrap">'
@@ -639,7 +670,7 @@
         + '<label class="field-label">New time</label>'
         + '<input class="field-input" type="text" data-field="new_time" placeholder="e.g. Saturday 8pm">'
         + '</div>'
-        + noteField;
+        + noteFieldOpt;
     } else if (formType === 'function') {
       inner = nameField + phoneField
         + '<div class="field-wrap">'
@@ -652,7 +683,7 @@
         + '<input class="field-input" type="number" data-field="guests" placeholder="e.g. 30" min="1" max="500" inputmode="numeric">'
         + '<span class="field-error" data-err="guests">Please enter the number of guests.</span>'
         + '</div>'
-        + noteField;
+        + noteFieldOpt;
     } else if (formType === 'late_arrival') {
       inner = nameField + phoneField
         + '<div class="field-wrap">'
@@ -677,7 +708,7 @@
         + '<input class="field-input" type="text" data-field="lost_item" placeholder="e.g. black iPhone 15">'
         + '<span class="field-error" data-err="lost_item">Please describe what you lost.</span>'
         + '</div>'
-        + noteField;
+        + noteFieldOpt;
     } else {
       // something_else
       inner = nameField + phoneField
@@ -690,18 +721,18 @@
     }
 
     var titles = {
-      change_cancel: 'Change or cancel booking',
-      function:      'Function enquiry',
-      late_arrival:  'Running late',
-      lost_found:    'Lost & found',
-      something_else:'Send us a message',
+      change_cancel:  'Change or cancel booking',
+      'function':     'Function enquiry',
+      late_arrival:   'Running late',
+      lost_found:     'Lost & found',
+      something_else: 'Send us a message',
     };
     var submitLabels = {
-      change_cancel: 'Send request',
-      function:      'Send enquiry',
-      late_arrival:  'Let them know',
-      lost_found:    'Send report',
-      something_else:'Send message',
+      change_cancel:  'Send request',
+      'function':     'Send enquiry',
+      late_arrival:   'Let them know',
+      lost_found:     'Send report',
+      something_else: 'Send message',
     };
 
     return '<div class="inline-form" data-form-type="' + formType + '">'
@@ -712,7 +743,9 @@
   }
 
   // ── Attach form event listeners ───────────────────────────────────────────
-  function attachFormListeners(formWrap, formType, btnKey, businessName) {
+  // intentLabel: the display label of the button (with emoji) — logged on submit
+  // bookingUrl:  redirect destination after successful submit (2 second delay)
+  function attachFormListeners(formWrap, formType, businessName, intentLabel, bookingUrl) {
     var form = formWrap.querySelector('.inline-form');
     if (!form) return;
 
@@ -721,9 +754,7 @@
       var field = ta.getAttribute('data-field');
       var counterEl = form.querySelector('[data-counter="' + field + '"]');
       if (counterEl) {
-        ta.addEventListener('input', function() {
-          counterEl.textContent = ta.value.length;
-        });
+        ta.addEventListener('input', function() { counterEl.textContent = ta.value.length; });
       }
     });
 
@@ -736,7 +767,6 @@
       });
     }
 
-    // Submit
     var submitBtn = form.querySelector('[data-submit]');
     if (!submitBtn) return;
 
@@ -745,14 +775,13 @@
 
       // ── Validate ──────────────────────────────────────────────────────────
       var isValid = true;
-
-      function getField(name) {
-        var el = form.querySelector('[data-field="' + name + '"]');
+      function getField(n) {
+        var el = form.querySelector('[data-field="' + n + '"]');
         return el ? el.value.trim() : '';
       }
-      function markErr(name, show) {
-        var el   = form.querySelector('[data-field="' + name + '"]');
-        var errEl = form.querySelector('[data-err="' + name + '"]');
+      function markErr(n, show) {
+        var el    = form.querySelector('[data-field="' + n + '"]');
+        var errEl = form.querySelector('[data-err="' + n + '"]');
         if (el)    el.classList.toggle('error', show);
         if (errEl) errEl.classList.toggle('visible', show);
         if (show) isValid = false;
@@ -765,10 +794,7 @@
 
       if (formType === 'change_cancel') {
         markErr('original_booking_time', !getField('original_booking_time'));
-        var rct = getField('requested_change_type');
-        markErr('requested_change_type', !rct);
-        // new_time only required when "Change to a new time" chosen
-        // (we don't force it here, just collect it if present)
+        markErr('requested_change_type', !getField('requested_change_type'));
       } else if (formType === 'function') {
         markErr('original_booking_time', !getField('original_booking_time'));
         markErr('guests', !getField('guests'));
@@ -779,33 +805,27 @@
         markErr('original_booking_time', !getField('original_booking_time'));
         markErr('lost_item', !getField('lost_item'));
       } else {
-        // something_else
         markErr('note', !getField('note'));
       }
-
       if (!isValid) return;
 
       // ── Build payload ──────────────────────────────────────────────────────
       var payload = {
-        slug:        gSlug,
-        form_type:   formType,
-        caller_name: name,
+        slug:         gSlug,
+        form_type:    formType,
+        caller_name:  name,
         caller_phone: phone,
       };
-
       var obt  = getField('original_booking_time');
       var note = getField('note');
-
       if (obt) payload.original_booking_time = obt;
 
       if (formType === 'change_cancel') {
-        var rctVal   = getField('requested_change_type');
-        var newTime  = getField('new_time');
-        var reqChange = rctVal;
-        if (rctVal === 'Change to a new time' && newTime) {
-          reqChange = 'Change to: ' + newTime;
-        }
-        payload.requested_change = reqChange;
+        var rctVal  = getField('requested_change_type');
+        var newTime = getField('new_time');
+        payload.requested_change = (rctVal === 'Change to a new time' && newTime)
+          ? 'Change to: ' + newTime
+          : rctVal;
         if (note) payload.note = note;
       } else if (formType === 'function') {
         var guests = getField('guests');
@@ -817,27 +837,30 @@
         if (note) payload.note = note;
       }
 
-      // ── Submit ────────────────────────────────────────────────────────────
+      // ── FIX 2: fire log-middle-man-tap on SUBMIT (not on button tap) ───────
+      fetch(LOG_FUNC_URL, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: gSlug, intent: intentLabel }),
+      }).catch(function() {});
+
+      // ── Submit form ────────────────────────────────────────────────────────
       submitBtn.disabled = true;
       submitBtn.textContent = 'Sending…';
-      submitBtn.classList.add('loading');
 
       fetch(FORM_FUNC_URL, {
         method:  'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey':        SUPABASE_ANON,
-        },
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON },
         body: JSON.stringify(payload),
       })
-      .then(function() { showSuccess(formWrap, name, formType, businessName); })
-      .catch(function() { showSuccess(formWrap, name, formType, businessName); });
-      // Always show success — never block the customer with an error
+      .then(function() { handleSuccess(formWrap, name, formType, businessName, bookingUrl); })
+      .catch(function() { handleSuccess(formWrap, name, formType, businessName, bookingUrl); });
+      // Always show success — never block the customer
     });
   }
 
-  // ── Show success state ────────────────────────────────────────────────────
-  function showSuccess(formWrap, name, formType, businessName) {
+  // ── Show success screen, then redirect to bookingUrl after 2s ────────────
+  function handleSuccess(formWrap, name, formType, businessName, bookingUrl) {
     var formEl = formWrap.querySelector('.inline-form');
     if (formEl) formEl.style.display = 'none';
 
@@ -845,41 +868,45 @@
     successEl.className = 'success-state visible';
     successEl.innerHTML = CHECK_SVG
       + '<div class="success-heading">Got it, ' + esc(name) + '</div>'
-      + '<div class="success-msg">' + successMsg(formType, name, businessName) + '</div>';
+      + '<div class="success-msg">' + successMsg(formType, businessName) + '</div>';
     formWrap.appendChild(successEl);
+
+    // Redirect to booking URL after 2 seconds (if set)
+    if (bookingUrl) {
+      setTimeout(function() { window.location.href = bookingUrl; }, 2000);
+    }
   }
 
   // ── Handle button tap ─────────────────────────────────────────────────────
-  function handleTap(btnEl, btnKey, formType, client, bookingUrl) {
-    // Visual feedback
+  // FIX 2: log-middle-man-tap fires here ONLY for booking buttons.
+  //        For form buttons, the log fires on submit instead.
+  function handleTap(btnEl, btnKey, formType, bookingUrl, intentLabel) {
     btnEl.classList.add('pressed');
     setTimeout(function() { btnEl.classList.remove('pressed'); }, 180);
 
-    // Log the tap (fire-and-forget)
-    fetch(LOG_FUNC_URL, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug: gSlug, intent: btnEl.textContent.trim() }),
-    }).catch(function() {});
-
     if (formType === 'booking') {
-      // Direct redirect
+      // Log immediately + redirect
+      fetch(LOG_FUNC_URL, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: gSlug, intent: intentLabel }),
+      }).catch(function() {});
       if (bookingUrl) {
         setTimeout(function() { window.location.href = bookingUrl; }, 220);
       }
       return;
     }
 
-    // Toggle form
+    // Toggle form — NO log call here
     var formWrap = document.getElementById('form-' + btnKey);
     if (!formWrap) return;
 
     var isOpen = formWrap.classList.contains('open');
 
-    // Close any currently-open form
+    // Close any other open form
     if (gOpenFormKey !== null && gOpenFormKey !== btnKey) {
-      var prevWrap = document.getElementById('form-' + gOpenFormKey);
-      if (prevWrap) prevWrap.classList.remove('open');
+      var prev = document.getElementById('form-' + gOpenFormKey);
+      if (prev) prev.classList.remove('open');
     }
 
     if (isOpen) {
@@ -888,46 +915,50 @@
     } else {
       formWrap.classList.add('open');
       gOpenFormKey = btnKey;
-      // Smooth scroll to form
       setTimeout(function() {
         formWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }, 50);
     }
   }
 
-  // ── Render the full page from client data ─────────────────────────────────
+  // ── Render the page ───────────────────────────────────────────────────────
   function render(client, slug) {
-    gSlug   = slug;
-    gClient = client;
+    gSlug = slug;
 
-    var bgUrl      = client.middle_man_background_url || '';
+    var bgUrl       = client.middle_man_background_url || '';
     var businessName = client.business_name || '';
-    var promoText  = client.middle_man_promo_text || '';
-    var buttons    = [];
-    var bookingUrl = (client.booking_url || '').trim();
+    var promoText   = client.middle_man_promo_text || '';
+    var buttons     = [];
+    var bookingUrl  = (client.booking_url || '').trim();
     var showWhatsOn = client.middle_man_show_whats_on === true;
 
     try {
-      buttons = Array.isArray(client.middle_man_buttons) ? client.middle_man_buttons : JSON.parse(client.middle_man_buttons || '[]');
+      buttons = Array.isArray(client.middle_man_buttons)
+        ? client.middle_man_buttons
+        : JSON.parse(client.middle_man_buttons || '[]');
     } catch (_) { buttons = []; }
 
-    // ── Hero ───────────────────────────────────────────────────────────────
+    // ── FIX 6: Full-screen background ─────────────────────────────────────
     if (bgUrl) {
-      document.getElementById('heroNoImage').style.display = 'none';
-      document.getElementById('heroOverlay').style.display = 'block';
-      // Lazy-load bg after render
-      setTimeout(function() {
-        var heroBg = document.getElementById('heroBg');
-        heroBg.style.backgroundImage = 'url(' + JSON.stringify(bgUrl) + ')';
-        // Trigger transition once image is in cache
-        var img = new Image();
-        img.onload = function() { heroBg.classList.add('loaded'); };
-        img.src = bgUrl;
-      }, 0);
+      var bgFixed = document.getElementById('bgFixed');
+      bgFixed.style.backgroundImage = 'url(' + JSON.stringify(bgUrl) + ')';
+      // Fade in once loaded
+      var img = new Image();
+      img.onload  = function() { bgFixed.classList.add('loaded'); };
+      img.onerror = function() { bgFixed.classList.add('loaded'); }; // show even if partial
+      img.src = bgUrl;
+
+      // FIX 5: spacer expands to push buttons into lower half
+      document.getElementById('contentSpacer').classList.add('expanded');
     } else {
-      document.getElementById('heroOverlay').style.display = 'block';
+      // No image — compact header, no spacer
+      document.getElementById('bgFixed').classList.add('loaded'); // just show dark bg
+      document.getElementById('pageHeader').classList.add('compact');
+      // Overlay not needed without image — tone it down
+      document.getElementById('bgOverlay').style.background = 'none';
     }
 
+    // ── Business name + promo ─────────────────────────────────────────────
     document.getElementById('heroBusinessName').textContent = businessName;
     document.title = businessName || 'CallMagnet';
 
@@ -937,7 +968,7 @@
       promoEl.style.display = 'block';
     }
 
-    // ── Buttons ────────────────────────────────────────────────────────────
+    // ── Buttons ───────────────────────────────────────────────────────────
     var enabled = buttons
       .filter(function(b) { return b && b.enabled !== false; })
       .sort(function(a, b) { return (a.sort_order || 0) - (b.sort_order || 0); })
@@ -946,73 +977,74 @@
     var wrap = document.getElementById('buttonsWrap');
 
     enabled.forEach(function(btn, idx) {
-      var label    = (btn.label || '').trim();
-      var formType = classifyLabel(label);
-      var btnKey   = 'btn' + idx;
+      var rawLabel  = (btn.label || '').trim();
+      var formType  = classifyLabel(rawLabel);
+      var emoji     = labelEmoji(rawLabel);
+      var display   = emoji ? emoji + ' ' + rawLabel : rawLabel; // FIX 3: emoji prefix
+      var btnKey    = 'btn' + idx;
 
-      // Button element
+      // Build button element
       var btnEl;
       if (formType === 'booking' && bookingUrl) {
-        // Use <a> for graceful no-JS degradation on booking buttons
+        // <a> for graceful no-JS degradation
         btnEl = document.createElement('a');
         btnEl.href = bookingUrl;
         btnEl.className = 'tap-btn';
-        btnEl.textContent = label;
+        btnEl.textContent = display;
         btnEl.addEventListener('click', function(e) {
           e.preventDefault();
-          handleTap(btnEl, btnKey, formType, client, bookingUrl);
+          handleTap(btnEl, btnKey, formType, bookingUrl, display);
         });
       } else {
         btnEl = document.createElement('button');
         btnEl.className = 'tap-btn';
         btnEl.type = 'button';
-        btnEl.textContent = label;
+        btnEl.textContent = display;
         btnEl.addEventListener('click', function() {
-          handleTap(btnEl, btnKey, formType, client, bookingUrl);
+          handleTap(btnEl, btnKey, formType, bookingUrl, display);
         });
       }
 
+      // FIX 1: Apply neon colour by position
+      applyNeon(btnEl, idx);
+
       wrap.appendChild(btnEl);
 
-      // Form container (for non-booking buttons)
+      // Form container (non-booking only)
       if (formType !== 'booking') {
         var formWrap = document.createElement('div');
         formWrap.className = 'form-wrap';
         formWrap.id = 'form-' + btnKey;
         formWrap.innerHTML = buildFormHtml(formType);
         wrap.appendChild(formWrap);
-        attachFormListeners(formWrap, formType, btnKey, businessName);
+        attachFormListeners(formWrap, formType, businessName, display, bookingUrl);
       }
     });
 
-    if (enabled.length === 0) {
-      wrap.style.display = 'none';
-    }
+    if (enabled.length === 0) wrap.style.display = 'none';
 
     // ── "See what's on" ───────────────────────────────────────────────────
     if (showWhatsOn) {
       document.getElementById('whatsOnSection').style.display = 'block';
-
-      var whatsOnInner = document.getElementById('whatsOnInner');
+      var inner = document.getElementById('whatsOnInner');
       if (bgUrl) {
-        var img = document.createElement('img');
-        img.className = 'whats-on-img';
-        img.src = bgUrl;
-        img.alt = businessName;
-        whatsOnInner.appendChild(img);
+        var woImg = document.createElement('img');
+        woImg.className = 'whats-on-img';
+        woImg.src = bgUrl;
+        woImg.alt = businessName;
+        inner.appendChild(woImg);
       }
       if (promoText) {
         var p = document.createElement('p');
         p.className = 'whats-on-text';
         p.textContent = promoText;
-        whatsOnInner.appendChild(p);
+        inner.appendChild(p);
       }
-
-      var whatsOnBtn     = document.getElementById('whatsOnBtn');
-      var whatsOnContent = document.getElementById('whatsOnContent');
-      whatsOnBtn.addEventListener('click', function() {
-        var open = whatsOnContent.classList.toggle('open');
-        whatsOnBtn.textContent = open ? "See what's on ↑" : "See what's on ↓";
+      var woBtn     = document.getElementById('whatsOnBtn');
+      var woContent = document.getElementById('whatsOnContent');
+      woBtn.addEventListener('click', function() {
+        var open = woContent.classList.toggle('open');
+        woBtn.textContent = open ? "See what’s on ↑" : "See what’s on ↓";
       });
     }
 
@@ -1034,7 +1066,6 @@
     }
 
     if (!client) { showNotFound(); return; }
-
     render(client, slug);
   }
 
