@@ -102,21 +102,6 @@ function buildPushMessage(
   }
 }
 
-// ── Build the confirmation SMS to the caller ───────────────────────────────────
-function buildSmsText(
-  businessName: string,
-  formType: string,
-  callerName: string,
-): string {
-  // SMS must stay under 160 chars — truncate business name if needed
-  const maxBnLen = 60;
-  const bn = businessName.length > maxBnLen ? businessName.slice(0, maxBnLen - 1) + '…' : businessName;
-
-  if (formType === 'change_cancel') {
-    return `Hi ${callerName} — ${bn} has received your change request. You'll get a confirmation once it's updated.`;
-  }
-  return `Hi ${callerName} — ${bn} has received your message and will be in touch shortly.`;
-}
 
 Deno.serve(async (req: Request): Promise<Response> => {
   // ── CORS preflight ──────────────────────────────────────────────────────────
@@ -251,20 +236,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
       console.warn(`submit-middle-man-form: send-client-notification failed: ${e?.message ?? e}`);
     });
 
-    // ── Fire-and-forget: send-twilio-sms (confirmation to caller) ──────────────
-    const smsText  = buildSmsText(businessName, formType, callerName);
-    const phoneE164 = toE164(callerPhone);
-    fetch(`${SUPABASE_URL}/functions/v1/send-twilio-sms`, {
-      method:  'POST',
-      headers: {
-        'Content-Type':      'application/json',
-        'X-Internal-Secret': INTERNAL_SECRET,
-        Authorization:       `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-      },
-      body: JSON.stringify({ to: phoneE164, message: smsText }),
-    }).catch((e) => {
-      console.warn(`submit-middle-man-form: send-twilio-sms failed: ${e?.message ?? e}`);
-    });
   } else {
     console.warn('submit-middle-man-form: INTERNAL_SECRET not configured — skipping notifications');
   }
