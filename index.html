@@ -837,7 +837,15 @@ body {
     padding: 96px 0 24px; /* 96px clears the topbar + compositing margin */
     overflow-y: auto;
   }
-  /* Push .main right when sidebar is visible */
+  /* Push .main AND .topbar right when sidebar is visible.
+     The topbar-logo "★ CALLMAGNET" at font-size 27px extends ~260 px from the
+     left edge — past the sidebar's 220 px boundary — leaving the final "T" of
+     "CALLMAGNET" visible at the sidebar/main seam. Giving the topbar the same
+     margin eliminates that bleed. The topbar precedes the sidebar in the DOM so
+     a sibling selector can't reach it; we gate on a class added to #dash. */
+  #dash.admin-sidebar-open .topbar {
+    margin-left: 220px;
+  }
   #adminSidebar.visible ~ .main {
     margin-left: 220px;
   }
@@ -2193,6 +2201,10 @@ function refreshAdminFab() {
   if (fab) fab.style.display = showAdmin ? 'flex' : 'none';
   const sidebar = document.getElementById('adminSidebar');
   if (sidebar) sidebar.classList.toggle('visible', showAdmin);
+  // Toggle class on #dash so the topbar-logo shifts right (eliminates the "T"
+  // bleed — see CSS comment above .admin-sidebar-open rule).
+  const dash = document.getElementById('dash');
+  if (dash) dash.classList.toggle('admin-sidebar-open', showAdmin);
 }
 
 
