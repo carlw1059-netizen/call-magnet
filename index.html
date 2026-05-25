@@ -834,7 +834,7 @@ body {
     width: 220px; z-index: 40;
     background: #0E1419;
     border-right: 1px solid rgba(6,214,160,0.13);
-    padding: 80px 0 24px; /* 80px clears the topbar height */
+    padding: 96px 0 24px; /* 96px clears the topbar + compositing margin */
     overflow-y: auto;
   }
   /* Push .main right when sidebar is visible */
@@ -1318,7 +1318,6 @@ body {
 
   <!-- Admin sidebar — desktop only, visible when _isAdminCached === true -->
   <aside id="adminSidebar" class="dash-admin-sidebar" aria-label="Admin tools">
-    <span class="dash-admin-sidebar-label">Tools</span>
     <button class="dash-admin-sidebar-link" onclick="openOnboardPanel()">Onboard new client</button>
     <button class="dash-admin-sidebar-link" onclick="openClientsPanel()">Manage clients</button>
     <button class="dash-admin-sidebar-link" onclick="openMmMgrPanel()">Middle Man</button>
