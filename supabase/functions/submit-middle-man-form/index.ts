@@ -261,7 +261,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         'X-Internal-Secret': INTERNAL_SECRET,
         Authorization:       `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
       },
-      body: JSON.stringify({ to: phoneE164, body: smsText }),
+      body: JSON.stringify({ to: phoneE164, message: smsText }),
     }).catch((e) => {
       console.warn(`submit-middle-man-form: send-twilio-sms failed: ${e?.message ?? e}`);
     });
