@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -2630,65 +2630,23 @@ async function loadMiddleManSection() {
     return;
   }
 
+  // ── PHASE 1: Always render tiles immediately with 0 counts ──────────────
+  // Zero is valid — '0 requests' means the feature is live and waiting.
+  // Never hide a tile or the section because there is no data yet.
   sectionEl.classList.add('visible');
-
-  const monthStartIso = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
-
-  // Fetch counts: form submissions + MM booking taps (link_clicks with intent)
-  let submissionsRes, clicksRes;
-  try {
-    [submissionsRes, clicksRes] = await Promise.all([
-      sb.from('middle_man_form_submissions')
-        .select('form_type')
-        .eq('client_id', currentClient.id)
-        .gte('submitted_at', monthStartIso),
-      sb.from('link_clicks')
-        .select('intent')
-        .eq('client_id', currentClient.id)
-        .not('intent', 'is', null)
-        .gte('clicked_at', monthStartIso)
-    ]);
-  } catch (e) {
-    console.warn('MM section fetch failed', e);
-    return;
-  }
-
-  const submissions   = submissionsRes.data || [];
-  const clicks        = clicksRes.data || [];
-  const totalMmClicks = clicks.length;
-
-  // Count submissions by form_type
-  const submissionCounts = {};
-  submissions.forEach(s => {
-    submissionCounts[s.form_type] = (submissionCounts[s.form_type] || 0) + 1;
-  });
-
-  // Count how many booking buttons there are (for click attribution)
-  const bookingBtnCount = enabledBtns.filter(b => mmClassifyLabel(b.label) === 'booking').length;
 
   const grid = document.getElementById('mmGrid');
   if (!grid) return;
   grid.innerHTML = '';
 
+  // Build tile DOM and keep references to count els for phase-2 update
+  const tileCountEls = [];
   enabledBtns.forEach((btn, idx) => {
     const rawLabel  = (btn.label || '').trim();
     const formType  = mmClassifyLabel(rawLabel);
     const emoji     = mmLabelEmoji(rawLabel);
-    const display   = emoji + ' ' + rawLabel;
+    const display   = emoji + ' ' + rawLabel;
     const neonColor = MM_NEON[Math.min(idx, MM_NEON.length - 1)];
-
-    let count = 0;
-    if (formType === 'booking') {
-      if (bookingBtnCount === 1) {
-        // Only one booking button — all MM clicks belong to it
-        count = totalMmClicks;
-      } else {
-        // Multiple booking buttons — match by intent substring
-        count = clicks.filter(c => c.intent && c.intent.toLowerCase().includes(rawLabel.toLowerCase())).length;
-      }
-    } else {
-      count = submissionCounts[formType] || 0;
-    }
 
     const tile = document.createElement('div');
     tile.className = 'mm-tile';
@@ -2700,13 +2658,61 @@ async function loadMiddleManSection() {
       '0 8px 32px ' + mmHexRgba(neonColor, 0.15),
       'inset 0 1px 0 rgba(255,255,255,0.07)'
     ].join(', ');
-    tile.innerHTML =
-      '<div class="mm-tile-label">'  + display + '</div>' +
-      '<div class="mm-tile-count">'  + count   + '</div>' +
-      '<div class="mm-tile-sub">This month</div>';
+
+    const countEl = document.createElement('div');
+    countEl.className = 'mm-tile-count';
+    countEl.textContent = '0';
+
+    tile.insertAdjacentHTML('beforeend', '<div class="mm-tile-label">' + display + '</div>');
+    tile.appendChild(countEl);
+    tile.insertAdjacentHTML('beforeend', '<div class="mm-tile-sub">This month</div>');
 
     tile.addEventListener('click', () => openMmPanel(rawLabel, display, formType, neonColor));
     grid.appendChild(tile);
+    tileCountEls.push({ countEl, formType, rawLabel });
+  });
+
+  // ── PHASE 2: Fetch counts in background, update tiles when ready ──────────
+  const monthStartIso = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+
+  let submissions = [], clicks = [];
+  try {
+    const [submissionsRes, clicksRes] = await Promise.all([
+      sb.from('middle_man_form_submissions')
+        .select('form_type')
+        .eq('client_id', currentClient.id)
+        .gte('submitted_at', monthStartIso),
+      sb.from('link_clicks')
+        .select('intent')
+        .eq('client_id', currentClient.id)
+        .not('intent', 'is', null)
+        .gte('clicked_at', monthStartIso)
+    ]);
+    submissions = submissionsRes.data || [];
+    clicks      = clicksRes.data      || [];
+  } catch (e) {
+    // Fetch failed — tiles stay at 0, which is valid and safe to display
+    console.warn('MM section count fetch failed (tiles show 0):', e);
+    return;
+  }
+
+  const totalMmClicks    = clicks.length;
+  const submissionCounts = {};
+  submissions.forEach(s => {
+    submissionCounts[s.form_type] = (submissionCounts[s.form_type] || 0) + 1;
+  });
+  const bookingBtnCount = enabledBtns.filter(b => mmClassifyLabel(b.label) === 'booking').length;
+
+  tileCountEls.forEach(({ countEl, formType, rawLabel }) => {
+    let count = 0;
+    if (formType === 'booking') {
+      count = bookingBtnCount === 1
+        ? totalMmClicks
+        : clicks.filter(c => c.intent && c.intent.toLowerCase().includes(rawLabel.toLowerCase())).length;
+    } else {
+      count = submissionCounts[formType] || 0;
+    }
+    countEl.textContent = count;
   });
 }
 
@@ -2763,7 +2769,7 @@ async function openMmPanel(rawLabel, displayLabel, formType, neonColor) {
   subEl.textContent = count + ' ' + word + (count !== 1 ? 's' : '') + ' this month';
 
   if (records.length === 0) {
-    bodyEl.innerHTML = '<div class="mm-empty">No activity this month.</div>';
+    bodyEl.innerHTML = '<div class="mm-empty">★ No requests yet</div>';
     return;
   }
 
