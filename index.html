@@ -887,64 +887,39 @@ body {
   .mm-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-/* ── Tile — mirrors .dash .metric aesthetic; neon colour via --mm-neon ── */
+/* ── Tile — neon colour via --mm-neon (hex) and --mm-neon-rgb (r,g,b) set per-tile by JS ── */
 .mm-tile {
-  background:
-    radial-gradient(circle at 0% 0%, var(--burnt-orange-06), transparent 28px),
-    radial-gradient(circle at 100% 100%, var(--burnt-orange-04), transparent 20px),
-    var(--surface-glass);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1.5px solid var(--mm-neon, #06D6A0);
-  border-radius: 20px;
-  padding: 16px 14px 14px;
-  cursor: pointer;
   position: relative;
-  overflow: hidden;
-  /* box-shadow uses --mm-neon-glow set per-tile by JS */
+  background: rgba(255,255,255,0.04);
+  border-radius: 20px;
+  padding: 20px 16px;
+  cursor: pointer;
+  border: 1.5px solid var(--mm-neon, #06D6A0);
   box-shadow:
-    0 1px 2px rgba(0,0,0,0.5),
-    0 4px 12px rgba(0,0,0,0.3),
-    0 8px 32px var(--mm-neon-glow, rgba(6,214,160,0.15)),
-    inset 0 1px 0 rgba(255,255,255,0.07);
-  transition: transform 0.22s ease, box-shadow 0.22s ease, filter 0.12s ease;
+    0 0 12px rgba(var(--mm-neon-rgb, 6,214,160), 0.35),
+    0 0 24px rgba(var(--mm-neon-rgb, 6,214,160), 0.15),
+    0 8px 24px rgba(0,0,0,0.4);
+  transform: translateY(-2px);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
-.mm-tile::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 15%; right: 15%; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.13) 50%, transparent);
-  pointer-events: none;
-}
-.mm-tile::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 20px; right: 20px; height: 2px;
-  background: linear-gradient(90deg, transparent, var(--mm-neon, #06D6A0) 40%, var(--mm-neon, #06D6A0) 60%, transparent);
-  border-radius: 0 0 3px 3px;
-  opacity: 0.55;
-  transition: opacity 0.22s ease;
-  pointer-events: none;
-}
+
 .mm-tile:hover {
-  transform: translateY(-3px);
+  transform: translateY(-4px);
   box-shadow:
-    0 2px 4px rgba(0,0,0,0.5),
-    0 8px 20px rgba(0,0,0,0.28),
-    0 16px 48px var(--mm-neon-glow-hover, rgba(6,214,160,0.35)),
-    inset 0 1px 0 rgba(255,255,255,0.10);
+    0 0 18px rgba(var(--mm-neon-rgb, 6,214,160), 0.55),
+    0 0 36px rgba(var(--mm-neon-rgb, 6,214,160), 0.25),
+    0 12px 32px rgba(0,0,0,0.5);
 }
-.mm-tile:hover::after { opacity: 1; }
+
 .mm-tile:active {
-  transform: scale(0.97);
-  filter: brightness(0.82);
+  transform: translateY(0px) scale(0.97);
   box-shadow:
-    0 1px 2px rgba(0,0,0,0.5),
-    0 2px 8px rgba(0,0,0,0.3),
-    0 4px 16px var(--mm-neon-glow, rgba(6,214,160,0.15)),
-    inset 0 1px 0 rgba(255,255,255,0.07);
+    0 0 8px rgba(var(--mm-neon-rgb, 6,214,160), 0.3),
+    0 2px 8px rgba(0,0,0,0.3);
+  filter: brightness(0.85);
+  transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.08s ease;
 }
 
 .mm-tile-label {
@@ -1380,6 +1355,14 @@ body {
         <button class="toggle-btn" id="toggleMonth" onclick="setMode('month')">Month</button>
       </div>
     </div>
+    <!-- ── Middle Man: Customer requests (restaurant + middle_man_enabled only) ── -->
+    <div class="mm-section" id="mmSection">
+      <div class="section-header">
+        <div class="section-title">Customer requests</div>
+      </div>
+      <div class="mm-grid" id="mmGrid"></div>
+    </div>
+
     <div class="hero">
       <div class="hero-label">Estimated revenue recovered</div>
       <div class="hero-value" id="heroValue">$0</div>
@@ -1452,14 +1435,6 @@ body {
         <div class="renewal-label">Renewal in</div>
         <div class="renewal-value" id="renewalValue">—</div>
       </div>
-    </div>
-
-    <!-- ── Middle Man: Customer requests (restaurant + middle_man_enabled only) ── -->
-    <div class="mm-section" id="mmSection">
-      <div class="section-header">
-        <div class="section-title">Customer requests</div>
-      </div>
-      <div class="mm-grid" id="mmGrid"></div>
     </div>
 
     <div class="section-header">
@@ -2794,7 +2769,8 @@ document.addEventListener('keydown', (e) => {
 // Only rendered when: client.vertical === 'restaurant' AND middle_man_enabled
 // ═══════════════════════════════════════════════════════════════════════════
 
-const MM_NEON = ['#00D4FF','#FF6B00','#39FF14','#FF10F0','#FFE600','#BF00FF'];
+const MM_NEON     = ['#00D4FF','#FF6B00','#39FF14','#FF10F0','#FFE600','#BF00FF'];
+const MM_NEON_RGB = ['0,212,255','255,107,0','57,255,20','255,16,240','255,230,0','191,0,255'];
 
 function mmHexRgba(hex, a) {
   const r = parseInt(hex.slice(1,3), 16);
@@ -2885,12 +2861,12 @@ async function loadMiddleManSection() {
     const emoji     = mmLabelEmoji(rawLabel);
     const display   = emoji + ' ' + rawLabel;
     const neonColor = MM_NEON[Math.min(idx, MM_NEON.length - 1)];
+    const neonRgb   = MM_NEON_RGB[Math.min(idx, MM_NEON_RGB.length - 1)];
 
     const tile = document.createElement('div');
     tile.className = 'mm-tile';
     tile.style.setProperty('--mm-neon', neonColor);
-    tile.style.setProperty('--mm-neon-glow', mmHexRgba(neonColor, 0.18));
-    tile.style.setProperty('--mm-neon-glow-hover', mmHexRgba(neonColor, 0.40));
+    tile.style.setProperty('--mm-neon-rgb', neonRgb);
     tile.style.borderColor = neonColor;
 
     const countEl = document.createElement('div');
