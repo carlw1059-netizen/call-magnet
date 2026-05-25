@@ -901,12 +901,13 @@ body {
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  /* box-shadow uses --mm-neon-glow set per-tile by JS */
   box-shadow:
     0 1px 2px rgba(0,0,0,0.5),
     0 4px 12px rgba(0,0,0,0.3),
-    0 8px 32px rgba(6,214,160,0.12),
+    0 8px 32px var(--mm-neon-glow, rgba(6,214,160,0.15)),
     inset 0 1px 0 rgba(255,255,255,0.07);
-  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, filter 0.12s ease;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
@@ -927,9 +928,24 @@ body {
   transition: opacity 0.22s ease;
   pointer-events: none;
 }
-.mm-tile:hover { transform: translateY(-3px); }
+.mm-tile:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 2px 4px rgba(0,0,0,0.5),
+    0 8px 20px rgba(0,0,0,0.28),
+    0 16px 48px var(--mm-neon-glow-hover, rgba(6,214,160,0.35)),
+    inset 0 1px 0 rgba(255,255,255,0.10);
+}
 .mm-tile:hover::after { opacity: 1; }
-.mm-tile:active { transform: scale(0.97); }
+.mm-tile:active {
+  transform: scale(0.97);
+  filter: brightness(0.82);
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.5),
+    0 2px 8px rgba(0,0,0,0.3),
+    0 4px 16px var(--mm-neon-glow, rgba(6,214,160,0.15)),
+    inset 0 1px 0 rgba(255,255,255,0.07);
+}
 
 .mm-tile-label {
   font-family: var(--font-serif);
@@ -1017,6 +1033,7 @@ body {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   flex: 1;
+  min-height: 0; /* required: flex child with overflow must have min-height:0 */
   display: flex; flex-direction: column; gap: 12px;
 }
 
@@ -1104,6 +1121,7 @@ body {
 /* MM manager / edit panel: scrollable body */
 .tool-panel-scroll-body {
   flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  min-height: 0; /* required: flex child with overflow must have min-height:0 */
   padding: 16px;
 }
 
@@ -1435,6 +1453,15 @@ body {
         <div class="renewal-value" id="renewalValue">—</div>
       </div>
     </div>
+
+    <!-- ── Middle Man: Customer requests (restaurant + middle_man_enabled only) ── -->
+    <div class="mm-section" id="mmSection">
+      <div class="section-header">
+        <div class="section-title">Customer requests</div>
+      </div>
+      <div class="mm-grid" id="mmGrid"></div>
+    </div>
+
     <div class="section-header">
       <div class="section-title">Recent activity</div>
       <div class="sms-counter-block">
@@ -1465,14 +1492,6 @@ body {
       </div>
     </div>
     <div class="activity-card" id="activityCard"><div class="loading">Loading...</div></div>
-
-    <!-- ── Middle Man: Customer requests (restaurant + middle_man_enabled only) ── -->
-    <div class="mm-section" id="mmSection">
-      <div class="section-header">
-        <div class="section-title">Customer requests</div>
-      </div>
-      <div class="mm-grid" id="mmGrid"></div>
-    </div>
   </div>
 
   <div id="installPromptBanner" class="install-banner" style="display:none">
@@ -2526,15 +2545,18 @@ async function loadActivity(clientId, startIso, endIso, parentRequestId) {
   (bookRes.data || []).forEach(e => events.push({ type: 'book', number: e.id, time: new Date(e.booked_at), source: e.source }));
   events.sort((a, b) => b.time - a.time);
 
-  if (events.length === 0) { card.innerHTML = '<div class="empty-state">No activity this period.</div>'; return; }
+  // Hide any entry where the caller is unknown (null/empty phone → would show "Unknown")
+  const visibleEvents = events.filter(e => e.type === 'book' || !!e.number);
 
-  const latest = events[0];
+  if (visibleEvents.length === 0) { card.innerHTML = '<div class="empty-state">No activity this period.</div>'; return; }
+
+  const latest = visibleEvents[0];
   const latestLabel = latest.type === 'sms' ? 'SMS sent to ' + maskNumber(latest.number) :
     latest.type === 'click' ? 'Link tapped by ' + maskNumber(latest.number) : 'Booking logged';
   const latestTime = latest.time.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }) + ' · ' + latest.time.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
 
   let rows = '';
-  events.slice(0, 20).forEach(e => {
+  visibleEvents.slice(0, 20).forEach(e => {
     const pill = e.type === 'sms' ? '<span class="status-pill">SMS</span>' :
       e.type === 'click' ? '<span class="status-pill pill-click">CLICK</span>' :
       '<span class="status-pill pill-book">BOOKED</span>';
@@ -2867,21 +2889,19 @@ async function loadMiddleManSection() {
     const tile = document.createElement('div');
     tile.className = 'mm-tile';
     tile.style.setProperty('--mm-neon', neonColor);
+    tile.style.setProperty('--mm-neon-glow', mmHexRgba(neonColor, 0.18));
+    tile.style.setProperty('--mm-neon-glow-hover', mmHexRgba(neonColor, 0.40));
     tile.style.borderColor = neonColor;
-    tile.style.boxShadow = [
-      '0 1px 2px rgba(0,0,0,0.5)',
-      '0 4px 12px rgba(0,0,0,0.3)',
-      '0 8px 32px ' + mmHexRgba(neonColor, 0.15),
-      'inset 0 1px 0 rgba(255,255,255,0.07)'
-    ].join(', ');
 
     const countEl = document.createElement('div');
     countEl.className = 'mm-tile-count';
     countEl.textContent = '0';
 
+    const todayName = new Date().toLocaleDateString('en-AU', { weekday: 'long' });
+
     tile.insertAdjacentHTML('beforeend', '<div class="mm-tile-label">' + display + '</div>');
     tile.appendChild(countEl);
-    tile.insertAdjacentHTML('beforeend', '<div class="mm-tile-sub">This month</div>');
+    tile.insertAdjacentHTML('beforeend', '<div class="mm-tile-sub">' + todayName + '</div>');
 
     tile.addEventListener('click', () => openMmPanel(rawLabel, display, formType, neonColor));
     grid.appendChild(tile);
