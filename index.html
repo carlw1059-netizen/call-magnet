@@ -884,15 +884,12 @@ body {
 .mm-section { display: none; margin-top: 1.25rem; }
 .mm-section.visible { display: block; }
 
-/* ── Tile grid: 3 col desktop, 2 col mobile ── */
+/* ── Tile grid: always 2 equal columns — uniform size across all tiles ── */
 .mm-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin-bottom: 0;
-}
-@media (max-width: 600px) {
-  .mm-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* ── Tile — neon colour via --mm-neon (hex) and --mm-neon-rgb (r,g,b) set per-tile by JS ── */
@@ -901,6 +898,8 @@ body {
   background: rgba(255,255,255,0.04);
   border-radius: 20px;
   padding: 20px 16px;
+  padding-bottom: 36px;
+  min-height: 110px;
   cursor: pointer;
   border: 1.5px solid var(--mm-neon, #06D6A0);
   box-shadow:
@@ -948,10 +947,13 @@ body {
   line-height: 1;
 }
 .mm-tile-sub {
+  position: absolute;
+  bottom: 12px;
+  left: 14px;
   font-size: 11px;
-  color: var(--dim);
-  margin-top: 6px;
-  font-weight: 400;
+  color: #FFFFFF;
+  font-weight: 500;
+  margin-top: 0;
 }
 @media (max-width: 600px) {
   .mm-tile-count { font-size: 34px; }
@@ -3050,7 +3052,8 @@ async function openMmPanel(rawLabel, displayLabel, formType, neonColor) {
 
   const count = records.length;
   const word  = formType === 'booking' ? 'tap' : 'request';
-  subEl.textContent = count + ' ' + word + (count !== 1 ? 's' : '') + ' this month';
+  const dayName = new Date().toLocaleDateString('en-AU', { weekday: 'long' });
+  subEl.textContent = count + ' ' + word + (count !== 1 ? 's' : '') + ' this ' + dayName;
 
   if (records.length === 0) {
     bodyEl.innerHTML = '<div class="mm-empty">★ No requests yet</div>';
