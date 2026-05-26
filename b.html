@@ -969,14 +969,22 @@
       document.getElementById('contentSpacer').classList.add('expanded');
     } else if (client.middle_man_background_url) {
       var bgFixed = document.getElementById('bgFixed');
-      // Image background
       bgFixed.innerHTML = '';
-      bgFixed.style.backgroundImage = 'url(' + JSON.stringify(client.middle_man_background_url) + ')';
-      bgFixed.style.backgroundSize = 'cover';
-      bgFixed.style.backgroundPosition = 'center';
-      bgFixed.classList.add('loaded');
-      // Spacer expands to push buttons into lower half of screen
-      document.getElementById('contentSpacer').classList.add('expanded');
+      // Preload the image then apply
+      var testImg = new Image();
+      testImg.onload = function() {
+        bgFixed.style.backgroundImage = 'url(' + JSON.stringify(client.middle_man_background_url) + ')';
+        bgFixed.style.backgroundSize = 'cover';
+        bgFixed.style.backgroundPosition = 'center';
+        bgFixed.classList.add('loaded');
+        document.getElementById('contentSpacer').classList.add('expanded');
+      };
+      testImg.onerror = function() {
+        // Image failed to load — show charcoal fallback
+        bgFixed.style.backgroundColor = '#0E1419';
+        bgFixed.classList.add('loaded');
+      };
+      testImg.src = client.middle_man_background_url;
     } else {
       // No background — compact header, buttons close to business name
       document.getElementById('pageHeader').classList.add('compact');
