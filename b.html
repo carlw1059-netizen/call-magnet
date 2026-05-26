@@ -9,15 +9,14 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   html {
-    height: -webkit-fill-available;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
+    height: 100%;
+    overflow: hidden;
   }
   body {
-    min-height: -webkit-fill-available;
-    overflow: visible;
-    overflow-x: hidden;
+    height: 100%;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
     background: #0E1419;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     color: #fff;
@@ -29,8 +28,6 @@
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
     width: 100%;
     height: 100%;
     overflow: hidden;
@@ -38,7 +35,6 @@
     background-color: #0E1419; /* charcoal always visible — no transparency gap */
     background-size: cover;
     background-position: center;
-    /* opacity is 1 by default — no fade-in flash when no image is set */
   }
   #bgOverlay {
     position: fixed;
@@ -56,10 +52,13 @@
   /* ── App shell ──────────────────────────────────────────────────────────── */
   #app {
     position: relative;
-    z-index: 2;
+    z-index: 1;
+    width: 100%;
+    min-height: 100%;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
     display: flex;
     flex-direction: column;
-    min-height: -webkit-fill-available;
     animation: fadeIn 0.4s ease both;
   }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -139,7 +138,8 @@
     flex-direction: column;
     justify-content: center;
     flex: 1;
-    min-height: -webkit-fill-available;
+    min-height: 100%;
+    position: relative;
     background: transparent;
   }
   #mainPage.visible {
@@ -943,46 +943,44 @@
     } catch (_) { buttons = []; }
 
     // ── Full-screen background ────────────────────────────────────────────
-    // FIX 4: #bgFixed always has background-color:#0E1419 (charcoal) as base.
-    // No opacity flash — charcoal is visible immediately from CSS.
+    // Classic iOS fixed-body pattern: body is fixed, #app scrolls.
+    // #bgFixed is position:fixed — always covers the full screen.
     if (client.middle_man_background_type === 'video') {
-      // Create a video element as the background
       var bgFixed = document.getElementById('bgFixed');
+      // Clear any existing background
       bgFixed.style.backgroundImage = 'none';
-      var vid = document.createElement('video');
-      vid.autoplay = true;
-      vid.loop = true;
-      vid.muted = true;
-      vid.playsInline = true;
-      vid.setAttribute('autoplay', '');
-      vid.setAttribute('muted', '');
-      vid.setAttribute('playsinline', '');
-      vid.setAttribute('webkit-playsinline', '');
-      vid.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;';
-      var src = document.createElement('source');
-      src.src = client.middle_man_background_url;
-      src.type = client.middle_man_background_url.endsWith('.webm') ? 'video/webm' : 'video/mp4';
-      vid.appendChild(src);
-      bgFixed.appendChild(vid);
+      bgFixed.innerHTML = '';
+      // Create video with inline HTML string — most reliable for Safari
+      var videoHTML = '<video id="bgVideo" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;" autoplay muted loop playsinline webkit-playsinline x-webkit-airplay="allow" preload="auto"><source src="' + client.middle_man_background_url + '" type="video/mp4"></video>';
+      bgFixed.innerHTML = videoHTML;
+      // Get reference and force play
+      var videoEl = document.getElementById('bgVideo');
+      if (videoEl) {
+        videoEl.muted = true;
+        videoEl.play().catch(function(e) {
+          console.log('Video autoplay failed:', e);
+          // Fallback: show charcoal background
+          bgFixed.innerHTML = '';
+          bgFixed.style.backgroundColor = '#0E1419';
+        });
+      }
       bgFixed.classList.add('loaded');
-      vid.load();
-      vid.play().catch(function() {});
       // Spacer expands to push buttons into lower half of screen
       document.getElementById('contentSpacer').classList.add('expanded');
     } else if (client.middle_man_background_url) {
-      // Image background — existing behaviour
-      var img = new Image();
-      img.onload = function() {
-        document.getElementById('bgFixed').style.backgroundImage = 'url(' + JSON.stringify(client.middle_man_background_url) + ')';
-        document.getElementById('bgFixed').classList.add('loaded');
-      };
-      img.src = client.middle_man_background_url;
+      var bgFixed = document.getElementById('bgFixed');
+      // Image background
+      bgFixed.innerHTML = '';
+      bgFixed.style.backgroundImage = 'url(' + JSON.stringify(client.middle_man_background_url) + ')';
+      bgFixed.style.backgroundSize = 'cover';
+      bgFixed.style.backgroundPosition = 'center';
+      bgFixed.classList.add('loaded');
       // Spacer expands to push buttons into lower half of screen
       document.getElementById('contentSpacer').classList.add('expanded');
     } else {
-      // No image — compact header, buttons close to business name (FIX 3)
+      // No background — compact header, buttons close to business name
       document.getElementById('pageHeader').classList.add('compact');
-      // No gradient overlay needed without a photo behind it
+      // No gradient overlay needed without a background
       document.getElementById('bgOverlay').style.background = 'none';
     }
 
@@ -1099,7 +1097,5 @@
   }
 })();
 </script>
-<!-- Invisible 1px element — pushes content just past viewport to trigger iOS Safari toolbar hiding on scroll -->
-<div style="height:1px;opacity:0;" aria-hidden="true"></div>
 </body>
 </html>
