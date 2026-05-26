@@ -555,7 +555,6 @@ body.panel-open .main { pointer-events: none; }
 
 /* ── Metric tiles ── */
 .dash .metrics { gap: 12px !important; }
-.dash #restaurantMetrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 .dash .metric {
   background:
     radial-gradient(circle at 0% 0%, var(--burnt-orange-06), transparent 28px),
@@ -640,18 +639,6 @@ body.panel-open .main { pointer-events: none; }
 .dash .renewal-label { color: var(--accent) !important; opacity: 1 !important; font-size: 11px !important; letter-spacing: 0.06em !important; }
 .dash .renewal-value { color: var(--accent) !important; font-size: 13px !important; }
 
-/* ── Reset button ── */
-.dash .reset-row { justify-content: flex-start !important; }
-.dash .reset-btn {
-  background: transparent !important;
-  border: 1px solid var(--accent) !important;
-  color: var(--accent) !important;
-  font-size: 10.5px !important;
-  padding: 4px 10px !important;
-  border-radius: 6px !important;
-  box-shadow: 0 0 8px var(--accent-glow) !important;
-}
-.dash .reset-btn:hover { background: transparent !important; color: var(--accent) !important; border-color: var(--accent) !important; box-shadow: 0 0 10px var(--accent-glow) !important; }
 
 /* ── Section header / SMS odometer ── */
 .dash .section-title { color: var(--accent) !important; letter-spacing: 0.14em !important; font-size: 14px !important; }
@@ -724,9 +711,6 @@ body.panel-open .main { pointer-events: none; }
 @media (min-width: 601px) {
   .dash .metric-value { font-size: 46px !important; }
 }
-/* Restaurant text-tile overrides — long labels need smaller, tighter type */
-.dash #rPeakWindowToday { font-size: 22px !important; line-height: 1.2 !important; font-weight: 600 !important; letter-spacing: -0.01em !important; }
-@media (min-width: 601px) { .dash #rPeakWindowToday { font-size: 28px !important; } }
 
 /* Hide Progressier's bottom-right "Install the app" widget on desktop.
    PWA install via Chrome desktop is not the intended UX — only useful on
@@ -944,6 +928,7 @@ body.panel-open .main { pointer-events: none; }
   margin-bottom: 10px;
   font-weight: normal;
   font-style: italic;
+  min-height: 2.8em;
 }
 .mm-tile-count {
   font-size: 42px;
@@ -967,6 +952,46 @@ body.panel-open .main { pointer-events: none; }
 }
 @media (min-width: 601px) {
   .mm-tile-count { font-size: 46px; }
+}
+
+/* ── Emerald divider between neon grid and peak tile ── */
+.mm-divider {
+  height: 1px;
+  margin: 12px 0;
+  background: linear-gradient(90deg, transparent, #06D6A0, transparent);
+  box-shadow: 0 0 6px rgba(6,214,160,0.5);
+}
+
+/* ── Full-width peak miss window tile ── */
+.mm-peak-tile {
+  border: 1.5px solid #FFFFFF;
+  border-radius: 20px;
+  padding: 20px 18px 18px;
+  box-shadow: 0 0 12px rgba(255,255,255,0.25), 0 0 24px rgba(255,255,255,0.1), 0 8px 24px rgba(0,0,0,0.4);
+  text-align: center;
+}
+.mm-peak-label {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  color: #FFFFFF;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+  margin-bottom: 10px;
+  font-weight: normal;
+  font-style: italic;
+}
+.mm-peak-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+@media (max-width: 600px) {
+  .mm-peak-value { font-size: 24px; }
+}
+@media (min-width: 601px) {
+  .mm-peak-value { font-size: 32px; }
 }
 
 /* ── Slide-out panel overlay ── */
@@ -1416,6 +1441,11 @@ body.panel-open .main { pointer-events: none; }
         <div class="section-title">Customer requests</div>
       </div>
       <div class="mm-grid" id="mmGrid"></div>
+      <div class="mm-divider"></div>
+      <div class="mm-peak-tile">
+        <div class="mm-peak-label">Today's busiest hour</div>
+        <div class="mm-peak-value" id="rPeakWindowToday">—</div>
+      </div>
     </div>
 
     <div class="hero">
@@ -1446,44 +1476,11 @@ body.panel-open .main { pointer-events: none; }
         <div class="metric-sub">SMS → click</div>
       </div>
     </div>
-    <div class="metrics" id="restaurantMetrics" style="display:none">
-      <div class="metric">
-        <div class="metric-label">Tonight's covers recovered</div>
-        <div class="metric-value" id="rTonightCovers">0</div>
-        <div class="metric-sub">Captured today</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Peak miss window today</div>
-        <div class="metric-value" id="rPeakWindowToday">—</div>
-        <div class="metric-sub">Today's busiest 30-min slot</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Links tapped today</div>
-        <div class="metric-value" id="rLinksToday">0</div>
-        <div class="metric-sub">Captured today</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Tap rate this week</div>
-        <div class="metric-value" id="rTapRateWeek">—</div>
-        <div class="metric-sub" id="rTapRateWeekSub">0 sent yet</div>
-      </div>
-    </div>
-    <div class="metrics-fullwidth" id="linkTapsTodayRow">
-      <div class="metric">
-        <div class="metric-label">Link taps today</div>
-        <div class="metric-value" id="linkTapsToday">—</div>
-        <div class="metric-sub">Booking link tapped</div>
-        <div class="metric-hint">Check your booking system to see who booked</div>
-      </div>
-    </div>
     <div class="demo-banner" id="demoBanner">No data yet — your CallMagnet system will start showing live stats once your first call comes in.</div>
     <div class="log-booking-row">
       <div class="log-booking-confirm" id="logBookingConfirm">✓ Booking logged</div>
       <div class="log-booking-error" id="logBookingError"></div>
       <button class="log-booking-btn" id="logBookingBtn">+ Log a booking</button>
-    </div>
-    <div class="reset-row">
-      <button class="reset-btn" onclick="showResetModal()">Reset counter to zero</button>
     </div>
     <div class="renewal-strip">
       <div id="renewalContent">
@@ -2168,7 +2165,6 @@ async function loadStats() {
   document.getElementById('smsCount').textContent = smsCount;
   document.getElementById('clickCount').textContent = clickCount;
   document.getElementById('bookingCount').textContent = bookCount;
-  document.getElementById('linkTapsToday').textContent = tapsTodayCount > 0 ? tapsTodayCount : '—';
 
   const conv = smsCount > 0 ? Math.round((clickCount / smsCount) * 100) + '%' : '—';
   document.getElementById('convRate').textContent = conv;
@@ -2295,14 +2291,10 @@ function setDashboardMode(mode) {
 
 function renderTilesForMode(mode) {
   const hg = document.getElementById('hairdresserMetrics');
-  const rg = document.getElementById('restaurantMetrics');
-  const ltr = document.getElementById('linkTapsTodayRow');
   const lbr = document.querySelector('.log-booking-row');
   const vtR = document.getElementById('vtRestaurant');
   const vtH = document.getElementById('vtHairdresser');
   const hero = document.querySelector('.hero');
-  const resetRow = document.querySelector('.reset-row');
-  if (resetRow) resetRow.style.display = 'flex';
   // Hide MM section when switching away from restaurant (re-shown by loadMiddleManSection)
   if (mode !== 'restaurant') {
     const mmSec = document.getElementById('mmSection');
@@ -2310,16 +2302,12 @@ function renderTilesForMode(mode) {
   }
   if (mode === 'restaurant') {
     if (hg) hg.style.display = 'none';
-    if (rg) rg.style.display = 'grid';
-    if (ltr) ltr.style.display = 'none';
     if (lbr) lbr.style.display = 'none';
     if (hero) hero.style.display = 'none';
     if (vtR) vtR.classList.add('active');
     if (vtH) vtH.classList.remove('active');
   } else {
     if (hg) hg.style.display = 'grid';
-    if (rg) rg.style.display = 'none';
-    if (ltr) ltr.style.display = 'block';
     if (lbr) lbr.style.display = 'flex';
     if (hero) hero.style.display = 'block';
     if (vtR) vtR.classList.remove('active');
@@ -2394,17 +2382,10 @@ function melbourneMostRecentMonday5pmUtcIso() {
 
 async function loadRestaurantTileData(clientId, myRequestId) {
   const tonightStartIso = melbourneStartOfTodayUtcIso();
-  const weekStartIso = melbourneMostRecentMonday5pmUtcIso();
 
-  let todaySmsRes, todayClicksRes, weekSmsRes, weekClicksRes;
+  let todaySmsRes;
   try {
-    [todaySmsRes, todayClicksRes, weekSmsRes, weekClicksRes] = await Promise.all([
-      // received_at rows for today — used for both count (tile 1) and bucketing (tile 2)
-      sb.from('sms_events').select('received_at').eq('client_id', clientId).gte('received_at', tonightStartIso),
-      sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).gte('clicked_at', tonightStartIso),
-      sb.from('sms_events').select('id', { count: 'exact' }).eq('client_id', clientId).gte('received_at', weekStartIso),
-      sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).gte('clicked_at', weekStartIso)
-    ]);
+    todaySmsRes = await sb.from('sms_events').select('received_at').eq('client_id', clientId).gte('received_at', tonightStartIso);
   } catch (e) {
     console.warn('restaurant tiles fetch failed', e);
     return;
@@ -2412,26 +2393,8 @@ async function loadRestaurantTileData(clientId, myRequestId) {
   if (myRequestId !== statsRequestId) return;
 
   const todayEvents = todaySmsRes.data || [];
-  const tonightCount = todayEvents.length;
-  const todayClicks = todayClicksRes.count || 0;
-  const weekSms = weekSmsRes.count || 0;
-  const weekClicks = weekClicksRes.count || 0;
-
-  document.getElementById('rTonightCovers').textContent = tonightCount;
-  document.getElementById('rPeakWindowToday').textContent = computePeakWindowLabel(todayEvents);
-  document.getElementById('rLinksToday').textContent = todayClicks;
-
-  const tapRateEl = document.getElementById('rTapRateWeek');
-  const tapSubEl  = document.getElementById('rTapRateWeekSub');
-  if (weekSms === 0) {
-    tapRateEl.textContent = '—';
-    tapSubEl.textContent  = '0 sent yet';
-  } else {
-    const rawPct    = Math.round((weekClicks / weekSms) * 100);
-    const cappedPct = Math.min(rawPct, 100);
-    tapRateEl.textContent = cappedPct + '%';
-    tapSubEl.textContent  = weekClicks + ' of ' + weekSms + ' sent';
-  }
+  const peakEl = document.getElementById('rPeakWindowToday');
+  if (peakEl) peakEl.textContent = computePeakWindowLabel(todayEvents);
 }
 
 // Bucket today's sms_events into 30-min Melbourne-local slots, return the
@@ -2441,7 +2404,7 @@ async function loadRestaurantTileData(clientId, myRequestId) {
 //   3+ events      → "6:30–7:30pm — 8 calls"  (range, count)
 // Tie-break = earliest slot wins.
 function computePeakWindowLabel(events) {
-  if (!events || events.length === 0) return 'No calls yet today';
+  if (!events || events.length === 0) return '—';
 
   const buckets = new Map();   // "HH:MM" → count
   const meta    = new Map();   // "HH:MM" → { h, m }  for label formatting
