@@ -282,10 +282,9 @@ body.panel-open .main { pointer-events: none; }
 .renewal-strip { display: flex; align-items: center; margin-bottom: 0.75rem; padding: 10px 14px; background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; }
 .renewal-label { font-family: var(--sans); font-size: 10px; letter-spacing: 0.02em; color: var(--accent); font-weight: 700; opacity: 0.7; }
 .renewal-value { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent); }
-.section-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
+.section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 0.75rem; }
 .section-title { font-family: var(--font-body); font-size: 13px; letter-spacing: 0.02em; color: var(--accent); font-weight: 700; padding-top: 4px; }
 .sms-counter-block { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-.call-count-badge { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent); border-radius: 20px; padding: 2px 10px; }
 .odometer { display: flex; align-items: stretch; border: 1px solid var(--accent); border-radius: 4px; overflow: hidden; background: var(--surface); }
 .odometer-cell { width: 22px; height: 26px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--accent); position: relative; overflow: hidden; }
 .odometer-cell .old { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; }
@@ -320,7 +319,6 @@ body.panel-open .main { pointer-events: none; }
 .status-pill { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); }
 .pill-click { background: #2a1a3a; color: #9c6fdc; border: 1px solid #9c6fdc; }
 .pill-book { background: #1a3a1a; color: #4caf50; border: 1px solid #4caf50; }
-.empty-state { padding: 2rem; text-align: center; color: var(--dim); font-size: 13px; font-weight: 600; }
 .loading { padding: 2rem; text-align: center; color: var(--dim); font-family: var(--mono); font-size: 12px; font-weight: 700; }
 @media (max-width: 600px) {
   .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -628,6 +626,7 @@ body.panel-open .main { pointer-events: none; }
 .dash .log-booking-error   { color: var(--red) !important; }
 
 /* ── Renewal strip ── */
+.dash .section-header { margin-top: 12px !important; }
 .dash .renewal-strip {
   display: inline-flex !important;
   background: var(--accent-08) !important;
@@ -636,7 +635,8 @@ body.panel-open .main { pointer-events: none; }
   padding: 6px 14px !important;
   gap: 8px !important;
   align-items: center !important;
-  margin-top: 12px !important;
+  margin-top: 6px !important;
+  margin-bottom: 0 !important;
 }
 .dash .renewal-label { color: var(--accent) !important; opacity: 1 !important; font-size: 11px !important; letter-spacing: 0.06em !important; }
 .dash .renewal-value { color: var(--accent) !important; font-size: 13px !important; }
@@ -644,7 +644,6 @@ body.panel-open .main { pointer-events: none; }
 
 /* ── Section header / SMS odometer ── */
 .dash .section-title { color: var(--accent) !important; letter-spacing: 0.14em !important; font-size: 14px !important; }
-.dash .call-count-badge { background: var(--accent-10) !important; border-color: var(--accent-border) !important; color: var(--accent) !important; }
 .dash .odometer { background: var(--surface-glass) !important; border-color: var(--accent-border) !important; }
 .dash .odometer-cell, .dash .odometer-prefix { color: var(--accent) !important; background: transparent !important; border-right-color: var(--accent-border) !important; }
 .dash .odometer-sep { background: var(--accent-border) !important; }
@@ -671,7 +670,7 @@ body.panel-open .main { pointer-events: none; }
 .dash .activity-number { color: var(--text-primary) !important; }
 .dash .activity-time   { color: var(--dim) !important; }
 .dash .dot { background: var(--accent) !important; }
-.dash .empty-state, .dash .loading { color: var(--dim) !important; }
+.dash .loading { color: var(--dim) !important; }
 
 /* ── Status pills ── */
 .dash .status-pill { background: var(--accent-10) !important; border-color: var(--accent-border) !important; color: var(--accent) !important; }
@@ -1484,17 +1483,17 @@ body.panel-open .main { pointer-events: none; }
       <div class="log-booking-error" id="logBookingError"></div>
       <button class="log-booking-btn" id="logBookingBtn">+ Log a booking</button>
     </div>
-    <div class="renewal-strip">
-      <div id="renewalContent">
-        <div class="renewal-label">Renewal in</div>
-        <div class="renewal-value" id="renewalValue">—</div>
-      </div>
-    </div>
-
     <div class="section-header">
-      <div class="section-title">Recent activity</div>
+      <div>
+        <div class="section-title">Recent activity</div>
+        <div class="renewal-strip">
+          <div id="renewalContent">
+            <div class="renewal-label">Renewal in</div>
+            <div class="renewal-value" id="renewalValue">—</div>
+          </div>
+        </div>
+      </div>
       <div class="sms-counter-block">
-        <div class="call-count-badge" id="callCountBadge">0 calls</div>
         <div class="sms-odom-row" id="smsOdomRow">
           <div class="odometer">
             <div class="odometer-cell" id="odom-2"><span class="old">0</span><span class="new">0</span></div>
@@ -2202,7 +2201,6 @@ async function loadStats() {
   document.getElementById('demoBanner').style.display = isFullyEmpty ? 'block' : 'none';
 
   updateSmsCounter(monthSms);
-  document.getElementById('callCountBadge').textContent = monthSms + ' calls';
 
   const smsIncluded = currentClient.sms_included || 50;
   const overage = Math.max(0, monthSms - smsIncluded);
@@ -2555,7 +2553,7 @@ async function loadActivity(clientId, startIso, endIso, parentRequestId) {
   // Hide tap/click events entirely; hide entries where caller is unknown (null/empty phone)
   const visibleEvents = events.filter(e => e.type !== 'click' && (e.type === 'book' || !!e.number));
 
-  if (visibleEvents.length === 0) { card.innerHTML = '<div class="empty-state">No activity this period.</div>'; return; }
+  if (visibleEvents.length === 0) { card.innerHTML = ''; return; }
 
   const latest = visibleEvents[0];
   const latestLabel = latest.type === 'sms' ? 'SMS sent to ' + maskNumber(latest.number) :
