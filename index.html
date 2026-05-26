@@ -92,6 +92,7 @@ body {
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
 }
+.hidden { display: none !important; }
 .star-pulse { color: var(--accent); animation: pulse 2s ease-in-out 3; display: inline-block; flex-shrink: 0; line-height: 1; }
 @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
 /* ── Splash screen ── */
@@ -1394,12 +1395,12 @@ body {
     </div>
     <div class="birthday-banner" id="birthdayBanner">🎂 Happy Birthday <span id="birthdayBizName"></span>!</div>
     <div class="period-controls">
-      <div class="period-nav">
+      <div class="period-nav" id="periodNav">
         <button class="nav-btn" id="prevBtn" onclick="navigate(-1)">←</button>
         <div class="period-label-text" id="periodLabelText"></div>
         <button class="nav-btn" id="nextBtn" onclick="navigate(1)" disabled>→</button>
       </div>
-      <div class="toggle-row">
+      <div class="toggle-row" id="toggleRow">
         <button class="toggle-btn active" id="toggleWeek" onclick="setMode('week')">Week</button>
         <button class="toggle-btn" id="toggleMonth" onclick="setMode('month')">Month</button>
       </div>
@@ -2319,6 +2320,14 @@ function renderTilesForMode(mode) {
     if (vtR) vtR.classList.remove('active');
     if (vtH) vtH.classList.add('active');
   }
+
+  // ── Restaurant + Middle Man: hide dashboard chrome not relevant to this vertical ──
+  const isRestaurantMM = currentClient &&
+    currentClient.vertical === 'restaurant' &&
+    currentClient.middle_man_enabled === true;
+  document.getElementById('refreshBtn')?.classList.toggle('hidden', !!isRestaurantMM);
+  document.getElementById('periodNav')?.classList.toggle('hidden', !!isRestaurantMM);
+  document.getElementById('toggleRow')?.classList.toggle('hidden', !!isRestaurantMM);
 }
 
 function refreshVerticalToggleVisibility() {
