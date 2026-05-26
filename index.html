@@ -3428,6 +3428,7 @@ function _renderMmEditBody(client) {
         '<button id="mmEditUploadBtn" class="mm-edit-save-btn" onclick="mmEditUploadBg()">Upload new</button>' +
         '<div id="mmEditUploadProg" style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px;"></div>' +
         '<div id="mmEditUploadErr" style="font-size:11px;color:#CC5500;margin-top:4px;display:none;"></div>' +
+        (bgUrl ? '<button id="mmEditRemoveBgBtn" onclick="mmEditRemoveBg()" style="margin-top:8px;background:transparent;border:1px solid rgba(255,68,68,0.4);color:#ff4444;border-radius:6px;padding:4px 10px;font-size:11px;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;display:block;">Remove background</button>' : '') +
       '</div>' +
     '</div>'
   );
@@ -3614,7 +3615,22 @@ function mmEditUploadBg() {
             thumb.parentNode.replaceChild(img, thumb);
           }
         }
-        if (_mmEditClientData) _mmEditClientData.middle_man_background_url = newUrl;
+        if (_mmEditClientData) {
+          _mmEditClientData.middle_man_background_url = newUrl;
+          _mmEditClientData.middle_man_background_type = resp.type || 'image';
+        }
+        // Show remove button if it doesn't exist yet (first upload when no bg was set)
+        if (!document.getElementById('mmEditRemoveBgBtn')) {
+          const uploadBtn = document.getElementById('mmEditUploadBtn');
+          if (uploadBtn && uploadBtn.parentNode) {
+            const removeBtnEl = document.createElement('button');
+            removeBtnEl.id = 'mmEditRemoveBgBtn';
+            removeBtnEl.onclick = mmEditRemoveBg;
+            removeBtnEl.textContent = 'Remove background';
+            removeBtnEl.style.cssText = 'margin-top:8px;background:transparent;border:1px solid rgba(255,68,68,0.4);color:#ff4444;border-radius:6px;padding:4px 10px;font-size:11px;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;display:block;';
+            uploadBtn.parentNode.appendChild(removeBtnEl);
+          }
+        }
       }
     });
     xhr.addEventListener('error', function() {
@@ -3624,6 +3640,36 @@ function mmEditUploadBg() {
     xhr.send(fd);
   };
   fileInput.click();
+}
+
+async function mmEditRemoveBg() {
+  if (!_mmEditClientId || !_mmEditClientData) return;
+  const bizName = _mmEditClientData.business_name || 'this client';
+  if (!confirm('Remove background for ' + bizName + '?')) return;
+  const btn = document.getElementById('mmEditRemoveBgBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Removing…'; }
+  try {
+    const { error } = await sb.from('clients')
+      .update({ middle_man_background_url: null, middle_man_background_type: null })
+      .eq('id', _mmEditClientId);
+    if (error) throw error;
+    _mmEditClientData.middle_man_background_url = null;
+    _mmEditClientData.middle_man_background_type = null;
+    // Replace thumb with charcoal ★ placeholder
+    const thumb = document.getElementById('mmEditBgThumb');
+    if (thumb) {
+      const placeholder = document.createElement('div');
+      placeholder.id = 'mmEditBgThumb';
+      placeholder.style.cssText = 'width:72px;height:72px;background:#1C2730;border-radius:8px;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:24px;color:rgba(6,214,160,0.3);';
+      placeholder.textContent = '★';
+      thumb.parentNode.replaceChild(placeholder, thumb);
+    }
+    // Hide the remove button
+    if (btn) btn.style.display = 'none';
+  } catch (e) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Remove background'; }
+    alert('Remove failed: ' + e.message);
+  }
 }
 </script>
 </body>

@@ -545,7 +545,7 @@
     var url = SUPABASE_URL + '/rest/v1/clients'
       + '?middle_man_slug=eq.' + encodeURIComponent(slug)
       + '&account_status=eq.active'
-      + '&select=business_name,middle_man_background_url,middle_man_promo_text,'
+      + '&select=business_name,middle_man_background_url,middle_man_background_type,middle_man_promo_text,'
       + 'middle_man_buttons,middle_man_show_whats_on,booking_url,vertical'
       + '&limit=1';
     var res = await fetch(url, {
@@ -939,8 +939,33 @@
     // ── Full-screen background ────────────────────────────────────────────
     // FIX 4: #bgFixed always has background-color:#0E1419 (charcoal) as base.
     // No opacity flash — charcoal is visible immediately from CSS.
-    if (bgUrl) {
-      document.getElementById('bgFixed').style.backgroundImage = 'url(' + JSON.stringify(bgUrl) + ')';
+    if (client.middle_man_background_type === 'video') {
+      // Create a video element as the background
+      var bgFixed = document.getElementById('bgFixed');
+      bgFixed.style.backgroundImage = 'none';
+      var vid = document.createElement('video');
+      vid.autoplay = true;
+      vid.loop = true;
+      vid.muted = true;
+      vid.playsInline = true;
+      vid.setAttribute('playsinline', '');
+      vid.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;';
+      var src = document.createElement('source');
+      src.src = client.middle_man_background_url;
+      src.type = client.middle_man_background_url.endsWith('.webm') ? 'video/webm' : 'video/mp4';
+      vid.appendChild(src);
+      bgFixed.appendChild(vid);
+      bgFixed.classList.add('loaded');
+      // Spacer expands to push buttons into lower half of screen
+      document.getElementById('contentSpacer').classList.add('expanded');
+    } else if (client.middle_man_background_url) {
+      // Image background — existing behaviour
+      var img = new Image();
+      img.onload = function() {
+        document.getElementById('bgFixed').style.backgroundImage = 'url(' + JSON.stringify(client.middle_man_background_url) + ')';
+        document.getElementById('bgFixed').classList.add('loaded');
+      };
+      img.src = client.middle_man_background_url;
       // Spacer expands to push buttons into lower half of screen
       document.getElementById('contentSpacer').classList.add('expanded');
     } else {
@@ -1014,7 +1039,7 @@
     if (showWhatsOn) {
       document.getElementById('whatsOnSection').style.display = 'block';
       var inner = document.getElementById('whatsOnInner');
-      if (bgUrl) {
+      if (bgUrl && client.middle_man_background_type !== 'video') {
         var woImg = document.createElement('img');
         woImg.className = 'whats-on-img';
         woImg.src = bgUrl;
