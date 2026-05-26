@@ -49,6 +49,22 @@
     pointer-events: none;
   }
 
+  /* ── Background video sizing + hide native controls ────────────────────── */
+  #bgFixed video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+  #bgFixed video::-webkit-media-controls { display: none !important; }
+  #bgFixed video::-webkit-media-controls-enclosure { display: none !important; }
+  #bgFixed video::-webkit-media-controls-panel { display: none !important; }
+  #bgFixed video::-webkit-media-play-button { display: none !important; }
+  video::-webkit-media-controls-start-playback-button { display: none !important; }
+
   /* ── App shell ──────────────────────────────────────────────────────────── */
   #app {
     position: fixed;
@@ -961,7 +977,9 @@
       vid.autoplay = true;
       vid.loop = true;
       vid.playsInline = true;
-      vid.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;';
+      vid.controls = false;
+      vid.removeAttribute('controls');
+      vid.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:center;';
       var src = document.createElement('source');
       src.src = client.middle_man_background_url;
       src.type = client.middle_man_background_url.endsWith('.webm') ? 'video/webm' : 'video/mp4';
