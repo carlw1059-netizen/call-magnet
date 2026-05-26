@@ -946,7 +946,9 @@
   function render(client, slug) {
     gSlug = slug;
 
-    var bgUrl       = client.middle_man_background_url || '';
+    var bgUrl       = client.middle_man_background_url
+                        ? client.middle_man_background_url + '?v=' + Date.now()
+                        : null;
     var businessName = client.business_name || '';
     var promoText   = client.middle_man_promo_text || '';
     var buttons     = [];
@@ -962,11 +964,15 @@
     // ── Full-screen background ────────────────────────────────────────────
     // #app is position:fixed (scroll container) — body is just overflow:hidden.
     // #bgFixed is position:fixed z-index:0 — always covers the full screen.
+    // bgUrl has a ?v= cache-bust so a re-uploaded portrait.jpg is never stale.
     var bgFixed = document.getElementById('bgFixed');
+    // Fully clear any previous background before applying a new one
+    bgFixed.style.backgroundImage = 'none';
+    bgFixed.style.backgroundColor = '#0E1419';
+    var oldVideo = bgFixed.querySelector('video');
+    if (oldVideo) { oldVideo.pause(); bgFixed.removeChild(oldVideo); }
+
     if (client.middle_man_background_type === 'video') {
-      bgFixed.style.backgroundImage = 'none';
-      var existingVideo = bgFixed.querySelector('video');
-      if (existingVideo) bgFixed.removeChild(existingVideo);
       var vid = document.createElement('video');
       vid.setAttribute('autoplay', '');
       vid.setAttribute('muted', '');
@@ -981,8 +987,8 @@
       vid.removeAttribute('controls');
       vid.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:center;';
       var src = document.createElement('source');
-      src.src = client.middle_man_background_url;
-      src.type = client.middle_man_background_url.endsWith('.webm') ? 'video/webm' : 'video/mp4';
+      src.src = bgUrl;
+      src.type = (client.middle_man_background_url || '').endsWith('.webm') ? 'video/webm' : 'video/mp4';
       vid.appendChild(src);
       bgFixed.appendChild(vid);
       vid.load();
@@ -994,13 +1000,10 @@
       }
       bgFixed.classList.add('loaded');
       document.getElementById('contentSpacer').classList.add('expanded');
-    } else if (client.middle_man_background_url) {
-      bgFixed.style.backgroundImage = 'none';
-      var existingVideo = bgFixed.querySelector('video');
-      if (existingVideo) bgFixed.removeChild(existingVideo);
+    } else if (bgUrl) {
       var img = new Image();
       img.onload = function() {
-        bgFixed.style.backgroundImage = 'url(' + JSON.stringify(client.middle_man_background_url) + ')';
+        bgFixed.style.backgroundImage = 'url(' + JSON.stringify(bgUrl) + ')';
         bgFixed.style.backgroundSize = 'cover';
         bgFixed.style.backgroundPosition = 'center';
         bgFixed.classList.add('loaded');
@@ -1010,7 +1013,7 @@
         bgFixed.style.backgroundColor = '#0E1419';
         bgFixed.classList.add('loaded');
       };
-      img.src = client.middle_man_background_url;
+      img.src = bgUrl;
     } else {
       // No background — compact header, buttons close to business name
       bgFixed.style.backgroundColor = '#0E1419';
