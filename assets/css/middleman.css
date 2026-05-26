@@ -1,0 +1,444 @@
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #0E1419;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    color: #fff;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Full-screen background layer (behind everything) ───────────────────── */
+  #bgFixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    background-color: #0E1419;
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+  }
+  #bgOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    background: linear-gradient(
+      to bottom,
+      rgba(14,20,25,0.0)  0%,
+      rgba(14,20,25,0.0)  60%,
+      rgba(14,20,25,0.95) 100%
+    );
+    pointer-events: none;
+  }
+
+  /* ── Background video sizing + hide native controls ────────────────────── */
+  #bgFixed video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+  #bgFixed video::-webkit-media-controls { display: none !important; }
+  #bgFixed video::-webkit-media-controls-enclosure { display: none !important; }
+  #bgFixed video::-webkit-media-controls-panel { display: none !important; }
+  #bgFixed video::-webkit-media-play-button { display: none !important; }
+  video::-webkit-media-controls-start-playback-button { display: none !important; }
+
+  /* ── App shell ──────────────────────────────────────────────────────────── */
+  #app {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.4s ease both;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ── Not-found / error state ────────────────────────────────────────────── */
+  .state-cover {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    text-align: center;
+  }
+  .state-cover h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.85);
+    margin-bottom: 10px;
+  }
+  .state-cover p {
+    font-size: 14px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.5;
+  }
+
+  /* ── Skeleton loading ───────────────────────────────────────────────────── */
+  #skeleton {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  .skel-header {
+    height: 80px;
+    background: rgba(255,255,255,0.03);
+    position: relative;
+    overflow: hidden;
+  }
+  .skel-header::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.05) 50%, transparent 75%);
+    animation: shimmer 1.4s infinite;
+    background-size: 200% 100%;
+  }
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  .skel-spacer { flex: 1; }
+  .skel-buttons {
+    padding: 0 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .skel-btn {
+    height: 52px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+    position: relative;
+    overflow: hidden;
+  }
+  .skel-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.05) 50%, transparent 75%);
+    animation: shimmer 1.4s infinite;
+    background-size: 200% 100%;
+  }
+
+  /* ── Main page ──────────────────────────────────────────────────────────── */
+  #mainPage {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    min-height: 100%;
+    padding: 20px 0;
+  }
+  #mainPage.visible {
+    display: flex;
+    animation: fadeIn 0.4s ease both;
+  }
+
+  /* ── Page header — text group (business name + promo + section label) ─── */
+  .page-header {
+    flex-shrink: 0;
+    padding: 44px 20px 0;
+    text-align: center;
+    margin-bottom: 32px; /* breathing room between text group and first button */
+  }
+  .page-header.compact {
+    padding-top: 24px; /* slightly less breathing room when no background image */
+  }
+  .hero-business-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: #FFFFFF;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    text-shadow: 0 0 12px rgba(6,214,160,0.4), 0 0 24px rgba(6,214,160,0.15);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ── Flexible spacer — pushes buttons to lower half when bg image present ─ */
+  #contentSpacer {
+    flex: 0 0 0;
+    min-height: 0;
+    transition: flex-basis 0.3s ease;
+  }
+  #contentSpacer.expanded { flex: 1; min-height: 20px; }
+
+  /* ── Content / buttons area ─────────────────────────────────────────────── */
+  .content {
+    flex-shrink: 0;
+    padding: 0 0 12px;
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #FFFFFF;
+    text-shadow: 0 0 12px rgba(6,214,160,0.4), 0 0 24px rgba(6,214,160,0.15);
+    margin-bottom: 0;
+    padding: 0;
+  }
+
+  /* ── Buttons ─────────────────────────────────────────────────────────────── */
+  .buttons { display: flex; flex-direction: column; gap: 14px; }
+
+  .tap-btn {
+    display: block;
+    width: calc(100% - 96px); /* FIX 1: narrower, more centred */
+    max-width: 360px;          /* FIX 1: never wider than 360px */
+    margin: 0 auto;
+    padding: 16px 24px;
+    background: rgba(0,0,0,0.75);
+    border: 2px solid #06D6A0; /* overridden per-button in JS */
+    border-radius: 12px;
+    color: #06D6A0;             /* overridden per-button in JS */
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: center;
+    letter-spacing: 0.01em;
+    line-height: 1.3;
+    transition: opacity 0.12s, transform 0.08s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    text-decoration: none;
+  }
+  .tap-btn:active, .tap-btn.pressed {
+    opacity: 0.72;
+    transform: scale(0.97);
+  }
+
+  /* ── "See what's on" section ─────────────────────────────────────────────── */
+  .whats-on-divider {
+    margin: 12px 24px 12px;
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .whats-on-btn {
+    display: block;
+    width: calc(100% - 48px);
+    margin: 0 auto;
+    padding: 12px 16px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+    color: rgba(255,255,255,0.55);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.12s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .whats-on-btn:active { background: rgba(255,255,255,0.05); }
+  .whats-on-content {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.35s ease;
+  }
+  .whats-on-content.open { max-height: 600px; }
+  .whats-on-inner {
+    padding: 14px 24px 0;
+  }
+  .whats-on-img {
+    width: 100%;
+    border-radius: 8px;
+    display: block;
+    margin-bottom: 10px;
+  }
+  .whats-on-text {
+    font-size: 14px;
+    color: rgba(255,255,255,0.75);
+    line-height: 1.5;
+  }
+
+  /* ── Inline forms ────────────────────────────────────────────────────────── */
+  .form-wrap {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease;
+    margin: 0 24px;
+  }
+  .form-wrap.open { max-height: 1200px; }
+
+  .inline-form {
+    background: rgba(14,20,25,0.92);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    padding: 18px 16px 16px;
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .form-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 2px;
+  }
+
+  .field-wrap { display: flex; flex-direction: column; gap: 4px; }
+
+  /* FIX 4: Field labels bright white */
+  .field-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #FFFFFF;
+    letter-spacing: 0.02em;
+  }
+  .field-label .opt {
+    color: rgba(255,255,255,0.35);
+    font-weight: 400;
+  }
+
+  .field-input,
+  .field-select,
+  .field-textarea {
+    width: 100%;
+    padding: 11px 13px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: border-color 0.15s;
+  }
+  .field-input:focus,
+  .field-select:focus,
+  .field-textarea:focus {
+    border-color: rgba(255,255,255,0.4);
+  }
+  .field-input::placeholder,
+  .field-textarea::placeholder { color: rgba(255,255,255,0.28); }
+  .field-input.error,
+  .field-select.error,
+  .field-textarea.error { border-color: #E84A5F; }
+
+  .field-error {
+    font-size: 12px;
+    color: #E84A5F;
+    display: none;
+  }
+  .field-error.visible { display: block; }
+
+  .field-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(255,255,255,0.4)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 13px center;
+    padding-right: 36px;
+  }
+  .field-select option { background: #1C2730; color: #fff; }
+
+  .field-textarea {
+    resize: none;
+    min-height: 80px;
+    line-height: 1.4;
+  }
+  .field-counter {
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+    text-align: right;
+  }
+
+  .submit-btn {
+    width: 100%;
+    height: 50px;
+    background: #06D6A0;
+    border: none;
+    border-radius: 10px;
+    color: #0E1419;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: opacity 0.12s, transform 0.08s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .submit-btn:active { transform: scale(0.98); }
+  .submit-btn:disabled { opacity: 0.5; cursor: default; }
+
+  /* ── Success state ───────────────────────────────────────────────────────── */
+  .success-state {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 24px 16px 20px;
+  }
+  .success-state.visible {
+    display: flex;
+    animation: fadeIn 0.3s ease both;
+  }
+  .success-icon {
+    width: 52px;
+    height: 52px;
+    margin-bottom: 14px;
+    color: #06D6A0;
+  }
+  .success-heading {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  .success-msg {
+    font-size: 14px;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.5;
+  }
+
+  /* ── Footer ─────────────────────────────────────────────────────────────── */
+  .footer {
+    text-align: center;
+    padding: 14px 0 20px;
+    flex-shrink: 0;
+  }
+  .footer-powered {
+    font-size: 11px;
+    color: rgba(255,255,255,0.28);
+    letter-spacing: 0.04em;
+  }
+  .footer-powered .star { color: rgba(6,214,160,0.55); }
+  .footer-stop {
+    display: inline-block;
+    margin-top: 5px;
+    font-size: 10px;
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+  }
+  .footer-stop:hover { color: #FFFFFF; }

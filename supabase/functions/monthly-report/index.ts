@@ -376,6 +376,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
     });
   }
 
+  try {
+
   if (!INTERNAL_SECRET) {
     console.error('monthly-report: INTERNAL_SECRET missing from env');
     return new Response(JSON.stringify({ error: 'config_error', detail: 'shared secret not configured in Vault' }), {
@@ -519,4 +521,17 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }), {
     status: 200, headers: { 'Content-Type': 'application/json' },
   });
+
+  } catch (err) {
+    console.error(JSON.stringify({
+      fn: 'monthly-report',
+      error: (err as Error)?.message ?? String(err),
+      stack: (err as Error)?.stack ?? null,
+      ts: new Date().toISOString(),
+    }));
+    return new Response(JSON.stringify({ ok: false, error: 'internal_error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 });
