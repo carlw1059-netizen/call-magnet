@@ -753,7 +753,7 @@ body.panel-open .main { pointer-events: none; }
 }
 /* ── Admin Tools slide-out panel ─────────────────────────────────────────── */
 .admin-panel-overlay {
-  position: fixed; inset: 0; z-index: 9100;
+  position: fixed; inset: 0; z-index: 8900;
   background: rgba(0,0,0,0.55);
   backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
   opacity: 0; pointer-events: none;
@@ -2644,7 +2644,7 @@ function showLogBookingError(text) {
 }
 
 function showResetModal() { document.getElementById('resetModal').classList.add('open'); }
-function closeResetModal() { document.getElementById('resetModal').classList.remove('open'); }
+function closeResetModal() { document.getElementById('resetModal').classList.remove('open'); document.body.classList.remove('panel-open'); }
 
 async function confirmReset() {
   if (!currentClient) return;
@@ -3355,6 +3355,7 @@ function closeMmEdit() {
   const panel   = document.getElementById('mmEditPanel');
   if (overlay) overlay.classList.remove('open');
   if (panel)   panel.classList.remove('open');
+  document.body.classList.remove('panel-open');
 }
 
 function _mmSection(label, content) {
