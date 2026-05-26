@@ -8,15 +8,20 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  html, body {
-    min-height: 100%;
+  html {
+    height: 100dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  body {
+    min-height: 100dvh;
+    overflow: visible;
+    overflow-x: hidden;
     background: #0E1419;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     color: #fff;
     -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
   }
 
   /* ── Full-screen background layer (behind everything) ───────────────────── */
@@ -48,7 +53,7 @@
     z-index: 2;
     display: flex;
     flex-direction: column;
-    min-height: 120vh;
+    min-height: 100dvh;
     animation: fadeIn 0.4s ease both;
   }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -128,7 +133,7 @@
     flex-direction: column;
     justify-content: center;
     flex: 1;
-    min-height: 120vh;
+    min-height: 100dvh;
     background: transparent;
   }
   #mainPage.visible {
@@ -185,7 +190,7 @@
   }
 
   /* ── Buttons ─────────────────────────────────────────────────────────────── */
-  .buttons { display: flex; flex-direction: column; gap: 8px; }
+  .buttons { display: flex; flex-direction: column; gap: 14px; }
 
   .tap-btn {
     display: block;
@@ -417,11 +422,11 @@
     display: inline-block;
     margin-top: 5px;
     font-size: 10px;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,255,255,0.7);
     text-decoration: none;
     letter-spacing: 0.02em;
   }
-  .footer-stop:hover { color: rgba(255,255,255,0.75); }
+  .footer-stop:hover { color: #FFFFFF; }
 </style>
 </head>
 <body>
@@ -532,7 +537,7 @@
     var c = NEON[Math.min(idx, NEON.length - 1)];
     el.style.borderColor = c;
     el.style.color       = c;
-    el.style.boxShadow   = '0 0 8px ' + c + ', 0 0 20px ' + hexRgba(c, 0.3);
+    el.style.boxShadow   = '0 0 8px ' + hexRgba(c, 0.25) + ', 0 0 20px ' + hexRgba(c, 0.10);
   }
 
   // ── Fetch client from Supabase REST (anon key) ────────────────────────────
