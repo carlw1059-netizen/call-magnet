@@ -93,6 +93,11 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 .hidden { display: none !important; }
+/* Panel-open body lock: prevents background scroll without suppressing wheel
+   events on position:fixed panels (body overflow:hidden can eat mousewheel
+   on Windows Chrome — using pointer-events on .main instead) */
+body.panel-open { overflow: hidden; }
+body.panel-open .main { pointer-events: none; }
 .star-pulse { color: var(--accent); animation: pulse 2s ease-in-out 3; display: inline-block; flex-shrink: 0; line-height: 1; }
 @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
 /* ── Splash screen ── */
@@ -778,7 +783,7 @@ body {
   transform: translateX(100%);
   transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
   display: flex; flex-direction: column;
-  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  overflow: hidden;
 }
 .admin-panel.open { transform: translateX(0); }
 .admin-panel-header {
@@ -799,7 +804,7 @@ body {
   transition: background 0.15s; flex-shrink: 0;
 }
 .admin-panel-close:hover { background: rgba(255,255,255,0.12); color: #fff; }
-.admin-panel-body { padding: 20px; flex: 1; }
+.admin-panel-body { padding: 20px; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; min-height: 0; }
 .admin-panel-section { margin-bottom: 28px; }
 .admin-panel-section-label {
   font-family: var(--font-mono); font-size: 10px; font-weight: 700;
@@ -2813,13 +2818,13 @@ function dismissInstall() {
 function openAdminPanel() {
   document.getElementById('adminPanel').classList.add('open');
   document.getElementById('adminPanelOverlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  document.body.classList.add('panel-open');
 }
 
 function closeAdminPanel() {
   document.getElementById('adminPanel').classList.remove('open');
   document.getElementById('adminPanelOverlay').classList.remove('open');
-  document.body.style.overflow = '';
+  document.body.classList.remove('panel-open');
 }
 
 document.addEventListener('keydown', (e) => {
@@ -3030,7 +3035,7 @@ async function openMmPanel(rawLabel, displayLabel, formType, neonColor) {
 
   overlay.classList.add('open');
   panel.classList.add('open');
-  document.body.style.overflow = 'hidden';
+  document.body.classList.add('panel-open');
 
   const monthStartIso = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
 
@@ -3175,7 +3180,7 @@ function closeMmPanel() {
   const panel   = document.getElementById('mmPanel');
   if (overlay) overlay.classList.remove('open');
   if (panel)   panel.classList.remove('open');
-  document.body.style.overflow = '';
+  document.body.classList.remove('panel-open');
   _mmOpenCard = null; // reset accordion state on close
 }
 
@@ -3254,7 +3259,7 @@ function openToolPanel(panelId, iframeId, iframeSrc) {
   _activeToolPanelId = panelId;
   overlay.classList.add('open');
   panel.classList.add('open');
-  document.body.style.overflow = 'hidden';
+  document.body.classList.add('panel-open');
 }
 
 function closeToolPanel() {
@@ -3265,7 +3270,7 @@ function closeToolPanel() {
     if (panel) panel.classList.remove('open');
     _activeToolPanelId = null;
   }
-  document.body.style.overflow = '';
+  document.body.classList.remove('panel-open');
 }
 
 function openOnboardPanel() {
@@ -3289,7 +3294,7 @@ function openMmMgrPanel() {
   _activeToolPanelId = 'toolMmMgrPanel';
   overlay.classList.add('open');
   panel.classList.add('open');
-  document.body.style.overflow = 'hidden';
+  document.body.classList.add('panel-open');
   loadMmManager();
 }
 
