@@ -770,6 +770,7 @@ body.panel-open .main { pointer-events: none; }
 .admin-panel-link.destructive:hover { background: rgba(204,85,0,0.08); border-color: rgba(204,85,0,0.4); }
 @media (max-width: 767px) {
   .admin-panel-testing { display: none; }
+  .desktop-only-nav { display: none !important; }
 }
 /* ── Dashboard admin sidebar (desktop, admin only) ───────────────────────── */
 /* Base: always hidden. JS adds .visible; the desktop media query then applies

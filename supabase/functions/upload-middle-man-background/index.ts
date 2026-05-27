@@ -7,7 +7,7 @@
 //
 // Input: multipart/form-data
 //   client_id  (string, uuid)   — required
-//   file       (binary)         — required, JPEG, PNG, MP4, or WebM
+//   file       (binary)         — required, JPEG or PNG only
 //   promo_text (string, ≤80ch)  — optional
 //
 // Image processing (JPEG/PNG — imagescript, pure TS, no native deps):
@@ -17,7 +17,8 @@
 //       landscape 1920×1080  → <client_id>/landscape.jpg  quality 85
 //       square    1080×1080  → <client_id>/square.jpg     quality 85
 //
-// Video (mp4/webm): stored as-is at <client_id>/video.<ext>
+// NOTE: Video backgrounds are deferred to Phase 1.5. Any video upload returns
+// 400 { error: 'video_not_supported' }.
 //
 // NOTE: npm:sharp requires native Node.js bindings (libvips) which are NOT
 // available in Supabase Edge Functions (Deno Deploy). imagescript is the
@@ -34,8 +35,7 @@ const BUCKET                    = 'middle-man-backgrounds';
 
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png']);
 const ALLOWED_VIDEO_TYPES = new Set(['video/mp4', 'video/webm']);
-const MAX_IMAGE_BYTES     = 5  * 1024 * 1024;   // 5 MB
-const MAX_VIDEO_BYTES     = 15 * 1024 * 1024;   // 15 MB
+const MAX_IMAGE_BYTES     = 5 * 1024 * 1024;   // 5 MB
 const MIN_IMG_W           = 600;
 const MIN_IMG_H           = 800;
 
@@ -150,38 +150,27 @@ Deno.serve(async (req: Request): Promise<Response> => {
     const isImage = ALLOWED_IMAGE_TYPES.has(mime);
     const isVideo = ALLOWED_VIDEO_TYPES.has(mime);
 
-    if (!isImage && !isVideo) {
+    if (isVideo) {
+      return json(400, { ok: false, error: 'video_not_supported',
+                          message: 'Video backgrounds coming soon. Please upload a JPG or PNG image.' });
+    }
+    if (!isImage) {
       return json(400, { ok: false, error: 'validation_failed',
-                          detail: 'Unsupported file type. Allowed: JPG, PNG, MP4, or WebM.' });
+                          detail: 'Unsupported file type. Allowed: JPG or PNG.' });
     }
 
     const fileBytes = new Uint8Array(await fileEntry.arrayBuffer());
-    const maxBytes  = isImage ? MAX_IMAGE_BYTES : MAX_VIDEO_BYTES;
-    if (fileBytes.byteLength > maxBytes) {
-      const limitMB = (maxBytes / 1024 / 1024).toFixed(0);
+    if (fileBytes.byteLength > MAX_IMAGE_BYTES) {
+      const limitMB = (MAX_IMAGE_BYTES / 1024 / 1024).toFixed(0);
       return json(400, { ok: false, error: 'validation_failed',
-                          detail: `File too large. ${isImage ? 'Images' : 'Videos'} must be ≤ ${limitMB} MB (got ${(fileBytes.byteLength / 1024 / 1024).toFixed(1)} MB)` });
+                          detail: `File too large. Images must be ≤ ${limitMB} MB (got ${(fileBytes.byteLength / 1024 / 1024).toFixed(1)} MB)` });
     }
 
     // ── 4. Process file and upload to storage ─────────────────────────────
     let urls:   Record<string, string>;
-    let bgType: 'image' | 'video';
+    const bgType: 'image' = 'image';
 
-    if (isVideo) {
-      // ── Video: store as-is ──────────────────────────────────────────────
-      const ext  = mime === 'video/webm' ? 'webm' : 'mp4';
-      const path = `${clientId}/video.${ext}`;
-
-      const { error: upErr } = await supa.storage
-        .from(BUCKET)
-        .upload(path, fileBytes, { contentType: mime, upsert: true });
-      if (upErr) throw new Error(`Storage upload failed: ${upErr.message}`);
-
-      const { data: { publicUrl } } = supa.storage.from(BUCKET).getPublicUrl(path);
-      urls   = { video: publicUrl };
-      bgType = 'video';
-
-    } else {
+    {
       // ── Image (JPEG or PNG): decode → validate → 3-variant encode pipeline
       let img: Image;
       try {
@@ -223,7 +212,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     }
 
     // ── 5. Update clients row (service_role bypasses RLS lockdown) ─────────
-    const primaryUrl  = urls.portrait ?? urls.video ?? Object.values(urls)[0];
+    const primaryUrl  = urls.portrait ?? Object.values(urls)[0];
     const updatedAtTs = new Date().toISOString();
 
     const updatePayload: Record<string, unknown> = {

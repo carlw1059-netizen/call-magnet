@@ -1768,6 +1768,7 @@ function _renderMmEditBody(client) {
       bgThumb +
       '<div>' +
         '<button id="mmEditUploadBtn" class="mm-edit-save-btn" onclick="mmEditUploadBg()">Upload new</button>' +
+        '<div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px;">Upload a portrait photo for best results. Video backgrounds coming soon.</div>' +
         '<div id="mmEditUploadProg" style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px;"></div>' +
         '<div id="mmEditUploadErr" style="font-size:11px;color:#CC5500;margin-top:4px;display:none;"></div>' +
         (bgUrl ? '<button id="mmEditRemoveBgBtn" onclick="mmEditRemoveBg()" style="margin-top:8px;background:transparent;border:1px solid rgba(255,68,68,0.4);color:#ff4444;border-radius:6px;padding:4px 10px;font-size:11px;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;display:block;">Remove background</button>' : '') +
@@ -1913,7 +1914,7 @@ function mmEditUploadBg() {
   if (!_mmEditClientId) return;
   const fileInput = document.createElement('input');
   fileInput.type   = 'file';
-  fileInput.accept = '.jpg,.jpeg,.png,.mp4,.webm,image/jpeg,image/png,video/mp4,video/webm';
+  fileInput.accept = 'image/jpeg,image/png,.jpg,.jpeg,.png';
   fileInput.onchange = async (ev) => {
     const file = ev.target.files && ev.target.files[0];
     if (!file) return;
@@ -1944,7 +1945,7 @@ function mmEditUploadBg() {
         errEl.textContent = 'Upload failed: ' + (resp.detail || resp.error || 'HTTP ' + xhr.status);
         errEl.style.display = 'block'; return;
       }
-      const newUrl = resp.urls && (resp.urls.portrait || resp.urls.video || Object.values(resp.urls)[0]);
+      const newUrl = resp.urls && (resp.urls.portrait || Object.values(resp.urls)[0]);
       if (newUrl) {
         const thumb = document.getElementById('mmEditBgThumb');
         if (thumb) {
