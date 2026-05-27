@@ -455,10 +455,15 @@
   function render(client, slug) {
     gSlug = slug;
 
-    var bgUrl       = client.middle_man_background_url
-                        ? client.middle_man_background_url + '?v=' + Date.now()
-                        : null;
+    // Video files are not cache-busted — the DB record changes when a new file
+    // is uploaded (different filename or re-upload), and the ?v= timestamp was
+    // causing the browser to download the file twice (preload used bare URL,
+    // <source> used URL+timestamp — two different cache keys → double download
+    // → GPU compositor never received a clean first frame → poster stuck).
+    // Image backgrounds keep ?v= because admins overwrite the same path.
+    var bgUrl       = client.middle_man_background_url || null;
     var bgType      = client.middle_man_background_type || 'image';
+    if (bgUrl && bgType === 'image') bgUrl = bgUrl + '?v=' + Date.now();
     var businessName = client.business_name || '';
     var promoText   = client.middle_man_promo_text || '';
     var buttons     = [];
@@ -474,15 +479,14 @@
     // ── Full-screen background ────────────────────────────────────────────
     // #app is position:fixed (scroll container) — body is just overflow:hidden.
     // #bgFixed is position:fixed z-index:0 — always covers the full screen.
-    // bgUrl has a ?v= cache-bust so a re-uploaded file is never stale.
+    // Image bgUrl has ?v= cache-bust; video bgUrl is bare (videos are content-addressed).
     var bgFixed = document.getElementById('bgFixed');
     bgFixed.style.backgroundImage = 'none';
     bgFixed.style.backgroundColor = '#0E1419';
 
     if (bgUrl && bgType === 'video') {
       // ── Video background (iOS Safari requires all 6 attributes) ──────────
-      console.log('[video] type=video detected');
-      console.log('[video] bgUrl (passed to <source>):', bgUrl);
+      console.log('[video] type=video detected | src (no cache-bust):', bgUrl);
       var vid = document.createElement('video');
       vid.setAttribute('autoplay', '');
       vid.setAttribute('muted', '');
@@ -701,21 +705,11 @@
 
     if (!client) { showNotFound(); return; }
 
-    // ── Aggressive video preload hint (JOB 1) ──────────────────────────────
-    // Injecting a <link rel="preload"> right after the fetch tells the browser
-    // to buffer the MP4 at high priority before render() creates the <video>
-    // element — shaves perceptible start-up latency on slow connections.
-    if (client.middle_man_background_url &&
-        (client.middle_man_background_type || 'image') === 'video') {
-      var preloadLink  = document.createElement('link');
-      preloadLink.rel  = 'preload';
-      preloadLink.as   = 'video';
-      preloadLink.href = client.middle_man_background_url;
-      preloadLink.type = 'video/mp4';
-      document.head.appendChild(preloadLink);
-      console.log('[video] preload hint href (NO cache-bust):', client.middle_man_background_url);
-      console.log('[video] NOTE: bgUrl in render() will have ?v=<timestamp> appended — these are different cache keys');
-    }
+    // NOTE: <link rel="preload" as="video"> was removed.
+    // Chrome doesn't honour as="video" for preloading, and the URL mismatch
+    // (preload: bare URL, <source>: URL+?v=timestamp) caused the browser to
+    // download the MP4 twice — which stalled the GPU compositor and made the
+    // poster image stick instead of the video frames showing through.
 
     render(client, slug);
   }
