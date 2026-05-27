@@ -171,7 +171,7 @@
   <aside id="adminSidebar" class="dash-admin-sidebar" aria-label="Admin tools">
     <button class="dash-admin-sidebar-link" onclick="openOnboardPanel()">Onboard new client</button>
     <button class="dash-admin-sidebar-link" onclick="openClientsPanel()">Manage clients</button>
-    <button class="dash-admin-sidebar-link desktop-only-nav" onclick="openMmMgrPanel()">Middle Man</button>
+    <a href="/admin/middle-man.html" class="dash-admin-sidebar-link desktop-only-nav">Middle Man</a>
     <a href="/admin/unsubscribes.html" class="dash-admin-sidebar-link">Unsubscribes</a>
     <button class="dash-admin-sidebar-link cancel-link" onclick="openCancelPanel()">Cancel subscription</button>
     <button class="dash-admin-sidebar-link" id="sidebarTestNotifBtn" onclick="sendTestNotification()">Send test notification</button>
@@ -317,7 +317,7 @@
         <div class="admin-panel-section-label">Clients</div>
         <button class="admin-panel-link" onclick="openOnboardPanel()">Onboard new client</button>
         <button class="admin-panel-link" onclick="openClientsPanel()">Manage clients</button>
-        <button class="admin-panel-link desktop-only-nav" onclick="openMmMgrPanel()">Middle Man</button>
+        <a href="/admin/middle-man.html" class="admin-panel-link desktop-only-nav">Middle Man</a>
         <a href="/admin/unsubscribes.html" class="admin-panel-link">Unsubscribes</a>
       </div>
       <div class="admin-panel-section">
@@ -370,17 +370,6 @@
     </div>
   </div>
 
-  <!-- Middle Man manager — inline panel (proper UX, not iframe) -->
-  <div class="tool-panel" id="toolMmMgrPanel" role="dialog" aria-modal="true" aria-label="Middle Man manager">
-    <div class="tool-panel-header">
-      <span class="tool-panel-title">Middle Man</span>
-      <button class="tool-panel-close" onclick="closeToolPanel()" aria-label="Close">✕</button>
-    </div>
-    <div class="tool-panel-scroll-body" id="mmMgrBody">
-      <div style="text-align:center;padding:2rem;color:rgba(255,255,255,0.35);font-size:13px;">Loading…</div>
-    </div>
-  </div>
-
   <!-- Cancel subscription — iframe panel -->
   <div class="tool-panel" id="toolCancelPanel" role="dialog" aria-modal="true" aria-label="Cancel subscription">
     <div class="tool-panel-header">
@@ -389,18 +378,6 @@
     </div>
     <div class="tool-panel-iframe-body">
       <iframe class="tool-panel-iframe" id="toolCancelFrame" src="" title="Cancel subscription" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
-    </div>
-  </div>
-
-  <!-- MM Edit panel — second-level, stacks above Middle Man manager -->
-  <div class="mm-edit-overlay" id="mmEditOverlay" onclick="closeMmEdit()" aria-hidden="true"></div>
-  <div class="mm-edit-panel" id="mmEditPanel" role="dialog" aria-modal="true" aria-label="Edit Middle Man client">
-    <div class="tool-panel-header">
-      <span class="tool-panel-title" id="mmEditTitle">Edit</span>
-      <button class="tool-panel-close" onclick="closeMmEdit()" aria-label="Close">✕</button>
-    </div>
-    <div class="tool-panel-scroll-body" id="mmEditBody">
-      <div style="text-align:center;padding:2rem;color:rgba(255,255,255,0.35);font-size:13px;">Loading…</div>
     </div>
   </div>
 

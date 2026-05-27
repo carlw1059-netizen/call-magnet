@@ -2,9 +2,29 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CallMagnet — Middle Man</title>
-<script>window.location.href = '/';</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Middle Man — CallMagnet Admin</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="/icon.svg?v=2026-05-14" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/css/middle-man-admin.css">
 </head>
-<body></body>
+<body>
+
+<!-- Auth gate: shown while checking session, then hidden -->
+<div id="mmaAuthGate">Checking access…</div>
+
+<!-- Main page: hidden until auth passes -->
+<div id="mmaPage" style="display:none;">
+  <header class="mma-header">
+    <span class="mma-header-title">Middle Man Manager</span>
+    <button id="mmaBackToDashboard" class="mma-back-btn">← Dashboard</button>
+  </header>
+  <div class="mma-body" id="mmaBody">
+    <!-- Filled by middle-man-admin.js -->
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/assets/js/middle-man-admin.js"></script>
+</body>
 </html>

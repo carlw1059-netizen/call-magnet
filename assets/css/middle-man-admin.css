@@ -1,0 +1,359 @@
+/* ═══ Middle Man Admin Page — white business-tool style ═══════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0; padding: 0;
+  min-height: 100vh;
+  background: #F5F5F5;
+  color: #111111;
+  font-family: 'Aptos', 'Candara', 'Segoe UI', Arial, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ─── Auth gate / loading screen ─── */
+#mmaAuthGate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-size: 14px;
+  color: #888888;
+}
+
+/* ─── Page header ─── */
+.mma-header {
+  background: #FFFFFF;
+  border-bottom: 2px solid rgba(6,214,160,0.35);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 0 rgba(6,214,160,0.4);
+}
+.mma-header-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111111;
+  letter-spacing: -0.01em;
+}
+.mma-back-btn {
+  background: #CC0000;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 7px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s;
+}
+.mma-back-btn:hover { background: #AA0000; }
+
+/* ─── Page body ─── */
+.mma-body {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px 16px 80px;
+}
+
+/* ─── Section / card ─── */
+.mma-section {
+  background: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 0 rgba(6,214,160,0.4);
+  border-radius: 10px;
+  margin-bottom: 18px;
+  padding: 20px;
+}
+.mma-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #06D6A0;
+  margin-bottom: 14px;
+}
+
+/* ─── Client cards (manager list) ─── */
+.mma-client-card {
+  background: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 0 rgba(6,214,160,0.4);
+  border-radius: 10px;
+  margin-bottom: 14px;
+  padding: 16px 20px;
+}
+.mma-client-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.mma-client-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+.mma-client-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111111;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mma-badge {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.mma-badge-live { background: #D4F7EE; color: #007A5E; border: 1px solid #06D6A0; }
+.mma-badge-off  { background: #F0F0F0; color: #888888; border: 1px solid #CCCCCC; }
+.mma-badge-vert { background: #EEF9F6; color: #06A07A; border: 1px solid rgba(6,214,160,0.3); }
+.mma-slug-link {
+  font-size: 12px;
+  color: #06A07A;
+  text-decoration: none;
+  font-family: monospace;
+  word-break: break-all;
+  margin-top: 6px;
+  display: inline-block;
+}
+.mma-slug-link:hover { text-decoration: underline; }
+.mma-no-slug { font-size: 12px; color: #AAAAAA; margin-top: 6px; display: block; }
+.mma-edit-btn {
+  background: #111111;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  flex-shrink: 0;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s;
+}
+.mma-edit-btn:hover { background: #333333; }
+
+/* ─── Back-to-list button (in edit view) ─── */
+.mma-back-to-list {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #06D6A0;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
+  padding: 0;
+  margin-bottom: 20px;
+  -webkit-tap-highlight-color: transparent;
+}
+.mma-back-to-list:hover { text-decoration: underline; }
+
+/* ─── Form fields ─── */
+.mma-field-input {
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #F8F8F8;
+  color: #111111;
+  border: 1px solid #D0D0D0;
+  border-radius: 7px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.mma-field-input:focus {
+  border-color: #06D6A0;
+  box-shadow: 0 0 0 2px rgba(6,214,160,0.15);
+}
+.mma-save-btn {
+  background: #111111;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 7px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s;
+}
+.mma-save-btn:hover:not(:disabled) { background: #333333; }
+.mma-save-btn:disabled { opacity: 0.45; cursor: wait; }
+.mma-saved-msg {
+  font-size: 12px;
+  color: #06D6A0;
+  display: none;
+  margin-left: 8px;
+  font-weight: 600;
+}
+
+/* ─── Toggle button ─── */
+.mma-toggle-btn {
+  border: none;
+  border-radius: 20px;
+  padding: 8px 22px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  min-width: 66px;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.mma-toggle-on  { background: #06D6A0; color: #FFFFFF; }
+.mma-toggle-off { background: #E0E0E0; color: #888888; }
+
+/* ─── Button builder rows ─── */
+.mma-btn-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #F8F8F8;
+  border: 1px solid #E0E0E0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+.mma-btn-order {
+  width: 42px;
+  padding: 5px 3px;
+  background: #FFFFFF;
+  color: #111111;
+  border: 1px solid #D0D0D0;
+  border-radius: 5px;
+  font-size: 13px;
+  font-family: inherit;
+  text-align: center;
+  outline: none;
+  flex-shrink: 0;
+}
+.mma-btn-enabled {
+  width: 17px;
+  height: 17px;
+  accent-color: #06D6A0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.mma-btn-label {
+  flex: 1;
+  padding: 5px 8px;
+  background: #FFFFFF;
+  color: #111111;
+  border: 1px solid #D0D0D0;
+  border-radius: 5px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  min-width: 0;
+}
+.mma-btn-label:focus { border-color: #06D6A0; }
+.mma-btn-remove {
+  background: transparent;
+  border: none;
+  color: #CC0000;
+  font-size: 22px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 2px;
+  flex-shrink: 0;
+  opacity: 0.75;
+  -webkit-tap-highlight-color: transparent;
+}
+.mma-btn-remove:hover { opacity: 1; }
+.mma-add-btn-link {
+  background: none;
+  border: none;
+  color: #06D6A0;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 2px 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.mma-add-btn-link:hover { text-decoration: underline; }
+
+/* ─── Background thumbnail ─── */
+.mma-bg-thumb {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #E0E0E0;
+  flex-shrink: 0;
+  display: block;
+}
+.mma-bg-placeholder {
+  width: 80px;
+  height: 80px;
+  background: #F0F0F0;
+  border-radius: 8px;
+  border: 1px solid #E0E0E0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  color: rgba(6,214,160,0.4);
+  flex-shrink: 0;
+}
+.mma-remove-bg-btn {
+  background: transparent;
+  border: 1px solid rgba(204,0,0,0.35);
+  color: #CC0000;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  margin-top: 8px;
+  display: inline-block;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s;
+}
+.mma-remove-bg-btn:hover { background: rgba(204,0,0,0.05); }
+
+/* ─── Status / error text ─── */
+.mma-err      { font-size: 12px; color: #CC0000; margin-top: 6px; display: none; }
+.mma-info     { font-size: 11px; color: #888888; margin-top: 4px; }
+.mma-progress { font-size: 12px; color: #06D6A0; margin-top: 4px; font-weight: 600; }
+
+/* ─── Preview link ─── */
+.mma-preview-link {
+  display: block;
+  text-align: center;
+  color: #06D6A0;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 6px 0 2px;
+}
+.mma-preview-link:hover { text-decoration: underline; }
+
+/* ─── Loading / empty states ─── */
+.mma-loading { text-align: center; padding: 2rem; font-size: 13px; color: #AAAAAA; }
+.mma-error   { padding: 1rem; font-size: 13px; color: #CC0000; border-radius: 8px; background: #FFF0F0; }
