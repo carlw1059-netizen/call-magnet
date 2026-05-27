@@ -111,7 +111,7 @@ async function loadClientForEdit(clientId) {
   try {
     var result = await mmaSb
       .from('clients')
-      .select('id,business_name,vertical,middle_man_enabled,middle_man_slug,middle_man_promo_text,middle_man_background_url,middle_man_background_type,middle_man_buttons,middle_man_updated_at')
+      .select('id,business_name,vertical,middle_man_enabled,middle_man_slug,middle_man_promo_text,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_buttons,middle_man_updated_at')
       .eq('id', clientId)
       .single();
     if (result.error) throw result.error;
@@ -487,6 +487,8 @@ function _triggerUpload(accept, uploadBtnId, progressId, errId, defaultBtnText) 
       if (isVideo) {
         // Update video preview (FIX 6: autoplay with all iOS attrs)
         _setVideoPreview(newUrl);
+        // Extract first frame as poster and upload (non-blocking, fails silently)
+        _extractAndUploadPoster(newUrl, _editClientId);
         // Clear photo thumbnail — video is now active
         _setPhotoThumb(null);
         // Show video remove, ensure photo remove is hidden
@@ -600,6 +602,88 @@ function _ensureRemoveBtn(btnId, label) {
   uploadBtn.parentNode.appendChild(btn);
 }
 
+// ─── Client-side poster extraction (JOB 1: instant-look video load) ─────────
+// Called immediately after a video upload completes. Creates a hidden <video>,
+// seeks to 0.1 s (avoids a pitch-black opener frame), draws the frame to a
+// canvas, converts to JPEG, uploads to <clientId>/poster.jpg in Storage, and
+// writes the public URL to clients.middle_man_background_poster_url.
+//
+// Entirely non-fatal — wrapped in try/catch so a canvas security restriction,
+// CORS issue, or network hiccup never blocks the main upload flow.
+async function _extractAndUploadPoster(videoUrl, clientId) {
+  try {
+    var vid = document.createElement('video');
+    vid.crossOrigin = 'anonymous';
+    vid.muted       = true;
+    vid.preload     = 'metadata';
+
+    // Wait for the video to load enough metadata to seek, then move to 0.1 s
+    await new Promise(function(resolve, reject) {
+      var timer = setTimeout(function() { reject(new Error('timeout')); }, 12000);
+      vid.addEventListener('loadedmetadata', function() {
+        vid.currentTime = 0.1; // 100 ms — skips any all-black open frame
+      }, { once: true });
+      vid.addEventListener('seeked', function() {
+        clearTimeout(timer);
+        resolve();
+      }, { once: true });
+      vid.addEventListener('error', function() {
+        clearTimeout(timer);
+        reject(new Error('video load error'));
+      }, { once: true });
+      vid.src = videoUrl;
+    });
+
+    // Draw the seeked frame to a canvas
+    var canvas    = document.createElement('canvas');
+    canvas.width  = vid.videoWidth  || 1280;
+    canvas.height = vid.videoHeight || 720;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(vid, 0, 0, canvas.width, canvas.height);
+
+    // Extract as JPEG blob (0.85 quality balances file size vs. clarity)
+    var blob = await new Promise(function(resolve) {
+      canvas.toBlob(resolve, 'image/jpeg', 0.85);
+    });
+    if (!blob) {
+      console.warn('_extractAndUploadPoster: canvas.toBlob returned null (canvas may be tainted)');
+      return;
+    }
+
+    // Upload to the middle-man-backgrounds storage bucket
+    var storagePath  = clientId + '/poster.jpg';
+    var uploadResult = await mmaSb.storage
+      .from('middle-man-backgrounds')
+      .upload(storagePath, blob, { contentType: 'image/jpeg', upsert: true });
+    if (uploadResult.error) {
+      console.warn('_extractAndUploadPoster: storage upload failed:', uploadResult.error.message);
+      return;
+    }
+
+    var urlResult = mmaSb.storage.from('middle-man-backgrounds').getPublicUrl(storagePath);
+    var publicUrl = urlResult.data && urlResult.data.publicUrl;
+    if (!publicUrl) {
+      console.warn('_extractAndUploadPoster: could not resolve public URL');
+      return;
+    }
+
+    // Write the poster URL to the clients table
+    var dbResult = await mmaSb.from('clients')
+      .update({ middle_man_background_poster_url: publicUrl })
+      .eq('id', clientId);
+    if (dbResult.error) {
+      console.warn('_extractAndUploadPoster: DB update failed:', dbResult.error.message);
+      return;
+    }
+
+    if (_editClientData) _editClientData.middle_man_background_poster_url = publicUrl;
+    console.log('_extractAndUploadPoster: poster saved →', publicUrl);
+  } catch (err) {
+    // Non-fatal — the video still plays without a poster; caller sees dark background
+    console.warn('_extractAndUploadPoster: failed (non-fatal):', (err && err.message) || String(err));
+  }
+}
+
 // ─── Remove background ────────────────────────────────────────────────────────
 async function removeBg() {
   if (!_editClientId || !_editClientData) return;
@@ -613,12 +697,13 @@ async function removeBg() {
 
   try {
     var result = await mmaSb.from('clients')
-      .update({ middle_man_background_url: null, middle_man_background_type: null })
+      .update({ middle_man_background_url: null, middle_man_background_type: null, middle_man_background_poster_url: null })
       .eq('id', _editClientId);
     if (result.error) throw result.error;
 
-    _editClientData.middle_man_background_url  = null;
-    _editClientData.middle_man_background_type = null;
+    _editClientData.middle_man_background_url         = null;
+    _editClientData.middle_man_background_type        = null;
+    _editClientData.middle_man_background_poster_url  = null;
 
     if (isVideo) {
       _setVideoPreview(null);

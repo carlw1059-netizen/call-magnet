@@ -51,7 +51,7 @@
     var url = SUPABASE_URL + '/rest/v1/clients'
       + '?middle_man_slug=eq.' + encodeURIComponent(slug)
       + '&account_status=eq.active'
-      + '&select=business_name,middle_man_background_url,middle_man_background_type,middle_man_promo_text,'
+      + '&select=business_name,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_promo_text,'
       + 'middle_man_buttons,middle_man_show_whats_on,booking_url,vertical'
       + '&limit=1';
     var res = await fetch(url, {
@@ -489,6 +489,10 @@
       vid.setAttribute('preload', 'auto');
       vid.muted      = true;   // belt-and-suspenders: iOS ignores attr alone
       vid.playsInline = true;  // belt-and-suspenders
+      // poster: shows the first frame while the video buffers — zero blank screen.
+      // 1×1 black pixel GIF as ultimate fallback so the browser never shows white.
+      vid.setAttribute('poster', client.middle_man_background_poster_url ||
+        'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7');
       var vsrc = document.createElement('source');
       vsrc.src  = bgUrl;
       vsrc.type = 'video/mp4';
@@ -623,6 +627,12 @@
     var slug = extractSlug();
     if (!slug) { showNotFound(); return; }
 
+    // ── Unsubscribe token (JOB 3) ──────────────────────────────────────────
+    // If the caller arrived via an SMS link with ?u=<token>, persist it so
+    // render() can wire the "Stop these texts" footer link to /u/<token>.
+    var uToken = new URLSearchParams(window.location.search).get('u') || '';
+    if (uToken) sessionStorage.setItem('cm_unsub_token', uToken);
+
     var client;
     try {
       client = await fetchClient(slug);
@@ -633,6 +643,21 @@
     }
 
     if (!client) { showNotFound(); return; }
+
+    // ── Aggressive video preload hint (JOB 1) ──────────────────────────────
+    // Injecting a <link rel="preload"> right after the fetch tells the browser
+    // to buffer the MP4 at high priority before render() creates the <video>
+    // element — shaves perceptible start-up latency on slow connections.
+    if (client.middle_man_background_url &&
+        (client.middle_man_background_type || 'image') === 'video') {
+      var preloadLink  = document.createElement('link');
+      preloadLink.rel  = 'preload';
+      preloadLink.as   = 'video';
+      preloadLink.href = client.middle_man_background_url;
+      preloadLink.type = 'video/mp4';
+      document.head.appendChild(preloadLink);
+    }
+
     render(client, slug);
   }
 
