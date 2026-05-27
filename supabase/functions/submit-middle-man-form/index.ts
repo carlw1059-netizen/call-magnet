@@ -20,7 +20,6 @@
 // Side-effects on success:
 //   1. INSERT into middle_man_form_submissions
 //   2. POST to send-client-notification (event: 'link_tapped') — fire-and-forget
-//   3. POST to send-twilio-sms (confirmation SMS to caller) — fire-and-forget
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'npm:@supabase/supabase-js@2';
