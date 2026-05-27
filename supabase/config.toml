@@ -493,6 +493,12 @@ verify_jwt = true
 [functions.process-unsubscribe]
 verify_jwt = false
 
+# get-unsubscribe-context: validates an opt-out token and returns the business
+# name for the /u/<token> opt-out page. Anon — caller is a missed-call customer
+# who received an SMS with a ?u= token; they carry no Supabase JWT.
+[functions.get-unsubscribe-context]
+verify_jwt = false
+
 [functions.log-middle-man-tap]
 verify_jwt = false
 

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0E1419">
+<meta name="robots" content="noindex,nofollow">
+<title>Stop Texts — CallMagnet</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  min-height: 100svh;
+  background: #0E1419;
+  color: #FFFFFF;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+#uApp {
+  width: 100%;
+  max-width: 380px;
+  padding: max(48px, env(safe-area-inset-top)) 28px max(40px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* ── Loading state ─────────────────────────────────────────────────────── */
+#stateLoading {
+  font-size: 15px;
+  color: rgba(255,255,255,0.38);
+  letter-spacing: 0.02em;
+}
+
+/* ── Main opt-out UI ───────────────────────────────────────────────────── */
+#stateMain { display: none; width: 100%; }
+
+.u-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+  margin-bottom: 16px;
+}
+
+.u-heading {
+  font-size: 24px;
+  font-weight: 700;
+  color: #FFFFFF;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  margin-bottom: 12px;
+}
+
+.u-biz-name {
+  color: #06D6A0; /* emerald — matches CallMagnet brand */
+}
+
+.u-subtext {
+  font-size: 14px;
+  color: rgba(255,255,255,0.42);
+  line-height: 1.6;
+  margin-bottom: 40px;
+}
+
+.u-opt-btn {
+  display: block;
+  width: 100%;
+  padding: 18px 24px;
+  background: rgba(204, 0, 0, 0.12);
+  border: 2px solid #CC0000;
+  border-radius: 12px;
+  color: #FF4444;
+  font-size: 17px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  transition: background 0.12s, transform 0.08s;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 0 20px rgba(204, 0, 0, 0.18), 0 0 40px rgba(204, 0, 0, 0.06);
+  margin-bottom: 20px;
+}
+.u-opt-btn:active { transform: scale(0.97); background: rgba(204, 0, 0, 0.22); }
+.u-opt-btn:disabled { opacity: 0.45; cursor: wait; transform: none; }
+
+.u-cancel {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.25);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 6px 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.12s;
+}
+.u-cancel:hover { color: rgba(255,255,255,0.5); }
+
+/* ── Success state ─────────────────────────────────────────────────────── */
+#stateSuccess { display: none; width: 100%; }
+
+.u-success-mark {
+  font-size: 52px;
+  margin-bottom: 22px;
+  color: #06D6A0;
+  line-height: 1;
+}
+
+.u-success-heading {
+  font-size: 22px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 12px;
+}
+
+.u-success-msg {
+  font-size: 14px;
+  color: rgba(255,255,255,0.5);
+  line-height: 1.6;
+}
+
+/* ── Error / expired state ─────────────────────────────────────────────── */
+#stateError { display: none; width: 100%; }
+
+.u-error-mark {
+  font-size: 44px;
+  margin-bottom: 20px;
+  opacity: 0.35;
+  line-height: 1;
+}
+
+.u-error-heading {
+  font-size: 20px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.65);
+  margin-bottom: 10px;
+}
+
+.u-error-msg {
+  font-size: 13px;
+  color: rgba(255,255,255,0.35);
+  line-height: 1.6;
+}
+
+/* ── Powered-by footer ─────────────────────────────────────────────────── */
+.u-powered {
+  margin-top: 44px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.16);
+  letter-spacing: 0.04em;
+}
+.u-powered .star { color: rgba(6,214,160,0.4); }
+</style>
+</head>
+<body>
+<div id="uApp">
+
+  <!-- Loading -->
+  <div id="stateLoading">Checking link…</div>
+
+  <!-- Main: shown when token validates -->
+  <div id="stateMain">
+    <div class="u-eyebrow">Text opt-out</div>
+    <div class="u-heading">Stop texts from<br><span class="u-biz-name" id="uBizName">this business</span></div>
+    <div class="u-subtext">You'll never receive another text message from this business via CallMagnet.</div>
+    <button class="u-opt-btn" id="uOptBtn" type="button">Opt out</button>
+    <button class="u-cancel" id="uCancelBtn" type="button">Cancel</button>
+  </div>
+
+  <!-- Success: shown after process-unsubscribe returns ok -->
+  <div id="stateSuccess">
+    <div class="u-success-mark">✓</div>
+    <div class="u-success-heading">Done</div>
+    <div class="u-success-msg" id="uSuccessMsg">You won't get any more texts from this business.</div>
+  </div>
+
+  <!-- Error: shown for invalid / expired / already-used token -->
+  <div id="stateError">
+    <div class="u-error-mark">⚠</div>
+    <div class="u-error-heading">Link expired</div>
+    <div class="u-error-msg">This link has expired or been used already.<br>Reply <strong>STOP</strong> to any SMS to opt out.</div>
+  </div>
+
+  <div class="u-powered">Powered by <span class="star">★</span> CallMagnet</div>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var SUPABASE_URL = 'https://iskvvnhacqdxybpmwuni.supabase.co';
+  var CONTEXT_URL  = SUPABASE_URL + '/functions/v1/get-unsubscribe-context';
+  var UNSUB_URL    = SUPABASE_URL + '/functions/v1/process-unsubscribe';
+
+  // ── Extract token from /u/<token> ─────────────────────────────────────────
+  // Netlify rewrites /u/* → /u.html with status 200, so pathname is still
+  // /u/<token>. Split and take the last non-empty segment.
+  var pathParts = window.location.pathname.replace(/\/+$/, '').split('/');
+  var token     = pathParts[pathParts.length - 1] || '';
+
+  // ── DOM references ────────────────────────────────────────────────────────
+  var stateLoading = document.getElementById('stateLoading');
+  var stateMain    = document.getElementById('stateMain');
+  var stateSuccess = document.getElementById('stateSuccess');
+  var stateError   = document.getElementById('stateError');
+  var bizNameEl    = document.getElementById('uBizName');
+  var successMsgEl = document.getElementById('uSuccessMsg');
+  var optBtn       = document.getElementById('uOptBtn');
+  var cancelBtn    = document.getElementById('uCancelBtn');
+
+  var businessName = '';
+  var pageLoadTime = Date.now();
+
+  function showState(el) {
+    var all = [stateLoading, stateMain, stateSuccess, stateError];
+    for (var i = 0; i < all.length; i++) {
+      if (all[i]) all[i].style.display = 'none';
+    }
+    if (el) el.style.display = '';
+  }
+
+  // ── Validate token on load ────────────────────────────────────────────────
+  if (!token) {
+    showState(stateError);
+  } else {
+    fetch(CONTEXT_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ token: token }),
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (!data || !data.ok) {
+        showState(stateError);
+        return;
+      }
+      businessName = data.business_name || 'this business';
+      if (bizNameEl) bizNameEl.textContent = businessName;
+      showState(stateMain);
+    })
+    .catch(function() {
+      showState(stateError);
+    });
+  }
+
+  // ── Opt out button ────────────────────────────────────────────────────────
+  if (optBtn) {
+    optBtn.addEventListener('click', function() {
+      if (optBtn.disabled) return;
+      optBtn.disabled    = true;
+      optBtn.textContent = 'Processing…';
+
+      var timeToDecide = Date.now() - pageLoadTime;
+
+      fetch(UNSUB_URL, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token:             token,
+          choice:            'forever',
+          time_to_decide_ms: timeToDecide,
+          came_from:         'middle_man',
+          user_agent:        navigator.userAgent,
+          referrer:          document.referrer || null,
+        }),
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data && data.ok) {
+          if (successMsgEl) {
+            successMsgEl.textContent =
+              'Done. You won\'t get any more texts from ' + businessName + '. ✓';
+          }
+          showState(stateSuccess);
+        } else {
+          // Token may have already been consumed (e.g. double-tap)
+          showState(stateError);
+        }
+      })
+      .catch(function() {
+        // Network error — restore so user can retry
+        optBtn.disabled    = false;
+        optBtn.textContent = 'Opt out';
+      });
+    });
+  }
+
+  // ── Cancel button ─────────────────────────────────────────────────────────
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', function() {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.close();
+      }
+    });
+  }
+
+})();
+</script>
+</body>
+</html>

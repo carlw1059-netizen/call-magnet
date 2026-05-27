@@ -35,6 +35,7 @@ const TWILIO_ACCOUNT_SID        = Deno.env.get('TWILIO_ACCOUNT_SID')!;
 const TWILIO_AUTH_TOKEN         = Deno.env.get('TWILIO_AUTH_TOKEN')!;
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const REBRANDLY_API_KEY         = Deno.env.get('REBRANDLY_API_KEY');
 
 const STATUS_CALLBACK_URL =
   'https://iskvvnhacqdxybpmwuni.supabase.co/functions/v1/twilio-sms-status';
@@ -85,6 +86,129 @@ Deno.serve(async (req) => {
     }
 
     console.log(`send-missed-call-sms: to=${to} from=${from} sms_event_id=${smsEventId ?? '(none)'} msg_len=${message.length}`);
+
+    // ── Opt-out check + unsubscribe token generation ──────────────────────────
+    // 1. Look up client by twilio_number (= from).
+    // 2. If the caller's phone is in opt_outs for this client → suppress SMS.
+    // 3. Otherwise, if Middle Man is enabled: generate a UUID unsubscribe token,
+    //    insert into unsubscribe_tokens, and PATCH the client's Rebrandly link
+    //    destination to callmagnet.com.au/b/<slug>?u=<token> so the caller lands
+    //    on the Middle Man page with their opt-out token embedded in the URL.
+    //
+    // TODO: per-caller Rebrandly link strategy needed before client #5 to prevent
+    //   token cross-wiring on concurrent calls. (Two simultaneous missed calls to
+    //   the same client update the same Rebrandly destination — last write wins.
+    //   Negligible risk at current scale of ≤4 clients.)
+    //
+    // All wrapped in try/catch — any failure here falls through and the SMS sends.
+    try {
+      // 1. Find client row by twilio_number
+      const clientRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/clients` +
+        `?twilio_number=eq.${encodeURIComponent(from)}` +
+        `&is_test_account=eq.false&account_status=eq.active` +
+        `&select=id,middle_man_enabled,middle_man_slug,rebrandly_link_id&limit=1`,
+        {
+          headers: {
+            apikey:        SUPABASE_SERVICE_ROLE_KEY,
+            Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          },
+        }
+      );
+
+      if (clientRes.ok) {
+        const clients = await clientRes.json() as {
+          id: string;
+          middle_man_enabled: boolean;
+          middle_man_slug: string | null;
+          rebrandly_link_id: string | null;
+        }[];
+
+        if (clients.length > 0) {
+          const client   = clients[0];
+          const clientId = client.id;
+
+          // 2. Check opt_outs — suppress SMS if caller has opted out
+          const optRes = await fetch(
+            `${SUPABASE_URL}/rest/v1/opt_outs` +
+            `?client_id=eq.${encodeURIComponent(clientId)}` +
+            `&phone_number=eq.${encodeURIComponent(to)}` +
+            `&select=id&limit=1`,
+            {
+              headers: {
+                apikey:        SUPABASE_SERVICE_ROLE_KEY,
+                Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+              },
+            }
+          );
+
+          if (optRes.ok) {
+            const optOuts = await optRes.json() as { id: string }[];
+            if (optOuts.length > 0) {
+              console.log(`send-missed-call-sms: SMS suppressed — to=${to} is opted out for client=${clientId}`);
+              return json(200, { ok: true, suppressed: true, reason: 'opted_out' });
+            }
+          }
+
+          // 3. Generate unsubscribe token (Middle Man clients only)
+          if (client.middle_man_enabled && client.middle_man_slug && client.rebrandly_link_id) {
+            const token     = crypto.randomUUID();
+            const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(); // 72 h
+
+            const tokenRes = await fetch(
+              `${SUPABASE_URL}/rest/v1/unsubscribe_tokens`,
+              {
+                method: 'POST',
+                headers: {
+                  apikey:         SUPABASE_SERVICE_ROLE_KEY,
+                  Authorization:  `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+                  'Content-Type': 'application/json',
+                  Prefer:         'return=minimal',
+                },
+                body: JSON.stringify({
+                  token,
+                  client_id:    clientId,
+                  phone_number: to,
+                  expires_at:   expiresAt,
+                }),
+              }
+            );
+
+            if (tokenRes.ok) {
+              // 4. Update Rebrandly destination to embed the token
+              if (REBRANDLY_API_KEY) {
+                const newDest = `https://callmagnet.com.au/b/${encodeURIComponent(client.middle_man_slug)}?u=${encodeURIComponent(token)}`;
+                const rbRes   = await fetch(
+                  `https://api.rebrandly.com/v1/links/${encodeURIComponent(client.rebrandly_link_id)}`,
+                  {
+                    method: 'PATCH',
+                    headers: {
+                      apikey:         REBRANDLY_API_KEY,
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ destination: newDest }),
+                  }
+                );
+                if (rbRes.ok) {
+                  console.log(`send-missed-call-sms: Rebrandly destination updated → ${newDest}`);
+                } else {
+                  console.warn(`send-missed-call-sms: Rebrandly PATCH failed: ${rbRes.status}`);
+                }
+              } else {
+                console.warn('send-missed-call-sms: REBRANDLY_API_KEY not set — destination not updated');
+              }
+            } else {
+              console.warn(`send-missed-call-sms: unsubscribe_tokens insert failed: ${tokenRes.status}`);
+            }
+          }
+        }
+      } else {
+        console.warn(`send-missed-call-sms: client lookup failed: ${clientRes.status}`);
+      }
+    } catch (preErr) {
+      // Non-fatal — SMS still sends even if opt-out / token logic errors
+      console.warn(`send-missed-call-sms: pre-send processing error (non-fatal): ${preErr instanceof Error ? preErr.message : String(preErr)}`);
+    }
 
     // ── Send SMS via Twilio Messages API ─────────────────────────────────────
     // From = the client's own Twilio number (not a fixed TWILIO_FROM_NUMBER)

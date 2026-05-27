@@ -10,3 +10,11 @@
   from   = "/b/*"
   to     = "/b.html"
   status = 200
+
+# /u/<token> opt-out page — token is read from window.location.pathname
+# by u.html's inline script. status 200 (rewrite, not redirect) preserves
+# the full /u/<token> path so the script can extract the token.
+[[redirects]]
+  from   = "/u/*"
+  to     = "/u.html"
+  status = 200

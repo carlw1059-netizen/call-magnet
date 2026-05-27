@@ -620,6 +620,16 @@
     if (formOverlayEl) formOverlayEl.addEventListener('click', closeForm);
 
     showMain();
+
+    // ── Wire "Stop these texts" to the opt-out page (JOB 3) ─────────────────
+    // If the caller arrived via an SMS link with ?u=<token>, boot() stored the
+    // token in sessionStorage. Re-read it here (in case render() is ever called
+    // independently) and update the footer link href.
+    var storedToken = sessionStorage.getItem('cm_unsub_token') || '';
+    if (storedToken) {
+      var stopLink = document.getElementById('stopTextsLink');
+      if (stopLink) stopLink.href = 'https://callmagnet.com.au/u/' + encodeURIComponent(storedToken);
+    }
   }
 
   // ── Boot ──────────────────────────────────────────────────────────────────
