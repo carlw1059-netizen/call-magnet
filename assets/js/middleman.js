@@ -140,8 +140,8 @@
     var noteFieldOpt = ''
       + '<div class="field-wrap">'
       + '<label class="field-label">Note <span class="opt">(optional)</span></label>'
-      + '<textarea class="field-textarea" data-field="note" placeholder="Anything else we should know?" maxlength="200"></textarea>'
-      + '<div class="field-counter"><span data-counter="note">0</span>/200</div>'
+      + '<textarea class="field-textarea" data-field="note" placeholder="Anything else we should know?" maxlength="500"></textarea>'
+      + '<div class="field-counter"><span data-counter="note">0</span>/500</div>'
       + '</div>';
 
     var inner = '';
@@ -167,7 +167,12 @@
         + '</div>'
         + noteFieldOpt;
     } else if (formType === 'function') {
-      inner = nameField + phoneField
+      inner = nameField
+        + '<div class="field-wrap">'
+        + '<label class="field-label">Company name <span class="opt">(optional)</span></label>'
+        + '<input class="field-input" type="text" data-field="company_name" placeholder="e.g. Acme Pty Ltd" autocomplete="organization">'
+        + '</div>'
+        + phoneField
         + '<div class="field-wrap">'
         + '<label class="field-label">Date of function</label>'
         + '<input class="field-input" type="text" data-field="original_booking_time" placeholder="e.g. Saturday 14 June">'
@@ -209,8 +214,8 @@
       inner = nameField + phoneField
         + '<div class="field-wrap">'
         + '<label class="field-label">Message</label>'
-        + '<textarea class="field-textarea" data-field="note" placeholder="How can we help?" maxlength="200"></textarea>'
-        + '<div class="field-counter"><span data-counter="note">0</span>/200</div>'
+        + '<textarea class="field-textarea" data-field="note" placeholder="How can we help?" maxlength="500"></textarea>'
+        + '<div class="field-counter"><span data-counter="note">0</span>/500</div>'
         + '<span class="field-error" data-err="note">Please enter a message.</span>'
         + '</div>';
     }
@@ -231,6 +236,7 @@
     };
 
     return '<div class="inline-form" data-form-type="' + formType + '">'
+      + '<button class="form-close-btn" type="button" aria-label="Close">✕</button>'
       + '<div class="form-title">' + esc(titles[formType] || 'Send us a message') + '</div>'
       + inner
       + '<button class="submit-btn" type="button" data-submit>' + esc(submitLabels[formType] || 'Send') + '</button>'
@@ -243,6 +249,10 @@
   function attachFormListeners(formWrap, formType, businessName, intentLabel, bookingUrl) {
     var form = formWrap.querySelector('.inline-form');
     if (!form) return;
+
+    // Close button (X) — collapses this form and hides overlay
+    var closeBtn = formWrap.querySelector('.form-close-btn');
+    if (closeBtn) closeBtn.addEventListener('click', closeForm);
 
     // Character counter on textareas
     form.querySelectorAll('textarea[data-field]').forEach(function(ta) {
@@ -323,8 +333,11 @@
           : rctVal;
         if (note) payload.note = note;
       } else if (formType === 'function') {
-        var guests = getField('guests');
-        payload.note = 'Guests: ' + guests + (note ? '. ' + note : '');
+        var guests      = getField('guests');
+        var companyName = getField('company_name');
+        var noteBase    = 'Guests: ' + guests + (note ? '. ' + note : '');
+        payload.note    = companyName ? 'Company: ' + companyName + '\n' + noteBase : noteBase;
+        if (companyName) payload.company_name = companyName; // used by edge fn for push notification
       } else if (formType === 'lost_found') {
         var lostItem = getField('lost_item');
         payload.note = 'Lost: ' + lostItem + (note ? '. ' + note : '');
@@ -372,6 +385,17 @@
     }
   }
 
+  // ── Close the currently open inline form ─────────────────────────────────
+  function closeForm() {
+    if (gOpenFormKey !== null) {
+      var formEl = document.getElementById('form-' + gOpenFormKey);
+      if (formEl) formEl.classList.remove('open');
+      gOpenFormKey = null;
+    }
+    var overlay = document.getElementById('formOverlay');
+    if (overlay) overlay.classList.remove('visible');
+  }
+
   // ── Handle button tap ─────────────────────────────────────────────────────
   // FIX 2: log-middle-man-tap fires here ONLY for booking buttons.
   //        For form buttons, the log fires on submit instead.
@@ -398,18 +422,19 @@
 
     var isOpen = formWrap.classList.contains('open');
 
-    // Close any other open form
+    // Close any other open form (also hides overlay)
     if (gOpenFormKey !== null && gOpenFormKey !== btnKey) {
-      var prev = document.getElementById('form-' + gOpenFormKey);
-      if (prev) prev.classList.remove('open');
+      closeForm();
     }
 
     if (isOpen) {
-      formWrap.classList.remove('open');
-      gOpenFormKey = null;
+      closeForm();
     } else {
       formWrap.classList.add('open');
       gOpenFormKey = btnKey;
+      // Show tap-outside overlay
+      var formOverlayEl = document.getElementById('formOverlay');
+      if (formOverlayEl) formOverlayEl.classList.add('visible');
       // Apply neon border/glow to the inline form matching the button colour
       var neon = formWrap.dataset.neon;
       if (neon) {
@@ -556,6 +581,10 @@
         woBtn.textContent = open ? "See what’s on ↑" : "See what’s on ↓";
       });
     }
+
+    // Wire tap-outside overlay → closeForm (once, after DOM is ready)
+    var formOverlayEl = document.getElementById('formOverlay');
+    if (formOverlayEl) formOverlayEl.addEventListener('click', closeForm);
 
     showMain();
   }
