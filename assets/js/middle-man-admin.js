@@ -67,7 +67,7 @@ async function loadManager() {
     });
 
     if (clients.length === 0) {
-      listEl.innerHTML = '<div class="mma-loading">No Middle Man clients found.<br><span style="font-size:12px;color:#BBBBBB;">Enable Middle Man on a client or set a slug to get started.</span></div>';
+      listEl.innerHTML = '<div class="mma-loading">No Middle Man clients found.<br><span style="font-size:13px;color:#BBBBBB;">Enable Middle Man on a client or set a slug to get started.</span></div>';
       return;
     }
 
@@ -138,16 +138,22 @@ function renderEditBody(client) {
   var slug      = client.middle_man_slug || '';
   var promo     = client.middle_man_promo_text || '';
   var bgUrl     = client.middle_man_background_url || '';
+  var bgType    = client.middle_man_background_type || 'image';
+  var hasPhoto  = !!(bgUrl && bgType === 'image');
+  var hasVideo  = !!(bgUrl && bgType === 'video');
 
-  // ── 1. Heading
-  var heading = '<div style="font-size:20px;font-weight:700;color:#111;margin-bottom:20px;">' + _e(client.business_name) + '</div>';
+  // ── 1. Heading (FIX 1: 22px)
+  var heading =
+    '<div style="font-size:22px;font-weight:700;color:#111;margin-bottom:20px;">' +
+      _e(client.business_name) +
+    '</div>';
 
-  // ── 2. Toggle
+  // ── 2. Toggle (FIX 1: 15px, FIX 2: color #000)
   var toggleSection =
     '<div class="mma-section">' +
       '<div class="mma-section-label">Middle Man Enabled</div>' +
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">' +
-        '<span id="mmaEnabledDesc" style="font-size:13px;color:#555;">' +
+        '<span id="mmaEnabledDesc" style="font-size:15px;color:#000000;">' +
           (enabledOn ? 'Currently ON — live for customers' : 'Currently OFF — hidden from customers') +
         '</span>' +
         '<button id="mmaToggleBtn" class="mma-toggle-btn ' + (enabledOn ? 'mma-toggle-on' : 'mma-toggle-off') + '">' +
@@ -156,25 +162,25 @@ function renderEditBody(client) {
       '</div>' +
     '</div>';
 
-  // ── 3. Slug
+  // ── 3. Slug (FIX 1: 13px, FIX 2: #000)
   var slugSection =
     '<div class="mma-section">' +
       '<div class="mma-section-label">Slug (URL)</div>' +
       '<div style="display:flex;gap:8px;align-items:center;">' +
-        '<span style="font-size:11px;color:#999;white-space:nowrap;font-family:monospace;">callmagnet.com.au/b/</span>' +
+        '<span style="font-size:13px;color:#000000;white-space:nowrap;font-family:monospace;">callmagnet.com.au/b/</span>' +
         '<input id="mmaSlugInput" class="mma-field-input" value="' + _e(slug) + '" placeholder="your-slug" maxlength="50" style="font-family:monospace;" />' +
         '<button id="mmaSlugSaveBtn" class="mma-save-btn">Save</button>' +
       '</div>' +
       '<div id="mmaSlugMsg" class="mma-saved-msg" style="margin-left:0;margin-top:6px;"></div>' +
     '</div>';
 
-  // ── 4. Promo text
+  // ── 4. Promo text (FIX 1: 13px, FIX 2: #000)
   var promoSection =
     '<div class="mma-section">' +
       '<div class="mma-section-label">Promo Text</div>' +
       '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">' +
-        '<span style="font-size:11px;color:#888;">Shown above buttons on the Middle Man page</span>' +
-        '<span id="mmaPromoCount" style="font-size:11px;color:#AAAAAA;">' + promo.length + '/80</span>' +
+        '<span style="font-size:13px;color:#000000;">Shown above buttons on the Middle Man page</span>' +
+        '<span id="mmaPromoCount" style="font-size:13px;color:#000000;">' + promo.length + '/80</span>' +
       '</div>' +
       '<textarea id="mmaPromoInput" rows="2" maxlength="80" class="mma-field-input" style="resize:none;line-height:1.4;" placeholder="Short message shown to customers…">' + _e(promo) + '</textarea>' +
       '<div style="display:flex;align-items:center;margin-top:8px;">' +
@@ -183,33 +189,64 @@ function renderEditBody(client) {
       '</div>' +
     '</div>';
 
-  // ── 5. Background
-  var thumbHtml = bgUrl
-    ? '<img src="' + _e(bgUrl) + '" id="mmaBgThumb" class="mma-bg-thumb" alt="Current background" />'
-    : '<div id="mmaBgThumb" class="mma-bg-placeholder">★</div>';
-  var removeBtnHtml = bgUrl
-    ? '<button id="mmaRemoveBgBtn" class="mma-remove-bg-btn">Remove background</button>'
+  // ── 5a. Background Photo card (FIX 5)
+  var photoThumbHtml = hasPhoto
+    ? '<img src="' + _e(bgUrl) + '?v=' + Date.now() + '" id="mmaPhotoThumb" class="mma-bg-thumb" alt="Current background photo" />'
+    : '<div id="mmaPhotoThumb" class="mma-bg-placeholder">★</div>';
+  var photoRemoveHtml = hasPhoto
+    ? '<button id="mmaPhotoRemoveBtn" class="mma-remove-bg-btn">Remove photo</button>'
     : '';
-  var bgSection =
+  var photoSection =
     '<div class="mma-section">' +
-      '<div class="mma-section-label">Background Image</div>' +
+      '<div class="mma-section-label">Background Photo</div>' +
       '<div style="display:flex;align-items:flex-start;gap:16px;">' +
-        thumbHtml +
+        photoThumbHtml +
         '<div>' +
-          '<button id="mmaUploadBtn" class="mma-save-btn">Upload new</button>' +
-          '<div class="mma-info">Portrait photo works best, or upload an MP4 video (max 10 MB).</div>' +
-          '<div id="mmaUploadProgress" class="mma-progress"></div>' +
-          '<div id="mmaUploadErr" class="mma-err"></div>' +
-          removeBtnHtml +
+          '<button id="mmaPhotoUploadBtn" class="mma-save-btn">Upload photo</button>' +
+          '<div class="mma-info">JPG or PNG, portrait orientation works best. Max 5 MB.</div>' +
+          '<div id="mmaPhotoProgress" class="mma-progress"></div>' +
+          '<div id="mmaPhotoErr" class="mma-err"></div>' +
+          photoRemoveHtml +
         '</div>' +
       '</div>' +
     '</div>';
 
-  // ── 6. Buttons
+  // ── 5b. Background Video card (FIX 5 + FIX 6)
+  var videoPreviewHtml;
+  if (hasVideo) {
+    // Build the video element via HTML string; we'll wire autoplay in JS after render
+    videoPreviewHtml =
+      '<video id="mmaVideoPreview" class="mma-video-preview"' +
+        ' autoplay muted playsinline webkit-playsinline loop preload="auto">' +
+        '<source src="' + _e(bgUrl) + '?v=' + Date.now() + '" type="video/mp4" />' +
+      '</video>';
+  } else {
+    videoPreviewHtml = '<div id="mmaVideoPreview" class="mma-video-placeholder">▶</div>';
+  }
+  var videoRemoveHtml = hasVideo
+    ? '<button id="mmaVideoRemoveBtn" class="mma-remove-bg-btn">Remove video</button>'
+    : '';
+  var videoSection =
+    '<div class="mma-section">' +
+      '<div class="mma-section-label">Background Video</div>' +
+      '<div style="display:flex;align-items:flex-start;gap:16px;">' +
+        videoPreviewHtml +
+        '<div>' +
+          '<button id="mmaVideoUploadBtn" class="mma-save-btn">Upload video</button>' +
+          '<div class="mma-info">MP4 only, vertical 9:16 (Instagram Reel shape). Max 10 MB.</div>' +
+          '<div id="mmaVideoProgress" class="mma-progress"></div>' +
+          '<div id="mmaVideoErr" class="mma-err"></div>' +
+          videoRemoveHtml +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  // ── 6. Buttons (FIX 4: helper text above list)
   var btnRows = buttons.filter(Boolean).map(function(b, i) { return buildBtnRowHtml(b, i); }).join('');
   var btnsSection =
     '<div class="mma-section">' +
       '<div class="mma-section-label">Customer Buttons</div>' +
+      '<p class="mma-btn-hint">Order = position on caller\'s page (1 = top, 6 = bottom). Tick = button is live for customers. Untick to hide without deleting. X = delete permanently.</p>' +
       '<div id="mmaBtnBuilder">' + btnRows + '</div>' +
       '<div style="display:flex;align-items:center;gap:10px;margin-top:8px;">' +
         '<button id="mmaAddBtnBtn" class="mma-add-btn-link">+ Add button</button>' +
@@ -225,9 +262,9 @@ function renderEditBody(client) {
       '</div>'
     : '<div id="mmaPreviewLinkWrap"></div>';
 
-  content.innerHTML = heading + toggleSection + slugSection + promoSection + bgSection + btnsSection + previewHtml;
+  content.innerHTML = heading + toggleSection + slugSection + promoSection + photoSection + videoSection + btnsSection + previewHtml;
 
-  // ── Wire up event listeners ──────────────────────────────────────────────────
+  // ── Wire event listeners ─────────────────────────────────────────────────────
   document.getElementById('mmaToggleBtn').addEventListener('click', toggleEnabled);
   document.getElementById('mmaSlugSaveBtn').addEventListener('click', saveSlug);
 
@@ -237,18 +274,26 @@ function renderEditBody(client) {
   });
   document.getElementById('mmaPromoSaveBtn').addEventListener('click', savePromo);
 
-  document.getElementById('mmaUploadBtn').addEventListener('click', triggerUpload);
+  document.getElementById('mmaPhotoUploadBtn').addEventListener('click', triggerPhotoUpload);
+  document.getElementById('mmaVideoUploadBtn').addEventListener('click', triggerVideoUpload);
 
-  var removeBgBtn = document.getElementById('mmaRemoveBgBtn');
-  if (removeBgBtn) removeBgBtn.addEventListener('click', removeBg);
+  var photoRemoveBtn = document.getElementById('mmaPhotoRemoveBtn');
+  if (photoRemoveBtn) photoRemoveBtn.addEventListener('click', removeBg);
+  var videoRemoveBtn = document.getElementById('mmaVideoRemoveBtn');
+  if (videoRemoveBtn) videoRemoveBtn.addEventListener('click', removeBg);
 
-  // Button builder: delegation for remove buttons
+  // Button builder delegation
   document.getElementById('mmaBtnBuilder').addEventListener('click', function(ev) {
     var removeBtn = ev.target.closest('.mma-btn-remove');
     if (removeBtn) removeBtn.closest('.mma-btn-row').remove();
   });
   document.getElementById('mmaAddBtnBtn').addEventListener('click', addBtnRow);
   document.getElementById('mmaSaveBtnsBtn').addEventListener('click', saveButtons);
+
+  // FIX 6: Autoplay the video preview if one is already set
+  if (hasVideo) {
+    _bootVideoPreview('mmaVideoPreview');
+  }
 }
 
 // ─── Button row HTML builder ──────────────────────────────────────────────────
@@ -302,7 +347,6 @@ async function saveSlug() {
     if (result.error) throw result.error;
     if (_editClientData) _editClientData.middle_man_slug = slug;
     _flash('mmaSlugMsg', '✓ Saved', false);
-    // Update preview link
     var previewLink = document.getElementById('mmaPreviewLink');
     if (previewLink && slug) previewLink.href = 'https://callmagnet.com.au/b/' + encodeURIComponent(slug);
   } catch (err) {
@@ -352,31 +396,50 @@ async function saveButtons() {
   }
 }
 
-// ─── Upload background ────────────────────────────────────────────────────────
-function triggerUpload() {
+// ─── Photo upload ─────────────────────────────────────────────────────────────
+function triggerPhotoUpload() {
+  _triggerUpload(
+    'image/jpeg,image/png,.jpg,.jpeg,.png',
+    'mmaPhotoUploadBtn', 'mmaPhotoProgress', 'mmaPhotoErr',
+    'Upload photo'
+  );
+}
+
+// ─── Video upload ─────────────────────────────────────────────────────────────
+function triggerVideoUpload() {
+  _triggerUpload(
+    'video/mp4,.mp4',
+    'mmaVideoUploadBtn', 'mmaVideoProgress', 'mmaVideoErr',
+    'Upload video'
+  );
+}
+
+// ─── Shared upload core ───────────────────────────────────────────────────────
+function _triggerUpload(accept, uploadBtnId, progressId, errId, defaultBtnText) {
   if (!_editClientId) return;
-  var fileInput    = document.createElement('input');
-  fileInput.type   = 'file';
-  fileInput.accept = 'image/jpeg,image/png,.jpg,.jpeg,.png,video/mp4,.mp4';
+
+  var fileInput  = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = accept;
 
   fileInput.onchange = async function(ev) {
     var file = ev.target.files && ev.target.files[0];
     if (!file) return;
 
-    var uploadBtn = document.getElementById('mmaUploadBtn');
-    var progress  = document.getElementById('mmaUploadProgress');
-    var errEl     = document.getElementById('mmaUploadErr');
+    var uploadBtn = document.getElementById(uploadBtnId);
+    var progress  = document.getElementById(progressId);
+    var errEl     = document.getElementById(errId);
 
-    uploadBtn.disabled   = true;
+    uploadBtn.disabled    = true;
     uploadBtn.textContent = 'Uploading…';
-    errEl.style.display  = 'none';
-    progress.textContent = '';
+    errEl.style.display   = 'none';
+    progress.textContent  = '';
 
     var sessionResult = await mmaSb.auth.getSession();
     var sess = sessionResult.data && sessionResult.data.session;
     if (!sess) {
       uploadBtn.disabled    = false;
-      uploadBtn.textContent = 'Upload new';
+      uploadBtn.textContent = defaultBtnText;
       errEl.textContent     = 'Not authenticated';
       errEl.style.display   = 'block';
       return;
@@ -397,13 +460,13 @@ function triggerUpload() {
 
     xhr.addEventListener('load', function() {
       uploadBtn.disabled    = false;
-      uploadBtn.textContent = 'Upload new';
+      uploadBtn.textContent = defaultBtnText;
       progress.textContent  = '';
       var resp;
       try { resp = JSON.parse(xhr.responseText); } catch (_) { resp = {}; }
 
       if (xhr.status !== 200 || !resp.ok) {
-        errEl.textContent   = 'Upload failed: ' + (resp.detail || resp.error || 'HTTP ' + xhr.status);
+        errEl.textContent   = resp.detail || resp.error || ('Upload failed — HTTP ' + xhr.status);
         errEl.style.display = 'block';
         return;
       }
@@ -413,48 +476,38 @@ function triggerUpload() {
         ? resp.urls.video
         : (resp.urls.portrait || Object.values(resp.urls)[0]));
 
-      if (newUrl) {
-        // Replace thumbnail with appropriate preview element
-        var thumb = document.getElementById('mmaBgThumb');
-        if (thumb) {
-          var newThumb;
-          if (isVideo) {
-            newThumb            = document.createElement('video');
-            newThumb.src        = newUrl + '?t=' + Date.now();
-            newThumb.muted      = true;
-            newThumb.autoplay   = true;
-            newThumb.loop       = true;
-            newThumb.playsInline = true;
-            newThumb.setAttribute('webkit-playsinline', '');
-          } else {
-            newThumb     = document.createElement('img');
-            newThumb.src = newUrl + '?t=' + Date.now();
-            newThumb.alt = 'Current background';
-          }
-          newThumb.id        = 'mmaBgThumb';
-          newThumb.className = 'mma-bg-thumb';
-          thumb.parentNode.replaceChild(newThumb, thumb);
-        }
-        // Update internal state
-        if (_editClientData) {
-          _editClientData.middle_man_background_url  = newUrl;
-          _editClientData.middle_man_background_type = resp.type || 'image';
-        }
-        // Show remove button if not already present
-        if (!document.getElementById('mmaRemoveBgBtn')) {
-          var removeBtn       = document.createElement('button');
-          removeBtn.id        = 'mmaRemoveBgBtn';
-          removeBtn.className = 'mma-remove-bg-btn';
-          removeBtn.textContent = 'Remove background';
-          removeBtn.addEventListener('click', removeBg);
-          uploadBtn.parentNode.appendChild(removeBtn);
-        }
+      if (!newUrl) return;
+
+      // Update internal state
+      if (_editClientData) {
+        _editClientData.middle_man_background_url  = newUrl;
+        _editClientData.middle_man_background_type = resp.type || 'image';
+      }
+
+      if (isVideo) {
+        // Update video preview (FIX 6: autoplay with all iOS attrs)
+        _setVideoPreview(newUrl);
+        // Clear photo thumbnail — video is now active
+        _setPhotoThumb(null);
+        // Show video remove, ensure photo remove is hidden
+        _ensureRemoveBtn('mmaVideoRemoveBtn', 'Remove video');
+        var prBtn = document.getElementById('mmaPhotoRemoveBtn');
+        if (prBtn) prBtn.style.display = 'none';
+      } else {
+        // Update photo thumbnail
+        _setPhotoThumb(newUrl);
+        // Clear video preview — photo is now active
+        _setVideoPreview(null);
+        // Show photo remove, ensure video remove is hidden
+        _ensureRemoveBtn('mmaPhotoRemoveBtn', 'Remove photo');
+        var vrBtn = document.getElementById('mmaVideoRemoveBtn');
+        if (vrBtn) vrBtn.style.display = 'none';
       }
     });
 
     xhr.addEventListener('error', function() {
       uploadBtn.disabled    = false;
-      uploadBtn.textContent = 'Upload new';
+      uploadBtn.textContent = defaultBtnText;
       progress.textContent  = '';
       errEl.textContent     = 'Network error — please try again.';
       errEl.style.display   = 'block';
@@ -466,13 +519,96 @@ function triggerUpload() {
   fileInput.click();
 }
 
+// ─── Background preview helpers ───────────────────────────────────────────────
+
+function _setPhotoThumb(url) {
+  var thumb = document.getElementById('mmaPhotoThumb');
+  if (!thumb) return;
+  if (url) {
+    var img   = document.createElement('img');
+    img.src   = url + '?t=' + Date.now();
+    img.id    = 'mmaPhotoThumb';
+    img.className = 'mma-bg-thumb';
+    img.alt   = 'Current background photo';
+    thumb.parentNode.replaceChild(img, thumb);
+  } else {
+    var ph   = document.createElement('div');
+    ph.id    = 'mmaPhotoThumb';
+    ph.className = 'mma-bg-placeholder';
+    ph.textContent = '★';
+    thumb.parentNode.replaceChild(ph, thumb);
+  }
+}
+
+// FIX 6: Creates a <video> with all 6 iOS Safari attrs + .load() + .play().catch()
+function _setVideoPreview(url) {
+  var existing = document.getElementById('mmaVideoPreview');
+  if (!existing) return;
+  if (url) {
+    var vid = document.createElement('video');
+    vid.id  = 'mmaVideoPreview';
+    vid.className = 'mma-video-preview';
+    vid.setAttribute('autoplay', '');
+    vid.setAttribute('muted', '');
+    vid.setAttribute('playsinline', '');
+    vid.setAttribute('webkit-playsinline', '');
+    vid.setAttribute('loop', '');
+    vid.setAttribute('preload', 'auto');
+    vid.muted      = true;   // belt-and-suspenders: iOS ignores attr alone
+    vid.playsInline = true;  // belt-and-suspenders
+    var src  = document.createElement('source');
+    src.src  = url + '?t=' + Date.now();
+    src.type = 'video/mp4';
+    vid.appendChild(src);
+    existing.parentNode.replaceChild(vid, existing);
+    vid.load();
+    vid.play().catch(function() { /* silently fail — user can still confirm visually */ });
+  } else {
+    var ph = document.createElement('div');
+    ph.id  = 'mmaVideoPreview';
+    ph.className = 'mma-video-placeholder';
+    ph.textContent = '▶';
+    existing.parentNode.replaceChild(ph, existing);
+  }
+}
+
+// FIX 6: Wire autoplay on an already-in-DOM video element (after renderEditBody)
+function _bootVideoPreview(id) {
+  var vid = document.getElementById(id);
+  if (!vid || vid.tagName !== 'VIDEO') return;
+  vid.muted      = true;
+  vid.playsInline = true;
+  vid.load();
+  vid.play().catch(function() { /* silently fail */ });
+}
+
+function _ensureRemoveBtn(btnId, label) {
+  if (document.getElementById(btnId)) {
+    // Already exists — make it visible
+    document.getElementById(btnId).style.display = '';
+    return;
+  }
+  // Create it and append to the right upload button's parent
+  var uploadBtnId = (btnId === 'mmaPhotoRemoveBtn') ? 'mmaPhotoUploadBtn' : 'mmaVideoUploadBtn';
+  var uploadBtn   = document.getElementById(uploadBtnId);
+  if (!uploadBtn || !uploadBtn.parentNode) return;
+  var btn           = document.createElement('button');
+  btn.id            = btnId;
+  btn.className     = 'mma-remove-bg-btn';
+  btn.textContent   = label;
+  btn.addEventListener('click', removeBg);
+  uploadBtn.parentNode.appendChild(btn);
+}
+
 // ─── Remove background ────────────────────────────────────────────────────────
 async function removeBg() {
   if (!_editClientId || !_editClientData) return;
-  var bizName = _editClientData.business_name || 'this client';
-  if (!confirm('Remove background for ' + bizName + '?')) return;
+  var bizName  = _editClientData.business_name || 'this client';
+  var isVideo  = _editClientData.middle_man_background_type === 'video';
+  var typeLabel = isVideo ? 'video' : 'photo';
+  if (!confirm('Remove ' + typeLabel + ' background for ' + bizName + '?')) return;
 
-  var btn = document.getElementById('mmaRemoveBgBtn');
+  var btn = document.getElementById(isVideo ? 'mmaVideoRemoveBtn' : 'mmaPhotoRemoveBtn');
   if (btn) { btn.disabled = true; btn.textContent = 'Removing…'; }
 
   try {
@@ -484,18 +620,14 @@ async function removeBg() {
     _editClientData.middle_man_background_url  = null;
     _editClientData.middle_man_background_type = null;
 
-    // Replace thumb with placeholder
-    var thumb = document.getElementById('mmaBgThumb');
-    if (thumb) {
-      var placeholder       = document.createElement('div');
-      placeholder.id        = 'mmaBgThumb';
-      placeholder.className = 'mma-bg-placeholder';
-      placeholder.textContent = '★';
-      thumb.parentNode.replaceChild(placeholder, thumb);
+    if (isVideo) {
+      _setVideoPreview(null);
+    } else {
+      _setPhotoThumb(null);
     }
     if (btn) btn.style.display = 'none';
   } catch (err) {
-    if (btn) { btn.disabled = false; btn.textContent = 'Remove background'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Remove ' + typeLabel; }
     alert('Remove failed: ' + err.message);
   }
 }

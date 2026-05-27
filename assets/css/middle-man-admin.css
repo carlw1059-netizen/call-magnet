@@ -17,7 +17,7 @@ html, body {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  font-size: 14px;
+  font-size: 16px;       /* was 14 */
   color: #888888;
 }
 
@@ -35,7 +35,7 @@ html, body {
   box-shadow: 0 2px 0 rgba(6,214,160,0.4);
 }
 .mma-header-title {
-  font-size: 18px;
+  font-size: 20px;       /* was 18 */
   font-weight: 700;
   color: #111111;
   letter-spacing: -0.01em;
@@ -46,7 +46,7 @@ html, body {
   border: none;
   border-radius: 7px;
   padding: 8px 16px;
-  font-size: 13px;
+  font-size: 15px;       /* was 13 */
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
@@ -75,11 +75,11 @@ html, body {
   padding: 20px;
 }
 .mma-section-label {
-  font-size: 10px;
+  font-size: 12px;       /* was 10 */
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #06D6A0;
+  color: #06D6A0;        /* stays emerald */
   margin-bottom: 14px;
 }
 
@@ -105,7 +105,7 @@ html, body {
   flex: 1;
 }
 .mma-client-name {
-  font-size: 15px;
+  font-size: 17px;       /* was 15 */
   font-weight: 700;
   color: #111111;
   overflow: hidden;
@@ -115,7 +115,7 @@ html, body {
 .mma-badge {
   padding: 2px 8px;
   border-radius: 10px;
-  font-size: 10px;
+  font-size: 12px;       /* was 10 */
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -126,7 +126,7 @@ html, body {
 .mma-badge-off  { background: #F0F0F0; color: #888888; border: 1px solid #CCCCCC; }
 .mma-badge-vert { background: #EEF9F6; color: #06A07A; border: 1px solid rgba(6,214,160,0.3); }
 .mma-slug-link {
-  font-size: 12px;
+  font-size: 14px;       /* was 12 */
   color: #06A07A;
   text-decoration: none;
   font-family: monospace;
@@ -135,14 +135,19 @@ html, body {
   display: inline-block;
 }
 .mma-slug-link:hover { text-decoration: underline; }
-.mma-no-slug { font-size: 12px; color: #AAAAAA; margin-top: 6px; display: block; }
+.mma-no-slug {
+  font-size: 14px;       /* was 12 */
+  color: #000000;        /* was #AAAAAA */
+  margin-top: 6px;
+  display: block;
+}
 .mma-edit-btn {
   background: #111111;
   color: #FFFFFF;
   border: none;
   border-radius: 8px;
   padding: 8px 18px;
-  font-size: 13px;
+  font-size: 15px;       /* was 13 */
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
@@ -159,7 +164,7 @@ html, body {
   align-items: center;
   gap: 5px;
   color: #06D6A0;
-  font-size: 13px;
+  font-size: 15px;       /* was 13 */
   font-weight: 600;
   cursor: pointer;
   background: none;
@@ -175,11 +180,11 @@ html, body {
 .mma-field-input {
   width: 100%;
   padding: 9px 12px;
-  font-size: 14px;
+  font-size: 16px;       /* was 14 */
   font-family: inherit;
   background: #F8F8F8;
   color: #111111;
-  border: 1px solid #D0D0D0;
+  border: 1px solid #000000;   /* was #D0D0D0 — FIX 3 */
   border-radius: 7px;
   outline: none;
   transition: border-color 0.15s;
@@ -194,7 +199,7 @@ html, body {
   border: none;
   border-radius: 7px;
   padding: 8px 16px;
-  font-size: 13px;
+  font-size: 15px;       /* was 13 */
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
@@ -205,7 +210,7 @@ html, body {
 .mma-save-btn:hover:not(:disabled) { background: #333333; }
 .mma-save-btn:disabled { opacity: 0.45; cursor: wait; }
 .mma-saved-msg {
-  font-size: 12px;
+  font-size: 14px;       /* was 12 */
   color: #06D6A0;
   display: none;
   margin-left: 8px;
@@ -217,7 +222,7 @@ html, body {
   border: none;
   border-radius: 20px;
   padding: 8px 22px;
-  font-size: 14px;
+  font-size: 16px;       /* was 14 */
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
@@ -229,6 +234,12 @@ html, body {
 .mma-toggle-off { background: #E0E0E0; color: #888888; }
 
 /* ─── Button builder rows ─── */
+.mma-btn-hint {
+  font-size: 15px;       /* bumped up size */
+  color: #000000;        /* black per Fix 2 */
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
 .mma-btn-row {
   display: flex;
   align-items: center;
@@ -244,9 +255,9 @@ html, body {
   padding: 5px 3px;
   background: #FFFFFF;
   color: #111111;
-  border: 1px solid #D0D0D0;
+  border: 1px solid #000000;   /* was #D0D0D0 — FIX 3 */
   border-radius: 5px;
-  font-size: 13px;
+  font-size: 15px;       /* was 13 */
   font-family: inherit;
   text-align: center;
   outline: none;
@@ -264,9 +275,9 @@ html, body {
   padding: 5px 8px;
   background: #FFFFFF;
   color: #111111;
-  border: 1px solid #D0D0D0;
+  border: 1px solid #000000;   /* was #D0D0D0 — FIX 3 */
   border-radius: 5px;
-  font-size: 14px;
+  font-size: 16px;       /* was 14 */
   font-family: inherit;
   outline: none;
   min-width: 0;
@@ -276,7 +287,7 @@ html, body {
   background: transparent;
   border: none;
   color: #CC0000;
-  font-size: 22px;
+  font-size: 24px;       /* was 22 */
   cursor: pointer;
   line-height: 1;
   padding: 0 2px;
@@ -288,17 +299,18 @@ html, body {
 .mma-add-btn-link {
   background: none;
   border: none;
-  color: #06D6A0;
-  font-size: 13px;
+  color: #000000;        /* was #06D6A0 — FIX 2 */
+  font-size: 15px;       /* was 13 */
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
   padding: 2px 0;
   -webkit-tap-highlight-color: transparent;
+  text-decoration: underline;
 }
-.mma-add-btn-link:hover { text-decoration: underline; }
+.mma-add-btn-link:hover { opacity: 0.7; }
 
-/* ─── Background thumbnail ─── */
+/* ─── Photo thumbnail (square, 80×80) ─── */
 .mma-bg-thumb {
   width: 80px;
   height: 80px;
@@ -321,13 +333,47 @@ html, body {
   color: rgba(6,214,160,0.4);
   flex-shrink: 0;
 }
+
+/* ─── Video preview (9:16 ratio, ~180×320px) ─── */
+.mma-video-preview {
+  width: 180px;
+  height: 320px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #E0E0E0;
+  flex-shrink: 0;
+  display: block;
+  background: #000000;
+}
+.mma-video-placeholder {
+  width: 180px;
+  height: 320px;
+  background: #F0F0F0;
+  border-radius: 8px;
+  border: 1px solid #E0E0E0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  color: rgba(6,214,160,0.4);
+  flex-shrink: 0;
+}
+@media (max-width: 480px) {
+  .mma-video-preview,
+  .mma-video-placeholder {
+    width: 120px;
+    height: 213px;  /* 9:16 ratio */
+  }
+}
+
+/* ─── Remove background button ─── */
 .mma-remove-bg-btn {
   background: transparent;
   border: 1px solid rgba(204,0,0,0.35);
   color: #CC0000;
   border-radius: 6px;
   padding: 5px 12px;
-  font-size: 12px;
+  font-size: 14px;       /* was 12 */
   font-family: inherit;
   cursor: pointer;
   margin-top: 8px;
@@ -338,16 +384,16 @@ html, body {
 .mma-remove-bg-btn:hover { background: rgba(204,0,0,0.05); }
 
 /* ─── Status / error text ─── */
-.mma-err      { font-size: 12px; color: #CC0000; margin-top: 6px; display: none; }
-.mma-info     { font-size: 11px; color: #888888; margin-top: 4px; }
-.mma-progress { font-size: 12px; color: #06D6A0; margin-top: 4px; font-weight: 600; }
+.mma-err      { font-size: 14px; color: #CC0000; margin-top: 6px; display: none; }   /* was 12 */
+.mma-info     { font-size: 13px; color: #000000; margin-top: 4px; }                   /* was 11, was #888888 */
+.mma-progress { font-size: 14px; color: #06D6A0; margin-top: 4px; font-weight: 600; } /* was 12 */
 
 /* ─── Preview link ─── */
 .mma-preview-link {
   display: block;
   text-align: center;
   color: #06D6A0;
-  font-size: 14px;
+  font-size: 16px;       /* was 14 */
   font-weight: 600;
   text-decoration: none;
   padding: 6px 0 2px;
@@ -355,5 +401,5 @@ html, body {
 .mma-preview-link:hover { text-decoration: underline; }
 
 /* ─── Loading / empty states ─── */
-.mma-loading { text-align: center; padding: 2rem; font-size: 13px; color: #AAAAAA; }
-.mma-error   { padding: 1rem; font-size: 13px; color: #CC0000; border-radius: 8px; background: #FFF0F0; }
+.mma-loading { text-align: center; padding: 2rem; font-size: 15px; color: #000000; }  /* was 13, was #AAAAAA */
+.mma-error   { padding: 1rem; font-size: 15px; color: #CC0000; border-radius: 8px; background: #FFF0F0; } /* was 13 */
