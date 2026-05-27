@@ -144,7 +144,7 @@
   #mainPage {
     display: none;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     flex: 1;
     min-height: 100%;
     padding: 20px 0;
@@ -192,6 +192,7 @@
   .content {
     flex-shrink: 0;
     padding: 0 0 12px;
+    margin-top: auto; /* FIX 2: anchors button stack to the bottom of available space */
   }
 
   .section-label {
@@ -206,18 +207,18 @@
   }
 
   /* ── Buttons ─────────────────────────────────────────────────────────────── */
-  .buttons { display: flex; flex-direction: column; gap: 14px; }
+  .buttons { display: flex; flex-direction: column; gap: 0; }
 
   .tap-btn {
     display: block;
     width: calc(100% - 96px); /* FIX 1: narrower, more centred */
     max-width: 360px;          /* FIX 1: never wider than 360px */
-    margin: 0 auto;
+    margin: 0 auto 14px;       /* bottom margin gives equal inter-button spacing */
     padding: 16px 24px;
-    /* 0.70 alpha (was 0.75) + backdrop blur so the video shows through the
-       buttons. -webkit- prefix required for iOS Safari. Border and text
-       remain fully opaque for legibility. */
-    background: rgba(0,0,0,0.70);
+    /* 0.50 alpha + backdrop blur so the video shows through the buttons.
+       -webkit- prefix required for iOS Safari. Border and text remain fully
+       opaque for legibility. */
+    background: rgba(0,0,0,0.50);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     border: 2px solid #06D6A0; /* overridden per-button in JS */
@@ -290,10 +291,25 @@
   .form-wrap {
     overflow: hidden;
     max-height: 0;
-    transition: max-height 0.3s ease;
-    margin: 0 24px;
   }
-  .form-wrap.open { max-height: 1200px; position: relative; z-index: 15; }
+  /* FIX 3: form card becomes a fixed modal centred in the visible viewport */
+  .form-wrap.open {
+    max-height: 90svh;
+    overflow-y: auto;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    width: calc(100% - 48px);
+    max-width: 440px;
+    z-index: 20;
+    border-radius: 12px;
+    animation: formSlideUp 0.2s ease both;
+  }
+  @keyframes formSlideUp {
+    from { opacity: 0; transform: translateX(-50%) translateY(calc(-50% + 20px)); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(-50%); }
+  }
 
   .inline-form {
     position: relative;
@@ -301,7 +317,7 @@
     border: 1px solid rgba(255,255,255,0.12);
     border-radius: 12px;
     padding: 18px 16px 16px;
-    margin-top: 8px;
+    margin-top: 0;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -484,4 +500,11 @@
     z-index: 10;
     display: none;
   }
-  .form-overlay.visible { display: block; }
+  .form-overlay.visible {
+    display: block;
+    animation: fadeInOverlay 0.2s ease both;
+  }
+  @keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }

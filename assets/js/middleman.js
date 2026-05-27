@@ -394,6 +394,8 @@
     }
     var overlay = document.getElementById('formOverlay');
     if (overlay) overlay.classList.remove('visible');
+    // Release scroll lock (FIX 3)
+    document.body.style.overflow = '';
   }
 
   // ── Handle button tap ─────────────────────────────────────────────────────
@@ -432,6 +434,8 @@
     } else {
       formWrap.classList.add('open');
       gOpenFormKey = btnKey;
+      // Lock body scroll while modal form is visible (FIX 3)
+      document.body.style.overflow = 'hidden';
       // Show tap-outside overlay
       var formOverlayEl = document.getElementById('formOverlay');
       if (formOverlayEl) formOverlayEl.classList.add('visible');
@@ -444,9 +448,6 @@
           inlineForm.style.boxShadow = '0 0 8px ' + hexRgba(neon, 0.3) + ', 0 0 16px ' + hexRgba(neon, 0.1);
         }
       }
-      setTimeout(function() {
-        formWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }, 50);
     }
   }
 
