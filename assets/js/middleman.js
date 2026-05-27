@@ -51,7 +51,7 @@
     var url = SUPABASE_URL + '/rest/v1/clients'
       + '?middle_man_slug=eq.' + encodeURIComponent(slug)
       + '&account_status=eq.active'
-      + '&select=business_name,middle_man_background_url,middle_man_promo_text,'
+      + '&select=business_name,middle_man_background_url,middle_man_background_type,middle_man_promo_text,'
       + 'middle_man_buttons,middle_man_show_whats_on,booking_url,vertical'
       + '&limit=1';
     var res = await fetch(url, {
@@ -457,6 +457,7 @@
     var bgUrl       = client.middle_man_background_url
                         ? client.middle_man_background_url + '?v=' + Date.now()
                         : null;
+    var bgType      = client.middle_man_background_type || 'image';
     var businessName = client.business_name || '';
     var promoText   = client.middle_man_promo_text || '';
     var buttons     = [];
@@ -472,11 +473,38 @@
     // ── Full-screen background ────────────────────────────────────────────
     // #app is position:fixed (scroll container) — body is just overflow:hidden.
     // #bgFixed is position:fixed z-index:0 — always covers the full screen.
-    // bgUrl has a ?v= cache-bust so a re-uploaded portrait.jpg is never stale.
+    // bgUrl has a ?v= cache-bust so a re-uploaded file is never stale.
     var bgFixed = document.getElementById('bgFixed');
     bgFixed.style.backgroundImage = 'none';
     bgFixed.style.backgroundColor = '#0E1419';
-    if (bgUrl) {
+
+    if (bgUrl && bgType === 'video') {
+      // ── Video background (iOS Safari requires all 6 attributes) ──────────
+      var vid = document.createElement('video');
+      vid.setAttribute('autoplay', '');
+      vid.setAttribute('muted', '');
+      vid.setAttribute('playsinline', '');
+      vid.setAttribute('webkit-playsinline', '');
+      vid.setAttribute('loop', '');
+      vid.setAttribute('preload', 'auto');
+      vid.muted      = true;   // belt-and-suspenders: iOS ignores attr alone
+      vid.playsInline = true;  // belt-and-suspenders
+      var vsrc = document.createElement('source');
+      vsrc.src  = bgUrl;
+      vsrc.type = 'video/mp4';
+      vid.appendChild(vsrc);
+      bgFixed.appendChild(vid);
+      vid.load();
+      vid.play().catch(function() {
+        // Autoplay blocked (e.g. low-power mode) — hide video, keep dark bg
+        vid.style.display = 'none';
+        bgFixed.style.backgroundColor = '#0E1419';
+      });
+      bgFixed.classList.add('loaded');
+      document.getElementById('contentSpacer').classList.add('expanded');
+
+    } else if (bgUrl) {
+      // ── Image background ─────────────────────────────────────────────────
       var img = new Image();
       img.onload = function() {
         bgFixed.style.backgroundImage = 'url(' + JSON.stringify(bgUrl) + ')';
@@ -490,6 +518,7 @@
         bgFixed.classList.add('loaded');
       };
       img.src = bgUrl;
+
     } else {
       // No background — compact header, buttons close to business name
       bgFixed.classList.add('loaded');

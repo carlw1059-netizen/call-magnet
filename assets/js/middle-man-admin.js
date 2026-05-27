@@ -197,7 +197,7 @@ function renderEditBody(client) {
         thumbHtml +
         '<div>' +
           '<button id="mmaUploadBtn" class="mma-save-btn">Upload new</button>' +
-          '<div class="mma-info">Portrait photo works best (tall image).</div>' +
+          '<div class="mma-info">Portrait photo works best, or upload an MP4 video (max 10 MB).</div>' +
           '<div id="mmaUploadProgress" class="mma-progress"></div>' +
           '<div id="mmaUploadErr" class="mma-err"></div>' +
           removeBtnHtml +
@@ -357,7 +357,7 @@ function triggerUpload() {
   if (!_editClientId) return;
   var fileInput    = document.createElement('input');
   fileInput.type   = 'file';
-  fileInput.accept = 'image/jpeg,image/png,.jpg,.jpeg,.png';
+  fileInput.accept = 'image/jpeg,image/png,.jpg,.jpeg,.png,video/mp4,.mp4';
 
   fileInput.onchange = async function(ev) {
     var file = ev.target.files && ev.target.files[0];
@@ -408,21 +408,32 @@ function triggerUpload() {
         return;
       }
 
-      var newUrl = resp.urls && (resp.urls.portrait || Object.values(resp.urls)[0]);
+      var isVideo = resp.type === 'video';
+      var newUrl  = resp.urls && (isVideo
+        ? resp.urls.video
+        : (resp.urls.portrait || Object.values(resp.urls)[0]));
+
       if (newUrl) {
-        // Update thumbnail
+        // Replace thumbnail with appropriate preview element
         var thumb = document.getElementById('mmaBgThumb');
         if (thumb) {
-          if (thumb.tagName === 'IMG') {
-            thumb.src = newUrl + '?t=' + Date.now();
+          var newThumb;
+          if (isVideo) {
+            newThumb            = document.createElement('video');
+            newThumb.src        = newUrl + '?t=' + Date.now();
+            newThumb.muted      = true;
+            newThumb.autoplay   = true;
+            newThumb.loop       = true;
+            newThumb.playsInline = true;
+            newThumb.setAttribute('webkit-playsinline', '');
           } else {
-            var img = document.createElement('img');
-            img.src       = newUrl + '?t=' + Date.now();
-            img.id        = 'mmaBgThumb';
-            img.className = 'mma-bg-thumb';
-            img.alt       = 'Current background';
-            thumb.parentNode.replaceChild(img, thumb);
+            newThumb     = document.createElement('img');
+            newThumb.src = newUrl + '?t=' + Date.now();
+            newThumb.alt = 'Current background';
           }
+          newThumb.id        = 'mmaBgThumb';
+          newThumb.className = 'mma-bg-thumb';
+          thumb.parentNode.replaceChild(newThumb, thumb);
         }
         // Update internal state
         if (_editClientData) {

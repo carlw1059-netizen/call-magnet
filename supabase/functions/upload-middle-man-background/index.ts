@@ -7,7 +7,7 @@
 //
 // Input: multipart/form-data
 //   client_id  (string, uuid)   — required
-//   file       (binary)         — required, JPEG or PNG only
+//   file       (binary)         — required, JPEG/PNG image OR MP4 video
 //   promo_text (string, ≤80ch)  — optional
 //
 // Image processing (JPEG/PNG — imagescript, pure TS, no native deps):
@@ -17,8 +17,10 @@
 //       landscape 1920×1080  → <client_id>/landscape.jpg  quality 85
 //       square    1080×1080  → <client_id>/square.jpg     quality 85
 //
-// NOTE: Video backgrounds are deferred to Phase 1.5. Any video upload returns
-// 400 { error: 'video_not_supported' }.
+// Video (MP4 only — Phase 1.5):
+//   • Accepts video/mp4 only. MOV / WebM / AVI are rejected with clear messages.
+//   • Max 10 MB. Stored as-is at <client_id>/video.mp4 (no transcoding).
+//   • Returns { ok: true, urls: { video: <publicUrl> }, type: 'video' }
 //
 // NOTE: npm:sharp requires native Node.js bindings (libvips) which are NOT
 // available in Supabase Edge Functions (Deno Deploy). imagescript is the
@@ -34,8 +36,17 @@ const ADMIN_EMAIL               = 'car312@hotmail.com';
 const BUCKET                    = 'middle-man-backgrounds';
 
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png']);
-const ALLOWED_VIDEO_TYPES = new Set(['video/mp4', 'video/webm']);
-const MAX_IMAGE_BYTES     = 5 * 1024 * 1024;   // 5 MB
+const MAX_IMAGE_BYTES     = 5  * 1024 * 1024;   // 5 MB
+const MAX_VIDEO_BYTES     = 10 * 1024 * 1024;   // 10 MB
+
+// Maps unsupported video MIME types to human-readable format names for errors.
+const UNSUPPORTED_VIDEO_LABELS: Record<string, string> = {
+  'video/quicktime':  'MOV',
+  'video/webm':       'WebM',
+  'video/x-msvideo':  'AVI',
+  'video/avi':        'AVI',
+  'video/x-matroska': 'MKV',
+};
 const MIN_IMG_W           = 600;
 const MIN_IMG_H           = 800;
 
@@ -145,33 +156,54 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
     }
 
-    // ── 3. Validate MIME type and file size ────────────────────────────────
+    // ── 3. Validate MIME type ──────────────────────────────────────────────
     const mime    = fileEntry.type;
     const isImage = ALLOWED_IMAGE_TYPES.has(mime);
-    const isVideo = ALLOWED_VIDEO_TYPES.has(mime);
+    const isMp4   = mime === 'video/mp4';
 
-    if (isVideo) {
-      return json(400, { ok: false, error: 'video_not_supported',
-                          message: 'Video backgrounds coming soon. Please upload a JPG or PNG image.' });
+    // Reject known unsupported video formats with a specific message.
+    if (mime in UNSUPPORTED_VIDEO_LABELS) {
+      const fmt = UNSUPPORTED_VIDEO_LABELS[mime];
+      return json(400, { ok: false, error: 'video_format_unsupported',
+                          detail: `Only MP4 videos are supported — ${fmt} files cannot be uploaded. Please convert to MP4 first.` });
     }
-    if (!isImage) {
+
+    if (!isImage && !isMp4) {
       return json(400, { ok: false, error: 'validation_failed',
-                          detail: 'Unsupported file type. Allowed: JPG or PNG.' });
+                          detail: 'Unsupported file type. Allowed: JPG, PNG, or MP4 video.' });
     }
 
     const fileBytes = new Uint8Array(await fileEntry.arrayBuffer());
-    if (fileBytes.byteLength > MAX_IMAGE_BYTES) {
-      const limitMB = (MAX_IMAGE_BYTES / 1024 / 1024).toFixed(0);
-      return json(400, { ok: false, error: 'validation_failed',
-                          detail: `File too large. Images must be ≤ ${limitMB} MB (got ${(fileBytes.byteLength / 1024 / 1024).toFixed(1)} MB)` });
-    }
 
     // ── 4. Process file and upload to storage ─────────────────────────────
     let urls:   Record<string, string>;
-    const bgType: 'image' = 'image';
+    let bgType: 'image' | 'video' = 'image';
 
-    {
+    if (isMp4) {
+      // ── MP4 video: validate size, upload as-is ─────────────────────────
+      if (fileBytes.byteLength > MAX_VIDEO_BYTES) {
+        return json(400, { ok: false, error: 'validation_failed',
+                            detail: `Video must be under 10MB — try compressing it (got ${(fileBytes.byteLength / 1024 / 1024).toFixed(1)} MB)` });
+      }
+
+      const path = `${clientId}/video.mp4`;
+      const { error: upErr } = await supa.storage
+        .from(BUCKET)
+        .upload(path, fileBytes, { contentType: 'video/mp4', upsert: true });
+      if (upErr) throw new Error(`Storage upload failed (video): ${upErr.message}`);
+
+      const { data: { publicUrl } } = supa.storage.from(BUCKET).getPublicUrl(path);
+      urls   = { video: publicUrl };
+      bgType = 'video';
+
+    } else {
       // ── Image (JPEG or PNG): decode → validate → 3-variant encode pipeline
+      if (fileBytes.byteLength > MAX_IMAGE_BYTES) {
+        const limitMB = (MAX_IMAGE_BYTES / 1024 / 1024).toFixed(0);
+        return json(400, { ok: false, error: 'validation_failed',
+                            detail: `File too large. Images must be ≤ ${limitMB} MB (got ${(fileBytes.byteLength / 1024 / 1024).toFixed(1)} MB)` });
+      }
+
       let img: Image;
       try {
         img = await Image.decode(fileBytes);
