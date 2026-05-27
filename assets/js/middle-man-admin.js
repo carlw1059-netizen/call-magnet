@@ -611,6 +611,7 @@ function _ensureRemoveBtn(btnId, label) {
 // Entirely non-fatal — wrapped in try/catch so a canvas security restriction,
 // CORS issue, or network hiccup never blocks the main upload flow.
 async function _extractAndUploadPoster(videoUrl, clientId) {
+  console.log('[poster] START — clientId:', clientId, '| url:', videoUrl);
   try {
     var vid = document.createElement('video');
     vid.crossOrigin = 'anonymous';
@@ -618,23 +619,28 @@ async function _extractAndUploadPoster(videoUrl, clientId) {
     vid.preload     = 'metadata';
 
     // Wait for the video to load enough metadata to seek, then move to 0.1 s
+    console.log('[poster] creating video element, waiting for loadedmetadata…');
     await new Promise(function(resolve, reject) {
-      var timer = setTimeout(function() { reject(new Error('timeout')); }, 12000);
+      var timer = setTimeout(function() { reject(new Error('timeout waiting for seeked')); }, 12000);
       vid.addEventListener('loadedmetadata', function() {
+        console.log('[poster] loadedmetadata fired — dimensions:', vid.videoWidth, 'x', vid.videoHeight, '| seeking to 0.1s');
         vid.currentTime = 0.1; // 100 ms — skips any all-black open frame
       }, { once: true });
       vid.addEventListener('seeked', function() {
         clearTimeout(timer);
+        console.log('[poster] seeked fired — ready to draw');
         resolve();
       }, { once: true });
-      vid.addEventListener('error', function() {
+      vid.addEventListener('error', function(e) {
         clearTimeout(timer);
-        reject(new Error('video load error'));
+        var code = vid.error ? vid.error.code : '?';
+        reject(new Error('video element error (code ' + code + ')'));
       }, { once: true });
       vid.src = videoUrl;
     });
 
     // Draw the seeked frame to a canvas
+    console.log('[poster] drawing frame to canvas (' + (vid.videoWidth || 1280) + 'x' + (vid.videoHeight || 720) + ')');
     var canvas    = document.createElement('canvas');
     canvas.width  = vid.videoWidth  || 1280;
     canvas.height = vid.videoHeight || 720;
@@ -642,45 +648,51 @@ async function _extractAndUploadPoster(videoUrl, clientId) {
     ctx.drawImage(vid, 0, 0, canvas.width, canvas.height);
 
     // Extract as JPEG blob (0.85 quality balances file size vs. clarity)
+    console.log('[poster] extracting JPEG blob…');
     var blob = await new Promise(function(resolve) {
       canvas.toBlob(resolve, 'image/jpeg', 0.85);
     });
     if (!blob) {
-      console.warn('_extractAndUploadPoster: canvas.toBlob returned null (canvas may be tainted)');
+      console.warn('[poster] FAIL — canvas.toBlob returned null (canvas may be tainted by CORS)');
       return;
     }
+    console.log('[poster] blob ready —', blob.size, 'bytes');
 
     // Upload to the middle-man-backgrounds storage bucket
     var storagePath  = clientId + '/poster.jpg';
+    console.log('[poster] uploading to storage:', storagePath);
     var uploadResult = await mmaSb.storage
       .from('middle-man-backgrounds')
       .upload(storagePath, blob, { contentType: 'image/jpeg', upsert: true });
     if (uploadResult.error) {
-      console.warn('_extractAndUploadPoster: storage upload failed:', uploadResult.error.message);
+      console.warn('[poster] FAIL — storage upload error:', uploadResult.error.message);
       return;
     }
+    console.log('[poster] storage upload OK');
 
     var urlResult = mmaSb.storage.from('middle-man-backgrounds').getPublicUrl(storagePath);
     var publicUrl = urlResult.data && urlResult.data.publicUrl;
     if (!publicUrl) {
-      console.warn('_extractAndUploadPoster: could not resolve public URL');
+      console.warn('[poster] FAIL — could not resolve public URL from storage');
       return;
     }
+    console.log('[poster] public URL:', publicUrl);
 
     // Write the poster URL to the clients table
+    console.log('[poster] writing poster URL to clients table…');
     var dbResult = await mmaSb.from('clients')
       .update({ middle_man_background_poster_url: publicUrl })
       .eq('id', clientId);
     if (dbResult.error) {
-      console.warn('_extractAndUploadPoster: DB update failed:', dbResult.error.message);
+      console.warn('[poster] FAIL — DB update error:', dbResult.error.message);
       return;
     }
 
     if (_editClientData) _editClientData.middle_man_background_poster_url = publicUrl;
-    console.log('_extractAndUploadPoster: poster saved →', publicUrl);
+    console.log('[poster] SUCCESS — poster saved →', publicUrl);
   } catch (err) {
     // Non-fatal — the video still plays without a poster; caller sees dark background
-    console.warn('_extractAndUploadPoster: failed (non-fatal):', (err && err.message) || String(err));
+    console.warn('[poster] FAIL (caught) —', (err && err.message) || String(err));
   }
 }
 
