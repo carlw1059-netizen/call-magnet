@@ -624,6 +624,17 @@
 
   // ── Boot ──────────────────────────────────────────────────────────────────
   async function boot() {
+    // ── Safari toolbar collapse (JOB 2) ────────────────────────────────────
+    // Three-stage scroll sequence triggers Safari's auto-hide behaviour for
+    // the URL bar and bottom toolbar — identical to news.com.au / Twitter.
+    // The page has an invisible 100vh #scroll-spacer below #app (which is
+    // position:fixed) making the document technically scrollable.
+    // behavior:'instant' (via positional form) avoids any visible jank.
+    // These run concurrently with the fetchClient() network request below.
+    setTimeout(function() { window.scrollTo(0, 1);  },  50);
+    setTimeout(function() { window.scrollTo(0, 80); }, 300);
+    setTimeout(function() { window.scrollTo(0, 0);  }, 600);
+
     var slug = extractSlug();
     if (!slug) { showNotFound(); return; }
 
