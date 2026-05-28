@@ -223,8 +223,8 @@
   /* ── Button units — wrapper for one tap-btn + its form-wrap ─────────────── */
   .btn-unit {
     position: relative;
-    width: calc(100% - 96px);
-    max-width: 360px;
+    width: calc(100% - 48px);
+    max-width: 440px;
     margin: 0 auto 14px;
     transition: transform 0.3s ease;
   }
