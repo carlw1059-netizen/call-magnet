@@ -366,15 +366,22 @@
     gap: 12px;
   }
 
-  /* Frosted glass — open unit matches the button's own background/blur exactly */
+  /* Uniform frosted glass — entire open unit is one visual panel, no dividing line */
+  .btn-unit.form-open .tap-btn {
+    background: rgba(0,0,0,0.50);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: none;
+  }
   .btn-unit.form-open .form-wrap {
-    background: rgba(0,0,0,0.35);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    background: rgba(0,0,0,0.50);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
   .btn-unit.form-open .form-inner,
   .btn-unit.form-open .inline-form {
     background: transparent;
+    border-top: none;
   }
 
   /* When a form is open, #app grows with content so the page is scrollable */
