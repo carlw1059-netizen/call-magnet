@@ -243,6 +243,9 @@
     scrollbar-width: none;
     border: 2px solid var(--neon, #06D6A0);
     box-shadow: 0 0 6px var(--neon, #06D6A0), 0 0 10px color-mix(in srgb, var(--neon, #06D6A0) 40%, transparent);
+    display: flex;
+    flex-direction: column;
+    max-height: 88svh;
   }
   .btn-unit.form-open::-webkit-scrollbar { display: none; }
 
@@ -263,7 +266,7 @@
   /* When a form is open, centre the visible unit within the page */
   .has-open-form .buttons {
     justify-content: center;
-    min-height: 100svh;
+    height: 100svh;
   }
 
   /* ── Buttons ─────────────────────────────────────────────────────────────── */
@@ -386,12 +389,21 @@
     box-shadow: none;
     border-radius: 12px 12px 0 0;
     color: var(--neon, #06D6A0);
+    flex-shrink: 0;
   }
   .btn-unit.form-open .form-wrap {
     background: transparent;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    min-height: 0;
+    flex: 1;
   }
+  .btn-unit.form-open .form-wrap::-webkit-scrollbar { display: none; }
   .btn-unit.form-open .inline-form {
     background: transparent;
     backdrop-filter: none;
