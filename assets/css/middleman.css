@@ -410,10 +410,10 @@
     border: none;
   }
 
-  /* When a form is open, #app grows with content so the page is scrollable */
+  /* When a form is open, lock #app to the viewport — no page scroll */
   #app.form-active {
-    height: auto;
-    min-height: 100svh;
+    height: 100svh;
+    overflow: hidden;
   }
 
   /* ── Form close button (X) ───────────────────────────────────────────────── */
