@@ -467,9 +467,6 @@
       // Show tap-outside catcher (z-index 5, below the form-open unit at z-index 10)
       var tapCatcher = document.getElementById('tapCatcher');
       if (tapCatcher) tapCatcher.style.display = 'block';
-
-      // After slide animation, trigger Safari toolbar collapse via subtle scroll
-      setTimeout(function() { window.scrollBy({ top: 80, behavior: 'smooth' }); }, 400);
     }
   }
 
