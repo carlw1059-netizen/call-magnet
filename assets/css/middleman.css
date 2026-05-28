@@ -243,9 +243,6 @@
     scrollbar-width: none;
     border: 2px solid var(--neon, #06D6A0);
     box-shadow: 0 0 6px var(--neon, #06D6A0), 0 0 10px color-mix(in srgb, var(--neon, #06D6A0) 40%, transparent);
-    display: flex;
-    flex-direction: column;
-    max-height: 88svh;
   }
   .btn-unit.form-open::-webkit-scrollbar { display: none; }
 
@@ -265,8 +262,7 @@
 
   /* When a form is open, centre the visible unit within the page */
   .has-open-form .buttons {
-    justify-content: center;
-    height: 100svh;
+    justify-content: flex-start;
   }
 
   /* ── Buttons ─────────────────────────────────────────────────────────────── */
@@ -395,25 +391,17 @@
     background: transparent;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-    scrollbar-width: none;
-    min-height: 0;
-    flex: 1;
   }
-  .btn-unit.form-open .form-wrap::-webkit-scrollbar { display: none; }
   .btn-unit.form-open .inline-form {
     background: transparent;
     backdrop-filter: none;
     border: none;
   }
 
-  /* When a form is open, lock #app to the viewport — no page scroll */
+  /* When a form is open, #app grows with content so the page can scroll */
   #app.form-active {
-    height: 100svh;
-    overflow: hidden;
+    height: auto;
+    min-height: 100svh;
   }
 
   /* ── Form close button (X) ───────────────────────────────────────────────── */

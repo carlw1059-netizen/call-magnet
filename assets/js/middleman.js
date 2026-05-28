@@ -447,22 +447,8 @@
       formWrap.classList.add('open');
       gOpenFormKey = btnKey;
 
-      // Slide siblings: units above tapped → slide-up, below → slide-down
-      var allUnits = document.querySelectorAll('.btn-unit');
       var tappedUnit = btnEl.closest('.btn-unit');
-      var passedTapped = false;
-      allUnits.forEach(function(unit) {
-        if (unit === tappedUnit) { passedTapped = true; unit.classList.add('form-open'); return; }
-        unit.classList.add(passedTapped ? 'slide-down' : 'slide-up');
-      });
-
-      // Centre the remaining visible unit on screen
-      var mainPage = document.getElementById('mainPage');
-      if (mainPage) mainPage.classList.add('has-open-form');
-
-      // #app grows to accommodate the expanded form so the user can scroll to Send
-      var appEl = document.getElementById('app');
-      if (appEl) appEl.classList.add('form-active');
+      if (tappedUnit) tappedUnit.classList.add('form-open');
 
       // Show tap-outside catcher (z-index 5, below the form-open unit at z-index 10)
       var tapCatcher = document.getElementById('tapCatcher');
