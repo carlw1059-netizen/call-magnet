@@ -238,9 +238,6 @@
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-radius: 12px;
-    overflow-x: hidden;
-    overflow-y: auto;
-    max-height: 82svh;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
     scrollbar-width: none;
@@ -263,9 +260,7 @@
 
   /* When a form is open, centre the visible unit within the page */
   .has-open-form .buttons {
-    justify-content: center;
-    min-height: 100svh;
-    height: 100svh;
+    justify-content: flex-start;
   }
 
   /* ── Buttons ─────────────────────────────────────────────────────────────── */
@@ -408,9 +403,9 @@
 
   /* ── Form close button (X) ───────────────────────────────────────────────── */
   .form-close-btn {
-    position: sticky;
+    position: absolute;
     top: 8px;
-    float: right;
+    right: 8px;
     margin: 8px 8px 0 0;
     background: rgba(255,255,255,0.15);
     border: none;
@@ -428,7 +423,6 @@
     font-family: inherit;
     line-height: 1;
     flex-shrink: 0;
-    clear: right;
   }
   .btn-unit.form-open .form-close-btn {
     display: flex;
