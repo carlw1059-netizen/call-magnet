@@ -675,9 +675,11 @@
       });
     }
 
-    // Wire tap-outside catcher → closeForm
+    // Wire tap-outside catcher → closeForm (only when catcher itself is tapped, not bubbled taps from form fields)
     var tapCatcherEl = document.getElementById('tapCatcher');
-    if (tapCatcherEl) tapCatcherEl.addEventListener('click', closeForm);
+    if (tapCatcherEl) tapCatcherEl.addEventListener('click', function(e) {
+      if (e.target === tapCatcherEl) closeForm();
+    });
 
     showMain();
 
