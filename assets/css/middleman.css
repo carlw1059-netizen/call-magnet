@@ -356,7 +356,7 @@
 
   .inline-form {
     position: relative;
-    background: rgba(0,0,0,0.85);
+    background: transparent;
     border: 1px solid rgba(255,255,255,0.15);
     border-radius: 0 0 12px 12px;
     padding: 20px 16px 24px;
@@ -371,12 +371,13 @@
     background: rgba(0,0,0,0.50);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
+    border-radius: 12px 12px 0 0;
     border-bottom: none;
   }
   .btn-unit.form-open .form-wrap {
-    background: rgba(0,0,0,0.50);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
   .btn-unit.form-open .form-inner,
   .btn-unit.form-open .inline-form {
