@@ -387,14 +387,32 @@
 
   // ── Close the currently open inline form ─────────────────────────────────
   function closeForm() {
-    // Remove .open from every form-wrap (handles any orphaned open state)
+    // Restore all .btn-unit slide/open classes and inline styles
+    document.querySelectorAll('.btn-unit').forEach(function(unit) {
+      unit.classList.remove('slide-up', 'slide-down', 'form-open');
+      var btn = unit.querySelector('.tap-btn');
+      if (btn) { btn.style.borderRadius = ''; btn.style.borderBottom = ''; }
+      var inlineForm = unit.querySelector('.inline-form');
+      if (inlineForm) {
+        inlineForm.style.border = '';
+        inlineForm.style.borderTop = '';
+        inlineForm.style.marginTop = '';
+        inlineForm.style.boxShadow = '';
+      }
+    });
+    // Collapse all open form-wraps
     document.querySelectorAll('.form-wrap.open').forEach(function(el) {
       el.classList.remove('open');
     });
+    var buttonsWrap = document.getElementById('buttonsWrap');
+    if (buttonsWrap) buttonsWrap.classList.remove('has-open-form');
     gOpenFormKey = null;
-    // Let #app return to fixed 100svh once no form is expanded
+    // Return #app to fixed 100svh
     var appEl = document.getElementById('app');
     if (appEl) appEl.classList.remove('form-active');
+    // Hide tap-outside catcher
+    var tapCatcher = document.getElementById('tapCatcher');
+    if (tapCatcher) tapCatcher.style.display = 'none';
   }
 
   // ── Handle button tap ─────────────────────────────────────────────────────
@@ -431,24 +449,49 @@
     if (isOpen) {
       closeForm();
     } else {
+      // Close any other open form first
+      if (gOpenFormKey !== null) closeForm();
+
       formWrap.classList.add('open');
       gOpenFormKey = btnKey;
-      // #app grows to accommodate the expanded form so the page is scrollable
+
+      // Slide siblings: units above tapped → slide-up, below → slide-down
+      var allUnits = document.querySelectorAll('.btn-unit');
+      var tappedUnit = btnEl.closest('.btn-unit');
+      var passedTapped = false;
+      allUnits.forEach(function(unit) {
+        if (unit === tappedUnit) { passedTapped = true; unit.classList.add('form-open'); return; }
+        unit.classList.add(passedTapped ? 'slide-down' : 'slide-up');
+      });
+
+      // Centre the remaining visible unit on screen
+      var buttonsWrap = document.getElementById('buttonsWrap');
+      if (buttonsWrap) buttonsWrap.classList.add('has-open-form');
+
+      // #app grows to accommodate the expanded form so the user can scroll to Send
       var appEl = document.getElementById('app');
       if (appEl) appEl.classList.add('form-active');
-      // Scroll the form into view after the CSS transition has begun (50ms)
-      setTimeout(function() {
-        formWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }, 50);
-      // Apply neon border/glow to the inline form matching the button colour
+
+      // Show tap-outside catcher (z-index 5, below the form-open unit at z-index 10)
+      var tapCatcher = document.getElementById('tapCatcher');
+      if (tapCatcher) tapCatcher.style.display = 'block';
+
+      // Neon pill: button top + form bottom share one continuous neon border
       var neon = formWrap.dataset.neon;
-      if (neon) {
+      if (neon && tappedUnit) {
+        btnEl.style.borderRadius = '12px 12px 0 0';
+        btnEl.style.borderBottom = 'none';
         var inlineForm = formWrap.querySelector('.inline-form');
         if (inlineForm) {
-          inlineForm.style.border = '1.5px solid ' + neon;
+          inlineForm.style.border = '2px solid ' + neon;
+          inlineForm.style.borderTop = 'none';
+          inlineForm.style.marginTop = '0';
           inlineForm.style.boxShadow = '0 0 8px ' + hexRgba(neon, 0.3) + ', 0 0 16px ' + hexRgba(neon, 0.1);
         }
       }
+
+      // After slide animation, trigger Safari toolbar collapse via subtle scroll
+      setTimeout(function() { window.scrollBy({ top: 80, behavior: 'smooth' }); }, 400);
     }
   }
 
@@ -611,10 +654,14 @@
         });
       }
 
-      // FIX 1: Apply neon colour by position
+      // Apply neon colour by position
       applyNeon(btnEl, idx);
 
-      wrap.appendChild(btnEl);
+      // Wrap button (and its form) in a .btn-unit for slide animation + neon pill
+      var unit = document.createElement('div');
+      unit.className = 'btn-unit';
+      unit.dataset.neon = NEON[Math.min(idx, NEON.length - 1)];
+      unit.appendChild(btnEl);
 
       // Form container (non-booking only)
       if (formType !== 'booking') {
@@ -623,9 +670,11 @@
         formWrap.id = 'form-' + btnKey;
         formWrap.dataset.neon = NEON[Math.min(idx, NEON.length - 1)];
         formWrap.innerHTML = buildFormHtml(formType);
-        wrap.appendChild(formWrap);
+        unit.appendChild(formWrap);
         attachFormListeners(formWrap, formType, businessName, display, bookingUrl);
       }
+
+      wrap.appendChild(unit);
     });
 
     if (enabled.length === 0) wrap.style.display = 'none';
@@ -654,6 +703,10 @@
         woBtn.textContent = open ? "See what’s on ↑" : "See what’s on ↓";
       });
     }
+
+    // Wire tap-outside catcher → closeForm
+    var tapCatcherEl = document.getElementById('tapCatcher');
+    if (tapCatcherEl) tapCatcherEl.addEventListener('click', closeForm);
 
     showMain();
 

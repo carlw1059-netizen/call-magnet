@@ -14,7 +14,7 @@
     });
   }
 </script>
-<link rel="stylesheet" href="/assets/css/middleman.css?v=20260528e">
+<link rel="stylesheet" href="/assets/css/middleman.css?v=20260528f">
 </head>
 <body>
 
@@ -24,8 +24,10 @@
 
 <div id="app">
 
-  <!-- Tap-outside overlay — dims page behind open inline form; click closes form -->
-  <div class="form-overlay" id="formOverlay"></div>
+  <!-- Tap-outside catcher: transparent, z-index 5, shown when a form is open.
+       Sits above the video/overlay (z-index 0–1) but below the open btn-unit
+       (z-index 10). Clicking it calls closeForm(). -->
+  <div id="tapCatcher"></div>
 
   <!-- Skeleton loading state -->
   <div id="skeleton">
@@ -81,6 +83,6 @@
 
 </div><!-- /app -->
 
-<script src="/assets/js/middleman.js?v=20260528e" defer></script>
+<script src="/assets/js/middleman.js?v=20260528f" defer></script>
 </body>
 </html>
