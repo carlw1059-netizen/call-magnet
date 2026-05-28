@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
 // Last bumped: 16 May 2026 — email+password login replaces magic-link; must_change_password first-login flow
-const CACHE_VERSION = 'callmagnet-v50-android-pwa-manifest-fix-2026-05-17';
+const CACHE_VERSION = 'callmagnet-v51-caller-page-sw-bypass-2026-05-29';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
@@ -36,6 +36,10 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
+
+  // Caller pages (/b/<slug>) must never be touched by the service worker —
+  // they are public, per-restaurant, and must never fall back to the PWA root.
+  if (url.pathname === '/b.html' || url.pathname.startsWith('/b/')) return;
 
   // Never cache Supabase API or auth calls — always network
   if (url.hostname.includes('supabase.co')) return;
