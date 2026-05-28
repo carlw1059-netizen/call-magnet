@@ -420,7 +420,7 @@
     border-radius: 50%;
     font-size: 14px;
     cursor: pointer;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     z-index: 20;
@@ -429,6 +429,11 @@
     line-height: 1;
     flex-shrink: 0;
     clear: right;
+  }
+  .btn-unit.form-open .form-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   .form-close-btn:hover { background: rgba(255,255,255,0.2); }
 
