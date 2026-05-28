@@ -44,6 +44,7 @@
     el.style.borderColor = c;
     el.style.color       = c;
     el.style.boxShadow   = '0 0 6px ' + c + ', 0 0 10px ' + hexRgba(c, 0.40);
+    el._neonColor = c;
   }
 
   // ── Fetch client from Supabase REST (anon key) ────────────────────────────
@@ -392,6 +393,8 @@
       unit.classList.remove('slide-up', 'slide-down', 'form-open');
       unit.style.border = '';
       unit.style.boxShadow = '';
+      var tapBtn = unit.querySelector('.tap-btn');
+      if (tapBtn) tapBtn.style.border = '';
       var btn = unit.querySelector('.tap-btn');
       if (btn) { btn.style.borderRadius = ''; btn.style.borderBottom = ''; }
       var inlineForm = unit.querySelector('.inline-form');
@@ -483,6 +486,8 @@
       if (neon && tappedUnit) {
         tappedUnit.style.border = '2px solid ' + neon;
         tappedUnit.style.boxShadow = '0 0 6px ' + neon + ', 0 0 10px ' + hexRgba(neon, 0.40);
+        var tapBtn = tappedUnit.querySelector('.tap-btn');
+        if (tapBtn) tapBtn.style.border = 'none';
       }
 
       // After slide animation, trigger Safari toolbar collapse via subtle scroll
