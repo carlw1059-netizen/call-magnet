@@ -362,14 +362,17 @@
         headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON },
         body: JSON.stringify(payload),
       })
-      .then(function() { handleSuccess(formWrap, name, formType, businessName, bookingUrl); })
-      .catch(function() { handleSuccess(formWrap, name, formType, businessName, bookingUrl); });
+      .then(function() { handleSuccess(formWrap, name, formType, businessName); })
+      .catch(function() { handleSuccess(formWrap, name, formType, businessName); });
       // Always show success — never block the customer
     });
   }
 
-  // ── Show success screen, then redirect to bookingUrl after 2s ────────────
-  function handleSuccess(formWrap, name, formType, businessName, bookingUrl) {
+  // ── Show success screen and stay on page ────────────────────────────────
+  // Booking redirects are handled in handleTap() before any form opens.
+  // All other form types (change_cancel, function, late_arrival, lost_found,
+  // something_else) show success and stay put.
+  function handleSuccess(formWrap, name, formType, businessName) {
     var formEl = formWrap.querySelector('.inline-form');
     if (formEl) formEl.style.display = 'none';
 
@@ -379,11 +382,6 @@
       + '<div class="success-heading">Got it, ' + esc(name) + '</div>'
       + '<div class="success-msg">' + successMsg(formType, businessName) + '</div>';
     formWrap.appendChild(successEl);
-
-    // Redirect to booking URL after 2 seconds (if set)
-    if (bookingUrl) {
-      setTimeout(function() { window.location.href = bookingUrl; }, 2000);
-    }
   }
 
   // ── Close the currently open inline form ─────────────────────────────────
