@@ -390,6 +390,8 @@
     // Restore all .btn-unit slide/open classes and inline styles
     document.querySelectorAll('.btn-unit').forEach(function(unit) {
       unit.classList.remove('slide-up', 'slide-down', 'form-open');
+      unit.style.border = '';
+      unit.style.boxShadow = '';
       var btn = unit.querySelector('.tap-btn');
       if (btn) { btn.style.borderRadius = ''; btn.style.borderBottom = ''; }
       var inlineForm = unit.querySelector('.inline-form');
@@ -476,18 +478,11 @@
       var tapCatcher = document.getElementById('tapCatcher');
       if (tapCatcher) tapCatcher.style.display = 'block';
 
-      // Neon pill: button top + form bottom share one continuous neon border
+      // Neon border on parent unit — one clean border around the whole open unit
       var neon = formWrap.dataset.neon;
       if (neon && tappedUnit) {
-        btnEl.style.borderRadius = '12px 12px 0 0';
-        btnEl.style.borderBottom = 'none';
-        var inlineForm = formWrap.querySelector('.inline-form');
-        if (inlineForm) {
-          inlineForm.style.border = '2px solid ' + neon;
-          inlineForm.style.borderTop = 'none';
-          inlineForm.style.marginTop = '0';
-          inlineForm.style.boxShadow = '0 0 6px ' + neon + ', 0 0 10px ' + hexRgba(neon, 0.40);
-        }
+        tappedUnit.style.border = '2px solid ' + neon;
+        tappedUnit.style.boxShadow = '0 0 6px ' + neon + ', 0 0 10px ' + hexRgba(neon, 0.40);
       }
 
       // After slide animation, trigger Safari toolbar collapse via subtle scroll

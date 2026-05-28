@@ -230,14 +230,15 @@
   }
   .btn-unit:last-child { margin-bottom: 2px; }
 
-  /* Tapped unit sits above the tapCatcher so form interactions work */
+  /* Tapped unit: single compositor layer covers entire open unit */
   .btn-unit.form-open {
     position: relative;
     z-index: 10;
-    max-height: 80svh;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 12px;
+    overflow: hidden;
   }
 
   /* Sibling buttons slide away when a form is open */
@@ -366,23 +367,22 @@
     gap: 12px;
   }
 
-  /* Uniform frosted glass — entire open unit is one visual panel, no dividing line */
+  /* All children transparent — single blur on parent shows through uniformly */
   .btn-unit.form-open .tap-btn {
-    background: rgba(0,0,0,0.50);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border-radius: 12px 12px 0 0;
-    border-bottom: none;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: none;
   }
   .btn-unit.form-open .form-wrap {
     background: transparent;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
-  .btn-unit.form-open .form-inner,
   .btn-unit.form-open .inline-form {
     background: transparent;
-    border-top: none;
+    backdrop-filter: none;
+    border: none;
   }
 
   /* When a form is open, #app grows with content so the page is scrollable */
