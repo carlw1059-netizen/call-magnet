@@ -18,3 +18,23 @@
   from   = "/u/*"
   to     = "/u.html"
   status = 200
+
+# ── Cache-Control headers ─────────────────────────────────────────────────────
+# The caller page (/b/*) and its dedicated assets must never be served from
+# any cache — the page is live/per-client and changes whenever a client updates
+# their settings. Service workers (Progressier) must revalidate on every request.
+
+[[headers]]
+  for = "/b/*"
+  [headers.values]
+    Cache-Control = "no-store, no-cache, must-revalidate"
+
+[[headers]]
+  for = "/assets/js/middleman.js"
+  [headers.values]
+    Cache-Control = "no-store, no-cache, must-revalidate"
+
+[[headers]]
+  for = "/assets/css/middleman.css"
+  [headers.values]
+    Cache-Control = "no-store, no-cache, must-revalidate"
