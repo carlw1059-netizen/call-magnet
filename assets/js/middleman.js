@@ -41,9 +41,8 @@
   // ── Apply neon style to a button element by position index (0-based) ─────
   function applyNeon(el, idx) {
     var c = NEON[Math.min(idx, NEON.length - 1)];
-    el.style.borderColor = c;
-    el.style.color       = c;
-    el.style.boxShadow   = '0 0 6px ' + c + ', 0 0 10px ' + hexRgba(c, 0.40);
+    var unit = el.closest('.btn-unit') || el.parentElement;
+    unit.style.setProperty('--neon', c);
     el._neonColor = c;
   }
 
@@ -388,22 +387,9 @@
 
   // ── Close the currently open inline form ─────────────────────────────────
   function closeForm() {
-    // Restore all .btn-unit slide/open classes and inline styles
+    // CSS handles all style resets via class removal — no inline style cleanup needed
     document.querySelectorAll('.btn-unit').forEach(function(unit) {
       unit.classList.remove('slide-up', 'slide-down', 'form-open');
-      unit.style.border = '';
-      unit.style.boxShadow = '';
-      var tapBtn = unit.querySelector('.tap-btn');
-      if (tapBtn) tapBtn.style.border = '';
-      var btn = unit.querySelector('.tap-btn');
-      if (btn) { btn.style.borderRadius = ''; btn.style.borderBottom = ''; }
-      var inlineForm = unit.querySelector('.inline-form');
-      if (inlineForm) {
-        inlineForm.style.border = '';
-        inlineForm.style.borderTop = '';
-        inlineForm.style.marginTop = '';
-        inlineForm.style.boxShadow = '';
-      }
     });
     // Collapse all open form-wraps
     document.querySelectorAll('.form-wrap.open').forEach(function(el) {
@@ -480,15 +466,6 @@
       // Show tap-outside catcher (z-index 5, below the form-open unit at z-index 10)
       var tapCatcher = document.getElementById('tapCatcher');
       if (tapCatcher) tapCatcher.style.display = 'block';
-
-      // Neon border on parent unit — one clean border around the whole open unit
-      var neon = formWrap.dataset.neon;
-      if (neon && tappedUnit) {
-        tappedUnit.style.border = '2px solid ' + neon;
-        tappedUnit.style.boxShadow = '0 0 6px ' + neon + ', 0 0 10px ' + hexRgba(neon, 0.40);
-        var tapBtn = tappedUnit.querySelector('.tap-btn');
-        if (tapBtn) tapBtn.style.border = 'none';
-      }
 
       // After slide animation, trigger Safari toolbar collapse via subtle scroll
       setTimeout(function() { window.scrollBy({ top: 80, behavior: 'smooth' }); }, 400);
