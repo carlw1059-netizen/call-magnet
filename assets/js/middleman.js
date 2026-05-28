@@ -44,6 +44,8 @@
     var unit = el.closest('.btn-unit') || el.parentElement;
     unit.style.setProperty('--neon', c);
     el._neonColor = c;
+    var unit = el.closest('.btn-unit');
+    if (unit) unit.style.setProperty('--neon', c);
   }
 
   // ── Fetch client from Supabase REST (anon key) ────────────────────────────
@@ -631,12 +633,10 @@
         });
       }
 
-      // Apply neon colour by position
-      applyNeon(btnEl, idx);
-
       // Wrap button (and its form) in a .btn-unit for slide animation + neon pill
       var unit = document.createElement('div');
       unit.className = 'btn-unit';
+      unit.dataset.neonIdx = idx;
       unit.dataset.neon = NEON[Math.min(idx, NEON.length - 1)];
       unit.appendChild(btnEl);
 
@@ -652,6 +652,9 @@
       }
 
       wrap.appendChild(unit);
+
+      // Apply neon colour by position — called AFTER unit is in DOM so closest() works
+      applyNeon(btnEl, idx);
     });
 
     if (enabled.length === 0) wrap.style.display = 'none';
