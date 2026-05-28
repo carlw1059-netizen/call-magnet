@@ -234,7 +234,7 @@
   .btn-unit.form-open {
     position: relative;
     z-index: 10;
-    max-height: 88svh;
+    max-height: 80svh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
@@ -252,24 +252,19 @@
     pointer-events: none;
   }
 
-  /* Container centres the open button+form unit while siblings are hidden */
-  .buttons.has-open-form {
+  /* When a form is open, centre the visible unit within the page */
+  .has-open-form .buttons {
     justify-content: center;
     min-height: 100svh;
-    overflow: visible;
   }
 
   /* ── Buttons ─────────────────────────────────────────────────────────────── */
   .buttons {
-    position: relative;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     gap: 12px;
     padding: 0 16px;
-    min-height: 100svh;
-    overflow: hidden;
-    margin-top: 40px;
+    width: 100%;
   }
 
   .tap-btn {
@@ -371,12 +366,13 @@
     gap: 12px;
   }
 
-  /* Frosted glass effect when a form is open */
+  /* Frosted glass — open unit matches the button's own background/blur exactly */
   .btn-unit.form-open .form-wrap {
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
   }
+  .btn-unit.form-open .form-inner,
   .btn-unit.form-open .inline-form {
     background: transparent;
   }

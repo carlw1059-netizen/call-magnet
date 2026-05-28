@@ -404,8 +404,8 @@
     document.querySelectorAll('.form-wrap.open').forEach(function(el) {
       el.classList.remove('open');
     });
-    var buttonsWrap = document.getElementById('buttonsWrap');
-    if (buttonsWrap) buttonsWrap.classList.remove('has-open-form');
+    var mainPage = document.getElementById('mainPage');
+    if (mainPage) mainPage.classList.remove('has-open-form');
     gOpenFormKey = null;
     // Return #app to fixed 100svh
     var appEl = document.getElementById('app');
@@ -465,8 +465,8 @@
       });
 
       // Centre the remaining visible unit on screen
-      var buttonsWrap = document.getElementById('buttonsWrap');
-      if (buttonsWrap) buttonsWrap.classList.add('has-open-form');
+      var mainPage = document.getElementById('mainPage');
+      if (mainPage) mainPage.classList.add('has-open-form');
 
       // #app grows to accommodate the expanded form so the user can scroll to Send
       var appEl = document.getElementById('app');
