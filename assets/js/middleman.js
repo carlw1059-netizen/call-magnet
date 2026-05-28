@@ -382,6 +382,16 @@
       + '<div class="success-heading">Got it, ' + esc(name) + '</div>'
       + '<div class="success-msg">' + successMsg(formType, businessName) + '</div>';
     formWrap.appendChild(successEl);
+
+    // After showing the confirmation, auto-return to home screen (the 6 buttons)
+    setTimeout(function() {
+      closeForm();
+      // Clean up so the form is fresh next time this button is tapped
+      var existingSuccess = formWrap.querySelector('.success-state');
+      if (existingSuccess) existingSuccess.remove();
+      var formAgain = formWrap.querySelector('.inline-form');
+      if (formAgain) formAgain.style.display = '';
+    }, 2500);
   }
 
   // ── Close the currently open inline form ─────────────────────────────────
