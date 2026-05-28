@@ -43,7 +43,7 @@
     var c = NEON[Math.min(idx, NEON.length - 1)];
     el.style.borderColor = c;
     el.style.color       = c;
-    el.style.boxShadow   = '0 0 8px ' + hexRgba(c, 0.25) + ', 0 0 20px ' + hexRgba(c, 0.10);
+    el.style.boxShadow   = '0 0 6px ' + c + ', 0 0 10px ' + hexRgba(c, 0.40);
   }
 
   // ── Fetch client from Supabase REST (anon key) ────────────────────────────
@@ -486,7 +486,7 @@
           inlineForm.style.border = '2px solid ' + neon;
           inlineForm.style.borderTop = 'none';
           inlineForm.style.marginTop = '0';
-          inlineForm.style.boxShadow = '0 0 8px ' + hexRgba(neon, 0.3) + ', 0 0 16px ' + hexRgba(neon, 0.1);
+          inlineForm.style.boxShadow = '0 0 6px ' + neon + ', 0 0 10px ' + hexRgba(neon, 0.40);
         }
       }
 

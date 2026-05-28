@@ -25,12 +25,13 @@
     background-size: cover;
     background-position: center top;
     overflow: hidden;
+    pointer-events: none;
     /* GPU compositing: prevents video from being redrawn on overscroll */
     transform: translateZ(0);
     will-change: transform;
   }
-  /* Video background — fills #bgFixed exactly, covers like a background image */
-  #bgFixed video {
+  /* Video/image background — fills #bgFixed exactly, covers like a background image */
+  #bgFixed video, #bgFixed img {
     position: absolute;
     top: 0;
     left: 0;
@@ -211,11 +212,12 @@
 
   /* ── Tap-outside catcher — transparent layer above video, below open form ── */
   #tapCatcher {
-    position: absolute;
+    position: fixed;
     inset: 0;
-    z-index: 5;
+    z-index: 1;
     display: none;
     cursor: pointer;
+    background: transparent;
   }
 
   /* ── Button units — wrapper for one tap-btn + its form-wrap ─────────────── */
@@ -224,22 +226,29 @@
     width: calc(100% - 96px);
     max-width: 360px;
     margin: 0 auto 14px;
-    transition: transform 0.3s ease, opacity 0.25s ease;
+    transition: transform 0.3s ease;
   }
   .btn-unit:last-child { margin-bottom: 2px; }
 
   /* Tapped unit sits above the tapCatcher so form interactions work */
-  .btn-unit.form-open { position: relative; z-index: 10; }
+  .btn-unit.form-open {
+    position: relative;
+    z-index: 10;
+    max-height: 88svh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
 
-  /* Sibling buttons slide away and fade when a form is open */
+  /* Sibling buttons slide away when a form is open */
   .slide-up {
-    transform: translateY(-200%);
-    opacity: 0;
+    transform: translateY(-150vh);
+    transition: transform 0.3s ease;
     pointer-events: none;
   }
   .slide-down {
-    transform: translateY(200%);
-    opacity: 0;
+    transform: translateY(150vh);
+    transition: transform 0.3s ease;
     pointer-events: none;
   }
 
@@ -247,10 +256,21 @@
   .buttons.has-open-form {
     justify-content: center;
     min-height: 100svh;
+    overflow: visible;
   }
 
   /* ── Buttons ─────────────────────────────────────────────────────────────── */
-  .buttons { display: flex; flex-direction: column; gap: 0; margin-top: 40px; }
+  .buttons {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+    padding: 0 16px;
+    min-height: 100svh;
+    overflow: hidden;
+    margin-top: 40px;
+  }
 
   .tap-btn {
     display: block;
@@ -349,6 +369,16 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+  }
+
+  /* Frosted glass effect when a form is open */
+  .btn-unit.form-open .form-wrap {
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .btn-unit.form-open .inline-form {
+    background: transparent;
   }
 
   /* When a form is open, #app grows with content so the page is scrollable */
