@@ -681,6 +681,13 @@
       if (e.target === tapCatcherEl) closeForm();
     });
 
+    // Close form when tapping anywhere outside a .btn-unit (background tap-to-dismiss)
+    document.addEventListener('click', function(e) {
+      if (gOpenFormKey === null) return;
+      if (e.target.closest('.btn-unit')) return;
+      closeForm();
+    });
+
     showMain();
 
     // ── Wire "Stop these texts" to the opt-out page (JOB 3) ─────────────────
