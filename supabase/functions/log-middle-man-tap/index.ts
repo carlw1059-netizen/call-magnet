@@ -120,7 +120,16 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   // ── Fire-and-forget: send-client-notification (event: link_tapped) ──────────
-  if (INTERNAL_SECRET) {
+  // Only fire for booking-type taps (e.g. "Book a table"). Other buttons open
+  // forms and fire their own per-formType notification on submit via
+  // submit-middle-man-form — firing here too would duplicate or send the wrong message.
+  const isBookingTap = /book|table|appointment/i.test(intentSafe);
+
+  if (!INTERNAL_SECRET) {
+    console.warn('log-middle-man-tap: INTERNAL_SECRET not configured — skipping send-client-notification');
+  } else if (!isBookingTap) {
+    console.log(`log-middle-man-tap: skipping notification for non-booking intent "${intentSafe}" — form submit will fire its own`);
+  } else {
     fetch(`${SUPABASE_URL}/functions/v1/send-client-notification`, {
       method:  'POST',
       headers: {
@@ -136,8 +145,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
     }).catch((err) => {
       console.warn(`log-middle-man-tap: send-client-notification fire-and-forget failed: ${err?.message ?? err}`);
     });
-  } else {
-    console.warn('log-middle-man-tap: INTERNAL_SECRET not configured — skipping send-client-notification');
   }
 
   return OK;

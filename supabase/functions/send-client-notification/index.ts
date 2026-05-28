@@ -282,17 +282,17 @@ Deno.serve(async (req) => {
         else                                                   ltTitle = '★ New Enquiry';
         ltBody = intentStr;
       } else if (ltVertical === 'restaurant') {
-        ltTitle = '🍽️ Customer activity';
-        ltBody  = 'Someone tapped your booking link — check your booking system (OpenTable / Now Book It / SevenRooms) for new bookings, changes, or cancellations.';
+        ltTitle = '🍽️ Booking link tapped';
+        ltBody  = 'A caller is heading to your booking system — check now for new bookings, changes, or cancellations.';
       } else if (ltVertical === 'barber') {
-        ltTitle = '✂️ Customer activity';
-        ltBody  = 'Someone tapped your booking link — check Fresha now for new bookings, time changes, or cancellations.';
+        ltTitle = '✂️ Booking link tapped';
+        ltBody  = 'A caller is heading to your booking system — check now for new bookings.';
       } else if (ltVertical === 'tradie') {
-        ltTitle = '🔧 Customer enquiry';
-        ltBody  = 'Someone tapped your call-back link — they may want a quote. Call them back when you\'re free.';
+        ltTitle = '🔧 Call-back link tapped';
+        ltBody  = 'A caller tapped your call-back link — they may want a quote.';
       } else {
-        ltTitle = '📱 Customer activity';
-        ltBody  = 'Someone tapped your link — check your booking system for any new activity.';
+        ltTitle = '📱 Booking link tapped';
+        ltBody  = 'A caller is heading to your booking system — check now for any new activity.';
       }
 
       if (!PROGRESSIER_API_KEY) {
