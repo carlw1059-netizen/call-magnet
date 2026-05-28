@@ -235,7 +235,7 @@
     position: relative;
     z-index: 10;
     max-height: 80svh;
-    overflow-y: auto;
+    overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
   }
