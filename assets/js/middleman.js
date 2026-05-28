@@ -387,13 +387,14 @@
 
   // ── Close the currently open inline form ─────────────────────────────────
   function closeForm() {
-    if (gOpenFormKey !== null) {
-      var formEl = document.getElementById('form-' + gOpenFormKey);
-      if (formEl) formEl.classList.remove('open');
-      gOpenFormKey = null;
-    }
-    var overlay = document.getElementById('formOverlay');
-    if (overlay) overlay.classList.remove('visible');
+    // Remove .open from every form-wrap (handles any orphaned open state)
+    document.querySelectorAll('.form-wrap.open').forEach(function(el) {
+      el.classList.remove('open');
+    });
+    gOpenFormKey = null;
+    // Let #app return to fixed 100svh once no form is expanded
+    var appEl = document.getElementById('app');
+    if (appEl) appEl.classList.remove('form-active');
   }
 
   // ── Handle button tap ─────────────────────────────────────────────────────
@@ -432,6 +433,13 @@
     } else {
       formWrap.classList.add('open');
       gOpenFormKey = btnKey;
+      // #app grows to accommodate the expanded form so the page is scrollable
+      var appEl = document.getElementById('app');
+      if (appEl) appEl.classList.add('form-active');
+      // Scroll the form into view after the CSS transition has begun (50ms)
+      setTimeout(function() {
+        formWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 50);
       // Apply neon border/glow to the inline form matching the button colour
       var neon = formWrap.dataset.neon;
       if (neon) {
@@ -470,7 +478,6 @@
     } catch (_) { buttons = []; }
 
     // ── Full-screen background ────────────────────────────────────────────
-    // #app is position:fixed (scroll container) — body is just overflow:hidden.
     // #bgFixed is position:fixed z-index:0 — always covers the full screen.
     // Image bgUrl has ?v= cache-bust; video bgUrl is bare (videos are content-addressed).
     var bgFixed = document.getElementById('bgFixed');
@@ -648,10 +655,6 @@
       });
     }
 
-    // Wire tap-outside overlay → closeForm (once, after DOM is ready)
-    var formOverlayEl = document.getElementById('formOverlay');
-    if (formOverlayEl) formOverlayEl.addEventListener('click', closeForm);
-
     showMain();
 
     // ── Wire "Stop these texts" to the opt-out page (JOB 3) ─────────────────
@@ -667,17 +670,6 @@
 
   // ── Boot ──────────────────────────────────────────────────────────────────
   async function boot() {
-    // ── Safari toolbar collapse (JOB 2) ────────────────────────────────────
-    // Three-stage scroll sequence triggers Safari's auto-hide behaviour for
-    // the URL bar and bottom toolbar — identical to news.com.au / Twitter.
-    // The page has an invisible 100vh #scroll-spacer below #app (which is
-    // position:fixed) making the document technically scrollable.
-    // behavior:'instant' (via positional form) avoids any visible jank.
-    // These run concurrently with the fetchClient() network request below.
-    setTimeout(function() { window.scrollTo(0, 1);  },  50);
-    setTimeout(function() { window.scrollTo(0, 80); }, 300);
-    setTimeout(function() { window.scrollTo(0, 0);  }, 600);
-
     var slug = extractSlug();
     if (!slug) { showNotFound(); return; }
 

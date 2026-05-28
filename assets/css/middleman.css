@@ -204,7 +204,7 @@
   }
 
   /* ── Buttons ─────────────────────────────────────────────────────────────── */
-  .buttons { display: flex; flex-direction: column; gap: 0; }
+  .buttons { display: flex; flex-direction: column; gap: 0; margin-top: 40px; }
 
   .tap-btn {
     display: block;
@@ -290,21 +290,27 @@
     max-height: 0;
     transition: max-height 0.35s ease;
   }
-  /* Form expands inline below the tapped button — no body scroll-lock needed */
+  /* Form expands inline below the tapped button — page grows naturally */
   .form-wrap.open {
-    max-height: 900px;
+    max-height: 1200px;
   }
 
   .inline-form {
     position: relative;
-    background: rgba(14,20,25,0.92);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 12px;
-    padding: 18px 16px 16px;
-    margin-top: 0;
+    background: rgba(0,0,0,0.85);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 0 0 12px 12px;
+    padding: 20px 16px 24px;
+    margin-top: -4px;
     display: flex;
     flex-direction: column;
     gap: 12px;
+  }
+
+  /* When a form is open, #app grows with content so the page is scrollable */
+  #app.form-active {
+    height: auto;
+    min-height: 100svh;
   }
 
   /* ── Form close button (X) ───────────────────────────────────────────────── */
@@ -476,19 +482,3 @@
   }
   .footer-stop:hover { color: #FFFFFF; }
 
-  /* ── Tap-outside overlay (dims page behind open form) ───────────────────── */
-  .form-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.4);
-    z-index: 10;
-    display: none;
-  }
-  .form-overlay.visible {
-    display: block;
-    animation: fadeInOverlay 0.2s ease both;
-  }
-  @keyframes fadeInOverlay {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
