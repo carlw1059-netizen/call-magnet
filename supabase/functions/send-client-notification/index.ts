@@ -262,9 +262,26 @@ Deno.serve(async (req) => {
       }
       const ltVertical = ltClientArr[0].vertical;
 
+      // submit-middle-man-form populates context.intent with buildPushMessage() output,
+      // always prefixed with ★ (e.g. "★ The Chophouse — CHANGE/CANCEL REQUEST — …").
+      // log-middle-man-tap uses short button labels with no ★ prefix.
+      // When ★ is present we use the full intent string as the push body and derive
+      // a short title from the formType keyword embedded in the string.
+      // When ★ is absent (button-tap path) we fall back to the generic vertical message.
+      const intentStr  = typeof context.intent === 'string' ? context.intent.trim() : '';
+      const isFormSubmit = intentStr.startsWith('★');
+
       let ltTitle: string;
       let ltBody:  string;
-      if (ltVertical === 'restaurant') {
+
+      if (isFormSubmit) {
+        if      (intentStr.includes('CHANGE/CANCEL REQUEST')) ltTitle = '★ Change/Cancel Request';
+        else if (intentStr.includes('FUNCTION ENQUIRY'))      ltTitle = '★ Function Enquiry';
+        else if (intentStr.includes('LATE ARRIVAL'))          ltTitle = '★ Late Arrival Alert';
+        else if (intentStr.includes('LOST & FOUND'))          ltTitle = '★ Lost & Found';
+        else                                                   ltTitle = '★ New Enquiry';
+        ltBody = intentStr;
+      } else if (ltVertical === 'restaurant') {
         ltTitle = '🍽️ Customer activity';
         ltBody  = 'Someone tapped your booking link — check your booking system (OpenTable / Now Book It / SevenRooms) for new bookings, changes, or cancellations.';
       } else if (ltVertical === 'barber') {
