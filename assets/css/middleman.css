@@ -393,7 +393,6 @@
     background: transparent;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
-    overflow: visible;
   }
   .btn-unit.form-open .inline-form {
     background: transparent;
@@ -410,10 +409,9 @@
   /* ── Form close button (X) ───────────────────────────────────────────────── */
   .form-close-btn {
     position: sticky;
-    top: 0;
+    top: 8px;
     float: right;
-    margin: 10px 10px 0 0;
-    clear: right;
+    margin: 8px 8px 0 0;
     background: rgba(255,255,255,0.15);
     border: none;
     color: #FFFFFF;
@@ -430,6 +428,7 @@
     font-family: inherit;
     line-height: 1;
     flex-shrink: 0;
+    clear: right;
   }
   .form-close-btn:hover { background: rgba(255,255,255,0.2); }
 

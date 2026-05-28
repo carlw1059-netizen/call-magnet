@@ -238,7 +238,6 @@
     };
 
     return '<div class="inline-form" data-form-type="' + formType + '">'
-      + '<button class="form-close-btn" type="button" aria-label="Close">✕</button>'
       + '<div class="form-title">' + esc(titles[formType] || 'Send us a message') + '</div>'
       + inner
       + '<button class="submit-btn" type="button" data-submit>' + esc(submitLabels[formType] || 'Send') + '</button>'
@@ -642,6 +641,15 @@
 
       // Form container (non-booking only)
       if (formType !== 'booking') {
+        // Close button — sibling of form-wrap, outside overflow:hidden so iOS Safari never clips it
+        var closeBtn = document.createElement('button');
+        closeBtn.className = 'form-close-btn';
+        closeBtn.type = 'button';
+        closeBtn.setAttribute('aria-label', 'Close');
+        closeBtn.textContent = '✕';
+        closeBtn.addEventListener('click', closeForm);
+        unit.appendChild(closeBtn);
+
         var formWrap = document.createElement('div');
         formWrap.className = 'form-wrap';
         formWrap.id = 'form-' + btnKey;
