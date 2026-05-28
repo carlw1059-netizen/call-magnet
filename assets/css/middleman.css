@@ -241,7 +241,13 @@
     overflow: hidden;
     border: 2px solid var(--neon, #06D6A0);
     box-shadow: 0 0 6px var(--neon, #06D6A0), 0 0 10px color-mix(in srgb, var(--neon, #06D6A0) 40%, transparent);
+    max-height: 80svh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
   }
+  .btn-unit.form-open::-webkit-scrollbar { display: none; }
 
   /* Sibling buttons slide away when a form is open */
   .slide-up {
@@ -259,6 +265,7 @@
   .has-open-form .buttons {
     justify-content: center;
     min-height: 100svh;
+    height: 100svh;
   }
 
   /* ── Buttons ─────────────────────────────────────────────────────────────── */
@@ -282,7 +289,7 @@
     border: 2px solid var(--neon, #06D6A0);
     border-radius: 12px;
     color: var(--neon, #06D6A0);
-    box-shadow: 0 0 6px var(--neon, #06D6A0), 0 0 10px color-mix(in srgb, var(--neon, #06D6A0) 40%, transparent);
+    box-shadow: 0 0 4px var(--neon, #06D6A0), 0 0 6px color-mix(in srgb, var(--neon, #06D6A0) 30%, transparent);
     font-size: 15px;
     font-weight: 600;
     font-family: inherit;
@@ -360,7 +367,10 @@
   .inline-form {
     position: relative;
     background: transparent;
-    border: 1px solid rgba(255,255,255,0.15);
+    border-left: 1px solid rgba(255,255,255,0.15);
+    border-right: 1px solid rgba(255,255,255,0.15);
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+    border-top: none;
     border-radius: 0 0 12px 12px;
     padding: 20px 16px 24px;
     margin-top: -4px;
