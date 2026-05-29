@@ -240,7 +240,7 @@
     return '<div class="inline-form" data-form-type="' + formType + '">'
       + '<div class="form-title">' + esc(titles[formType] || 'Send us a message') + '</div>'
       + inner
-      + '<button class="submit-btn" type="button" data-submit>' + esc(submitLabels[formType] || 'Send') + '</button>'
+      + '<button class="submit-btn" type="button" data-submit data-label="' + esc(submitLabels[formType] || 'Send') + '">' + esc(submitLabels[formType] || 'Send') + '</button>'
       + '</div>';
   }
 
@@ -391,6 +391,11 @@
       if (existingSuccess) existingSuccess.remove();
       var formAgain = formWrap.querySelector('.inline-form');
       if (formAgain) formAgain.style.display = '';
+      var btn = formWrap.querySelector('[data-submit]');
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = btn.dataset.label || 'Send';
+      }
     }, 2500);
   }
 
