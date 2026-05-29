@@ -1186,6 +1186,35 @@ function mmMaskPhone(phone) {
   return '•••' + d;
 }
 
+// Tap-to-reveal phone widget. Returns HTML for a masked number that reveals
+// the full number (as a tel: link) on tap. Pass event so propagation to the
+// card accordion toggle is stopped.
+function buildPhoneReveal(fullPhone) {
+  if (!fullPhone) return '—';
+  const masked = mmMaskPhone(fullPhone);
+  const safe = String(fullPhone).replace(/[^\d+]/g, '');
+  return '<span class="phone-masked" data-phone="' + safe + '" data-masked="' + masked + '" onclick="togglePhoneReveal(this, event)">' +
+         '<span class="phone-display">' + masked + '</span>' +
+         '</span>';
+}
+
+window.togglePhoneReveal = function(el, event) {
+  if (event) event.stopPropagation();
+  const display = el.querySelector('.phone-display');
+  const isRevealed = el.classList.contains('revealed');
+  if (isRevealed) {
+    display.textContent = el.dataset.masked;
+    el.classList.remove('revealed');
+    // Remove the inner tel: anchor if present
+    const a = display.querySelector('a');
+    if (a) display.textContent = el.dataset.masked;
+  } else {
+    const phone = el.dataset.phone;
+    display.innerHTML = '<a href="tel:' + phone + '" onclick="event.stopPropagation()">' + phone + '</a>';
+    el.classList.add('revealed');
+  }
+};
+
 // "Sat 24 May, 7:43pm" format
 function mmFormatTime(iso) {
   if (!iso) return '—';
@@ -1409,7 +1438,7 @@ function buildMmCard(record, formType, neonColor) {
     return '<div class="mm-card" style="' + cs + '">' +
       '<div class="mm-card-title">🍽️ Booking tap</div>' +
       mmRow('Tapped at', mmFormatTime(record.clicked_at)) +
-      (record.customer_number ? mmRow('Phone', mmMaskPhone(record.customer_number)) : '') +
+      (record.customer_number ? mmRow('Phone', buildPhoneReveal(record.customer_number)) : '') +
       '</div>';
   }
 
@@ -1426,7 +1455,7 @@ function buildMmCard(record, formType, neonColor) {
 
   // ── Primary rows (always visible): name + phone ──────────────────────────
   const primaryRows = mmRow('Name',  record.caller_name || '—')
-                    + mmRow('Phone', mmMaskPhone(record.caller_phone));
+                    + mmRow('Phone', buildPhoneReveal(record.caller_phone));
 
   // ── Truncated note preview (shown when collapsed, hidden when expanded) ───
   let notePreviewRow = '';
