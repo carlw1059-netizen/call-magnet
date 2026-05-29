@@ -23,6 +23,8 @@ const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const INTERNAL_SECRET           = Deno.env.get('INTERNAL_SECRET');
 const RESEND_API_KEY            = Deno.env.get('RESEND_API_KEY');
+const SHORTIO_API_KEY           = Deno.env.get('SHORTIO_API_KEY');
+const SHORTIO_DOMAIN            = 'callmagnet.s.gy';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin':  '*',
@@ -242,6 +244,50 @@ Deno.serve(async (req) => {
       return json(500, { error: 'client_insert_failed', detail: insertErr.message });
     }
     const client_id = insertedClient.id;
+
+    // ── 5b. Create Short.io link (best-effort — never blocks onboarding) ───
+    // Only attempted when middle_man_slug is set (the link would be meaningless
+    // without a landing page). On any failure: log and continue.
+    if (middle_man_slug && SHORTIO_API_KEY) {
+      try {
+        const shortioRes = await fetch('https://api.short.io/links', {
+          method:  'POST',
+          headers: {
+            'authorization': SHORTIO_API_KEY,
+            'content-type':  'application/json',
+          },
+          body: JSON.stringify({
+            domain:       SHORTIO_DOMAIN,
+            originalURL:  `https://callmagnet.com.au/b/${middle_man_slug}`,
+            path:         middle_man_slug,
+          }),
+        });
+        if (shortioRes.ok) {
+          const shortioData = await shortioRes.json() as Record<string, unknown>;
+          const shortUrl = typeof shortioData.shortURL === 'string' ? shortioData.shortURL : null;
+          if (shortUrl) {
+            const { error: shortioUpdateErr } = await supa
+              .from('clients')
+              .update({ shortio_link: shortUrl })
+              .eq('id', client_id);
+            if (shortioUpdateErr) {
+              console.warn(`create-client: shortio_link UPDATE failed for client ${client_id}: ${shortioUpdateErr.message}`);
+            } else {
+              console.log(`create-client: Short.io link created — ${shortUrl}`);
+            }
+          } else {
+            console.warn(`create-client: Short.io response OK but shortURL missing — ${JSON.stringify(shortioData)}`);
+          }
+        } else {
+          const errText = await shortioRes.text();
+          console.warn(`create-client: Short.io API returned ${shortioRes.status} — ${errText}`);
+        }
+      } catch (e) {
+        console.warn(`create-client: Short.io exception — ${(e as Error)?.message ?? e}`);
+      }
+    } else if (middle_man_slug && !SHORTIO_API_KEY) {
+      console.warn('create-client: SHORTIO_API_KEY not configured — Short.io link skipped');
+    }
 
     // ── 6. Send onboarding SMS (brief notice — no login URL needed) ────────
     // Clients now log in with email + password. The welcome email includes the
