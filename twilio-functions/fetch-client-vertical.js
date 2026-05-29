@@ -98,13 +98,19 @@ exports.handler = async function (context, event, callback) {
     return callback(null, FALLBACK);
   }
 
-  const { vertical, business_name, booking_url, customer_sms_template } = rows[0];
+  const { vertical, business_name, booking_url, customer_sms_template, shortio_link, middle_man_slug } = rows[0];
 
-  // If template still has [LINK] placeholder, substitute the actual rebrandly URL
-  // so Twilio Studio doesn't have to. Keeps Liquid template trivial:
+  // Build the SMS link using a three-tier fallback chain:
+  //   1. shortio_link    — Short.io short URL (tracking + brevity) — preferred
+  //   2. middle_man_slug — build callmagnet.com.au/b/<slug> if no Short.io link yet
+  //   3. booking_url     — raw Fresha / OpenTable URL (legacy fallback)
+  // Substituted into the stored [LINK] placeholder so Twilio Studio stays trivial:
   //   {{widgets.fetch_client.parsed.customer_sms_template}} Reply STOP to opt out
   const bookingUrl = booking_url || 'https://callmagnet.com.au';
-  const tmpl = (customer_sms_template || FALLBACK.customer_sms_template).replace(/\[LINK\]/g, bookingUrl);
+  const smsLink = shortio_link
+    || (middle_man_slug ? `https://callmagnet.com.au/b/${middle_man_slug}` : null)
+    || bookingUrl;
+  const tmpl = (customer_sms_template || FALLBACK.customer_sms_template).replace(/\[LINK\]/g, smsLink);
 
   return callback(null, {
     vertical:              vertical      || 'default',
