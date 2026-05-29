@@ -196,18 +196,18 @@ Owners do not customise their SMS body. The vertical (`restaurant` / `barber` / 
 
 ---
 
-## Rebrand.ly Link Tier
+## Short.io Link Tier
 
-CallMagnet uses rebrand.ly to shorten and track booking links sent in SMS. Each client gets a unique short link pointing at their `booking_url`.
+CallMagnet uses Short.io to shorten SMS links. Each client gets a unique short link (`callmagnet.s.gy/<slug>`) pointing at their Middle Man landing page (`callmagnet.com.au/b/<slug>`).
 
-**Current tier: Free** — sufficient through pre-launch and test client only. No webhook events, no Pro features.
+The short link is auto-created by the `create-client` edge function during onboarding whenever a `middle_man_slug` is supplied. It is stored in `clients.shortio_link` and substituted into the SMS template via the `[LINK]` placeholder.
 
-**Upgrade trigger: client #1 signed.** Switch the rebrand.ly account to **Professional ($32 USD/month flat)** at the moment the first paying client onboards. Pro tier unlocks:
-- Click webhook events into Supabase (replaces the current `get-booking-url` polling path)
-- Custom domain (optional brand polish)
-- Higher rate limits as client count grows
+**Fallback chain in `fetch-client-vertical.js` (Twilio Function):**
+1. `shortio_link` — Short.io short URL (preferred)
+2. `callmagnet.com.au/b/<slug>` — built from `middle_man_slug` if no Short.io link yet
+3. `booking_url` — raw Fresha / OpenTable URL (legacy fallback)
 
-Don't pre-upgrade — flat $32/month burns cash before revenue exists. The dormant `rebrandly-webhook` edge function (with secret stub `REBRANDLY_WEBHOOK_SECRET=PENDING_UPGRADE`) goes live the same hour the Pro tier activates.
+**Vault secret:** `SHORTIO_API_KEY` in the `create-client` edge function Secrets. Domain is hardcoded as `callmagnet.s.gy`.
 
 ---
 

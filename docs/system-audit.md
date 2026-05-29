@@ -237,18 +237,6 @@ Supports `dry_run=true` (returns preview HTML, no DB writes, no email send) and 
 
 ---
 
-### rebrandly-webhook
-**Purpose:** Receives rebrand.ly click webhooks and logs to `link_clicks`.
-
-**Trigger:** rebrand.ly Pro webhook (POST). Currently dormant — free tier doesn't fire webhooks; `REBRANDLY_WEBHOOK_SECRET = 'PENDING_UPGRADE'` fails auth for all real traffic.
-
-**Auth:** Shared secret on `Authorization` header. Upgrade to Pro and rotate secret via `supabase secrets set REBRANDLY_WEBHOOK_SECRET=<value>`.
-
-**Data flow:**
-1. Validate `Authorization` header.
-2. Look up client by `rebrandly_link_id`.
-3. INSERT into `link_clicks`.
-
 ---
 
 ## Database Tables
@@ -275,7 +263,7 @@ Core table. One row per business subscribed to CallMagnet.
 | abn | text | Australian Business Number, 11 digits, nullable |
 | stripe_customer_id | text | Stripe customer ID for webhook matching |
 | booking_url | text | URL sent in missed-call SMS |
-| rebrandly_link_id | text | rebrand.ly link ID for webhook matching |
+| shortio_link | text | Short.io short URL (`callmagnet.s.gy/<slug>`) generated at onboarding |
 | sms_included | int | SMS quota per billing period (default 50) |
 | last_overage_reported | date | Prevents duplicate overage billing |
 | emails_sent | text[] | Tracks which sequence emails have been sent |
@@ -473,7 +461,7 @@ All emails use the shared `_shared/emailStyles.ts` brand tokens. Sender: `CallMa
 |---------|-------------|------------|
 | **Resend** | Transactional email delivery | `RESEND_API_KEY` in Vault. Sender domain: callmagnet.com.au |
 | **Pushover** | Push alerts to Carl's phone | `PUSHOVER_USER_KEY`, `PUSHOVER_APP_TOKEN` in Vault |
-| **rebrand.ly** | Short link tracking for booking URLs | `REBRANDLY_WEBHOOK_SECRET` in Vault (currently `'PENDING_UPGRADE'` — dormant) |
+| **Short.io** | Short link generation for SMS (`callmagnet.s.gy`) | `SHORTIO_API_KEY` in `create-client` edge function Secrets |
 | **Stripe** | Subscription billing | Multiple webhook secrets in Vault |
 | **Twilio** | Phone numbers, Studio flows, SMS | Account managed in Twilio Console |
 
@@ -503,7 +491,7 @@ All emails use the shared `_shared/emailStyles.ts` brand tokens. Sender: `CallMa
 | `RESEND_API_KEY` | All email-sending functions | Edge Functions Vault |
 | `PUSHOVER_USER_KEY` | send-pushover-alert | Edge Functions Vault |
 | `PUSHOVER_APP_TOKEN` | send-pushover-alert | Edge Functions Vault |
-| `REBRANDLY_WEBHOOK_SECRET` | rebrandly-webhook | Currently `'PENDING_UPGRADE'` |
+| `SHORTIO_API_KEY` | create-client | Edge Functions Vault — `create-client` Secrets |
 | `service_role_key` | monthly-report cron | Postgres Vault only |
 | `STRIPE_WEBHOOK_SECRET_SUCCEEDED` | stripe-payment-succeeded | Edge Functions Vault |
 | `STRIPE_WEBHOOK_SECRET_CANCELLED` | stripe-subscription-deleted | Edge Functions Vault |

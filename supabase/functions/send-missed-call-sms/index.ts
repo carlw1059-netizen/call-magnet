@@ -35,7 +35,6 @@ const TWILIO_ACCOUNT_SID        = Deno.env.get('TWILIO_ACCOUNT_SID')!;
 const TWILIO_AUTH_TOKEN         = Deno.env.get('TWILIO_AUTH_TOKEN')!;
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const REBRANDLY_API_KEY         = Deno.env.get('REBRANDLY_API_KEY');
 
 const STATUS_CALLBACK_URL =
   'https://iskvvnhacqdxybpmwuni.supabase.co/functions/v1/twilio-sms-status';
@@ -150,57 +149,7 @@ Deno.serve(async (req) => {
             }
           }
 
-          // 3. Generate unsubscribe token (Middle Man clients only)
-          if (client.middle_man_enabled && client.middle_man_slug && client.rebrandly_link_id) {
-            const token     = crypto.randomUUID();
-            const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(); // 72 h
 
-            const tokenRes = await fetch(
-              `${SUPABASE_URL}/rest/v1/unsubscribe_tokens`,
-              {
-                method: 'POST',
-                headers: {
-                  apikey:         SUPABASE_SERVICE_ROLE_KEY,
-                  Authorization:  `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-                  'Content-Type': 'application/json',
-                  Prefer:         'return=minimal',
-                },
-                body: JSON.stringify({
-                  token,
-                  client_id:    clientId,
-                  phone_number: to,
-                  expires_at:   expiresAt,
-                }),
-              }
-            );
-
-            if (tokenRes.ok) {
-              // 4. Update Rebrandly destination to embed the token
-              if (REBRANDLY_API_KEY) {
-                const newDest = `https://callmagnet.com.au/b/${encodeURIComponent(client.middle_man_slug)}?u=${encodeURIComponent(token)}`;
-                const rbRes   = await fetch(
-                  `https://api.rebrandly.com/v1/links/${encodeURIComponent(client.rebrandly_link_id)}`,
-                  {
-                    method: 'PATCH',
-                    headers: {
-                      apikey:         REBRANDLY_API_KEY,
-                      'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ destination: newDest }),
-                  }
-                );
-                if (rbRes.ok) {
-                  console.log(`send-missed-call-sms: Rebrandly destination updated → ${newDest}`);
-                } else {
-                  console.warn(`send-missed-call-sms: Rebrandly PATCH failed: ${rbRes.status}`);
-                }
-              } else {
-                console.warn('send-missed-call-sms: REBRANDLY_API_KEY not set — destination not updated');
-              }
-            } else {
-              console.warn(`send-missed-call-sms: unsubscribe_tokens insert failed: ${tokenRes.status}`);
-            }
-          }
         }
       } else {
         console.warn(`send-missed-call-sms: client lookup failed: ${clientRes.status}`);
