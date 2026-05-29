@@ -383,20 +383,23 @@
       + '<div class="success-msg">' + successMsg(formType, businessName) + '</div>';
     formWrap.appendChild(successEl);
 
-    // After showing the confirmation, auto-return to home screen (the 6 buttons)
+    // Reset the Send button at 0.8s — ready while success is still showing
     setTimeout(function() {
-      closeForm();
-      // Clean up so the form is fresh next time this button is tapped
-      var existingSuccess = formWrap.querySelector('.success-state');
-      if (existingSuccess) existingSuccess.remove();
-      var formAgain = formWrap.querySelector('.inline-form');
-      if (formAgain) formAgain.style.display = '';
       var btn = formWrap.querySelector('[data-submit]');
       if (btn) {
         btn.disabled = false;
         btn.textContent = btn.dataset.label || 'Send';
       }
-    }, 2500);
+    }, 800);
+
+    // At 2s — close form, return to home, clean up
+    setTimeout(function() {
+      closeForm();
+      var existingSuccess = formWrap.querySelector('.success-state');
+      if (existingSuccess) existingSuccess.remove();
+      var formAgain = formWrap.querySelector('.inline-form');
+      if (formAgain) formAgain.style.display = '';
+    }, 2000);
   }
 
   // ── Close the currently open inline form ─────────────────────────────────
