@@ -1024,26 +1024,26 @@ body.panel-open .main { pointer-events: none; }
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(6,214,160,0.3);
   border-radius: 12px;
-  padding: 16px;
+  padding: 20px 18px;
   margin-bottom: 12px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 .mm-card-title {
-  font-size: 14px; font-weight: 600; color: #FFFFFF;
-  margin-bottom: 10px;
+  font-size: 16px; font-weight: 600; color: #FFFFFF;
+  margin-bottom: 12px;
 }
 .mm-card-row {
-  display: flex; gap: 8px; margin-bottom: 5px;
+  display: flex; gap: 10px; margin-bottom: 7px;
   align-items: flex-start;
 }
 .mm-card-row:last-child { margin-bottom: 0; }
 .mm-card-key {
-  font-size: 12px; color: rgba(255,255,255,0.45);
-  min-width: 90px; flex-shrink: 0; padding-top: 1px;
+  font-size: 14px; color: #FFFFFF;
+  min-width: 100px; flex-shrink: 0; padding-top: 1px;
 }
 .mm-card-val {
-  font-size: 12px; color: #FFFFFF; font-weight: 500;
+  font-size: 14px; color: #FFFFFF; font-weight: 500;
   word-break: break-word; line-height: 1.4;
 }
 
@@ -1062,8 +1062,8 @@ body.panel-open .main { pointer-events: none; }
 }
 /* "▼ Show more" / "▲ Less" toggle */
 .mm-card-toggle {
-  font-size: 11px;
-  color: rgba(255,255,255,0.35);
+  font-size: 13px;
+  color: rgba(255,255,255,0.55);
   margin-top: 10px;
   padding-top: 6px;
   border-top: 1px solid rgba(255,255,255,0.06);

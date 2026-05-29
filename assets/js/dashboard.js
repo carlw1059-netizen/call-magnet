@@ -1468,7 +1468,7 @@ function buildMmCard(record, formType, neonColor) {
     notePreviewRow =
       '<div class="mm-card-row mm-card-note-preview">' +
         '<span class="mm-card-key">' + noteKey + '</span>' +
-        '<span class="mm-card-val" style="color:rgba(255,255,255,0.5)">' + preview + '</span>' +
+        '<span class="mm-card-val" style="color:#FFFFFF">' + preview + '</span>' +
       '</div>';
   }
 
