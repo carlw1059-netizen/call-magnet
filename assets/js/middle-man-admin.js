@@ -178,7 +178,7 @@ function renderEditBody(client) {
   var bookingSection =
     '<div class="mma-section">' +
       '<div class="mma-section-label">Booking URL</div>' +
-      '<div class="mma-section-hint" style="font-size:12px;color:rgba(0,0,0,0.5);margin-bottom:6px;">Where "Book a table" sends callers — and where SMS goes when Middle Man is OFF. (OpenTable / SevenRooms / Fresha / any booking link)</div>' +
+      '<div class="mma-section-hint" style="font-size:12px;color:#000000;margin-bottom:6px;">Where "Book a table" sends callers — and where SMS goes when Middle Man is OFF. (OpenTable / SevenRooms / Fresha / any booking link)</div>' +
       '<div style="display:flex;gap:8px;align-items:center;">' +
         '<input id="mmaBookingUrlInput" class="mma-field-input" type="url" value="' + _e(_editClientData.booking_url || '') + '" placeholder="https://..." style="flex:1;" />' +
         '<button id="mmaBookingUrlSaveBtn" class="mma-save-btn">Save</button>' +
