@@ -107,11 +107,6 @@ Deno.serve(async (req) => {
     // Form toggle can override by sending middle_man_enabled: false.
     const middle_man_enabled = body.middle_man_enabled !== false;
 
-    // middle_man_buttons: accept array or null/undefined
-    const middle_man_buttons = Array.isArray(body.middle_man_buttons)
-      ? body.middle_man_buttons
-      : [];
-
     if (!business_name) return json(400, { error: 'missing_field', field: 'business_name' });
     if (!vertical)      return json(400, { error: 'missing_field', field: 'vertical' });
     if (!twilio_number) return json(400, { error: 'missing_field', field: 'twilio_number' });
@@ -236,7 +231,6 @@ Deno.serve(async (req) => {
       terms_accepted:         true,
       subscription_start:     new Date().toISOString(),
       must_change_password:   isNewUser,
-      middle_man_buttons:     middle_man_buttons,
       middle_man_enabled:     middle_man_enabled,
       middle_man_slug:        slug,
     };
