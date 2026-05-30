@@ -88,13 +88,25 @@ Deno.serve(async (req) => {
       : '';
     const send_sms      = body.send_sms !== false; // default true
 
-    // ── Middle Man optional fields ─────────────────────────────────────────
+    // ── Middle Man fields ──────────────────────────────────────────────────
+    // Slug: use whatever the form sent, or auto-generate from business_name.
+    // Generation mirrors the frontend generateSlug() function.
     const middle_man_slug_raw = typeof body.middle_man_slug === 'string'
       ? body.middle_man_slug.trim().toLowerCase()
       : null;
-    const middle_man_slug = middle_man_slug_raw && middle_man_slug_raw.length > 0
+    const slug = (middle_man_slug_raw && middle_man_slug_raw.length > 0)
       ? middle_man_slug_raw
-      : null;
+      : business_name
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .slice(0, 50);
+
+    // middle_man_enabled: default true (every new client starts with Middle Man ON).
+    // Form toggle can override by sending middle_man_enabled: false.
+    const middle_man_enabled = body.middle_man_enabled !== false;
+
     // middle_man_buttons: accept array or null/undefined
     const middle_man_buttons = Array.isArray(body.middle_man_buttons)
       ? body.middle_man_buttons
@@ -122,11 +134,11 @@ Deno.serve(async (req) => {
     if (!/^https?:\/\//.test(rebrandly_url)) {
       return json(400, { error: 'invalid_url', field: 'rebrandly_url', detail: 'must start with http:// or https://' });
     }
-    if (middle_man_slug && !/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/.test(middle_man_slug)) {
-      return json(400, { error: 'invalid_slug', detail: 'middle_man_slug must be lowercase letters, digits, and hyphens only (no leading/trailing hyphens), max 50 chars' });
+    if (slug && !/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/.test(slug)) {
+      return json(400, { error: 'invalid_slug', detail: 'Generated slug must be lowercase letters, digits, and hyphens only (no leading/trailing hyphens). Check the business name.' });
     }
-    if (middle_man_slug && middle_man_slug.length > 50) {
-      return json(400, { error: 'invalid_slug', detail: 'middle_man_slug must be 50 characters or fewer' });
+    if (slug && slug.length > 50) {
+      return json(400, { error: 'invalid_slug', detail: 'Generated slug must be 50 characters or fewer. Shorten the business name.' });
     }
 
     // ── 3. Look up vertical config ─────────────────────────────────────────
@@ -225,11 +237,9 @@ Deno.serve(async (req) => {
       subscription_start:     new Date().toISOString(),
       must_change_password:   isNewUser,
       middle_man_buttons:     middle_man_buttons,
+      middle_man_enabled:     middle_man_enabled,
+      middle_man_slug:        slug,
     };
-    // Only include slug if provided — omitting lets the column stay NULL
-    if (middle_man_slug) {
-      clientInsertPayload.middle_man_slug = middle_man_slug;
-    }
 
     const { data: insertedClient, error: insertErr } = await supa
       .from('clients')
@@ -239,16 +249,15 @@ Deno.serve(async (req) => {
     if (insertErr) {
       // Unique constraint on middle_man_slug → return a clear 409 not a 500
       if (insertErr.code === '23505' && insertErr.message.includes('middle_man_slug')) {
-        return json(409, { error: 'slug_taken', detail: `The Middle Man slug "${middle_man_slug}" is already in use. Choose a different slug.` });
+        return json(409, { error: 'slug_taken', detail: `The Middle Man slug "${slug}" is already in use. Use a different business name or contact support.` });
       }
       return json(500, { error: 'client_insert_failed', detail: insertErr.message });
     }
     const client_id = insertedClient.id;
 
     // ── 5b. Create Short.io link (best-effort — never blocks onboarding) ───
-    // Only attempted when middle_man_slug is set (the link would be meaningless
-    // without a landing page). On any failure: log and continue.
-    if (middle_man_slug && SHORTIO_API_KEY) {
+    // slug is always set (auto-generated if not supplied). On any failure: log and continue.
+    if (SHORTIO_API_KEY) {
       try {
         const shortioRes = await fetch('https://api.short.io/links', {
           method:  'POST',
@@ -258,8 +267,8 @@ Deno.serve(async (req) => {
           },
           body: JSON.stringify({
             domain:       SHORTIO_DOMAIN,
-            originalURL:  `https://callmagnet.com.au/b/${middle_man_slug}`,
-            path:         middle_man_slug,
+            originalURL:  `https://callmagnet.com.au/b/${slug}`,
+            path:         slug,
           }),
         });
         if (shortioRes.ok) {
@@ -285,7 +294,7 @@ Deno.serve(async (req) => {
       } catch (e) {
         console.warn(`create-client: Short.io exception — ${(e as Error)?.message ?? e}`);
       }
-    } else if (middle_man_slug && !SHORTIO_API_KEY) {
+    } else {
       console.warn('create-client: SHORTIO_API_KEY not configured — Short.io link skipped');
     }
 
@@ -442,7 +451,7 @@ Deno.serve(async (req) => {
     }
 
     return json(200, {
-      success:    true,
+      success:           true,
       client_id,
       sms_sent,
       sms_error,
@@ -450,6 +459,8 @@ Deno.serve(async (req) => {
       welcome_email_error,
       auth_user_id:      authUserId,
       is_new_user:       isNewUser,
+      middle_man_slug:   slug,
+      middle_man_enabled,
     });
 
   } catch (err) {
