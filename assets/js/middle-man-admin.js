@@ -111,7 +111,7 @@ async function loadClientForEdit(clientId) {
   try {
     var result = await mmaSb
       .from('clients')
-      .select('id,business_name,vertical,middle_man_enabled,middle_man_slug,middle_man_promo_text,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_buttons,middle_man_updated_at')
+      .select('id,business_name,vertical,middle_man_enabled,middle_man_slug,booking_url,middle_man_promo_text,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_buttons,middle_man_updated_at')
       .eq('id', clientId)
       .single();
     if (result.error) throw result.error;
@@ -174,7 +174,19 @@ function renderEditBody(client) {
       '<div id="mmaSlugMsg" class="mma-saved-msg" style="margin-left:0;margin-top:6px;"></div>' +
     '</div>';
 
-  // ── 4. Promo text (FIX 1: 13px, FIX 2: #000)
+  // ── 4. Booking URL
+  var bookingSection =
+    '<div class="mma-section">' +
+      '<div class="mma-section-label">Booking URL</div>' +
+      '<div class="mma-section-hint" style="font-size:12px;color:rgba(0,0,0,0.5);margin-bottom:6px;">Where "Book a table" sends callers — and where SMS goes when Middle Man is OFF. (OpenTable / SevenRooms / Fresha / any booking link)</div>' +
+      '<div style="display:flex;gap:8px;align-items:center;">' +
+        '<input id="mmaBookingUrlInput" class="mma-field-input" type="url" value="' + _e(_editClientData.booking_url || '') + '" placeholder="https://..." style="flex:1;" />' +
+        '<button id="mmaBookingUrlSaveBtn" class="mma-save-btn">Save</button>' +
+      '</div>' +
+      '<div id="mmaBookingUrlMsg" class="mma-saved-msg" style="margin-left:0;margin-top:6px;"></div>' +
+    '</div>';
+
+  // ── 5. Promo text (FIX 1: 13px, FIX 2: #000)
   var promoSection =
     '<div class="mma-section">' +
       '<div class="mma-section-label">Promo Text</div>' +
@@ -262,11 +274,12 @@ function renderEditBody(client) {
       '</div>'
     : '<div id="mmaPreviewLinkWrap"></div>';
 
-  content.innerHTML = heading + toggleSection + slugSection + promoSection + photoSection + videoSection + btnsSection + previewHtml;
+  content.innerHTML = heading + toggleSection + slugSection + bookingSection + promoSection + photoSection + videoSection + btnsSection + previewHtml;
 
   // ── Wire event listeners ─────────────────────────────────────────────────────
   document.getElementById('mmaToggleBtn').addEventListener('click', toggleEnabled);
   document.getElementById('mmaSlugSaveBtn').addEventListener('click', saveSlug);
+  document.getElementById('mmaBookingUrlSaveBtn').addEventListener('click', saveBookingUrl);
 
   var promoInput = document.getElementById('mmaPromoInput');
   promoInput.addEventListener('input', function() {
@@ -351,6 +364,25 @@ async function saveSlug() {
     if (previewLink && slug) previewLink.href = 'https://callmagnet.com.au/b/' + encodeURIComponent(slug);
   } catch (err) {
     _flash('mmaSlugMsg', '✗ ' + err.message, true);
+  }
+}
+
+// ─── Save booking URL ─────────────────────────────────────────────────────────
+async function saveBookingUrl() {
+  if (!_editClientId) return;
+  var input = document.getElementById('mmaBookingUrlInput');
+  var url   = (input.value || '').trim();
+  if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+    url = 'https://' + url;
+    input.value = url;
+  }
+  try {
+    var result = await mmaSb.from('clients').update({ booking_url: url || null }).eq('id', _editClientId);
+    if (result.error) throw result.error;
+    if (_editClientData) _editClientData.booking_url = url;
+    _flash('mmaBookingUrlMsg', '✓ Saved', false);
+  } catch (err) {
+    _flash('mmaBookingUrlMsg', '✗ ' + err.message, true);
   }
 }
 
