@@ -98,18 +98,20 @@ exports.handler = async function (context, event, callback) {
     return callback(null, FALLBACK);
   }
 
-  const { vertical, business_name, booking_url, customer_sms_template, shortio_link, middle_man_slug } = rows[0];
+  const { vertical, business_name, booking_url, customer_sms_template, shortio_link, middle_man_slug, middle_man_enabled } = rows[0];
 
-  // Build the SMS link using a three-tier fallback chain:
-  //   1. shortio_link    — Short.io short URL (tracking + brevity) — preferred
-  //   2. middle_man_slug — build callmagnet.com.au/b/<slug> if no Short.io link yet
-  //   3. booking_url     — raw Fresha / OpenTable URL (legacy fallback)
+  // Build the SMS link:
+  //   If Middle Man is ON → prefer Short.io link, fall back to /b/<slug> URL.
+  //   If Middle Man is OFF → go straight to booking_url (Fresha/OpenTable/etc.)
+  //   so the caller is never sent to a dark page.
   // Substituted into the stored [LINK] placeholder so Twilio Studio stays trivial:
   //   {{widgets.fetch_client.parsed.customer_sms_template}} Reply STOP to opt out
   const bookingUrl = booking_url || 'https://callmagnet.com.au';
-  const smsLink = shortio_link
-    || (middle_man_slug ? `https://callmagnet.com.au/b/${middle_man_slug}` : null)
-    || bookingUrl;
+  const smsLink = shortio_link && middle_man_enabled
+    ? shortio_link
+    : (middle_man_enabled && middle_man_slug
+        ? `https://callmagnet.com.au/b/${middle_man_slug}`
+        : bookingUrl);
   const tmpl = (customer_sms_template || FALLBACK.customer_sms_template).replace(/\[LINK\]/g, smsLink);
 
   return callback(null, {
