@@ -395,24 +395,27 @@
     </div>
 
     <div class="field">
-      <label>Booking link (rebrand.ly URL)</label>
-      <input type="url" id="rebrandlyUrlInput" placeholder="https://rebrand.ly/their-slug" />
+      <label>Booking URL</label>
+      <input type="url" id="rebrandlyUrlInput" placeholder="https://www.opentable.com/… or Fresha / SevenRooms link" />
+      <div class="hint">Where should "Book a table" send callers? Paste their OpenTable / SevenRooms / Fresha link</div>
     </div>
 
     <!-- ── Middle Man section ─────────────────────────────────────────── -->
     <div class="mm-section">
-      <div class="field" style="margin-bottom:0.75rem">
-        <label>Middle Man page URL</label>
-        <div class="slug-wrap">
-          <span class="slug-prefix">callmagnet.com.au/b/</span>
-          <input type="text" id="slugInput" class="slug-input"
-            placeholder="brunswick-bistro"
-            maxlength="50"
-            autocomplete="off"
-            spellcheck="false"
-            inputmode="url" />
+
+      <!-- Live Middle Man URL preview — updates on every business name keypress -->
+      <div id="mmPreviewWrap" style="margin-bottom:0.75rem;padding:10px 12px;background:rgba(6,214,160,0.06);border:1px solid rgba(6,214,160,0.2);border-radius:8px;display:none">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent);margin-bottom:4px">Middle Man page will be</div>
+        <div id="mmPreviewUrl" style="font-size:13px;color:rgba(255,255,255,0.85);font-family:'SF Mono',Menlo,monospace;word-break:break-all">callmagnet.com.au/b/…</div>
+      </div>
+
+      <!-- Middle Man toggle -->
+      <div class="toggle-row" style="border-top:none;padding-top:0;margin-top:0;margin-bottom:0.75rem">
+        <div>
+          <div class="toggle-label">Middle Man page</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">ON → callers get the smart page &amp; SMS link goes to it. OFF → SMS goes straight to booking URL.</div>
         </div>
-        <div class="hint">Customers visit this URL after tapping the SMS link</div>
+        <div class="toggle-switch on" id="mmEnabledToggle" onclick="toggleMmEnabled()"></div>
       </div>
 
       <div class="field" style="margin-bottom:0">
@@ -450,10 +453,21 @@
   <div class="card success-card" id="successCard">
     <div class="check-circle">✓</div>
     <h2>Client created successfully</h2>
-    <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;">Login details sent by email</div>
-    <div class="url-box" id="loginUrlBox">callmagnet.com.au</div>
+
+    <!-- Comms status -->
     <div class="sms-status" id="smsStatus"></div>
     <div class="sms-status" id="emailStatus"></div>
+
+    <!-- Middle Man confirmation -->
+    <div id="mmSuccessBlock" style="margin-bottom:1rem;text-align:left">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--accent);margin-bottom:8px">Middle Man page</div>
+      <div class="url-box" id="mmSuccessUrl" style="margin-bottom:6px">—</div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--accent);margin-top:10px;margin-bottom:8px">SMS link</div>
+      <div class="url-box" id="mmSuccessSmsLink" style="margin-bottom:6px">—</div>
+      <div id="mmSuccessNote" style="font-size:12px;color:var(--muted);margin-top:4px"></div>
+    </div>
+
+    <button class="copy-btn" id="copyMmUrlBtn" onclick="copyMmUrl()" style="display:none">Copy Middle Man URL</button>
     <button class="another-btn" onclick="resetForm()">Onboard another client</button>
   </div>
 </div><!-- /.wrap -->
@@ -470,6 +484,7 @@ let sb = null;
 let session = null;
 let verticals = [];
 let sendSmsOn = true;
+let mmEnabledOn = true;
 
 // ── Button builder state ─────────────────────────────────────────────────
 // buttonsDirty = true once admin manually edits buttons; prevents auto-replace
@@ -744,6 +759,22 @@ function toggleSms() {
   document.getElementById('sendSmsToggle').classList.toggle('on', sendSmsOn);
 }
 
+function toggleMmEnabled() {
+  mmEnabledOn = !mmEnabledOn;
+  document.getElementById('mmEnabledToggle').classList.toggle('on', mmEnabledOn);
+}
+
+/** Update the live Middle Man URL preview from the current business name. */
+function updateMmPreview() {
+  const biz = (document.getElementById('businessNameInput').value || '').trim();
+  const wrap = document.getElementById('mmPreviewWrap');
+  const urlEl = document.getElementById('mmPreviewUrl');
+  if (!biz) { wrap.style.display = 'none'; return; }
+  const slug = generateSlug(biz);
+  wrap.style.display = 'block';
+  urlEl.textContent = 'callmagnet.com.au/b/' + slug;
+}
+
 function showError(msg) {
   const box = document.getElementById('errorBox');
   box.textContent = msg;
@@ -768,7 +799,6 @@ async function submitForm() {
   const avg_job_value = avg_raw ? Number(avg_raw) : null;
   const rebrandly_url = document.getElementById('rebrandlyUrlInput').value.trim();
   const customer_sms_template = (document.getElementById('smsTemplateInput').value || '').trim();
-  const middle_man_slug    = document.getElementById('slugInput').value.trim() || null;
   const middle_man_buttons = collectButtons();
 
   if (!business_name) return showError('Business name is required.');
@@ -777,8 +807,7 @@ async function submitForm() {
   if (!owner_phone || !/^\+61\d{8,11}$/.test(owner_phone)) return showError('Owner phone must be an Australian mobile (04xx or +614xx).');
   if (!twilio_number || !/^\+614\d{8}$/.test(twilio_number)) return showError('Twilio number must be a valid AU mobile (+614XXXXXXXX).');
   if (abn && abn.length !== 11) return showError('ABN must be 11 digits.');
-  if (!rebrandly_url || !/^https?:\/\//.test(rebrandly_url)) return showError('Booking link must start with https://');
-  if (middle_man_slug && !/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/.test(middle_man_slug)) return showError('Middle Man slug can only contain lowercase letters, digits, and hyphens (no leading/trailing hyphens).');
+  if (!rebrandly_url || !/^https?:\/\//.test(rebrandly_url)) return showError('Booking URL must start with https://');
   if (!customer_sms_template) return showError('Customer SMS message is required.');
   if (!/^Hi\b/i.test(customer_sms_template)) return showError('Customer SMS must start with "Hi" (brand voice rule).');
   if (/callmagnet\.com\.au/i.test(customer_sms_template)) return showError('Customer SMS must not mention callmagnet.com.au (customer-facing — brand stays invisible).');
@@ -805,9 +834,10 @@ async function submitForm() {
         avg_job_value,
         rebrandly_url,
         customer_sms_template,
-        send_sms: sendSmsOn,
-        middle_man_slug:    middle_man_slug || null,
+        send_sms:           sendSmsOn,
+        middle_man_enabled: mmEnabledOn,
         middle_man_buttons: middle_man_buttons,
+        // middle_man_slug omitted — create-client auto-generates from business_name
       })
     });
     const data = await res.json().catch(() => ({}));
@@ -851,7 +881,49 @@ function showSuccess(data, owner_phone) {
     emailEl.textContent = '⚠️ Welcome email failed: ' + data.welcome_email_error;
   }
 
+  // ── Middle Man confirmation ──────────────────────────────────────────────
+  const slug = data.middle_man_slug || null;
+  const mmEnabled = data.middle_man_enabled !== false;
+  const mmUrlEl   = document.getElementById('mmSuccessUrl');
+  const smsLinkEl = document.getElementById('mmSuccessSmsLink');
+  const noteEl    = document.getElementById('mmSuccessNote');
+  const copyBtn   = document.getElementById('copyMmUrlBtn');
+
+  if (slug && mmEnabled) {
+    const mmUrl = 'callmagnet.com.au/b/' + slug;
+    mmUrlEl.textContent   = mmUrl;
+    copyBtn.style.display = 'inline-block';
+    copyBtn.dataset.url   = 'https://' + mmUrl;
+
+    // SMS link: Short.io if created, otherwise slug URL
+    // (shortio_link is not returned by create-client; use slug URL as conservative display)
+    smsLinkEl.textContent = 'callmagnet.com.au/b/' + slug + ' (Short.io link will be set if SHORTIO_API_KEY is configured)';
+    noteEl.textContent    = 'Middle Man is ON — callers who miss this number will be sent to the smart page.';
+  } else if (slug && !mmEnabled) {
+    mmUrlEl.textContent   = 'callmagnet.com.au/b/' + slug + ' (configured but OFF)';
+    smsLinkEl.textContent = 'SMS will go straight to booking URL (Middle Man is OFF)';
+    noteEl.textContent    = 'Turn Middle Man ON in the Middle Man admin to activate the smart page.';
+  } else {
+    mmUrlEl.textContent   = '—';
+    smsLinkEl.textContent = 'SMS will go to booking URL';
+    noteEl.textContent    = '';
+  }
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function copyMmUrl() {
+  const btn = document.getElementById('copyMmUrlBtn');
+  const url = btn.dataset.url || '';
+  if (!url) return;
+  navigator.clipboard.writeText(url).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy Middle Man URL'; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    btn.textContent = 'Copy failed';
+    setTimeout(() => { btn.textContent = 'Copy Middle Man URL'; }, 2000);
+  });
 }
 
 function resetForm() {
@@ -862,9 +934,11 @@ function resetForm() {
   document.getElementById('twilioNumberInput').value = '';
   document.getElementById('abnInput').value = '';
   document.getElementById('rebrandlyUrlInput').value = '';
-  document.getElementById('slugInput').value = '';
   smsDirty = false;
   buttonsDirty = false;
+  mmEnabledOn = true;
+  document.getElementById('mmEnabledToggle').classList.add('on');
+  document.getElementById('mmPreviewWrap').style.display = 'none';
   prefillAvgFromVertical();
   prefillSmsFromVertical();
   prefillButtonsFromVertical();
@@ -968,7 +1042,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateSmsCounter();
   });
 
-  // Rebrand.ly URL blur: re-substitute [LINK] in SMS if owner hasn't edited yet
+  // Booking URL blur: re-substitute [LINK] in SMS if owner hasn't edited yet
   document.getElementById('rebrandlyUrlInput').addEventListener('blur', onRebrandlyUrlChanged);
 
   // Auto-format phone fields on blur
@@ -981,26 +1055,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
-  // Slug field: sanitise on input, auto-generate from business name on blur if empty
-  const slugEl = document.getElementById('slugInput');
-  slugEl.addEventListener('input', () => {
-    slugEl.value = sanitiseSlugInput(slugEl.value);
-  });
-  slugEl.addEventListener('blur', () => {
-    if (!slugEl.value.trim()) {
-      const biz = document.getElementById('businessNameInput').value.trim();
-      if (biz) slugEl.value = generateSlug(biz);
-    }
-  });
-
-  // Business name blur: also auto-generate slug if slug is still empty
-  document.getElementById('businessNameInput').addEventListener('blur', () => {
-    const slugCurrent = document.getElementById('slugInput').value.trim();
-    if (!slugCurrent) {
-      const biz = document.getElementById('businessNameInput').value.trim();
-      if (biz) document.getElementById('slugInput').value = generateSlug(biz);
-    }
-  });
+  // Business name: live preview of Middle Man URL on every keypress
+  document.getElementById('businessNameInput').addEventListener('input', updateMmPreview);
 
   // Pre-fill buttons from initial vertical
   prefillButtonsFromVertical();
