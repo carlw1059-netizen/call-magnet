@@ -146,7 +146,7 @@ function renderEditBody(client) {
   var logoSection =
     '<div class="mma-section">' +
       '<div class="mma-section-label">Business Logo</div>' +
-      '<div class="mma-section-hint" style="font-size:12px;color:#000000;margin-bottom:8px;">Shown at the top of the Middle Man page instead of the business name text. PNG with transparent background works best.</div>' +
+      '<div class="mma-section-hint" style="font-size:12px;color:#000000;margin-bottom:8px;">Shown at the top of the Middle Man page instead of the business name text. PNG with transparent background works best. To change the logo, simply upload a new one — it replaces the existing one automatically.</div>' +
       ((_editClientData.middle_man_logo_url)
         ? '<img id="mmaLogoPreview" src="' + _editClientData.middle_man_logo_url + '" style="max-height:80px;max-width:200px;object-fit:contain;margin-bottom:10px;display:block;border-radius:6px;" />'
         : '<div id="mmaLogoPreview" style="margin-bottom:10px;font-size:12px;color:#000000;">No logo uploaded yet.</div>') +
@@ -396,6 +396,16 @@ async function uploadLogo() {
       preview.outerHTML = '<img id="mmaLogoPreview" src="' + json.url + '" style="max-height:80px;max-width:200px;object-fit:contain;margin-bottom:10px;display:block;border-radius:6px;" />';
     }
     _flash('mmaLogoMsg', '✓ Logo uploaded', false);
+    var existingRemoveBtn = document.getElementById('mmaLogoRemoveBtn');
+    if (!existingRemoveBtn) {
+      var removeBtn = document.createElement('button');
+      removeBtn.id = 'mmaLogoRemoveBtn';
+      removeBtn.className = 'mma-save-btn';
+      removeBtn.style.cssText = 'margin-top:8px;background:#cc3333;';
+      removeBtn.textContent = 'Remove logo';
+      removeBtn.addEventListener('click', removeLogo);
+      document.getElementById('mmaLogoMsg').parentNode.appendChild(removeBtn);
+    }
   } catch (err) {
     _flash('mmaLogoMsg', '✗ ' + err.message, true);
   } finally {
