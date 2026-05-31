@@ -39,13 +39,17 @@
   }
 
   // ── Apply neon style to a button element by position index (0-based) ─────
-  function applyNeon(el, idx) {
-    var c = NEON[Math.min(idx, NEON.length - 1)];
+  // color: optional per-button hex stored in button data; falls back to NEON[idx].
+  function applyNeon(el, idx, color) {
+    var c = color || NEON[Math.min(idx, NEON.length - 1)];
     var unit = el.closest('.btn-unit') || el.parentElement;
     unit.style.setProperty('--neon', c);
     el._neonColor = c;
     var unit = el.closest('.btn-unit');
-    if (unit) unit.style.setProperty('--neon', c);
+    if (unit) {
+      unit.style.setProperty('--neon', c);
+      unit.dataset.neon = c;
+    }
   }
 
   // ── Fetch client from Supabase REST (anon key) ────────────────────────────
@@ -651,7 +655,7 @@
       var unit = document.createElement('div');
       unit.className = 'btn-unit';
       unit.dataset.neonIdx = idx;
-      unit.dataset.neon = NEON[Math.min(idx, NEON.length - 1)];
+      unit.dataset.neon = btn.color || NEON[Math.min(idx, NEON.length - 1)];
       unit.appendChild(btnEl);
 
       // Form container (non-booking only)
@@ -668,7 +672,7 @@
         var formWrap = document.createElement('div');
         formWrap.className = 'form-wrap';
         formWrap.id = 'form-' + btnKey;
-        formWrap.dataset.neon = NEON[Math.min(idx, NEON.length - 1)];
+        formWrap.dataset.neon = btn.color || NEON[Math.min(idx, NEON.length - 1)];
         formWrap.innerHTML = buildFormHtml(formType, businessName);
         unit.appendChild(formWrap);
         attachFormListeners(formWrap, formType, businessName, display, bookingUrl);
@@ -676,8 +680,8 @@
 
       wrap.appendChild(unit);
 
-      // Apply neon colour by position — called AFTER unit is in DOM so closest() works
-      applyNeon(btnEl, idx);
+      // Apply neon colour — uses btn.color if set, else falls back to NEON[idx]
+      applyNeon(btnEl, idx, btn.color || null);
     });
 
     if (enabled.length === 0) wrap.style.display = 'none';

@@ -337,6 +337,7 @@ function buildBtnRowHtml(btn, idx) {
     '<input type="number" min="1" max="6" value="' + _e(btn.sort_order || idx + 1) + '" class="mma-btn-order" />' +
     '<input type="checkbox"' + (btn.enabled !== false ? ' checked' : '') + ' class="mma-btn-enabled mma-btn-enabled-cb" />' +
     '<input type="text" value="' + _e(btn.label || '') + '" maxlength="40" placeholder="Button label…" class="mma-btn-label" />' +
+    '<input type="color" class="mma-btn-color" value="' + _e(btn.color || '#00D4FF') + '" title="Button colour" style="width:36px;height:32px;padding:2px;border:none;border-radius:6px;cursor:pointer;background:none;" />' +
     '<button type="button" class="mma-btn-remove" title="Remove">×</button>' +
   '</div>';
 }
@@ -493,10 +494,13 @@ async function saveButtons() {
   rows.forEach(function(row) {
     var label = row.querySelector('.mma-btn-label').value.trim();
     if (!label) return;
+    var colorInput = row.querySelector('.mma-btn-color');
+    var color = colorInput ? colorInput.value : '#00D4FF';
     buttons.push({
       label:      label,
       sort_order: parseInt(row.querySelector('.mma-btn-order').value, 10) || 1,
       enabled:    row.querySelector('.mma-btn-enabled-cb').checked,
+      color:      color,
     });
   });
   try {
