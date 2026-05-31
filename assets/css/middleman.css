@@ -121,14 +121,6 @@
     0%   { background-position: 200% 0; }
     100% { background-position: -200% 0; }
   }
-  @keyframes neonPulse {
-    0%, 100% {
-      box-shadow: 0 0 4px var(--neon), 0 0 6px color-mix(in srgb, var(--neon) 30%, transparent);
-    }
-    50% {
-      box-shadow: 0 0 16px var(--neon), 0 0 32px color-mix(in srgb, var(--neon) 60%, transparent), 0 0 48px color-mix(in srgb, var(--neon) 30%, transparent);
-    }
-  }
   .skel-spacer { flex: 1; }
   .skel-buttons {
     padding: 0 24px 20px;
@@ -307,8 +299,8 @@
     opacity: 0.72;
     transform: scale(0.97);
   }
-  .tap-btn.glow-pulse {
-    animation: neonPulse 2s ease-in-out infinite;
+  .tap-btn.glow-off {
+    box-shadow: none;
   }
 
   /* ── "See what's on" section ─────────────────────────────────────────────── */

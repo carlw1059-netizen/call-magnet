@@ -329,7 +329,7 @@ function renderEditBody(client) {
   document.querySelectorAll('.mma-btn-pulse').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var isOn = btn.classList.toggle('mma-btn-pulse-on');
-      btn.title = isOn ? 'Pulse ON — click to turn off' : 'Pulse OFF — click to turn on';
+      btn.title = isOn ? 'Glow ON — click to turn off' : 'Glow OFF — click to turn on';
       btn.style.background = isOn ? 'rgba(0,200,100,0.2)' : 'rgba(255,255,255,0.1)';
     });
   });
@@ -347,7 +347,7 @@ function buildBtnRowHtml(btn, idx) {
     '<input type="checkbox"' + (btn.enabled !== false ? ' checked' : '') + ' class="mma-btn-enabled mma-btn-enabled-cb" />' +
     '<input type="text" value="' + _e(btn.label || '') + '" maxlength="40" placeholder="Button label…" class="mma-btn-label" />' +
     '<input type="color" class="mma-btn-color" value="' + _e(btn.color || '#00D4FF') + '" title="Button colour" style="width:36px;height:32px;padding:2px;border:none;border-radius:6px;cursor:pointer;background:none;" />' +
-    '<button type="button" class="mma-btn-pulse' + (btn.animate ? ' mma-btn-pulse-on' : '') + '" title="' + (btn.animate ? 'Pulse ON — click to turn off' : 'Pulse OFF — click to turn on') + '" style="width:36px;height:32px;border:none;border-radius:6px;cursor:pointer;font-size:16px;background:' + (btn.animate ? 'rgba(0,200,100,0.2)' : 'rgba(255,255,255,0.1)') + ';">✦</button>' +
+    '<button type="button" class="mma-btn-pulse' + (btn.animate !== false ? ' mma-btn-pulse-on' : '') + '" title="' + (btn.animate !== false ? 'Glow ON — click to turn off' : 'Glow OFF — click to turn on') + '" style="width:36px;height:32px;border:none;border-radius:6px;cursor:pointer;font-size:16px;background:' + (btn.animate !== false ? 'rgba(0,200,100,0.2)' : 'rgba(255,255,255,0.1)') + ';">✦</button>' +
     '<button type="button" class="mma-btn-remove" title="Remove">×</button>' +
   '</div>';
 }

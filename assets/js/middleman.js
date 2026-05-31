@@ -683,11 +683,11 @@
       // Apply neon colour — uses btn.color if set, else falls back to NEON[idx]
       applyNeon(btnEl, idx, btn.color || null);
 
-      // Apply glow animation if btn.animate is set
-      if (btn.animate) {
-        btnEl.classList.add('glow-pulse');
+      // Glow toggle: animate=false → hide glow. Default (true/undefined) → glow shows normally.
+      if (btn.animate === false) {
+        btnEl.classList.add('glow-off');
       } else {
-        btnEl.classList.remove('glow-pulse');
+        btnEl.classList.remove('glow-off');
       }
     });
 
