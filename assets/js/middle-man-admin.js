@@ -325,6 +325,15 @@ function renderEditBody(client) {
   document.getElementById('mmaAddBtnBtn').addEventListener('click', addBtnRow);
   document.getElementById('mmaSaveBtnsBtn').addEventListener('click', saveButtons);
 
+  // Pulse toggle buttons — toggle on/off state when clicked
+  document.querySelectorAll('.mma-btn-pulse').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var isOn = btn.classList.toggle('mma-btn-pulse-on');
+      btn.title = isOn ? 'Pulse ON — click to turn off' : 'Pulse OFF — click to turn on';
+      btn.style.background = isOn ? 'rgba(0,200,100,0.2)' : 'rgba(255,255,255,0.1)';
+    });
+  });
+
   // FIX 6: Autoplay the video preview if one is already set
   if (hasVideo) {
     _bootVideoPreview('mmaVideoPreview');
@@ -338,6 +347,7 @@ function buildBtnRowHtml(btn, idx) {
     '<input type="checkbox"' + (btn.enabled !== false ? ' checked' : '') + ' class="mma-btn-enabled mma-btn-enabled-cb" />' +
     '<input type="text" value="' + _e(btn.label || '') + '" maxlength="40" placeholder="Button label…" class="mma-btn-label" />' +
     '<input type="color" class="mma-btn-color" value="' + _e(btn.color || '#00D4FF') + '" title="Button colour" style="width:36px;height:32px;padding:2px;border:none;border-radius:6px;cursor:pointer;background:none;" />' +
+    '<button type="button" class="mma-btn-pulse' + (btn.animate ? ' mma-btn-pulse-on' : '') + '" title="' + (btn.animate ? 'Pulse ON — click to turn off' : 'Pulse OFF — click to turn on') + '" style="width:36px;height:32px;border:none;border-radius:6px;cursor:pointer;font-size:16px;background:' + (btn.animate ? 'rgba(0,200,100,0.2)' : 'rgba(255,255,255,0.1)') + ';">✦</button>' +
     '<button type="button" class="mma-btn-remove" title="Remove">×</button>' +
   '</div>';
 }
@@ -496,11 +506,14 @@ async function saveButtons() {
     if (!label) return;
     var colorInput = row.querySelector('.mma-btn-color');
     var color = colorInput ? colorInput.value : '#00D4FF';
+    var pulseBtn = row.querySelector('.mma-btn-pulse');
+    var animate  = pulseBtn ? pulseBtn.classList.contains('mma-btn-pulse-on') : false;
     buttons.push({
       label:      label,
       sort_order: parseInt(row.querySelector('.mma-btn-order').value, 10) || 1,
       enabled:    row.querySelector('.mma-btn-enabled-cb').checked,
       color:      color,
+      animate:    animate,
     });
   });
   try {
