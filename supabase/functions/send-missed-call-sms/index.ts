@@ -86,6 +86,9 @@ Deno.serve(async (req) => {
 
     console.log(`send-missed-call-sms: to=${to} from=${from} sms_event_id=${smsEventId ?? '(none)'} msg_len=${message.length}`);
 
+    // finalMessage starts as message; updated with ?u=<token> if token is generated.
+    let finalMessage = message;
+
     // ── Opt-out check + unsubscribe token generation ──────────────────────────
     // 1. Look up client by twilio_number (= from).
     // 2. If the caller's phone is in opt_outs for this client → suppress SMS.
@@ -149,6 +152,42 @@ Deno.serve(async (req) => {
             }
           }
 
+          // ── 3. Generate unsubscribe token (Middle Man clients only) ──────────
+          // Only when Middle Man is enabled — those callers land on /b/<slug>
+          // which has the "Stop these texts" link wired to /u/<token>.
+          if (client.middle_man_enabled && client.middle_man_slug) {
+            try {
+              const unsubToken = crypto.randomUUID();
+              const expiresAt  = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(); // 72 h
+
+              // Insert into unsubscribe_tokens (best-effort — non-fatal)
+              await fetch(`${SUPABASE_URL}/rest/v1/unsubscribe_tokens`, {
+                method:  'POST',
+                headers: {
+                  apikey:         SUPABASE_SERVICE_ROLE_KEY,
+                  Authorization:  `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+                  'Content-Type': 'application/json',
+                  Prefer:         'return=minimal',
+                },
+                body: JSON.stringify({
+                  token:        unsubToken,
+                  client_id:    clientId,
+                  phone_number: to,
+                  expires_at:   expiresAt,
+                }),
+              });
+
+              // Append ?u=<token> to the callmagnet.com.au/b/ or callmagnet.s.gy/ link in the message
+              finalMessage = message.replace(
+                /(https?:\/\/(?:callmagnet\.com\.au\/b\/|callmagnet\.s\.gy\/)[^\s?]*)/,
+                (match: string) => match + '?u=' + unsubToken
+              );
+              console.log(`send-missed-call-sms: unsubscribe token generated for to=${to} token=${unsubToken.slice(0, 8)}…`);
+            } catch (tokenErr) {
+              console.warn(`send-missed-call-sms: token generation failed (non-fatal): ${tokenErr instanceof Error ? tokenErr.message : String(tokenErr)}`);
+              // finalMessage stays as message — SMS sends without token
+            }
+          }
 
         }
       } else {
@@ -166,7 +205,7 @@ Deno.serve(async (req) => {
     const params = new URLSearchParams({
       To:             to,
       From:           from,
-      Body:           message,
+      Body:           finalMessage,
       StatusCallback: STATUS_CALLBACK_URL,
     });
 

@@ -716,6 +716,16 @@
       closeForm();
     });
 
+    // ── Wire unsubscribe token to "Stop these texts" link ────────────────────
+    // If the SMS link contained ?u=<token>, middleman.js reads it here and
+    // points the footer link to /u/<token> so the caller can opt out.
+    var urlParams = new URLSearchParams(window.location.search);
+    var unsubToken = urlParams.get('u');
+    var stopLink = document.getElementById('stopTextsLink');
+    if (unsubToken && stopLink) {
+      stopLink.href = '/u/' + unsubToken;
+    }
+
     showMain();
 
     // ── Wire "Stop these texts" to the opt-out page (JOB 3) ─────────────────
