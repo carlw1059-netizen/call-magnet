@@ -158,18 +158,18 @@ Deno.serve(async (req) => {
     // Use the input if supplied, else fall back to the vertical's default.
     // The fixed tail " Reply STOP to opt out" (22 chars) is appended at send
     // time by Twilio Studio, NOT stored — but we validate the body length so
-    // body + tail ≤ 160 chars. Replace [LINK] with the actual rebrandly URL
-    // in the stored row so Studio's Liquid template stays trivial.
+    // body + tail ≤ 160 chars.
+    //
+    // [LINK] is stored as a literal placeholder. fetch-client-vertical.js
+    // substitutes the correct Short.io link (or Middle Man URL) at call time.
+    // Baking the booking URL in here would bypass the Short.io fallback chain.
     const STOP_TAIL = ' Reply STOP to opt out';
     const MAX_TOTAL = 160;
     const MAX_BODY  = MAX_TOTAL - STOP_TAIL.length;
 
-    let customer_sms_template = customer_sms_template_input.length > 0
+    const customer_sms_template = customer_sms_template_input.length > 0
       ? customer_sms_template_input
       : String(verticalRows[0].default_customer_sms ?? '').trim();
-
-    // Substitute [LINK] with the client's actual rebrandly URL
-    customer_sms_template = customer_sms_template.replace(/\[LINK\]/g, rebrandly_url);
 
     // Validate
     if (!customer_sms_template) {
