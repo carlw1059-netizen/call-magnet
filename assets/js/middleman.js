@@ -601,7 +601,7 @@
       var logoImg = document.createElement('img');
       logoImg.src = logoUrl;
       logoImg.alt = businessName;
-      logoImg.style.cssText = 'max-height:80px;max-width:220px;object-fit:contain;display:block;margin:0 auto 8px;mix-blend-mode:screen;filter:brightness(1.1);';
+      logoImg.style.cssText = 'max-height:80px;max-width:220px;object-fit:contain;display:block;margin:0 auto 8px;';
       heroName.style.display = 'none';
       heroName.parentNode.insertBefore(logoImg, heroName);
     }
