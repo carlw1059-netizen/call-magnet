@@ -7,7 +7,7 @@
   var LOG_FUNC_URL  = SUPABASE_URL + '/functions/v1/log-middle-man-tap';
 
   // ── Neon colour palette — position 1-6 (index 0-5) ───────────────────────
-  var NEON = ['#00D4FF','#FF6B00','#39FF14','#FF10F0','#FFE600','#BF00FF'];
+  var NEON = ['#00D4FF','#FF0000','#39FF14','#FF10F0','#FFE600','#BF00FF'];
 
   // ── Globals ───────────────────────────────────────────────────────────────
   var gSlug        = '';
