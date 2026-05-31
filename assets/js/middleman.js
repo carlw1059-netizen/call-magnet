@@ -53,7 +53,7 @@
     var url = SUPABASE_URL + '/rest/v1/clients'
       + '?middle_man_slug=eq.' + encodeURIComponent(slug)
       + '&account_status=eq.active'
-      + '&select=business_name,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_promo_text,'
+      + '&select=business_name,middle_man_logo_url,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_promo_text,'
       + 'middle_man_buttons,middle_man_show_whats_on,booking_url,vertical'
       + '&limit=1';
     var res = await fetch(url, {
@@ -593,6 +593,18 @@
     // ── Business name + promo ─────────────────────────────────────────────
     document.getElementById('heroBusinessName').textContent = businessName;
     document.title = businessName || 'CallMagnet';
+
+    // ── Logo: if set, insert above #heroBusinessName and hide the text ────
+    var logoUrl = client.middle_man_logo_url || null;
+    var heroName = document.getElementById('heroBusinessName');
+    if (logoUrl && heroName) {
+      var logoImg = document.createElement('img');
+      logoImg.src = logoUrl;
+      logoImg.alt = businessName;
+      logoImg.style.cssText = 'max-height:80px;max-width:220px;object-fit:contain;display:block;margin:0 auto 8px;';
+      heroName.style.display = 'none';
+      heroName.parentNode.insertBefore(logoImg, heroName);
+    }
 
     // ── Buttons ───────────────────────────────────────────────────────────
     var enabled = buttons
