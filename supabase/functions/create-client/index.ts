@@ -253,6 +253,7 @@ Deno.serve(async (req) => {
     // slug is always set (auto-generated if not supplied). On any failure: log and continue.
     if (SHORTIO_API_KEY) {
       try {
+        console.log(`create-client: Short.io request — domain: ${SHORTIO_DOMAIN}, path: ${slug}, url: https://callmagnet.com.au/b/${slug}, key present: ${!!SHORTIO_API_KEY}, key prefix: ${SHORTIO_API_KEY?.slice(0,8)}`);
         const shortioRes = await fetch('https://api.short.io/links', {
           method:  'POST',
           headers: {
