@@ -111,7 +111,7 @@ async function loadClientForEdit(clientId) {
   try {
     var result = await mmaSb
       .from('clients')
-      .select('id,business_name,vertical,middle_man_enabled,middle_man_slug,booking_url,middle_man_promo_text,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_buttons,middle_man_updated_at')
+      .select('id,business_name,vertical,middle_man_enabled,middle_man_slug,booking_url,middle_man_logo_url,middle_man_promo_text,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_buttons,middle_man_updated_at')
       .eq('id', clientId)
       .single();
     if (result.error) throw result.error;
@@ -141,6 +141,24 @@ function renderEditBody(client) {
   var bgType    = client.middle_man_background_type || 'image';
   var hasPhoto  = !!(bgUrl && bgType === 'image');
   var hasVideo  = !!(bgUrl && bgType === 'video');
+
+  // ── 0. Logo upload
+  var logoSection =
+    '<div class="mma-section">' +
+      '<div class="mma-section-label">Business Logo</div>' +
+      '<div class="mma-section-hint" style="font-size:12px;color:#000000;margin-bottom:8px;">Shown at the top of the Middle Man page instead of the business name text. PNG with transparent background works best.</div>' +
+      ((_editClientData.middle_man_logo_url)
+        ? '<img id="mmaLogoPreview" src="' + _editClientData.middle_man_logo_url + '" style="max-height:80px;max-width:200px;object-fit:contain;margin-bottom:10px;display:block;border-radius:6px;" />'
+        : '<div id="mmaLogoPreview" style="margin-bottom:10px;font-size:12px;color:#000000;">No logo uploaded yet.</div>') +
+      '<div style="display:flex;gap:8px;align-items:center;">' +
+        '<input id="mmaLogoInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" style="flex:1;font-size:13px;" />' +
+        '<button id="mmaLogoUploadBtn" class="mma-save-btn">Upload</button>' +
+      '</div>' +
+      '<div id="mmaLogoMsg" class="mma-saved-msg" style="margin-left:0;margin-top:6px;"></div>' +
+      (_editClientData.middle_man_logo_url
+        ? '<button id="mmaLogoRemoveBtn" class="mma-save-btn" style="margin-top:8px;background:#cc3333;">Remove logo</button>'
+        : '') +
+    '</div>';
 
   // ── 1. Heading (FIX 1: 22px)
   var heading =
@@ -274,9 +292,13 @@ function renderEditBody(client) {
       '</div>'
     : '<div id="mmaPreviewLinkWrap"></div>';
 
-  content.innerHTML = heading + toggleSection + slugSection + bookingSection + promoSection + photoSection + videoSection + btnsSection + previewHtml;
+  content.innerHTML = heading + logoSection + toggleSection + slugSection + bookingSection + promoSection + photoSection + videoSection + btnsSection + previewHtml;
 
   // ── Wire event listeners ─────────────────────────────────────────────────────
+  document.getElementById('mmaLogoUploadBtn').addEventListener('click', uploadLogo);
+  var mmaLogoRemoveBtn = document.getElementById('mmaLogoRemoveBtn');
+  if (mmaLogoRemoveBtn) mmaLogoRemoveBtn.addEventListener('click', removeLogo);
+
   document.getElementById('mmaToggleBtn').addEventListener('click', toggleEnabled);
   document.getElementById('mmaSlugSaveBtn').addEventListener('click', saveSlug);
   document.getElementById('mmaBookingUrlSaveBtn').addEventListener('click', saveBookingUrl);
@@ -345,6 +367,55 @@ async function toggleEnabled() {
     alert('Toggle failed: ' + err.message);
   } finally {
     btn.disabled = false;
+  }
+}
+
+// ─── Upload logo ──────────────────────────────────────────────────────────────
+async function uploadLogo() {
+  if (!_editClientId) return;
+  var input = document.getElementById('mmaLogoInput');
+  var file  = input && input.files && input.files[0];
+  if (!file) { _flash('mmaLogoMsg', '✗ No file selected', true); return; }
+  if (file.size > 2 * 1024 * 1024) { _flash('mmaLogoMsg', '✗ File must be under 2MB', true); return; }
+  var btn = document.getElementById('mmaLogoUploadBtn');
+  btn.disabled = true; btn.textContent = 'Uploading…';
+  try {
+    var fd = new FormData();
+    fd.append('client_id', _editClientId);
+    fd.append('file', file);
+    var res = await fetch(MMA_SUPABASE_URL + '/functions/v1/upload-middle-man-logo', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + (await mmaSb.auth.getSession()).data.session.access_token },
+      body: fd,
+    });
+    var json = await res.json();
+    if (!res.ok) throw new Error(json.error || res.statusText);
+    if (_editClientData) _editClientData.middle_man_logo_url = json.url;
+    var preview = document.getElementById('mmaLogoPreview');
+    if (preview) {
+      preview.outerHTML = '<img id="mmaLogoPreview" src="' + json.url + '" style="max-height:80px;max-width:200px;object-fit:contain;margin-bottom:10px;display:block;border-radius:6px;" />';
+    }
+    _flash('mmaLogoMsg', '✓ Logo uploaded', false);
+  } catch (err) {
+    _flash('mmaLogoMsg', '✗ ' + err.message, true);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Upload';
+  }
+}
+
+async function removeLogo() {
+  if (!_editClientId) return;
+  try {
+    var result = await mmaSb.from('clients').update({ middle_man_logo_url: null }).eq('id', _editClientId);
+    if (result.error) throw result.error;
+    if (_editClientData) _editClientData.middle_man_logo_url = null;
+    var preview = document.getElementById('mmaLogoPreview');
+    if (preview) preview.outerHTML = '<div id="mmaLogoPreview" style="margin-bottom:10px;font-size:12px;color:#000000;">No logo uploaded yet.</div>';
+    var removeBtn = document.getElementById('mmaLogoRemoveBtn');
+    if (removeBtn) removeBtn.style.display = 'none';
+    _flash('mmaLogoMsg', '✓ Logo removed', false);
+  } catch (err) {
+    _flash('mmaLogoMsg', '✗ ' + err.message, true);
   }
 }
 
