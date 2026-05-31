@@ -240,11 +240,11 @@
     return '<div class="inline-form" data-form-type="' + formType + '">'
       + '<div class="form-title">' + esc(titles[formType] || 'Send us a message') + '</div>'
       + inner
-      + '<div class="privacy-notice" style="font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin:10px 0 8px;padding:0 8px;line-height:1.4;">'
+      + '<button class="submit-btn" type="button" data-submit data-label="' + esc(submitLabels[formType] || 'Send') + '">' + esc(submitLabels[formType] || 'Send') + '</button>'
+      + '<div class="privacy-notice" style="font-size:11px;color:rgba(255,255,255,0.55);text-align:center;margin:8px 0 0;padding:0 8px;line-height:1.4;">'
       + 'Your details are shared with ' + esc(businessName || 'this business') + ' only, to help them respond to your request. '
       + '<a href="https://callmagnet.com.au/legal.html" target="_blank" style="color:rgba(255,255,255,0.55);text-decoration:underline;">Privacy Policy</a>'
       + '</div>'
-      + '<button class="submit-btn" type="button" data-submit data-label="' + esc(submitLabels[formType] || 'Send') + '">' + esc(submitLabels[formType] || 'Send') + '</button>'
       + '</div>';
   }
 
