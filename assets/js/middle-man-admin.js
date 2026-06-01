@@ -914,7 +914,7 @@ function renderPreview() {
     '</div>' +
 
     // BUTTONS — margin-top:auto pushes to bottom of flex container when bg present
-    '<div style="width:100%;flex-shrink:0;' + (hasBg ? 'margin-top:auto;' : '') + '">' +
+    '<div style="width:100%;flex-shrink:0;padding-bottom:20px;' + (hasBg ? 'margin-top:auto;' : '') + '">' +
       (function() {
         var rows = document.querySelectorAll('#mmaBtnBuilder .mma-btn-row');
         var html = '';
@@ -925,7 +925,7 @@ function renderPreview() {
           var pulseBtn = row.querySelector('.mma-btn-pulse');
           var animate  = pulseBtn ? pulseBtn.classList.contains('mma-btn-pulse-on') : true;
           if (!label || !enabled) return;
-          html += '<div class="mma-preview-btn' + (!animate ? ' glow-off' : '') + '" style="--prev-neon:' + color + ';margin-bottom:4px;">' + _e(label) + '</div>';
+          html += '<div class="mma-preview-btn' + (!animate ? ' glow-off' : '') + '" style="--prev-neon:' + color + ';margin-bottom:10px;">' + _e(label) + '</div>';
         });
         return html;
       })() +
