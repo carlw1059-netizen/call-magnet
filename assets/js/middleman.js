@@ -109,39 +109,69 @@
     setTimeout(function() { if (p.parentNode) p.parentNode.removeChild(p); }, lifetime);
   }
 
-  // ── Light Runner effect — point of light orbiting the button border ───────
-  // Colour is btn.color brightened 40%. One revolution every ~3.5 s.
+  // ── Light Runner effect — SVG stroke-dashoffset (iOS 12+ / Android Chrome) ──
+  // Previous approach (conic-gradient + CSS mask) failed on iOS Safari due to
+  // incompatible mask-composite XOR behaviour. Replaced with SVG stroke animation
+  // which has been supported since iOS Safari 5 / Chrome 1.
   //
-  // FIX (2026-06-02): The previous CSS-only approach had two fatal issues on mobile:
-  //   1. color-mix() not supported on iOS < 16.2 → conic-gradient fails to parse
-  //      → background becomes transparent → runner invisible.
-  //   2. @property --runner-deg + @keyframes only works on iOS 16.4+ for smooth
-  //      animation; older iOS sees no rotation.
-  // Fix: pre-compute rgba() stop colours in JS (no color-mix needed in CSS) and
-  // drive the angle via requestAnimationFrame instead of @property/@keyframes.
-  // Works on all browsers supporting conic-gradient: iOS 12.1+, Chrome 69+.
+  // Four <rect> elements share the same path and the same CSS @keyframes
+  // animation (stroke-dashoffset 0 → -1000).  pathLength="1000" normalises the
+  // path to 1000 units so the keyframe values never need to change regardless of
+  // the button's actual pixel dimensions.
+  //
+  // Layers (back → front):
+  //   base  – full perimeter, 20% opacity  (ghost outline, always visible)
+  //   tail  – 25 % dash,      35% opacity  (long trailing glow)
+  //   body  – 10 % dash,      70% opacity  (mid sweep)
+  //   head  –  4 % dash,     100% opacity  (bright leading point)
   function applyLightRunner(btnEl, color) {
-    var bright  = brightenHex(color, 0.4);
-    var overlay = document.createElement('div');
-    overlay.className = 'btn-runner-overlay';
-    // Pre-compute rgba() gradient stops — no color-mix() needed in the CSS.
-    overlay.style.setProperty('--runner-c0', bright);
-    overlay.style.setProperty('--runner-c1', hexRgba(bright, 0.55));
-    overlay.style.setProperty('--runner-c2', hexRgba(bright, 0.20));
-    btnEl.appendChild(overlay);
-    // rAF loop: update --runner-deg each frame (~60fps).
-    // conic-gradient(from var(--runner-deg) ...) re-evaluates every frame via
-    // the inline style custom property — no @property registration needed.
-    var startTime = null;
-    var DURATION  = 3500; // ms per full revolution
-    function tick(ts) {
-      if (!document.body.contains(overlay)) return; // element removed — stop
-      if (startTime === null) startTime = ts;
-      var deg = ((ts - startTime) % DURATION) / DURATION * 360;
-      overlay.style.setProperty('--runner-deg', deg.toFixed(1) + 'deg');
-      requestAnimationFrame(tick);
+    var bright = brightenHex(color, 0.4);
+    var NS     = 'http://www.w3.org/2000/svg';
+
+    var svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('class', 'btn-runner-svg');
+
+    function mkRect(stroke, opacity, dashArray, animated) {
+      var r = document.createElementNS(NS, 'rect');
+      r.setAttribute('fill',              'none');
+      r.setAttribute('stroke',            stroke);
+      r.setAttribute('stroke-opacity',    String(opacity));
+      r.setAttribute('stroke-width',      '2');
+      r.setAttribute('pathLength',        '1000');
+      r.setAttribute('stroke-dasharray',  dashArray);
+      if (animated) r.setAttribute('class', 'runner-animated');
+      return r;
     }
-    requestAnimationFrame(tick);
+
+    var rBase = mkRect(color,  0.20, '1000 0',  false);  // ghost outline
+    var rTail = mkRect(bright, 0.35, '250 750', true);   // long trail
+    var rBody = mkRect(bright, 0.70, '100 900', true);   // mid body
+    var rHead = mkRect(bright, 1.00, '40 960',  true);   // bright head
+
+    svg.appendChild(rBase);
+    svg.appendChild(rTail);
+    svg.appendChild(rBody);
+    svg.appendChild(rHead);
+    btnEl.appendChild(svg);
+
+    // Set viewBox + rect geometry once the button is in a visible layout.
+    // applyLightRunner() is called before showMain() so offsetWidth may be 0;
+    // one rAF frame is enough to get real dimensions after showMain() runs.
+    function initSize() {
+      var w = btnEl.offsetWidth;
+      var h = btnEl.offsetHeight;
+      if (!w || !h) { requestAnimationFrame(initSize); return; }
+      svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+      [rBase, rTail, rBody, rHead].forEach(function(r) {
+        r.setAttribute('x',      '1');
+        r.setAttribute('y',      '1');
+        r.setAttribute('width',  String(w - 2));
+        r.setAttribute('height', String(h - 2));
+        r.setAttribute('rx',     '12');
+        r.setAttribute('ry',     '12');
+      });
+    }
+    requestAnimationFrame(initSize);
   }
 
   // ── Fetch client from Supabase REST (anon key) ────────────────────────────
