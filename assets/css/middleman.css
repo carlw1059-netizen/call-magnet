@@ -276,6 +276,7 @@
     max-width: 100%;
     margin: 0;
     padding: 16px 24px;
+    position: relative;  /* establishes positioning context for .btn-runner-overlay */
     background: rgba(0,0,0,0.35);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
@@ -577,3 +578,65 @@
   }
   .footer-stop:hover { color: #FFFFFF; }
 
+  /* ── Sparkles effect ──────────────────────────────────────────────────────
+     .btn-sparkle divs are created and removed by emitSparkle() in middleman.js.
+     Each one gets inline: left, top, width, height, --sparkle-color,
+     --sparkle-drift, animation-duration, animation-delay.
+     Positioned relative to .btn-unit (the nearest positioned ancestor).      */
+  .btn-sparkle {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--sparkle-color, #ffffff);
+    box-shadow: 0 0 3px 1px var(--sparkle-color, #ffffff);
+    pointer-events: none;
+    z-index: 4;
+    opacity: 0;
+    animation: sparkle-float linear forwards;
+  }
+  @keyframes sparkle-float {
+    0%   { opacity: 0;   transform: translate(0, 0) scale(1); }
+    12%  { opacity: 0.9; }
+    70%  { opacity: 0.45; }
+    100% { opacity: 0;   transform: translate(var(--sparkle-drift, 0px), -56px) scale(0.15); }
+  }
+
+  /* ── Light Runner effect ──────────────────────────────────────────────────
+     .btn-runner-overlay is appended inside .tap-btn (which is position:relative).
+     A conic-gradient sweeps clockwise; a dual-mask collapses it to the 2px
+     border ring so the runner sits exactly on the button border.
+     --runner-bright-color is set inline by applyLightRunner() in middleman.js.
+
+     @property registers --runner-deg as an animatable <angle> custom property.
+     Browsers that don't support @property (iOS < 16.4) see a static highlight
+     at 0 deg — graceful degradation.                                          */
+  @property --runner-deg {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 0deg;
+  }
+  @keyframes runner-spin {
+    to { --runner-deg: 360deg; }
+  }
+  .btn-runner-overlay {
+    position: absolute;
+    inset: -2px;           /* sit 2px outside the button edge */
+    border-radius: 14px;   /* button border-radius 12 + 2px overhang */
+    pointer-events: none;
+    z-index: 1;
+    padding: 2px;          /* defines the width of the visible ring */
+    background: conic-gradient(
+      from var(--runner-deg) at 50% 50%,
+      var(--runner-bright-color, #ffffff)                                0deg,
+      color-mix(in srgb, var(--runner-bright-color, #ffffff) 55%, transparent)  10deg,
+      color-mix(in srgb, var(--runner-bright-color, #ffffff) 20%, transparent)  50deg,
+      transparent                                                       100deg,
+      transparent                                                       360deg
+    );
+    /* Dual-mask trick: show only the 2px ring between padding-box and content-box */
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0) padding-box;
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    animation: runner-spin 3.5s linear infinite;
+  }
