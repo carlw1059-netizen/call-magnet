@@ -68,10 +68,17 @@
   // Particles start within the button zone, drift upward and fade out.
   // Colour exactly matches btn.color. Interval cleared when unit leaves DOM.
   function applySparkles(unit, color) {
+    // Two particles immediately, two more staggered — then two every 700ms
     emitSparkle(unit, color);
-    setTimeout(function() { if (document.body.contains(unit)) emitSparkle(unit, color); }, 400);
+    emitSparkle(unit, color);
+    setTimeout(function() {
+      if (!document.body.contains(unit)) return;
+      emitSparkle(unit, color);
+      emitSparkle(unit, color);
+    }, 350);
     var iv = setInterval(function() {
       if (!document.body.contains(unit)) { clearInterval(iv); return; }
+      emitSparkle(unit, color);
       emitSparkle(unit, color);
     }, 700);
     unit._sparkleInterval = iv;
@@ -103,14 +110,38 @@
   }
 
   // ── Light Runner effect — point of light orbiting the button border ───────
-  // A conic-gradient overlay sweeps clockwise, masked to the 2px border ring.
   // Colour is btn.color brightened 40%. One revolution every ~3.5 s.
+  //
+  // FIX (2026-06-02): The previous CSS-only approach had two fatal issues on mobile:
+  //   1. color-mix() not supported on iOS < 16.2 → conic-gradient fails to parse
+  //      → background becomes transparent → runner invisible.
+  //   2. @property --runner-deg + @keyframes only works on iOS 16.4+ for smooth
+  //      animation; older iOS sees no rotation.
+  // Fix: pre-compute rgba() stop colours in JS (no color-mix needed in CSS) and
+  // drive the angle via requestAnimationFrame instead of @property/@keyframes.
+  // Works on all browsers supporting conic-gradient: iOS 12.1+, Chrome 69+.
   function applyLightRunner(btnEl, color) {
     var bright  = brightenHex(color, 0.4);
     var overlay = document.createElement('div');
     overlay.className = 'btn-runner-overlay';
-    overlay.style.setProperty('--runner-bright-color', bright);
+    // Pre-compute rgba() gradient stops — no color-mix() needed in the CSS.
+    overlay.style.setProperty('--runner-c0', bright);
+    overlay.style.setProperty('--runner-c1', hexRgba(bright, 0.55));
+    overlay.style.setProperty('--runner-c2', hexRgba(bright, 0.20));
     btnEl.appendChild(overlay);
+    // rAF loop: update --runner-deg each frame (~60fps).
+    // conic-gradient(from var(--runner-deg) ...) re-evaluates every frame via
+    // the inline style custom property — no @property registration needed.
+    var startTime = null;
+    var DURATION  = 3500; // ms per full revolution
+    function tick(ts) {
+      if (!document.body.contains(overlay)) return; // element removed — stop
+      if (startTime === null) startTime = ts;
+      var deg = ((ts - startTime) % DURATION) / DURATION * 360;
+      overlay.style.setProperty('--runner-deg', deg.toFixed(1) + 'deg');
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
   }
 
   // ── Fetch client from Supabase REST (anon key) ────────────────────────────
