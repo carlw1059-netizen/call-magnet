@@ -607,10 +607,7 @@
      Supported: iOS Safari 10+, Android Chrome, all modern browsers.       */
   .btn-runner-svg {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: -2px;        /* extends 2px outward to overlay the button border */
     pointer-events: none;
     z-index: 2;
     overflow: visible;
