@@ -248,7 +248,7 @@ function renderEditBody(client) {
           '<div class="mma-info" style="text-align:center;font-size:11px;">JPG or PNG, portrait. Max 5 MB.</div>' +
           '<div id="mmaPhotoProgress" class="mma-progress"></div>' +
           '<div id="mmaPhotoErr" class="mma-err"></div>' +
-          '<button id="mmaPhotoRemoveBtn" class="mma-remove-bg-btn"' + (!(bgType === 'image' && bgUrl) ? ' style="display:none;"' : '') + '>Remove photo</button>' +
+          '<button id="mmaPhotoRemoveBtn" class="mma-remove-bg-btn"' + (!(bgType === 'image' && bgUrl) ? ' style="opacity:0.3;pointer-events:none;"' : '') + '>Remove photo</button>' +
         '</div>' +
 
         // LIVE PREVIEW COLUMN — iPhone 15 proportions
@@ -903,12 +903,20 @@ function renderPreview() {
   var logoUrl = _editClientData ? (_editClientData.middle_man_logo_url || null) : null;
   var bizName = _editClientData ? (_editClientData.business_name || '') : '';
 
+  var hasBg = !!(_editClientData && _editClientData.middle_man_background_url);
+
   screen.innerHTML =
-    '<div style="width:100%;text-align:center;padding-top:8px;">' +
+    // HEADER — logo or business name at top
+    '<div style="width:100%;text-align:center;flex-shrink:0;">' +
       (logoUrl ? '<img class="mma-preview-logo" src="' + logoUrl + '" alt="' + _e(bizName) + '" />' : '') +
       (!logoUrl && bizName ? '<div class="mma-preview-bizname">' + _e(bizName) + '</div>' : '') +
     '</div>' +
-    '<div style="width:100%;margin-top:auto;">' +
+
+    // SPACER — fills gap when background present, pushes buttons down
+    '<div style="' + (hasBg ? 'flex:1;min-height:20px;' : 'flex:0;') + '"></div>' +
+
+    // BUTTONS — sit in lower portion
+    '<div style="width:100%;flex-shrink:0;">' +
       (function() {
         var rows = document.querySelectorAll('#mmaBtnBuilder .mma-btn-row');
         var html = '';
@@ -919,11 +927,13 @@ function renderPreview() {
           var pulseBtn = row.querySelector('.mma-btn-pulse');
           var animate  = pulseBtn ? pulseBtn.classList.contains('mma-btn-pulse-on') : true;
           if (!label || !enabled) return;
-          html += '<div class="mma-preview-btn' + (!animate ? ' glow-off' : '') + '" style="--prev-neon:' + color + ';margin-bottom:5px;">' + _e(label) + '</div>';
+          html += '<div class="mma-preview-btn' + (!animate ? ' glow-off' : '') + '" style="--prev-neon:' + color + ';margin-bottom:4px;">' + _e(label) + '</div>';
         });
         return html;
       })() +
     '</div>' +
+
+    // FOOTER
     '<div class="mma-preview-footer">★ CallMagnet</div>';
 }
 
