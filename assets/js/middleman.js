@@ -38,6 +38,18 @@
     return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
   }
 
+  // ── Brighten a #rrggbb hex colour by mixing toward white ─────────────────
+  // factor 0.4 → each channel moves 40% of the way toward 255.
+  function brightenHex(hex, factor) {
+    var r = parseInt(hex.slice(1,3), 16);
+    var g = parseInt(hex.slice(3,5), 16);
+    var b = parseInt(hex.slice(5,7), 16);
+    r = Math.min(255, Math.round(r + (255 - r) * factor));
+    g = Math.min(255, Math.round(g + (255 - g) * factor));
+    b = Math.min(255, Math.round(b + (255 - b) * factor));
+    return '#' + r.toString(16).padStart(2,'0') + g.toString(16).padStart(2,'0') + b.toString(16).padStart(2,'0');
+  }
+
   // ── Apply neon style to a button element by position index (0-based) ─────
   // color: optional per-button hex stored in button data; falls back to NEON[idx].
   function applyNeon(el, idx, color) {
@@ -50,6 +62,55 @@
       unit.style.setProperty('--neon', c);
       unit.dataset.neon = c;
     }
+  }
+
+  // ── Sparkles effect — slow ambient floating dust particles ───────────────
+  // Particles start within the button zone, drift upward and fade out.
+  // Colour exactly matches btn.color. Interval cleared when unit leaves DOM.
+  function applySparkles(unit, color) {
+    emitSparkle(unit, color);
+    setTimeout(function() { if (document.body.contains(unit)) emitSparkle(unit, color); }, 400);
+    var iv = setInterval(function() {
+      if (!document.body.contains(unit)) { clearInterval(iv); return; }
+      emitSparkle(unit, color);
+    }, 700);
+    unit._sparkleInterval = iv;
+  }
+
+  function emitSparkle(unit, color) {
+    var btnEl = unit.querySelector('.tap-btn');
+    var btnH  = btnEl ? (btnEl.offsetHeight || 52) : 52;
+    var unitW = unit.offsetWidth  || 300;
+    var p     = document.createElement('div');
+    p.className = 'btn-sparkle';
+    var x     = 12 + Math.random() * Math.max(unitW - 24, 1);
+    var y     =  4 + Math.random() * Math.max(btnH  * 0.85, 1);
+    var drift = (Math.random() * 18 - 9).toFixed(1);
+    var dur   = (1.8 + Math.random() * 1.4).toFixed(2);
+    var delay = (Math.random() * 0.35).toFixed(2);
+    var size  = (2 + Math.random() * 2).toFixed(1);
+    p.style.cssText =
+      'left:' + x.toFixed(1) + 'px;' +
+      'top:'  + y.toFixed(1) + 'px;' +
+      'width:'  + size + 'px;height:' + size + 'px;' +
+      '--sparkle-color:' + color + ';' +
+      '--sparkle-drift:' + drift + 'px;' +
+      'animation-duration:' + dur + 's;' +
+      'animation-delay:'    + delay + 's;';
+    unit.appendChild(p);
+    var lifetime = Math.ceil((parseFloat(dur) + parseFloat(delay) + 0.1) * 1000);
+    setTimeout(function() { if (p.parentNode) p.parentNode.removeChild(p); }, lifetime);
+  }
+
+  // ── Light Runner effect — point of light orbiting the button border ───────
+  // A conic-gradient overlay sweeps clockwise, masked to the 2px border ring.
+  // Colour is btn.color brightened 40%. One revolution every ~3.5 s.
+  function applyLightRunner(btnEl, color) {
+    var bright  = brightenHex(color, 0.4);
+    var overlay = document.createElement('div');
+    overlay.className = 'btn-runner-overlay';
+    overlay.style.setProperty('--runner-bright-color', bright);
+    btnEl.appendChild(overlay);
   }
 
   // ── Fetch client from Supabase REST (anon key) ────────────────────────────
@@ -688,6 +749,16 @@
         btnEl.classList.add('glow-off');
       } else {
         btnEl.classList.remove('glow-off');
+      }
+
+      // Sparkles: slow ambient floating dust particles drifting upward
+      if (btn.sparkles === true) {
+        applySparkles(unit, btn.color || NEON[Math.min(idx, NEON.length - 1)]);
+      }
+
+      // Light runner: bright point of light orbiting the button border clockwise
+      if (btn.light_runner === true) {
+        applyLightRunner(btnEl, btn.color || NEON[Math.min(idx, NEON.length - 1)]);
       }
     });
 
