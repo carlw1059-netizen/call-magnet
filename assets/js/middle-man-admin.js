@@ -219,59 +219,51 @@ function renderEditBody(client) {
       '</div>' +
     '</div>';
 
-  // ── 5a. Background Photo card (FIX 5)
-  var photoThumbHtml = hasPhoto
-    ? '<img src="' + _e(bgUrl) + '?v=' + Date.now() + '" id="mmaPhotoThumb" class="mma-bg-thumb" alt="Current background photo" />'
-    : '<div id="mmaPhotoThumb" class="mma-bg-placeholder">★</div>';
-  var photoRemoveHtml = hasPhoto
-    ? '<button id="mmaPhotoRemoveBtn" class="mma-remove-bg-btn">Remove photo</button>'
-    : '';
-  var photoSection =
+  // ── 5a+5b. Combined Background Media section (video + photo + live preview columns)
+  var mediaSection =
     '<div class="mma-section">' +
-      '<div class="mma-section-label">Background Photo</div>' +
-      '<div style="display:flex;align-items:flex-start;gap:16px;">' +
-        photoThumbHtml +
-        '<div>' +
-          '<button id="mmaPhotoUploadBtn" class="mma-save-btn">Upload photo</button>' +
-          '<div class="mma-info">JPG or PNG, portrait orientation works best. Max 5 MB.</div>' +
-          '<div id="mmaPhotoProgress" class="mma-progress"></div>' +
-          '<div id="mmaPhotoErr" class="mma-err"></div>' +
-          photoRemoveHtml +
-        '</div>' +
-      '</div>' +
-    '</div>';
+      '<div class="mma-section-label">Background Media</div>' +
+      '<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;">' +
 
-  // ── 5b. Background Video card (FIX 5 + FIX 6)
-  var videoPreviewHtml;
-  if (hasVideo) {
-    // Build the video element via HTML string; we'll wire autoplay in JS after render
-    videoPreviewHtml =
-      '<video id="mmaVideoPreview" class="mma-video-preview"' +
-        ' autoplay muted playsinline webkit-playsinline loop preload="auto">' +
-        '<source src="' + _e(bgUrl) + '?v=' + Date.now() + '" type="video/mp4" />' +
-      '</video>';
-  } else {
-    videoPreviewHtml = '<div id="mmaVideoPreview" class="mma-video-placeholder">▶</div>';
-  }
-  var videoRemoveHtml = hasVideo
-    ? '<button id="mmaVideoRemoveBtn" class="mma-remove-bg-btn">Remove video</button>'
-    : '';
-  var videoSection =
-    '<div class="mma-section">' +
-      '<div class="mma-section-label">Background Video</div>' +
-      '<div style="display:flex;align-items:flex-start;gap:16px;">' +
-        videoPreviewHtml +
-        '<div>' +
-          '<button id="mmaVideoUploadBtn" class="mma-save-btn">Upload video</button>' +
-          '<div class="mma-info">MP4 only, vertical 9:16 (Instagram Reel shape). Max 10 MB.</div>' +
+        // VIDEO COLUMN
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;min-width:140px;">' +
+          '<div class="mma-media-label">Video</div>' +
+          (bgType === 'video' && bgUrl
+            ? '<video id="mmaVideoPreview" class="mma-video-preview" autoplay muted playsinline webkit-playsinline loop preload="auto"><source src="' + _e(bgUrl) + '?v=' + Date.now() + '" type="video/mp4" /></video>'
+            : '<div id="mmaVideoPreview" class="mma-video-placeholder">▶</div>') +
+          '<button id="mmaVideoUploadBtn" class="mma-save-btn" style="width:100%;">Upload video</button>' +
+          '<div class="mma-info" style="text-align:center;font-size:11px;">MP4, vertical 9:16. Max 10 MB.</div>' +
           '<div id="mmaVideoProgress" class="mma-progress"></div>' +
           '<div id="mmaVideoErr" class="mma-err"></div>' +
-          videoRemoveHtml +
+          (bgType === 'video' && bgUrl ? '<button id="mmaVideoRemoveBtn" class="mma-remove-bg-btn" style="width:100%;">Remove video</button>' : '') +
         '</div>' +
+
+        // PHOTO COLUMN
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;min-width:140px;">' +
+          '<div class="mma-media-label">Photo</div>' +
+          (bgType === 'image' && bgUrl
+            ? '<img src="' + _e(bgUrl) + '?v=' + Date.now() + '" id="mmaPhotoThumb" class="mma-bg-thumb" alt="Background photo" />'
+            : '<div id="mmaPhotoThumb" class="mma-video-placeholder" style="font-size:24px;">★</div>') +
+          '<button id="mmaPhotoUploadBtn" class="mma-save-btn" style="width:100%;">Upload photo</button>' +
+          '<div class="mma-info" style="text-align:center;font-size:11px;">JPG or PNG, portrait. Max 5 MB.</div>' +
+          '<div id="mmaPhotoProgress" class="mma-progress"></div>' +
+          '<div id="mmaPhotoErr" class="mma-err"></div>' +
+          (bgType === 'image' && bgUrl ? '<button id="mmaPhotoRemoveBtn" class="mma-remove-bg-btn" style="width:100%;">Remove photo</button>' : '') +
+        '</div>' +
+
+        // LIVE PREVIEW COLUMN — iPhone 15 proportions
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:0 0 auto;">' +
+          '<div class="mma-media-label">Live preview</div>' +
+          '<div class="mma-preview-phone" id="mmaPreviewPhone">' +
+            '<div class="mma-preview-notch"></div>' +
+            '<div class="mma-preview-screen" id="mmaPreviewScreen"></div>' +
+          '</div>' +
+        '</div>' +
+
       '</div>' +
     '</div>';
 
-  // ── 6. Buttons (FIX 4: helper text above list)
+  // ── 6. Buttons
   var btnRows = buttons.filter(Boolean).map(function(b, i) { return buildBtnRowHtml(b, i); }).join('');
   var btnsSection =
     '<div class="mma-section">' +
@@ -285,30 +277,14 @@ function renderEditBody(client) {
       '</div>' +
     '</div>';
 
-  // ── 7. Live phone preview panel
-  var phonePreviewSection =
-    '<div class="mma-preview-wrap">' +
-      '<div class="mma-preview-label">Live preview</div>' +
-      '<div class="mma-preview-phone" id="mmaPreviewPhone">' +
-        '<div class="mma-preview-notch"></div>' +
-        '<div class="mma-preview-screen" id="mmaPreviewScreen"></div>' +
-      '</div>' +
-    '</div>';
-
-  var btnsPlusPreview =
-    '<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;">' +
-      btnsSection +
-      phonePreviewSection +
-    '</div>';
-
-  // ── 8. Preview link
+  // ── 7. Preview link
   var previewHtml = slug
     ? '<div style="text-align:center;padding:8px 0 4px;">' +
         '<a id="mmaPreviewLink" href="https://callmagnet.com.au/b/' + encodeURIComponent(slug) + '" target="_blank" rel="noopener" class="mma-preview-link">View live page →</a>' +
       '</div>'
     : '<div id="mmaPreviewLinkWrap"></div>';
 
-  content.innerHTML = heading + logoSection + toggleSection + slugSection + bookingSection + promoSection + photoSection + videoSection + btnsPlusPreview + previewHtml;
+  content.innerHTML = heading + logoSection + toggleSection + slugSection + bookingSection + promoSection + mediaSection + btnsSection + previewHtml;
 
   // ── Wire event listeners ─────────────────────────────────────────────────────
   document.getElementById('mmaLogoUploadBtn').addEventListener('click', uploadLogo);
@@ -884,19 +860,78 @@ async function removeBg() {
 
 // ─── Live preview ────────────────────────────────────────────────────────────
 function renderPreview() {
+  var phone  = document.getElementById('mmaPreviewPhone');
   var screen = document.getElementById('mmaPreviewScreen');
-  if (!screen) return;
+  if (!phone || !screen) return;
+
+  // Remove any existing background element
+  var existingBg = phone.querySelector('.mma-preview-bg');
+  if (existingBg) existingBg.parentNode.removeChild(existingBg);
+
+  // Insert background (video or image) if one is set
+  if (_editClientData && _editClientData.middle_man_background_url) {
+    var pBgUrl  = _editClientData.middle_man_background_url;
+    var pBgType = _editClientData.middle_man_background_type || 'image';
+    if (pBgType === 'video') {
+      var vid = document.createElement('video');
+      vid.className = 'mma-preview-bg';
+      vid.setAttribute('autoplay', '');
+      vid.setAttribute('muted', '');
+      vid.setAttribute('loop', '');
+      vid.setAttribute('playsinline', '');
+      vid.muted = true;
+      if (_editClientData.middle_man_background_poster_url) {
+        vid.setAttribute('poster', _editClientData.middle_man_background_poster_url);
+      }
+      var vsrc = document.createElement('source');
+      vsrc.src  = pBgUrl;
+      vsrc.type = 'video/mp4';
+      vid.appendChild(vsrc);
+      phone.insertBefore(vid, screen);
+      vid.load();
+      vid.play().catch(function() {});
+    } else {
+      var bgImg = document.createElement('img');
+      bgImg.className = 'mma-preview-bg';
+      bgImg.src = pBgUrl + '?v=' + Date.now();
+      bgImg.alt = '';
+      phone.insertBefore(bgImg, screen);
+    }
+  }
+
+  // Build screen content: logo or biz name, then buttons
+  var logoUrl = _editClientData ? (_editClientData.middle_man_logo_url || null) : null;
+  var bizName = _editClientData ? (_editClientData.business_name || '') : '';
+
   var rows = document.querySelectorAll('#mmaBtnBuilder .mma-btn-row');
-  var html = '';
+  var buttonsHtml = '';
   rows.forEach(function(row) {
     var label   = (row.querySelector('.mma-btn-label').value || '').trim();
     var enabled = row.querySelector('.mma-btn-enabled-cb').checked;
     var color   = row.querySelector('.mma-btn-color') ? row.querySelector('.mma-btn-color').value : '#00D4FF';
     var animate = row.querySelector('.mma-btn-pulse') ? row.querySelector('.mma-btn-pulse').classList.contains('mma-btn-pulse-on') : true;
     if (!label || !enabled) return;
-    html += '<div class="mma-preview-btn' + (!animate ? ' glow-off' : '') + '" style="--prev-neon:' + color + '">' + label + '</div>';
+    buttonsHtml += '<div class="mma-preview-btn' + (!animate ? ' glow-off' : '') + '" style="--prev-neon:' + color + '">' + label + '</div>';
   });
-  screen.innerHTML = html || '<div style="color:rgba(255,255,255,0.3);font-size:11px;text-align:center;padding:20px 0;">No buttons yet</div>';
+
+  var screenHtml = '';
+  if (logoUrl) {
+    screenHtml += '<img class="mma-preview-logo" src="' + logoUrl + '" alt="logo" />';
+  } else if (bizName) {
+    screenHtml += '<div class="mma-preview-bizname">' + _e(bizName) + '</div>';
+  }
+  screenHtml += '<div class="mma-preview-buttons">' +
+    (buttonsHtml || '<div style="color:rgba(255,255,255,0.3);font-size:9px;text-align:center;padding:10px 0;">No buttons yet</div>') +
+  '</div>';
+  screen.innerHTML = screenHtml;
+
+  // Footer (persists across re-renders — create once)
+  if (!phone.querySelector('.mma-preview-footer')) {
+    var footer = document.createElement('div');
+    footer.className = 'mma-preview-footer';
+    footer.textContent = '★ CallMagnet';
+    phone.appendChild(footer);
+  }
 }
 
 function wirePreview() {
