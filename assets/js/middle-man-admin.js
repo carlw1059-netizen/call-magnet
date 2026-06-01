@@ -285,14 +285,30 @@ function renderEditBody(client) {
       '</div>' +
     '</div>';
 
-  // ── 7. Preview link
+  // ── 7. Live phone preview panel
+  var phonePreviewSection =
+    '<div class="mma-preview-wrap">' +
+      '<div class="mma-preview-label">Live preview</div>' +
+      '<div class="mma-preview-phone" id="mmaPreviewPhone">' +
+        '<div class="mma-preview-notch"></div>' +
+        '<div class="mma-preview-screen" id="mmaPreviewScreen"></div>' +
+      '</div>' +
+    '</div>';
+
+  var btnsPlusPreview =
+    '<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;">' +
+      btnsSection +
+      phonePreviewSection +
+    '</div>';
+
+  // ── 8. Preview link
   var previewHtml = slug
     ? '<div style="text-align:center;padding:8px 0 4px;">' +
         '<a id="mmaPreviewLink" href="https://callmagnet.com.au/b/' + encodeURIComponent(slug) + '" target="_blank" rel="noopener" class="mma-preview-link">View live page →</a>' +
       '</div>'
     : '<div id="mmaPreviewLinkWrap"></div>';
 
-  content.innerHTML = heading + logoSection + toggleSection + slugSection + bookingSection + promoSection + photoSection + videoSection + btnsSection + previewHtml;
+  content.innerHTML = heading + logoSection + toggleSection + slugSection + bookingSection + promoSection + photoSection + videoSection + btnsPlusPreview + previewHtml;
 
   // ── Wire event listeners ─────────────────────────────────────────────────────
   document.getElementById('mmaLogoUploadBtn').addEventListener('click', uploadLogo);
@@ -320,9 +336,12 @@ function renderEditBody(client) {
   // Button builder delegation
   document.getElementById('mmaBtnBuilder').addEventListener('click', function(ev) {
     var removeBtn = ev.target.closest('.mma-btn-remove');
-    if (removeBtn) removeBtn.closest('.mma-btn-row').remove();
+    if (removeBtn) { removeBtn.closest('.mma-btn-row').remove(); renderPreview(); }
   });
-  document.getElementById('mmaAddBtnBtn').addEventListener('click', addBtnRow);
+  document.getElementById('mmaAddBtnBtn').addEventListener('click', function() {
+    addBtnRow();
+    setTimeout(function() { wirePreview(); renderPreview(); }, 50);
+  });
   document.getElementById('mmaSaveBtnsBtn').addEventListener('click', saveButtons);
 
   // Pulse toggle buttons — toggle on/off state when clicked
@@ -338,6 +357,10 @@ function renderEditBody(client) {
   if (hasVideo) {
     _bootVideoPreview('mmaVideoPreview');
   }
+
+  // Live preview — wire and render
+  wirePreview();
+  renderPreview();
 }
 
 // ─── Button row HTML builder ──────────────────────────────────────────────────
@@ -857,6 +880,36 @@ async function removeBg() {
     if (btn) { btn.disabled = false; btn.textContent = 'Remove ' + typeLabel; }
     alert('Remove failed: ' + err.message);
   }
+}
+
+// ─── Live preview ────────────────────────────────────────────────────────────
+function renderPreview() {
+  var screen = document.getElementById('mmaPreviewScreen');
+  if (!screen) return;
+  var rows = document.querySelectorAll('#mmaBtnBuilder .mma-btn-row');
+  var html = '';
+  rows.forEach(function(row) {
+    var label   = (row.querySelector('.mma-btn-label').value || '').trim();
+    var enabled = row.querySelector('.mma-btn-enabled-cb').checked;
+    var color   = row.querySelector('.mma-btn-color') ? row.querySelector('.mma-btn-color').value : '#00D4FF';
+    var animate = row.querySelector('.mma-btn-pulse') ? row.querySelector('.mma-btn-pulse').classList.contains('mma-btn-pulse-on') : true;
+    if (!label || !enabled) return;
+    html += '<div class="mma-preview-btn' + (!animate ? ' glow-off' : '') + '" style="--prev-neon:' + color + '">' + label + '</div>';
+  });
+  screen.innerHTML = html || '<div style="color:rgba(255,255,255,0.3);font-size:11px;text-align:center;padding:20px 0;">No buttons yet</div>';
+}
+
+function wirePreview() {
+  document.querySelectorAll('.mma-btn-label').forEach(function(el) {
+    el.addEventListener('input', renderPreview);
+  });
+  document.querySelectorAll('.mma-btn-color').forEach(function(el) {
+    el.addEventListener('change', renderPreview);
+    el.addEventListener('input', renderPreview);
+  });
+  document.querySelectorAll('.mma-btn-pulse').forEach(function(el) {
+    el.addEventListener('click', function() { setTimeout(renderPreview, 10); });
+  });
 }
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────

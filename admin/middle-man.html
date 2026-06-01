@@ -7,6 +7,67 @@
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" href="/icon.svg?v=2026-05-14" type="image/svg+xml">
 <link rel="stylesheet" href="/assets/css/middle-man-admin.css?v=20260527g">
+<style>
+.mma-preview-wrap {
+  flex: 1;
+  min-width: 200px;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 0;
+}
+.mma-preview-label {
+  font-size: 12px;
+  color: rgba(0,0,0,0.5);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.mma-preview-phone {
+  width: 200px;
+  min-height: 380px;
+  background: #0E1419;
+  border-radius: 32px;
+  border: 3px solid #333;
+  padding: 40px 12px 20px;
+  position: relative;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.mma-preview-notch {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 8px;
+  background: #333;
+  border-radius: 4px;
+}
+.mma-preview-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mma-preview-btn {
+  display: block;
+  width: 100%;
+  padding: 10px 8px;
+  border-radius: 10px;
+  border: 2px solid var(--prev-neon, #06D6A0);
+  color: var(--prev-neon, #06D6A0);
+  background: rgba(0,0,0,0.35);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: 0 0 4px var(--prev-neon, #06D6A0), 0 0 8px color-mix(in srgb, var(--prev-neon, #06D6A0) 30%, transparent);
+  pointer-events: none;
+  user-select: none;
+}
+.mma-preview-btn.glow-off {
+  box-shadow: none;
+}
+</style>
 </head>
 <body>
 
@@ -25,6 +86,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/assets/js/middle-man-admin.js?v=20260531g"></script>
+<script src="/assets/js/middle-man-admin.js?v=20260531h"></script>
 </body>
 </html>
