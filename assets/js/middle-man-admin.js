@@ -285,7 +285,7 @@ function renderEditBody(client) {
       '</div>'
     : '<div id="mmaPreviewLinkWrap"></div>';
 
-  content.innerHTML = heading + logoSection + toggleSection + slugSection + bookingSection + promoSection + mediaSection + btnsSection + previewHtml;
+  content.innerHTML = heading + toggleSection + slugSection + bookingSection + promoSection + logoSection + mediaSection + btnsSection + previewHtml;
 
   // ── Wire event listeners ─────────────────────────────────────────────────────
   document.getElementById('mmaLogoUploadBtn').addEventListener('click', uploadLogo);
