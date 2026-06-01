@@ -907,14 +907,13 @@ function renderPreview() {
   var hasBg = !!(_editClientData && _editClientData.middle_man_background_url);
 
   screen.innerHTML =
-    // HEADER — logo or business name at top
-    '<div style="width:100%;text-align:center;flex-shrink:0;">' +
-      (logoUrl ? '<img class="mma-preview-logo" src="' + logoUrl + '" alt="' + _e(bizName) + '" />' : '') +
-      (!logoUrl && bizName ? '<div class="mma-preview-bizname">' + _e(bizName) + '</div>' : '') +
+    '<div style="height:105px;width:100%;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0 12px;">' +
+      (logoUrl
+        ? '<img src="' + logoUrl + '" alt="' + _e(bizName) + '" style="max-height:70px;max-width:85%;object-fit:contain;display:block;" />'
+        : '<div style="color:#fff;font-size:11px;font-weight:700;text-align:center;padding:0 8px;">' + _e(bizName) + '</div>') +
     '</div>' +
-
-    // BUTTONS — margin-top:auto pushes to bottom of flex container when bg present
-    '<div style="width:100%;flex-shrink:0;padding-bottom:20px;' + (hasBg ? 'margin-top:auto;' : '') + '">' +
+    '<div style="height:38px;flex-shrink:0;"></div>' +
+    '<div style="width:100%;padding:0 12px;flex-shrink:0;">' +
       (function() {
         var rows = document.querySelectorAll('#mmaBtnBuilder .mma-btn-row');
         var html = '';
@@ -925,20 +924,12 @@ function renderPreview() {
           var pulseBtn = row.querySelector('.mma-btn-pulse');
           var animate  = pulseBtn ? pulseBtn.classList.contains('mma-btn-pulse-on') : true;
           if (!label || !enabled) return;
-          html += '<div class="mma-preview-btn' + (!animate ? ' glow-off' : '') + '" style="--prev-neon:' + color + ';margin-bottom:10px;">' + _e(label) + '</div>';
+          html += '<div class="mma-preview-btn' + (!animate ? ' glow-off' : '') + '" style="--prev-neon:' + color + '">' + _e(label) + '</div>';
         });
         return html;
       })() +
     '</div>' +
-
-    // FOOTER
     '<div class="mma-preview-footer">★ CallMagnet</div>';
-
-  console.log('[preview HTML]', screen.innerHTML);
-  console.log('[preview screen computed]', window.getComputedStyle(screen).height, window.getComputedStyle(screen).display, window.getComputedStyle(screen).flexDirection);
-  Array.from(screen.children).forEach(function(child, i) {
-    console.log('[preview child ' + i + ']', child.tagName, child.style.cssText, 'offsetHeight:', child.offsetHeight, 'computed flex:', window.getComputedStyle(child).flex);
-  });
 }
 
 function wirePreview() {
