@@ -313,7 +313,23 @@ function renderEditBody(client) {
   // Button builder delegation
   document.getElementById('mmaBtnBuilder').addEventListener('click', function(ev) {
     var removeBtn = ev.target.closest('.mma-btn-remove');
-    if (removeBtn) { removeBtn.closest('.mma-btn-row').remove(); renderPreview(); }
+    if (removeBtn) { removeBtn.closest('.mma-btn-row').remove(); renderPreview(); return; }
+
+    var sparklesBtn = ev.target.closest('.mma-btn-sparkles');
+    if (sparklesBtn) {
+      var spOn = sparklesBtn.classList.toggle('mma-btn-sparkles-on');
+      sparklesBtn.title = spOn ? 'Sparkles ON — click to turn off' : 'Sparkles OFF — click to turn on';
+      sparklesBtn.style.background = spOn ? 'rgba(180,130,255,0.25)' : 'rgba(255,255,255,0.1)';
+      return;
+    }
+
+    var runnerBtn = ev.target.closest('.mma-btn-runner');
+    if (runnerBtn) {
+      var rnOn = runnerBtn.classList.toggle('mma-btn-runner-on');
+      runnerBtn.title = rnOn ? 'Runner ON — click to turn off' : 'Runner OFF — click to turn on';
+      runnerBtn.style.background = rnOn ? 'rgba(255,200,0,0.2)' : 'rgba(255,255,255,0.1)';
+      return;
+    }
   });
   document.getElementById('mmaAddBtnBtn').addEventListener('click', function() {
     addBtnRow();
@@ -348,6 +364,8 @@ function buildBtnRowHtml(btn, idx) {
     '<input type="text" value="' + _e(btn.label || '') + '" maxlength="40" placeholder="Button label…" class="mma-btn-label" />' +
     '<input type="color" class="mma-btn-color" value="' + _e(btn.color || '#00D4FF') + '" title="Button colour" style="width:36px;height:32px;padding:2px;border:none;border-radius:6px;cursor:pointer;background:none;" />' +
     '<button type="button" class="mma-btn-pulse' + (btn.animate !== false ? ' mma-btn-pulse-on' : '') + '" title="' + (btn.animate !== false ? 'Glow ON — click to turn off' : 'Glow OFF — click to turn on') + '" style="width:36px;height:32px;border:none;border-radius:6px;cursor:pointer;font-size:16px;background:' + (btn.animate !== false ? 'rgba(0,200,100,0.2)' : 'rgba(255,255,255,0.1)') + ';">✦</button>' +
+    '<button type="button" class="mma-btn-sparkles' + (btn.sparkles ? ' mma-btn-sparkles-on' : '') + '" title="' + (btn.sparkles ? 'Sparkles ON — click to turn off' : 'Sparkles OFF — click to turn on') + '" style="width:36px;height:32px;border:none;border-radius:6px;cursor:pointer;font-size:14px;background:' + (btn.sparkles ? 'rgba(180,130,255,0.25)' : 'rgba(255,255,255,0.1)') + ';">✨</button>' +
+    '<button type="button" class="mma-btn-runner' + (btn.light_runner ? ' mma-btn-runner-on' : '') + '" title="' + (btn.light_runner ? 'Runner ON — click to turn off' : 'Runner OFF — click to turn on') + '" style="width:36px;height:32px;border:none;border-radius:6px;cursor:pointer;font-size:16px;background:' + (btn.light_runner ? 'rgba(255,200,0,0.2)' : 'rgba(255,255,255,0.1)') + ';">◎</button>' +
     '<button type="button" class="mma-btn-remove" title="Remove">×</button>' +
   '</div>';
 }
@@ -504,16 +522,20 @@ async function saveButtons() {
   rows.forEach(function(row) {
     var label = row.querySelector('.mma-btn-label').value.trim();
     if (!label) return;
-    var colorInput = row.querySelector('.mma-btn-color');
-    var color = colorInput ? colorInput.value : '#00D4FF';
-    var pulseBtn = row.querySelector('.mma-btn-pulse');
-    var animate  = pulseBtn ? pulseBtn.classList.contains('mma-btn-pulse-on') : false;
+    var colorInput   = row.querySelector('.mma-btn-color');
+    var color        = colorInput ? colorInput.value : '#00D4FF';
+    var pulseBtn     = row.querySelector('.mma-btn-pulse');
+    var animate      = pulseBtn ? pulseBtn.classList.contains('mma-btn-pulse-on') : false;
+    var sparklesBtn  = row.querySelector('.mma-btn-sparkles');
+    var runnerBtn    = row.querySelector('.mma-btn-runner');
     buttons.push({
-      label:      label,
-      sort_order: parseInt(row.querySelector('.mma-btn-order').value, 10) || 1,
-      enabled:    row.querySelector('.mma-btn-enabled-cb').checked,
-      color:      color,
-      animate:    animate,
+      label:        label,
+      sort_order:   parseInt(row.querySelector('.mma-btn-order').value, 10) || 1,
+      enabled:      row.querySelector('.mma-btn-enabled-cb').checked,
+      color:        color,
+      animate:      animate,
+      sparkles:     sparklesBtn ? sparklesBtn.classList.contains('mma-btn-sparkles-on') : false,
+      light_runner: runnerBtn   ? runnerBtn.classList.contains('mma-btn-runner-on')     : false,
     });
   });
   try {
