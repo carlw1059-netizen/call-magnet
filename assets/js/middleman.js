@@ -131,43 +131,54 @@
     var svg = document.createElementNS(NS, 'svg');
     svg.setAttribute('class', 'btn-runner-svg');
 
-    function mkRect(stroke, opacity, dashArray, animated) {
+    // pathLength="1000" normalises every rect's perimeter to 1000 SVG units
+    // so the CSS keyframe values (0 → -1000) work for any button size.
+    // Layers (back → front, all animated):
+    //   rTail — 24% dash, 12% opacity, sw=2    → long, very faint trail
+    //   rMid  — 10% dash, 35% opacity, sw=2.5  → mid-body
+    //   rBody —  4.5% dash, 65% opacity, sw=2.5 → bright body, rounded caps
+    //   rHead —  1.5% dash, 100% opacity, sw=3.5 → glowing leading point
+    // Combined opacity staircase (Porter-Duff source-over):
+    //   head zone ≈ 100%  →  body zone ≈ 80%  →  mid zone ≈ 43%  →  tail 12%
+    // No static ghost outline — cleaner look on the button border.
+    function mkRect(opacity, sw, dashArray, rounded) {
       var r = document.createElementNS(NS, 'rect');
-      r.setAttribute('fill',              'none');
-      r.setAttribute('stroke',            stroke);
-      r.setAttribute('stroke-opacity',    String(opacity));
-      r.setAttribute('stroke-width',      '2');
-      r.setAttribute('pathLength',        '1000');
-      r.setAttribute('stroke-dasharray',  dashArray);
-      if (animated) r.setAttribute('class', 'runner-animated');
+      r.setAttribute('fill',             'none');
+      r.setAttribute('stroke',           bright);
+      r.setAttribute('stroke-opacity',   String(opacity));
+      r.setAttribute('stroke-width',     String(sw));
+      r.setAttribute('pathLength',       '1000');
+      r.setAttribute('stroke-dasharray', dashArray);
+      r.setAttribute('stroke-linecap',   rounded ? 'round' : 'butt');
+      r.setAttribute('class',            'runner-animated');
       return r;
     }
 
-    var rBase = mkRect(color,  0.20, '1000 0',  false);  // ghost outline
-    var rTail = mkRect(bright, 0.35, '250 750', true);   // long trail
-    var rBody = mkRect(bright, 0.70, '100 900', true);   // mid body
-    var rHead = mkRect(bright, 1.00, '40 960',  true);   // bright head
+    var rTail = mkRect(0.12, 2,   '240 760', false);
+    var rMid  = mkRect(0.35, 2.5, '100 900', false);
+    var rBody = mkRect(0.65, 2.5, '45 955',  true);
+    var rHead = mkRect(1.00, 3.5, '15 985',  true);
 
-    svg.appendChild(rBase);
     svg.appendChild(rTail);
+    svg.appendChild(rMid);
     svg.appendChild(rBody);
     svg.appendChild(rHead);
     btnEl.appendChild(svg);
 
-    // Set viewBox + rect geometry once the button has real layout dimensions.
-    // rAF was unreliable — it fires before layout is computed so offsetWidth
-    // can still be 0 even after showMain() sets display:flex.
-    // ResizeObserver fires after the layout engine has resolved dimensions,
-    // regardless of when the element becomes visible. Supported: iOS 13.4+.
+    // ResizeObserver fires after layout resolves real dimensions.
+    // SVG is positioned with inset:-2px so its origin aligns with the outer
+    // border edge of the button. viewBox uses offsetWidth/Height (border-box).
+    // Rect starts at x=2,y=2 so the stroke straddles the button border line.
+    var rects = [rTail, rMid, rBody, rHead];
     var ro = new ResizeObserver(function() {
       var w = btnEl.offsetWidth;
       var h = btnEl.offsetHeight;
       if (!w || !h) return;
       ro.disconnect();
       svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
-      [rBase, rTail, rBody, rHead].forEach(function(r) {
-        r.setAttribute('x',      '1');
-        r.setAttribute('y',      '1');
+      rects.forEach(function(r) {
+        r.setAttribute('x',      '2');
+        r.setAttribute('y',      '2');
         r.setAttribute('width',  String(w - 2));
         r.setAttribute('height', String(h - 2));
         r.setAttribute('rx',     '12');
