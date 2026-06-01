@@ -226,29 +226,29 @@ function renderEditBody(client) {
       '<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;">' +
 
         // VIDEO COLUMN
-        '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;min-width:140px;">' +
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:0 0 auto;width:185px;">' +
           '<div class="mma-media-label">Video</div>' +
           (bgType === 'video' && bgUrl
             ? '<video id="mmaVideoPreview" class="mma-video-preview" autoplay muted playsinline webkit-playsinline loop preload="auto"><source src="' + _e(bgUrl) + '?v=' + Date.now() + '" type="video/mp4" /></video>'
             : '<div id="mmaVideoPreview" class="mma-video-placeholder">▶</div>') +
-          '<button id="mmaVideoUploadBtn" class="mma-save-btn" style="width:100%;">Upload video</button>' +
+          '<button id="mmaVideoUploadBtn" class="mma-save-btn">Upload video</button>' +
           '<div class="mma-info" style="text-align:center;font-size:11px;">MP4, vertical 9:16. Max 10 MB.</div>' +
           '<div id="mmaVideoProgress" class="mma-progress"></div>' +
           '<div id="mmaVideoErr" class="mma-err"></div>' +
-          (bgType === 'video' && bgUrl ? '<button id="mmaVideoRemoveBtn" class="mma-remove-bg-btn" style="width:100%;">Remove video</button>' : '') +
+          (bgType === 'video' && bgUrl ? '<button id="mmaVideoRemoveBtn" class="mma-remove-bg-btn">Remove video</button>' : '') +
         '</div>' +
 
         // PHOTO COLUMN
-        '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;min-width:140px;">' +
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:0 0 auto;width:185px;">' +
           '<div class="mma-media-label">Photo</div>' +
           (bgType === 'image' && bgUrl
             ? '<img src="' + _e(bgUrl) + '?v=' + Date.now() + '" id="mmaPhotoThumb" class="mma-bg-thumb" alt="Background photo" />'
             : '<div id="mmaPhotoThumb" class="mma-video-placeholder" style="font-size:24px;">★</div>') +
-          '<button id="mmaPhotoUploadBtn" class="mma-save-btn" style="width:100%;">Upload photo</button>' +
+          '<button id="mmaPhotoUploadBtn" class="mma-save-btn">Upload photo</button>' +
           '<div class="mma-info" style="text-align:center;font-size:11px;">JPG or PNG, portrait. Max 5 MB.</div>' +
           '<div id="mmaPhotoProgress" class="mma-progress"></div>' +
           '<div id="mmaPhotoErr" class="mma-err"></div>' +
-          (bgType === 'image' && bgUrl ? '<button id="mmaPhotoRemoveBtn" class="mma-remove-bg-btn" style="width:100%;">Remove photo</button>' : '') +
+          (bgType === 'image' && bgUrl ? '<button id="mmaPhotoRemoveBtn" class="mma-remove-bg-btn">Remove photo</button>' : '') +
         '</div>' +
 
         // LIVE PREVIEW COLUMN — iPhone 15 proportions
@@ -903,27 +903,30 @@ function renderPreview() {
   var logoUrl = _editClientData ? (_editClientData.middle_man_logo_url || null) : null;
   var bizName = _editClientData ? (_editClientData.business_name || '') : '';
 
-  var rows = document.querySelectorAll('#mmaBtnBuilder .mma-btn-row');
-  var buttonsHtml = '';
-  rows.forEach(function(row) {
-    var label   = (row.querySelector('.mma-btn-label').value || '').trim();
-    var enabled = row.querySelector('.mma-btn-enabled-cb').checked;
-    var color   = row.querySelector('.mma-btn-color') ? row.querySelector('.mma-btn-color').value : '#00D4FF';
-    var animate = row.querySelector('.mma-btn-pulse') ? row.querySelector('.mma-btn-pulse').classList.contains('mma-btn-pulse-on') : true;
-    if (!label || !enabled) return;
-    buttonsHtml += '<div class="mma-preview-btn' + (!animate ? ' glow-off' : '') + '" style="--prev-neon:' + color + '">' + label + '</div>';
-  });
-
-  var screenHtml = '';
+  // Top section: logo or biz name
+  var topHtml = '<div style="width:100%;text-align:center;">';
   if (logoUrl) {
-    screenHtml += '<img class="mma-preview-logo" src="' + logoUrl + '" alt="logo" />';
+    topHtml += '<img class="mma-preview-logo" src="' + logoUrl + '" alt="' + _e(bizName) + '" />';
   } else if (bizName) {
-    screenHtml += '<div class="mma-preview-bizname">' + _e(bizName) + '</div>';
+    topHtml += '<div class="mma-preview-bizname">' + _e(bizName) + '</div>';
   }
-  screenHtml += '<div class="mma-preview-buttons">' +
-    (buttonsHtml || '<div style="color:rgba(255,255,255,0.3);font-size:9px;text-align:center;padding:10px 0;">No buttons yet</div>') +
-  '</div>';
-  screen.innerHTML = screenHtml;
+  topHtml += '</div>';
+
+  // Bottom section: buttons
+  var rows = document.querySelectorAll('#mmaBtnBuilder .mma-btn-row');
+  var btnsHtml = '<div class="mma-preview-buttons">';
+  rows.forEach(function(row) {
+    var label    = (row.querySelector('.mma-btn-label').value || '').trim();
+    var enabled  = row.querySelector('.mma-btn-enabled-cb').checked;
+    var color    = row.querySelector('.mma-btn-color') ? row.querySelector('.mma-btn-color').value : '#00D4FF';
+    var pulseBtn = row.querySelector('.mma-btn-pulse');
+    var animate  = pulseBtn ? pulseBtn.classList.contains('mma-btn-pulse-on') : true;
+    if (!label || !enabled) return;
+    btnsHtml += '<div class="mma-preview-btn' + (!animate ? ' glow-off' : '') + '" style="--prev-neon:' + color + '">' + _e(label) + '</div>';
+  });
+  btnsHtml += '</div>';
+
+  screen.innerHTML = topHtml + btnsHtml;
 
   // Footer (persists across re-renders — create once)
   if (!phone.querySelector('.mma-preview-footer')) {
