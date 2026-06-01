@@ -861,13 +861,9 @@ async function removeBg() {
 
 // ─── Live preview ────────────────────────────────────────────────────────────
 function renderPreview() {
-  console.log('[preview] called — phone:', !!document.getElementById('mmaPreviewPhone'), 'screen:', !!document.getElementById('mmaPreviewScreen'));
   var phone  = document.getElementById('mmaPreviewPhone');
   var screen = document.getElementById('mmaPreviewScreen');
-  if (!phone || !screen) {
-    console.log('[preview] EARLY RETURN — elements not in DOM');
-    return;
-  }
+  if (!phone || !screen) return;
 
   // Remove any existing background element
   var existingBg = phone.querySelector('.mma-preview-bg');
@@ -908,7 +904,6 @@ function renderPreview() {
   var logoUrl = _editClientData ? (_editClientData.middle_man_logo_url || null) : null;
   var bizName = _editClientData ? (_editClientData.business_name || '') : '';
 
-  console.log('[preview] _editClientData:', _editClientData ? JSON.stringify({bg_url: _editClientData.middle_man_background_url, bg_type: _editClientData.middle_man_background_type}) : 'NULL');
   var hasBg = !!(_editClientData && _editClientData.middle_man_background_url);
 
   screen.innerHTML =
@@ -918,11 +913,8 @@ function renderPreview() {
       (!logoUrl && bizName ? '<div class="mma-preview-bizname">' + _e(bizName) + '</div>' : '') +
     '</div>' +
 
-    // SPACER — fills gap when background present, pushes buttons down
-    '<div style="' + (hasBg ? 'flex:1;min-height:20px;' : 'flex:0;') + '"></div>' +
-
-    // BUTTONS — sit in lower portion
-    '<div style="width:100%;flex-shrink:0;">' +
+    // BUTTONS — margin-top:auto pushes to bottom of flex container when bg present
+    '<div style="width:100%;flex-shrink:0;' + (hasBg ? 'margin-top:auto;' : '') + '">' +
       (function() {
         var rows = document.querySelectorAll('#mmaBtnBuilder .mma-btn-row');
         var html = '';
