@@ -600,37 +600,26 @@
     100% { opacity: 0;   transform: translate(var(--sparkle-drift, 0px), -56px) scale(0.15); }
   }
 
-  /* ── Light Runner effect ──────────────────────────────────────────────────
-     .btn-runner-overlay is appended inside .tap-btn (position:relative).
-     A conic-gradient sweeps clockwise; a dual-mask collapses it to the 2px
-     border ring so the runner sits exactly on the button border.
-
-     FIX 2026-06-02: @property + color-mix() removed — both were unsupported
-     on iOS < 16.2/16.4 and made the runner invisible or static on mobile.
-     --runner-deg is now set each frame by requestAnimationFrame in JS.
-     --runner-c0/c1/c2 are pre-computed rgba() values set once in JS.        */
-  .btn-runner-overlay {
+  /* ── Light Runner effect — SVG stroke-dashoffset ────────────────────────
+     .btn-runner-svg is appended inside .tap-btn (position:relative).
+     Four <rect pathLength="1000"> elements share @keyframes runner-dash.
+     No @property, no color-mix(), no mask, no conic-gradient.
+     Supported: iOS Safari 10+, Android Chrome, all modern browsers.       */
+  .btn-runner-svg {
     position: absolute;
-    inset: -2px;           /* sit 2px outside the button edge */
-    border-radius: 14px;   /* button border-radius 12 + 2px overhang */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     pointer-events: none;
-    z-index: 1;
-    padding: 2px;          /* defines the width of the visible ring */
-    /* --runner-deg updated ~60fps by JS rAF; --runner-c0/c1/c2 set once. */
-    background: conic-gradient(
-      from var(--runner-deg, 0deg) at 50% 50%,
-      var(--runner-c0, #ffffff)                        0deg,
-      var(--runner-c1, rgba(255,255,255,0.55))         10deg,
-      var(--runner-c2, rgba(255,255,255,0.20))         50deg,
-      transparent                                     100deg,
-      transparent                                     360deg
-    );
-    /* Dual-mask: show only the 2px ring between padding-box and content-box */
-    -webkit-mask-image: linear-gradient(white, white), linear-gradient(white, white);
-    -webkit-mask-clip: content-box, padding-box;
-    -webkit-mask-composite: xor;
-            mask-image: linear-gradient(white, white), linear-gradient(white, white);
-            mask-clip: content-box, padding-box;
-            mask-composite: exclude;
-    /* No CSS animation — rotation driven entirely by requestAnimationFrame */
+    z-index: 2;
+    overflow: visible;
+    border-radius: 12px;
+  }
+  .runner-animated {
+    animation: runner-dash 3.5s linear infinite;
+  }
+  @keyframes runner-dash {
+    from { stroke-dashoffset: 0; }
+    to   { stroke-dashoffset: -1000; }
   }
