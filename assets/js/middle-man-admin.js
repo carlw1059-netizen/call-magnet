@@ -903,6 +903,7 @@ function renderPreview() {
   var logoUrl = _editClientData ? (_editClientData.middle_man_logo_url || null) : null;
   var bizName = _editClientData ? (_editClientData.business_name || '') : '';
 
+  console.log('[preview] _editClientData:', _editClientData ? JSON.stringify({bg_url: _editClientData.middle_man_background_url, bg_type: _editClientData.middle_man_background_type}) : 'NULL');
   var hasBg = !!(_editClientData && _editClientData.middle_man_background_url);
 
   screen.innerHTML =
