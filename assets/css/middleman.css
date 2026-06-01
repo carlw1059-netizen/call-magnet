@@ -601,22 +601,14 @@
   }
 
   /* ── Light Runner effect ──────────────────────────────────────────────────
-     .btn-runner-overlay is appended inside .tap-btn (which is position:relative).
+     .btn-runner-overlay is appended inside .tap-btn (position:relative).
      A conic-gradient sweeps clockwise; a dual-mask collapses it to the 2px
      border ring so the runner sits exactly on the button border.
-     --runner-bright-color is set inline by applyLightRunner() in middleman.js.
 
-     @property registers --runner-deg as an animatable <angle> custom property.
-     Browsers that don't support @property (iOS < 16.4) see a static highlight
-     at 0 deg — graceful degradation.                                          */
-  @property --runner-deg {
-    syntax: '<angle>';
-    inherits: false;
-    initial-value: 0deg;
-  }
-  @keyframes runner-spin {
-    to { --runner-deg: 360deg; }
-  }
+     FIX 2026-06-02: @property + color-mix() removed — both were unsupported
+     on iOS < 16.2/16.4 and made the runner invisible or static on mobile.
+     --runner-deg is now set each frame by requestAnimationFrame in JS.
+     --runner-c0/c1/c2 are pre-computed rgba() values set once in JS.        */
   .btn-runner-overlay {
     position: absolute;
     inset: -2px;           /* sit 2px outside the button edge */
@@ -624,19 +616,21 @@
     pointer-events: none;
     z-index: 1;
     padding: 2px;          /* defines the width of the visible ring */
+    /* --runner-deg updated ~60fps by JS rAF; --runner-c0/c1/c2 set once. */
     background: conic-gradient(
-      from var(--runner-deg) at 50% 50%,
-      var(--runner-bright-color, #ffffff)                                0deg,
-      color-mix(in srgb, var(--runner-bright-color, #ffffff) 55%, transparent)  10deg,
-      color-mix(in srgb, var(--runner-bright-color, #ffffff) 20%, transparent)  50deg,
-      transparent                                                       100deg,
-      transparent                                                       360deg
+      from var(--runner-deg, 0deg) at 50% 50%,
+      var(--runner-c0, #ffffff)                        0deg,
+      var(--runner-c1, rgba(255,255,255,0.55))         10deg,
+      var(--runner-c2, rgba(255,255,255,0.20))         50deg,
+      transparent                                     100deg,
+      transparent                                     360deg
     );
-    /* Dual-mask trick: show only the 2px ring between padding-box and content-box */
-    -webkit-mask:
-      linear-gradient(#fff 0 0) content-box,
-      linear-gradient(#fff 0 0) padding-box;
+    /* Dual-mask: show only the 2px ring between padding-box and content-box */
+    -webkit-mask-image: linear-gradient(#fff 0 0), linear-gradient(#fff 0 0);
+    -webkit-mask-clip: content-box, padding-box;
     -webkit-mask-composite: xor;
+            mask-image: linear-gradient(#fff 0 0), linear-gradient(#fff 0 0);
+            mask-clip: content-box, padding-box;
             mask-composite: exclude;
-    animation: runner-spin 3.5s linear infinite;
+    /* No CSS animation — rotation driven entirely by requestAnimationFrame */
   }
