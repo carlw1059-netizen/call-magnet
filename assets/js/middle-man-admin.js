@@ -933,6 +933,12 @@ function renderPreview() {
 
     // FOOTER
     '<div class="mma-preview-footer">★ CallMagnet</div>';
+
+  console.log('[preview HTML]', screen.innerHTML);
+  console.log('[preview screen computed]', window.getComputedStyle(screen).height, window.getComputedStyle(screen).display, window.getComputedStyle(screen).flexDirection);
+  Array.from(screen.children).forEach(function(child, i) {
+    console.log('[preview child ' + i + ']', child.tagName, child.style.cssText, 'offsetHeight:', child.offsetHeight, 'computed flex:', window.getComputedStyle(child).flex);
+  });
 }
 
 function wirePreview() {
