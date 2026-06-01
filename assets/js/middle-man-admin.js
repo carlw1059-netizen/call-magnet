@@ -331,6 +331,37 @@ function renderEditBody(client) {
       return;
     }
   });
+  // Hex input ↔ colour picker sync (input delegation covers all rows incl. newly added)
+  document.getElementById('mmaBtnBuilder').addEventListener('input', function(ev) {
+    var row = ev.target.closest('.mma-btn-row');
+    if (!row) return;
+
+    var hexInput = ev.target.closest('.mma-btn-hex');
+    if (hexInput) {
+      // User typed/pasted a hex code — validate then update the colour picker
+      var raw = hexInput.value.trim();
+      var hex = raw.charAt(0) === '#' ? raw : '#' + raw;
+      // Expand 3-char shorthand: #abc → #aabbcc
+      if (/^#[0-9a-fA-F]{3}$/.test(hex)) {
+        hex = '#' + hex[1]+hex[1] + hex[2]+hex[2] + hex[3]+hex[3];
+      }
+      if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return; // invalid — do nothing
+      var cp = row.querySelector('.mma-btn-color');
+      if (cp) cp.value = hex;
+      renderPreview();
+      return;
+    }
+
+    var colorInput = ev.target.closest('.mma-btn-color');
+    if (colorInput) {
+      // Colour picker changed — mirror to the hex text input
+      var hi = row.querySelector('.mma-btn-hex');
+      if (hi) hi.value = colorInput.value;
+      // renderPreview() is already called by the wirePreview() listener on .mma-btn-color
+      return;
+    }
+  });
+
   document.getElementById('mmaAddBtnBtn').addEventListener('click', function() {
     addBtnRow();
     setTimeout(function() { wirePreview(); renderPreview(); }, 50);
@@ -363,6 +394,7 @@ function buildBtnRowHtml(btn, idx) {
     '<input type="checkbox"' + (btn.enabled !== false ? ' checked' : '') + ' class="mma-btn-enabled mma-btn-enabled-cb" />' +
     '<input type="text" value="' + _e(btn.label || '') + '" maxlength="40" placeholder="Button label…" class="mma-btn-label" />' +
     '<input type="color" class="mma-btn-color" value="' + _e(btn.color || '#00D4FF') + '" title="Button colour" style="width:36px;height:32px;padding:2px;border:none;border-radius:6px;cursor:pointer;background:none;" />' +
+    '<input type="text" class="mma-btn-hex" value="' + _e(btn.color || '#00D4FF') + '" maxlength="7" placeholder="#rrggbb" style="width:62px;padding:3px 5px;font-size:11px;font-family:monospace;border:1px solid #ccc;border-radius:5px;background:#fff;color:#111;outline:none;" />' +
     '<button type="button" class="mma-btn-pulse' + (btn.animate !== false ? ' mma-btn-pulse-on' : '') + '" title="' + (btn.animate !== false ? 'Glow ON — click to turn off' : 'Glow OFF — click to turn on') + '" style="width:36px;height:32px;border:none;border-radius:6px;cursor:pointer;font-size:16px;background:' + (btn.animate !== false ? 'rgba(0,200,100,0.2)' : 'rgba(255,255,255,0.1)') + ';">✦</button>' +
     '<button type="button" class="mma-btn-sparkles' + (btn.sparkles ? ' mma-btn-sparkles-on' : '') + '" title="' + (btn.sparkles ? 'Sparkles ON — click to turn off' : 'Sparkles OFF — click to turn on') + '" style="width:36px;height:32px;border:none;border-radius:6px;cursor:pointer;font-size:14px;background:' + (btn.sparkles ? 'rgba(180,130,255,0.25)' : 'rgba(255,255,255,0.1)') + ';">✨</button>' +
     '<button type="button" class="mma-btn-runner' + (btn.light_runner ? ' mma-btn-runner-on' : '') + '" title="' + (btn.light_runner ? 'Runner ON — click to turn off' : 'Runner OFF — click to turn on') + '" style="width:36px;height:32px;border:none;border-radius:6px;cursor:pointer;font-size:16px;background:' + (btn.light_runner ? 'rgba(255,200,0,0.2)' : 'rgba(255,255,255,0.1)') + ';">◎</button>' +
@@ -940,13 +972,21 @@ function renderPreview() {
         var rows = document.querySelectorAll('#mmaBtnBuilder .mma-btn-row');
         var html = '';
         rows.forEach(function(row) {
-          var label    = (row.querySelector('.mma-btn-label').value || '').trim();
-          var enabled  = row.querySelector('.mma-btn-enabled-cb').checked;
-          var color    = row.querySelector('.mma-btn-color') ? row.querySelector('.mma-btn-color').value : '#00D4FF';
-          var pulseBtn = row.querySelector('.mma-btn-pulse');
-          var animate  = pulseBtn ? pulseBtn.classList.contains('mma-btn-pulse-on') : true;
+          var label       = (row.querySelector('.mma-btn-label').value || '').trim();
+          var enabled     = row.querySelector('.mma-btn-enabled-cb').checked;
+          var color       = row.querySelector('.mma-btn-color') ? row.querySelector('.mma-btn-color').value : '#00D4FF';
+          var pulseBtn    = row.querySelector('.mma-btn-pulse');
+          var animate     = pulseBtn ? pulseBtn.classList.contains('mma-btn-pulse-on') : true;
+          var sparklesBtn = row.querySelector('.mma-btn-sparkles');
+          var hasSparkles = sparklesBtn ? sparklesBtn.classList.contains('mma-btn-sparkles-on') : false;
+          var runnerBtn   = row.querySelector('.mma-btn-runner');
+          var hasRunner   = runnerBtn ? runnerBtn.classList.contains('mma-btn-runner-on') : false;
           if (!label || !enabled) return;
-          html += '<div class="mma-preview-btn' + (!animate ? ' glow-off' : '') + '" style="--prev-neon:' + color + '">' + _e(label) + '</div>';
+          html += '<div class="mma-preview-btn' + (!animate ? ' glow-off' : '') + '" style="--prev-neon:' + color + ';position:relative;">' +
+            _e(label) +
+            (hasSparkles ? '<span style="position:absolute;top:1px;right:3px;font-size:6px;line-height:1;opacity:0.7;pointer-events:none;">✨</span>' : '') +
+            (hasRunner   ? '<span style="position:absolute;top:1px;left:3px;font-size:6px;line-height:1;opacity:0.7;pointer-events:none;">◎</span>' : '') +
+            '</div>';
         });
         return html;
       })() +
