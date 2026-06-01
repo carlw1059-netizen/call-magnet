@@ -118,6 +118,7 @@ async function loadClientForEdit(clientId) {
     _editClientData = result.data;
     renderEditBody(result.data);
   } catch (err) {
+    console.error('[loadClientForEdit] ERROR:', err);
     content.innerHTML = '<div class="mma-error">Failed to load client: ' + _e(err.message) + '</div>';
   }
 }
@@ -860,9 +861,13 @@ async function removeBg() {
 
 // ─── Live preview ────────────────────────────────────────────────────────────
 function renderPreview() {
+  console.log('[preview] called — phone:', !!document.getElementById('mmaPreviewPhone'), 'screen:', !!document.getElementById('mmaPreviewScreen'));
   var phone  = document.getElementById('mmaPreviewPhone');
   var screen = document.getElementById('mmaPreviewScreen');
-  if (!phone || !screen) return;
+  if (!phone || !screen) {
+    console.log('[preview] EARLY RETURN — elements not in DOM');
+    return;
+  }
 
   // Remove any existing background element
   var existingBg = phone.querySelector('.mma-preview-bg');
