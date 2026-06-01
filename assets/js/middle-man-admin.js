@@ -248,7 +248,7 @@ function renderEditBody(client) {
           '<div class="mma-info" style="text-align:center;font-size:11px;">JPG or PNG, portrait. Max 5 MB.</div>' +
           '<div id="mmaPhotoProgress" class="mma-progress"></div>' +
           '<div id="mmaPhotoErr" class="mma-err"></div>' +
-          (bgType === 'image' && bgUrl ? '<button id="mmaPhotoRemoveBtn" class="mma-remove-bg-btn">Remove photo</button>' : '') +
+          '<button id="mmaPhotoRemoveBtn" class="mma-remove-bg-btn"' + (!(bgType === 'image' && bgUrl) ? ' style="display:none;"' : '') + '>Remove photo</button>' +
         '</div>' +
 
         // LIVE PREVIEW COLUMN — iPhone 15 proportions
@@ -899,42 +899,32 @@ function renderPreview() {
     }
   }
 
-  // Build screen content: logo or biz name, then buttons
+  // Build screen content
   var logoUrl = _editClientData ? (_editClientData.middle_man_logo_url || null) : null;
   var bizName = _editClientData ? (_editClientData.business_name || '') : '';
 
-  // Top section: logo or biz name
-  var topHtml = '<div style="width:100%;text-align:center;">';
-  if (logoUrl) {
-    topHtml += '<img class="mma-preview-logo" src="' + logoUrl + '" alt="' + _e(bizName) + '" />';
-  } else if (bizName) {
-    topHtml += '<div class="mma-preview-bizname">' + _e(bizName) + '</div>';
-  }
-  topHtml += '</div>';
-
-  // Bottom section: buttons
-  var rows = document.querySelectorAll('#mmaBtnBuilder .mma-btn-row');
-  var btnsHtml = '<div class="mma-preview-buttons">';
-  rows.forEach(function(row) {
-    var label    = (row.querySelector('.mma-btn-label').value || '').trim();
-    var enabled  = row.querySelector('.mma-btn-enabled-cb').checked;
-    var color    = row.querySelector('.mma-btn-color') ? row.querySelector('.mma-btn-color').value : '#00D4FF';
-    var pulseBtn = row.querySelector('.mma-btn-pulse');
-    var animate  = pulseBtn ? pulseBtn.classList.contains('mma-btn-pulse-on') : true;
-    if (!label || !enabled) return;
-    btnsHtml += '<div class="mma-preview-btn' + (!animate ? ' glow-off' : '') + '" style="--prev-neon:' + color + '">' + _e(label) + '</div>';
-  });
-  btnsHtml += '</div>';
-
-  screen.innerHTML = topHtml + btnsHtml;
-
-  // Footer (persists across re-renders — create once)
-  if (!phone.querySelector('.mma-preview-footer')) {
-    var footer = document.createElement('div');
-    footer.className = 'mma-preview-footer';
-    footer.textContent = '★ CallMagnet';
-    phone.appendChild(footer);
-  }
+  screen.innerHTML =
+    '<div style="width:100%;text-align:center;padding-top:8px;">' +
+      (logoUrl ? '<img class="mma-preview-logo" src="' + logoUrl + '" alt="' + _e(bizName) + '" />' : '') +
+      (!logoUrl && bizName ? '<div class="mma-preview-bizname">' + _e(bizName) + '</div>' : '') +
+    '</div>' +
+    '<div style="width:100%;margin-top:auto;">' +
+      (function() {
+        var rows = document.querySelectorAll('#mmaBtnBuilder .mma-btn-row');
+        var html = '';
+        rows.forEach(function(row) {
+          var label    = (row.querySelector('.mma-btn-label').value || '').trim();
+          var enabled  = row.querySelector('.mma-btn-enabled-cb').checked;
+          var color    = row.querySelector('.mma-btn-color') ? row.querySelector('.mma-btn-color').value : '#00D4FF';
+          var pulseBtn = row.querySelector('.mma-btn-pulse');
+          var animate  = pulseBtn ? pulseBtn.classList.contains('mma-btn-pulse-on') : true;
+          if (!label || !enabled) return;
+          html += '<div class="mma-preview-btn' + (!animate ? ' glow-off' : '') + '" style="--prev-neon:' + color + ';margin-bottom:5px;">' + _e(label) + '</div>';
+        });
+        return html;
+      })() +
+    '</div>' +
+    '<div class="mma-preview-footer">★ CallMagnet</div>';
 }
 
 function wirePreview() {
