@@ -154,13 +154,16 @@
     svg.appendChild(rHead);
     btnEl.appendChild(svg);
 
-    // Set viewBox + rect geometry once the button is in a visible layout.
-    // applyLightRunner() is called before showMain() so offsetWidth may be 0;
-    // one rAF frame is enough to get real dimensions after showMain() runs.
-    function initSize() {
+    // Set viewBox + rect geometry once the button has real layout dimensions.
+    // rAF was unreliable — it fires before layout is computed so offsetWidth
+    // can still be 0 even after showMain() sets display:flex.
+    // ResizeObserver fires after the layout engine has resolved dimensions,
+    // regardless of when the element becomes visible. Supported: iOS 13.4+.
+    var ro = new ResizeObserver(function() {
       var w = btnEl.offsetWidth;
       var h = btnEl.offsetHeight;
-      if (!w || !h) { requestAnimationFrame(initSize); return; }
+      if (!w || !h) return;
+      ro.disconnect();
       svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
       [rBase, rTail, rBody, rHead].forEach(function(r) {
         r.setAttribute('x',      '1');
@@ -170,8 +173,8 @@
         r.setAttribute('rx',     '12');
         r.setAttribute('ry',     '12');
       });
-    }
-    requestAnimationFrame(initSize);
+    });
+    ro.observe(btnEl);
   }
 
   // ── Fetch client from Supabase REST (anon key) ────────────────────────────
