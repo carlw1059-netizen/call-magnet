@@ -626,10 +626,10 @@
       transparent                                     360deg
     );
     /* Dual-mask: show only the 2px ring between padding-box and content-box */
-    -webkit-mask-image: linear-gradient(#fff 0 0), linear-gradient(#fff 0 0);
+    -webkit-mask-image: linear-gradient(white, white), linear-gradient(white, white);
     -webkit-mask-clip: content-box, padding-box;
     -webkit-mask-composite: xor;
-            mask-image: linear-gradient(#fff 0 0), linear-gradient(#fff 0 0);
+            mask-image: linear-gradient(white, white), linear-gradient(white, white);
             mask-clip: content-box, padding-box;
             mask-composite: exclude;
     /* No CSS animation — rotation driven entirely by requestAnimationFrame */
