@@ -134,10 +134,11 @@
     // pathLength="1000" normalises every rect's perimeter to 1000 SVG units
     // so the CSS keyframe values (0 → -1000) work for any button size.
     // Comet layers (back → front, all animated, gap = 1000 − dash):
+    //   rGlow  —   25/975  12% opacity, sw=10  round → soft bloom halo around head
     //   rGhost —  350/650   8% opacity, sw=1.5 butt  → last whisper of the tail
     //   rTail  —  180/820  25% opacity, sw=2   butt  → long fading comet trail
-    //   rBody  —   30/970  70% opacity, sw=3   round → bright core behind nucleus
-    //   rHead  —    8/992 100% opacity, sw=4   round → bright comet nucleus
+    //   rBody  —   30/970  70% opacity, sw=4   round → bright core behind nucleus
+    //   rHead  —    8/992 100% opacity, sw=6   round → bright comet nucleus
     // Combined Porter-Duff source-over opacity staircase:
     //   head ≈ 100%  →  body ≈ 79%  →  tail ≈ 31%  →  ghost 8%
     function mkRect(opacity, sw, dashArray, rounded) {
@@ -153,11 +154,13 @@
       return r;
     }
 
+    var rGlow  = mkRect(0.12, 10,  '25 975',  true);
     var rGhost = mkRect(0.08, 1.5, '350 650', false);
     var rTail  = mkRect(0.25, 2,   '180 820', false);
-    var rBody  = mkRect(0.70, 3,   '30 970',  true);
-    var rHead  = mkRect(1.00, 4,   '8 992',   true);
+    var rBody  = mkRect(0.70, 4,   '30 970',  true);
+    var rHead  = mkRect(1.00, 6,   '8 992',   true);
 
+    svg.appendChild(rGlow);
     svg.appendChild(rGhost);
     svg.appendChild(rTail);
     svg.appendChild(rBody);
@@ -169,7 +172,7 @@
     // border edge of the button. viewBox uses offsetWidth/Height (border-box).
     // Rect starts at x=2,y=2 so the stroke straddles the button border line.
     // rx is read from computed style so it matches the button's actual border-radius.
-    var rects = [rGhost, rTail, rBody, rHead];
+    var rects = [rGlow, rGhost, rTail, rBody, rHead];
     var ro = new ResizeObserver(function() {
       var w = btnEl.offsetWidth;
       var h = btnEl.offsetHeight;
