@@ -118,7 +118,7 @@ html, body {
 }
 .ca-owner-name {
   font-size: 14px;
-  color: #555555;
+  color: #111111;
   margin-bottom: 0;
 }
 
@@ -149,7 +149,7 @@ html, body {
 .ca-detail a { color: #06A07A; text-decoration: none; }
 .ca-detail a:hover { text-decoration: underline; }
 .ca-mono { font-family: monospace; }
-.ca-muted { color: #888888; }
+.ca-muted { color: #111111; }
 .ca-sms-count { font-size: 14px; color: #111111; }
 
 /* ─── Badges ─── */
