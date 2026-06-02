@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0E1419">
 <title>Clients — CallMagnet Admin</title>
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" href="/icon.svg?v=2026-05-14" type="image/svg+xml">
@@ -11,45 +10,26 @@
 </head>
 <body>
 
-<!-- Auth gates — visible while checking / if unauthorised -->
-<div class="gate-state visible" id="gateLoading">
-  <div class="spinner"></div>
-  <h2>Checking access…</h2>
-</div>
-<div class="gate-state" id="gateLogin">
-  <h2>Sign in required</h2>
-  <p>You need to sign in as an admin to view clients.</p>
-  <p style="margin-top:0.75rem"><a href="/">Go to login →</a></p>
-</div>
-<div class="gate-state" id="gateForbidden">
-  <h2>Not authorized</h2>
-  <p>This page is for admin users only.</p>
-  <p style="margin-top:0.75rem"><a href="/">Back to dashboard →</a></p>
-</div>
+<!-- Auth gate: shown while checking session, then hidden (same pattern as middle-man.html) -->
+<div id="caAuthGate">Checking access…</div>
 
-<!-- Main page — shown after auth passes -->
-<div id="mainContent">
+<!-- Main page: hidden until auth passes -->
+<div id="caPage" style="display:none;">
 
-  <!-- Sticky header -->
   <header class="ca-header">
-    <div class="ca-header-left">
-      <span class="ca-title">Clients</span>
-      <span class="ca-count" id="caCount"></span>
-    </div>
-    <div class="ca-header-actions">
-      <button class="ca-signout" id="caSignout" onclick="caSignout()">Sign out</button>
-    </div>
+    <span class="ca-header-title">Clients <span id="caCount" class="ca-header-count"></span></span>
+    <button id="caBackBtn" class="ca-back-btn">← Dashboard</button>
   </header>
 
-  <div class="ca-wrap">
+  <div class="ca-body">
 
-    <!-- Search -->
+    <!-- Search bar -->
     <div class="ca-search-wrap">
       <input
         id="caSearch"
         class="ca-search"
         type="search"
-        placeholder="Search by name, email, phone or Twilio number…"
+        placeholder="Search by name, owner, email, phone or Twilio number…"
         autocomplete="off"
         spellcheck="false"
       />
@@ -58,12 +38,11 @@
     <!-- Client grid — filled by clients-admin.js -->
     <div class="ca-grid" id="caGrid"></div>
 
-  </div><!-- /.ca-wrap -->
+  </div>
 
-</div><!-- /#mainContent -->
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/admin/admin-nav.js"></script>
 <script src="/assets/js/clients-admin.js"></script>
 </body>
 </html>
