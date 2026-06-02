@@ -612,9 +612,10 @@
     z-index: 2;
     overflow: visible;
     border-radius: 12px;
+    filter: blur(0.4px);
   }
   .runner-animated {
-    animation: runner-dash 7s linear infinite;
+    animation: runner-dash 8s linear infinite;
   }
   @keyframes runner-dash {
     from { stroke-dashoffset: 0; }
