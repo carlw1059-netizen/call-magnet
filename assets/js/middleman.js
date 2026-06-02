@@ -30,26 +30,6 @@
     document.getElementById('stateNotFound').style.display = 'flex';
   }
 
-  // ── Convert #RRGGBB → rgba(r,g,b,a) ──────────────────────────────────────
-  function hexRgba(hex, a) {
-    var r = parseInt(hex.slice(1,3), 16);
-    var g = parseInt(hex.slice(3,5), 16);
-    var b = parseInt(hex.slice(5,7), 16);
-    return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
-  }
-
-  // ── Brighten a #rrggbb hex colour by mixing toward white ─────────────────
-  // factor 0.4 → each channel moves 40% of the way toward 255.
-  function brightenHex(hex, factor) {
-    var r = parseInt(hex.slice(1,3), 16);
-    var g = parseInt(hex.slice(3,5), 16);
-    var b = parseInt(hex.slice(5,7), 16);
-    r = Math.min(255, Math.round(r + (255 - r) * factor));
-    g = Math.min(255, Math.round(g + (255 - g) * factor));
-    b = Math.min(255, Math.round(b + (255 - b) * factor));
-    return '#' + r.toString(16).padStart(2,'0') + g.toString(16).padStart(2,'0') + b.toString(16).padStart(2,'0');
-  }
-
   // ── Apply neon style to a button element by position index (0-based) ─────
   // color: optional per-button hex stored in button data; falls back to NEON[idx].
   function applyNeon(el, idx, color) {
@@ -107,89 +87,6 @@
     unit.appendChild(p);
     var lifetime = Math.ceil((parseFloat(dur) + parseFloat(delay) + 0.1) * 1000);
     setTimeout(function() { if (p.parentNode) p.parentNode.removeChild(p); }, lifetime);
-  }
-
-  // ── Light Runner effect — SVG stroke-dashoffset (iOS 12+ / Android Chrome) ──
-  // Previous approach (conic-gradient + CSS mask) failed on iOS Safari due to
-  // incompatible mask-composite XOR behaviour. Replaced with SVG stroke animation
-  // which has been supported since iOS Safari 5 / Chrome 1.
-  //
-  // Four <rect> elements share the same path and the same CSS @keyframes
-  // animation (stroke-dashoffset 0 → -1000).  pathLength="1000" normalises the
-  // path to 1000 units so the keyframe values never need to change regardless of
-  // the button's actual pixel dimensions.
-  //
-  // Layers (back → front):
-  //   base  – full perimeter, 20% opacity  (ghost outline, always visible)
-  //   tail  – 25 % dash,      35% opacity  (long trailing glow)
-  //   body  – 10 % dash,      70% opacity  (mid sweep)
-  //   head  –  4 % dash,     100% opacity  (bright leading point)
-  function applyLightRunner(btnEl, color) {
-    var bright = brightenHex(color, 0.4);
-    var NS     = 'http://www.w3.org/2000/svg';
-
-    var svg = document.createElementNS(NS, 'svg');
-    svg.setAttribute('class', 'btn-runner-svg');
-
-    // pathLength="1000" normalises every rect's perimeter to 1000 SVG units
-    // so the CSS keyframe values (0 → -1000) work for any button size.
-    // Comet layers (back → front, all animated, gap = 1000 − dash):
-    //   rGlow  —   25/975  12% opacity, sw=10  round → soft bloom halo around head
-    //   rGhost —  350/650   8% opacity, sw=1.5 butt  → last whisper of the tail
-    //   rTail  —  180/820  25% opacity, sw=2   butt  → long fading comet trail
-    //   rBody  —   30/970  70% opacity, sw=4   round → bright core behind nucleus
-    //   rHead  —    8/992 100% opacity, sw=6   round → bright comet nucleus
-    // Combined Porter-Duff source-over opacity staircase:
-    //   head ≈ 100%  →  body ≈ 79%  →  tail ≈ 31%  →  ghost 8%
-    function mkRect(opacity, sw, dashArray, rounded) {
-      var r = document.createElementNS(NS, 'rect');
-      r.setAttribute('fill',             'none');
-      r.setAttribute('stroke',           bright);
-      r.setAttribute('stroke-opacity',   String(opacity));
-      r.setAttribute('stroke-width',     String(sw));
-      r.setAttribute('pathLength',       '1000');
-      r.setAttribute('stroke-dasharray', dashArray);
-      r.setAttribute('stroke-linecap',   rounded ? 'round' : 'butt');
-      r.setAttribute('class',            'runner-animated');
-      return r;
-    }
-
-    var rGlow  = mkRect(0.12, 10,  '25 975',  true);
-    var rGhost = mkRect(0.08, 1.5, '350 650', false);
-    var rTail  = mkRect(0.25, 2,   '180 820', false);
-    var rBody  = mkRect(0.70, 4,   '30 970',  true);
-    var rHead  = mkRect(1.00, 6,   '8 992',   true);
-
-    svg.appendChild(rGlow);
-    svg.appendChild(rGhost);
-    svg.appendChild(rTail);
-    svg.appendChild(rBody);
-    svg.appendChild(rHead);
-    btnEl.appendChild(svg);
-
-    // ResizeObserver fires after layout resolves real dimensions.
-    // SVG is positioned with inset:-2px so its origin aligns with the outer
-    // border edge of the button. viewBox uses offsetWidth/Height (border-box).
-    // Rect starts at x=2,y=2 so the stroke straddles the button border line.
-    // rx is read from computed style so it matches the button's actual border-radius.
-    var rects = [rGlow, rGhost, rTail, rBody, rHead];
-    var ro = new ResizeObserver(function() {
-      var w = btnEl.offsetWidth;
-      var h = btnEl.offsetHeight;
-      if (!w || !h) return;
-      ro.disconnect();
-      var rx = parseFloat(getComputedStyle(btnEl).borderRadius) || 14;
-      svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
-      rects.forEach(function(r) {
-        r.setAttribute('x',      '2');
-        r.setAttribute('y',      '2');
-        r.setAttribute('width',  String(w - 2));
-        r.setAttribute('height', String(h - 2));
-        r.setAttribute('rx',     String(rx));
-        r.setAttribute('ry',     String(rx));
-      });
-    });
-    ro.observe(btnEl);
   }
 
   // ── Fetch client from Supabase REST (anon key) ────────────────────────────
@@ -835,10 +732,6 @@
         applySparkles(unit, btn.color || NEON[Math.min(idx, NEON.length - 1)]);
       }
 
-      // Light runner: bright point of light orbiting the button border clockwise
-      if (btn.light_runner === true) {
-        applyLightRunner(btnEl, btn.color || NEON[Math.min(idx, NEON.length - 1)]);
-      }
     });
 
     if (enabled.length === 0) wrap.style.display = 'none';
