@@ -614,7 +614,7 @@
     border-radius: 12px;
   }
   .runner-animated {
-    animation: runner-dash 3.5s linear infinite;
+    animation: runner-dash 7s linear infinite;
   }
   @keyframes runner-dash {
     from { stroke-dashoffset: 0; }
