@@ -271,6 +271,11 @@ Deno.serve(async (req) => {
       const intentStr  = typeof context.intent === 'string' ? context.intent.trim() : '';
       const isFormSubmit = intentStr.startsWith('★');
 
+      // Per-button custom push title/message — set in Middle Man admin and
+      // passed through from submit-middle-man-form. Override all derived logic.
+      const ctxPushTitle   = typeof context.push_title   === 'string' ? (context.push_title   as string).trim() : '';
+      const ctxPushMessage = typeof context.push_message === 'string' ? (context.push_message as string).trim() : '';
+
       let ltTitle: string;
       let ltBody:  string;
 
@@ -294,6 +299,10 @@ Deno.serve(async (req) => {
         ltTitle = '📱 Booking link tapped';
         ltBody  = 'A caller is heading to your booking system — check now for any new activity.';
       }
+
+      // Apply per-button overrides after all derived logic — highest priority
+      if (ctxPushTitle)   ltTitle = ctxPushTitle;
+      if (ctxPushMessage) ltBody  = ctxPushMessage;
 
       if (!PROGRESSIER_API_KEY) {
         console.warn('link_tapped: PROGRESSIER_API_KEY missing — skipping push');

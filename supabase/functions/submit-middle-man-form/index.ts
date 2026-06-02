@@ -162,7 +162,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   const { data: clientRow, error: clientErr } = await supa
     .from('clients')
-    .select('id, business_name')
+    .select('id, business_name, middle_man_buttons')
     .eq('middle_man_slug', slug)
     .eq('account_status', 'active')
     .maybeSingle();
@@ -175,8 +175,32 @@ Deno.serve(async (req: Request): Promise<Response> => {
     return err400('Client not found or inactive');
   }
 
-  const clientId    = clientRow.id as string;
+  const clientId     = clientRow.id as string;
   const businessName = (clientRow.business_name as string) || 'The business';
+
+  // ── Look up per-button push_title / push_message ────────────────────────────
+  // Classify a button label → formType (mirrors classifyLabel() in middleman.js).
+  function classifyBtnLabel(label: string): string {
+    const l = label.toLowerCase().trim();
+    if (l.includes('change') || l.includes('cancel') || l.includes('reschedule')) return 'change_cancel';
+    if (l.includes('book'))    return 'booking';
+    if (l.includes('function') || l.includes('event') || l.includes('private')) return 'function';
+    if (l.includes('late')  || l.includes('running late') || l.includes('arrival')) return 'late_arrival';
+    if (l.includes('lost')  || l.includes('found') || l.includes('left something')) return 'lost_found';
+    return 'something_else';
+  }
+  let customPushTitle:   string | null = null;
+  let customPushMessage: string | null = null;
+  try {
+    const btns: Array<Record<string, unknown>> = Array.isArray(clientRow.middle_man_buttons)
+      ? clientRow.middle_man_buttons
+      : JSON.parse(String(clientRow.middle_man_buttons ?? '[]'));
+    const match = btns.find(b => b.enabled !== false && classifyBtnLabel(String(b.label ?? '')) === formType);
+    if (match) {
+      if (typeof match.push_title   === 'string' && (match.push_title   as string).trim()) customPushTitle   = (match.push_title   as string).trim();
+      if (typeof match.push_message === 'string' && (match.push_message as string).trim()) customPushMessage = (match.push_message as string).trim();
+    }
+  } catch (_) { /* non-fatal — fall back to buildPushMessage */ }
 
   // ── Hash caller IP ──────────────────────────────────────────────────────────
   const ipRaw  = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown';
@@ -232,6 +256,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
         event:     'link_tapped',
         context:   {
           intent:          pushMessage.slice(0, 250),
+          // Per-button custom push title/message (set in Middle Man admin).
+          // send-client-notification uses these when present; falls back to
+          // the intent-derived title/body when they're null.
+          push_title:      customPushTitle   ?? undefined,
+          push_message:    customPushMessage ?? undefined,
           customer_number: toE164(callerPhone),
         },
       }),
