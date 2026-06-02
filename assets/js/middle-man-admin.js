@@ -278,14 +278,17 @@ function renderEditBody(client) {
       '</div>' +
     '</div>';
 
-  // ── 7. Preview link
+  // ── 7. Notification Messages
+  var notifSection = buildNotifSection(buttons);
+
+  // ── 8. Preview link
   var previewHtml = slug
     ? '<div style="text-align:center;padding:8px 0 4px;">' +
         '<a id="mmaPreviewLink" href="https://callmagnet.com.au/b/' + encodeURIComponent(slug) + '" target="_blank" rel="noopener" class="mma-preview-link">View live page →</a>' +
       '</div>'
     : '<div id="mmaPreviewLinkWrap"></div>';
 
-  content.innerHTML = heading + toggleSection + slugSection + bookingSection + promoSection + logoSection + mediaSection + btnsSection + previewHtml;
+  content.innerHTML = heading + toggleSection + slugSection + bookingSection + promoSection + logoSection + mediaSection + btnsSection + notifSection + previewHtml;
 
   // ── Wire event listeners ─────────────────────────────────────────────────────
   document.getElementById('mmaLogoUploadBtn').addEventListener('click', uploadLogo);
@@ -313,7 +316,7 @@ function renderEditBody(client) {
   // Button builder delegation
   document.getElementById('mmaBtnBuilder').addEventListener('click', function(ev) {
     var removeBtn = ev.target.closest('.mma-btn-remove');
-    if (removeBtn) { removeBtn.closest('.mma-btn-row').remove(); renderPreview(); return; }
+    if (removeBtn) { removeBtn.closest('.mma-btn-row').remove(); renderPreview(); syncNotifRows(); return; }
 
     var sparklesBtn = ev.target.closest('.mma-btn-sparkles');
     if (sparklesBtn) {
@@ -357,9 +360,11 @@ function renderEditBody(client) {
 
   document.getElementById('mmaAddBtnBtn').addEventListener('click', function() {
     addBtnRow();
-    setTimeout(function() { wirePreview(); renderPreview(); }, 50);
+    setTimeout(function() { wirePreview(); renderPreview(); syncNotifRows(); }, 50);
   });
   document.getElementById('mmaSaveBtnsBtn').addEventListener('click', saveButtons);
+  document.getElementById('mmaSaveNotifsBtn').addEventListener('click', saveNotifications);
+  wireNotifBuilder();
 
   // Pulse toggle buttons — toggle on/off state when clicked
   document.querySelectorAll('.mma-btn-pulse').forEach(function(btn) {
@@ -568,6 +573,260 @@ async function saveButtons() {
   } catch (err) {
     _flash('mmaBtnsMsg', '✗ ' + err.message, true);
   }
+}
+
+// ─── Notification Messages panel ─────────────────────────────────────────────
+
+var MMA_DEFAULT_PUSH_TITLE = '⭐ Customer activity from CallMagnet';
+var MMA_DEFAULT_PUSH_MSG   = 'Someone tapped your link — check your dashboard';
+
+var MMA_EMOJI_LIST = [
+  '🍽️','🍕','🍔','🍣','🥂','🍷','🍸','🎂',
+  '📋','✏️','📢','🔔','💬','✅','❌','⚠️',
+  '👋','🏃','👤','💁','❓','🎁','🔍','📱',
+  '💎','🌟','⭐','✨','🎉','🎊','💫','🔥',
+  '❤️','👍','🎈','🏆','💰','📞','⏰','🆕',
+];
+
+function mmaInsertAtCursor(field, text) {
+  if (typeof field.selectionStart === 'number' && field.setRangeText) {
+    field.setRangeText(text, field.selectionStart, field.selectionEnd, 'end');
+    field.dispatchEvent(new Event('input'));
+    field.focus();
+  } else {
+    field.value += text;
+    field.dispatchEvent(new Event('input'));
+  }
+}
+
+function mmaShowEmojiPicker(targetField, triggerBtn) {
+  var existing = document.getElementById('mmaEmojiPicker');
+  if (existing) {
+    var wasFor = existing.dataset.openedFor;
+    existing.parentNode.removeChild(existing);
+    if (wasFor === triggerBtn.dataset.pickerId) return; // toggle closed
+  }
+
+  var picker = document.createElement('div');
+  picker.id = 'mmaEmojiPicker';
+  picker.dataset.openedFor = triggerBtn.dataset.pickerId;
+  picker.style.cssText = [
+    'position:fixed',
+    'z-index:10000',
+    'background:#ffffff',
+    'border:1px solid #E0E0E0',
+    'border-radius:10px',
+    'padding:8px',
+    'display:grid',
+    'grid-template-columns:repeat(8,1fr)',
+    'gap:2px',
+    'box-shadow:0 8px 32px rgba(0,0,0,0.18)',
+    'max-width:288px',
+  ].join(';');
+
+  MMA_EMOJI_LIST.forEach(function(em) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = em;
+    b.style.cssText = 'border:none;background:none;cursor:pointer;font-size:18px;padding:4px 2px;border-radius:4px;line-height:1;';
+    b.addEventListener('mouseenter', function() { b.style.background = '#F0F0F0'; });
+    b.addEventListener('mouseleave', function() { b.style.background = 'none'; });
+    b.addEventListener('click', function(e) {
+      e.stopPropagation();
+      mmaInsertAtCursor(targetField, em);
+      if (picker.parentNode) picker.parentNode.removeChild(picker);
+    });
+    picker.appendChild(b);
+  });
+
+  var rect = triggerBtn.getBoundingClientRect();
+  picker.style.top  = (rect.bottom + 4) + 'px';
+  picker.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - 296)) + 'px';
+  document.body.appendChild(picker);
+
+  function onOutside(e) {
+    if (!picker.contains(e.target) && e.target !== triggerBtn) {
+      if (picker.parentNode) picker.parentNode.removeChild(picker);
+      document.removeEventListener('mousedown', onOutside);
+    }
+  }
+  setTimeout(function() { document.addEventListener('mousedown', onOutside); }, 0);
+}
+
+function buildNotifRowHtml(idx, sortOrder, label, pushTitle, pushMsg) {
+  pushTitle = pushTitle || MMA_DEFAULT_PUSH_TITLE;
+  pushMsg   = pushMsg   || MMA_DEFAULT_PUSH_MSG;
+  return '<div class="mma-notif-row" style="background:#F8F8F8;border:1px solid #E0E0E0;border-radius:8px;padding:12px;margin-bottom:10px;">' +
+    '<div style="font-size:14px;font-weight:700;color:#111111;margin-bottom:10px;">' + _e(sortOrder) + ' — ' + _e(label) + '</div>' +
+
+    '<div style="margin-bottom:8px;">' +
+      '<div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#06D6A0;margin-bottom:4px;">Title</div>' +
+      '<div style="display:flex;gap:6px;align-items:center;">' +
+        '<input type="text" class="mma-notif-title mma-field-input" value="' + _e(pushTitle) + '" style="flex:1;font-size:14px;" />' +
+        '<button type="button" class="mma-emoji-trigger" data-picker-id="nt-' + idx + '" data-target="title" data-idx="' + idx + '" title="Insert emoji" style="width:34px;height:34px;border:1px solid #D0D0D0;border-radius:6px;background:#fff;cursor:pointer;font-size:17px;flex-shrink:0;">😊</button>' +
+      '</div>' +
+    '</div>' +
+
+    '<div style="margin-bottom:8px;">' +
+      '<div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#06D6A0;margin-bottom:4px;">Message</div>' +
+      '<div style="display:flex;gap:6px;align-items:flex-start;">' +
+        '<textarea class="mma-notif-msg mma-field-input" rows="2" style="flex:1;font-size:14px;resize:vertical;">' + _e(pushMsg) + '</textarea>' +
+        '<button type="button" class="mma-emoji-trigger" data-picker-id="nm-' + idx + '" data-target="msg" data-idx="' + idx + '" title="Insert emoji" style="width:34px;height:34px;border:1px solid #D0D0D0;border-radius:6px;background:#fff;cursor:pointer;font-size:17px;flex-shrink:0;margin-top:2px;">😊</button>' +
+      '</div>' +
+    '</div>' +
+
+    '<button type="button" class="mma-save-btn mma-test-push-btn" data-idx="' + idx + '" style="font-size:13px;padding:6px 14px;">Test 🔔</button>' +
+  '</div>';
+}
+
+function buildNotifSection(buttons) {
+  var enabledBtns = (buttons || []).filter(Boolean);
+  var rows = enabledBtns.map(function(b, i) {
+    return buildNotifRowHtml(i, b.sort_order || (i + 1), b.label || '', b.push_title || '', b.push_message || '');
+  }).join('');
+
+  return '<div class="mma-section">' +
+    '<div class="mma-section-label">Notification Messages</div>' +
+    '<p class="mma-btn-hint" style="margin-bottom:14px;">Customise the push notification sent to the client\'s installed app when a customer taps each button. Use <strong>Test 🔔</strong> to fire a real notification to all registered devices right now.</p>' +
+    '<div id="mmaNotifBuilder">' +
+      (rows || '<div style="color:#888888;font-size:14px;">No buttons yet — add buttons above first.</div>') +
+    '</div>' +
+    '<div style="display:flex;align-items:center;gap:10px;margin-top:12px;">' +
+      '<button id="mmaSaveNotifsBtn" class="mma-save-btn">Save notifications</button>' +
+      '<span id="mmaNotifsMsg" class="mma-saved-msg">✓ Saved</span>' +
+    '</div>' +
+  '</div>';
+}
+
+function syncNotifRows() {
+  var saved = {};
+  document.querySelectorAll('#mmaNotifBuilder .mma-notif-row').forEach(function(row, i) {
+    var t = row.querySelector('.mma-notif-title');
+    var m = row.querySelector('.mma-notif-msg');
+    saved[i] = {
+      title: t ? t.value : MMA_DEFAULT_PUSH_TITLE,
+      msg:   m ? m.value : MMA_DEFAULT_PUSH_MSG,
+    };
+  });
+
+  var btnRows = document.querySelectorAll('#mmaBtnBuilder .mma-btn-row');
+  var html = '';
+  if (btnRows.length === 0) {
+    html = '<div style="color:#888888;font-size:14px;">No buttons yet — add buttons above first.</div>';
+  } else {
+    btnRows.forEach(function(row, i) {
+      var label     = (row.querySelector('.mma-btn-label') || {}).value || '';
+      var sortOrder = (row.querySelector('.mma-btn-order') || {}).value || (i + 1);
+      var vals      = saved[i] || {};
+      html += buildNotifRowHtml(i, sortOrder, label, vals.title || MMA_DEFAULT_PUSH_TITLE, vals.msg || MMA_DEFAULT_PUSH_MSG);
+    });
+  }
+
+  var builder = document.getElementById('mmaNotifBuilder');
+  if (builder) {
+    builder.innerHTML = html;
+    wireNotifBuilder();
+  }
+}
+
+function wireNotifBuilder() {
+  var builder = document.getElementById('mmaNotifBuilder');
+  if (!builder) return;
+
+  builder.querySelectorAll('.mma-emoji-trigger').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var idx    = parseInt(btn.dataset.idx, 10);
+      var target = btn.dataset.target;
+      var rows   = builder.querySelectorAll('.mma-notif-row');
+      var row    = rows[idx];
+      if (!row) return;
+      var field  = target === 'title' ? row.querySelector('.mma-notif-title') : row.querySelector('.mma-notif-msg');
+      if (field) mmaShowEmojiPicker(field, btn);
+    });
+  });
+
+  builder.querySelectorAll('.mma-test-push-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() { sendTestPush(btn); });
+  });
+}
+
+async function saveNotifications() {
+  if (!_editClientId) return;
+  var btnRows   = document.querySelectorAll('#mmaBtnBuilder .mma-btn-row');
+  var notifRows = document.querySelectorAll('#mmaNotifBuilder .mma-notif-row');
+  var buttons   = [];
+  btnRows.forEach(function(row, i) {
+    var label = row.querySelector('.mma-btn-label').value.trim();
+    if (!label) return;
+    var colorInput  = row.querySelector('.mma-btn-color');
+    var color       = colorInput ? colorInput.value : '#00D4FF';
+    var pulseBtn    = row.querySelector('.mma-btn-pulse');
+    var animate     = pulseBtn ? pulseBtn.classList.contains('mma-btn-pulse-on') : false;
+    var sparklesBtn = row.querySelector('.mma-btn-sparkles');
+    var notifRow    = notifRows[i];
+    var titleEl     = notifRow ? notifRow.querySelector('.mma-notif-title') : null;
+    var msgEl       = notifRow ? notifRow.querySelector('.mma-notif-msg')   : null;
+    buttons.push({
+      label:        label,
+      sort_order:   parseInt(row.querySelector('.mma-btn-order').value, 10) || 1,
+      enabled:      row.querySelector('.mma-btn-enabled-cb').checked,
+      color:        color,
+      animate:      animate,
+      sparkles:     sparklesBtn ? sparklesBtn.classList.contains('mma-btn-sparkles-on') : false,
+      push_title:   (titleEl && titleEl.value.trim()) || MMA_DEFAULT_PUSH_TITLE,
+      push_message: (msgEl   && msgEl.value.trim())   || MMA_DEFAULT_PUSH_MSG,
+    });
+  });
+  try {
+    var result = await mmaSb.from('clients').update({ middle_man_buttons: buttons }).eq('id', _editClientId);
+    if (result.error) throw result.error;
+    if (_editClientData) _editClientData.middle_man_buttons = buttons;
+    _flash('mmaNotifsMsg', '✓ Saved', false);
+  } catch (err) {
+    _flash('mmaNotifsMsg', '✗ ' + err.message, true);
+  }
+}
+
+async function sendTestPush(btn) {
+  if (!_editClientId) return;
+  var idx       = parseInt(btn.dataset.idx, 10);
+  var notifRows = document.querySelectorAll('#mmaNotifBuilder .mma-notif-row');
+  var row       = notifRows[idx];
+  if (!row) return;
+  var titleEl = row.querySelector('.mma-notif-title');
+  var msgEl   = row.querySelector('.mma-notif-msg');
+  var title   = titleEl ? titleEl.value.trim() : '';
+  var message = msgEl   ? msgEl.value.trim()   : '';
+  if (!title || !message) { alert('Title and message cannot be empty.'); return; }
+
+  var origText    = btn.textContent;
+  btn.disabled    = true;
+  btn.textContent = 'Sending…';
+
+  try {
+    var sessResult = await mmaSb.auth.getSession();
+    var token = sessResult.data && sessResult.data.session && sessResult.data.session.access_token;
+    if (!token) { alert('Not authenticated.'); btn.disabled = false; btn.textContent = origText; return; }
+
+    var res = await fetch(MMA_SUPABASE_URL + '/functions/v1/test-push-notification', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body:    JSON.stringify({ client_id: _editClientId, title: title, message: message }),
+    });
+    var json = await res.json().catch(function() { return {}; });
+
+    if (!res.ok || !json.ok) {
+      console.error('[sendTestPush] error:', json);
+      btn.textContent = '✗ Failed';
+    } else {
+      btn.textContent = 'Sent! ✓';
+    }
+  } catch (err) {
+    console.error('[sendTestPush] exception:', err);
+    btn.textContent = '✗ Error';
+  }
+  setTimeout(function() { btn.textContent = origText; btn.disabled = false; }, 2000);
 }
 
 // ─── Photo upload ─────────────────────────────────────────────────────────────
