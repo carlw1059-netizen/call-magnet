@@ -1,17 +1,15 @@
-// ═══ Clients Admin JS ═════════════════════════════════════════════════════
-// Auth pattern mirrors middle-man-admin.js exactly:
-//   is_admin === true AND email === REAL_ADMIN_EMAIL (dual gate)
-// Reads use anon key + authenticated session (RLS allows admin reads).
-// Status updates use same authenticated client (RLS allows admin writes).
+// ═══ Clients Admin JS ═════════════════════════════════════════════════════════
+// Auth: exact middle-man-admin.js pattern — dual gate, elements captured before
+// await, null-safe guards, storageKey 'callmagnet-auth-token'.
 
 const CA_SUPABASE_URL      = 'https://iskvvnhacqdxybpmwuni.supabase.co';
 const CA_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
 const CA_REAL_ADMIN_EMAIL  = 'car312@hotmail.com';
 
-let caSb         = null;
-let allClients   = [];   // full sorted list from DB
-let smsCountMap  = {};   // { client_id → count }
-let currentList  = [];   // currently visible (after filter)
+let caSb        = null;
+let allClients  = [];   // full sorted list from DB
+let smsCountMap = {};   // { client_id → total count }
+let currentList = [];   // currently displayed (after filter)
 
 // ─── HTML escape ──────────────────────────────────────────────────────────────
 function _e(s) {
@@ -20,176 +18,146 @@ function _e(s) {
   });
 }
 
-// ─── Update "Clients · N" count in header ────────────────────────────────────
+// ─── Update header count ──────────────────────────────────────────────────────
 function caSetCount(n) {
   var el = document.getElementById('caCount');
   if (el) el.textContent = '· ' + n;
 }
 
-// ─── Load all clients + SMS counts ───────────────────────────────────────────
+// ─── Load clients + SMS counts ────────────────────────────────────────────────
 async function caLoad() {
   var grid = document.getElementById('caGrid');
   if (grid) grid.innerHTML = '<div class="ca-loading">Loading…</div>';
 
-  // Fetch clients (newest first)
-  var clientResult = await caSb
+  // Clients — newest first
+  var cr = await caSb
     .from('clients')
-    .select([
-      'id',
-      'business_name',
-      'owner_name',
-      'email',
-      'owner_phone',
-      'twilio_number',
-      'plan_type',
-      'account_status',
-      'middle_man_slug',
-      'middle_man_enabled',
-      'last_renewal_date',
-      'created_at',
-    ].join(','))
+    .select('id,business_name,owner_name,email,owner_phone,twilio_number,plan_type,account_status,last_renewal_date,middle_man_slug,middle_man_enabled,created_at')
     .order('created_at', { ascending: false });
 
-  if (clientResult.error) {
-    console.error('[clients-admin] load error:', clientResult.error.message);
+  if (cr.error) {
+    console.error('[clients-admin] load error:', cr.error.message);
     if (grid) grid.innerHTML =
-      '<div class="ca-empty"><div class="ca-empty-title">Failed to load clients</div>' +
-      _e(clientResult.error.message) + '</div>';
+      '<div class="ca-empty"><div class="ca-empty-title">Failed to load clients</div></div>';
     return;
   }
 
-  allClients  = clientResult.data || [];
+  allClients  = cr.data || [];
   currentList = allClients.slice();
   caSetCount(allClients.length);
 
-  // Single SMS count query — pull all client_id values and aggregate in JS.
-  // This avoids one-query-per-client and doesn't require PostgREST GROUP BY.
+  // Single SMS count query — all client_id rows, grouped in JS
   smsCountMap = {};
   try {
-    var smsResult = await caSb
-      .from('sms_events')
-      .select('client_id')
-      .limit(200000);   // generous ceiling; revisit when volume grows
-    if (!smsResult.error) {
-      (smsResult.data || []).forEach(function(row) {
+    var sr = await caSb.from('sms_events').select('client_id').limit(500000);
+    if (!sr.error) {
+      (sr.data || []).forEach(function(row) {
         if (row.client_id) {
           smsCountMap[row.client_id] = (smsCountMap[row.client_id] || 0) + 1;
         }
       });
-    } else {
-      console.warn('[clients-admin] sms_events query error:', smsResult.error.message);
     }
-  } catch (smsErr) {
-    console.warn('[clients-admin] sms_events exception:', smsErr);
-  }
+  } catch (_) { /* non-fatal */ }
 
   caRender(currentList);
 }
 
-// ─── Render grid ─────────────────────────────────────────────────────────────
+// ─── Render grid ──────────────────────────────────────────────────────────────
 function caRender(list) {
   var grid = document.getElementById('caGrid');
   if (!grid) return;
 
-  var q = (document.getElementById('caSearch') || {}).value || '';
+  var q = '';
+  var searchEl = document.getElementById('caSearch');
+  if (searchEl) q = searchEl.value || '';
 
   if (list.length === 0) {
-    if (q.trim()) {
-      grid.innerHTML =
-        '<div class="ca-empty">' +
-          '<div class="ca-empty-title">No results for &ldquo;' + _e(q.trim()) + '&rdquo;</div>' +
-        '</div>';
-    } else {
-      grid.innerHTML = '<div class="ca-empty"><div class="ca-empty-title">No clients yet</div></div>';
-    }
+    grid.innerHTML = q.trim()
+      ? '<div class="ca-empty"><div class="ca-empty-title">No results for &ldquo;' + _e(q.trim()) + '&rdquo;</div></div>'
+      : '<div class="ca-empty"><div class="ca-empty-title">No clients yet</div></div>';
     return;
   }
 
   grid.innerHTML = list.map(caCard).join('');
 
-  // Wire copy buttons
+  // Wire all copy buttons (inline + action bar)
   grid.querySelectorAll('[data-action="copy"]').forEach(function(btn) {
     btn.addEventListener('click', function() { caCopy(btn); });
   });
 
-  // Wire suspend/reactivate buttons
+  // Wire toggle buttons
   grid.querySelectorAll('[data-action="toggle"]').forEach(function(btn) {
     btn.addEventListener('click', function() { caToggle(btn); });
   });
 }
 
-// ─── Build a single client card ───────────────────────────────────────────────
+// ─── Build one client card ─────────────────────────────────────────────────────
 function caCard(c) {
-  // Status badge
-  var statusClass =
-    c.account_status === 'active'    ? 'ca-badge-active'    :
-    c.account_status === 'suspended' ? 'ca-badge-suspended' :
-    'ca-badge-cancelled';
+
+  // ── Status badge ──
+  var statusCls =
+    c.account_status === 'active'    ? 'ca-status-active'    :
+    c.account_status === 'suspended' ? 'ca-status-suspended' :
+    'ca-status-cancelled';
   var statusLabel = c.account_status
     ? c.account_status.charAt(0).toUpperCase() + c.account_status.slice(1)
     : '—';
 
-  // Plan badge
+  // ── Plan badge ──
   var planBadge = '';
   if (c.plan_type) {
-    var planKey = c.plan_type.toLowerCase();
-    var planClass =
-      planKey === 'bronze'     ? 'ca-badge-bronze'     :
-      planKey === 'silver'     ? 'ca-badge-silver'     :
-      planKey === 'gold'       ? 'ca-badge-gold'       :
-      planKey === 'restaurant' ? 'ca-badge-restaurant' :
-      'ca-badge-plan';
-    planBadge = '<span class="ca-badge ' + planClass + '">' + _e(c.plan_type) + '</span>';
+    var pk = c.plan_type.toLowerCase();
+    var planCls =
+      pk === 'bronze'     ? 'ca-plan-bronze'     :
+      pk === 'silver'     ? 'ca-plan-silver'     :
+      pk === 'gold'       ? 'ca-plan-gold'       :
+      pk === 'restaurant' ? 'ca-plan-restaurant' :
+      'ca-plan-other';
+    planBadge = '<span class="ca-badge ' + planCls + '">' + _e(c.plan_type) + '</span>';
   }
 
-  // Renewal date
-  var renewalText = '—';
+  // ── Renewal date — DD MMM YYYY ──
+  var renewal = '—';
   if (c.last_renewal_date) {
     try {
-      renewalText = new Date(c.last_renewal_date).toLocaleDateString('en-AU', {
-        day: 'numeric', month: 'short', year: 'numeric',
+      renewal = new Date(c.last_renewal_date).toLocaleDateString('en-AU', {
+        day: '2-digit', month: 'short', year: 'numeric',
       });
-    } catch (_) { renewalText = _e(c.last_renewal_date); }
+    } catch (_) { renewal = _e(c.last_renewal_date); }
   }
 
-  // Middle Man row
-  var mmRow = '';
+  // ── Middle Man ──
+  var mmHtml = '';
   if (c.middle_man_slug) {
     var mmBadge = c.middle_man_enabled
-      ? '<span class="ca-badge ca-badge-active" style="font-size:10px;">Live</span>'
-      : '<span class="ca-badge ca-badge-cancelled" style="font-size:10px;">Off</span>';
-    mmRow =
-      '<div class="ca-row">' +
-        '<span class="ca-label">M.Man</span>' +
-        '<span class="ca-value">' +
-          '<a href="https://callmagnet.com.au/b/' + _e(c.middle_man_slug) + '" ' +
-             'target="_blank" rel="noopener" class="ca-link ca-mono">' +
-             _e(c.middle_man_slug) + ' ↗</a>' +
-          ' ' + mmBadge +
-        '</span>' +
+      ? '<span class="ca-badge ca-status-active" style="font-size:10px;">Live</span>'
+      : '<span class="ca-badge ca-status-cancelled" style="font-size:10px;">Off</span>';
+    mmHtml =
+      '<div class="ca-detail">' +
+        '<a href="https://callmagnet.com.au/b/' + _e(c.middle_man_slug) + '" ' +
+           'target="_blank" rel="noopener" class="ca-mono">' +
+           'callmagnet.com.au/b/' + _e(c.middle_man_slug) + ' ↗' +
+        '</a> ' + mmBadge +
       '</div>';
+  } else {
+    mmHtml = '<div class="ca-detail ca-muted">No slug set</div>';
   }
 
-  // SMS count
+  // ── Twilio ──
+  var twilioHtml = '<div class="ca-detail">';
+  if (c.twilio_number) {
+    twilioHtml +=
+      '<span class="ca-mono">' + _e(c.twilio_number) + '</span>' +
+      ' <button class="ca-copy-inline" data-action="copy" data-val="' + _e(c.twilio_number) + '">Copy</button>';
+  } else {
+    twilioHtml += '<span class="ca-muted">—</span>';
+  }
+  twilioHtml += '</div>';
+
+  // ── SMS count ──
   var smsCount = smsCountMap[c.id] || 0;
 
-  // Twilio row with inline copy
-  var twilioRow =
-    '<div class="ca-row">' +
-      '<span class="ca-label">Twilio</span>' +
-      '<span class="ca-value">';
-  if (c.twilio_number) {
-    twilioRow +=
-      '<span class="ca-mono">' + _e(c.twilio_number) + '</span>' +
-      ' <button class="ca-copy-inline" data-action="copy" ' +
-              'data-val="' + _e(c.twilio_number) + '" ' +
-              'title="Copy Twilio number">Copy</button>';
-  } else {
-    twilioRow += '<span class="ca-muted">—</span>';
-  }
-  twilioRow += '</span></div>';
-
-  // Action: always Manage + Copy Twilio; toggle only for active/suspended
+  // ── Toggle action button ──
   var toggleBtn = '';
   if (c.account_status === 'active') {
     toggleBtn =
@@ -205,48 +173,49 @@ function caCard(c) {
               'data-current="suspended">Reactivate</button>';
   }
 
-  var copyTwilioBtn = c.twilio_number
-    ? '<button class="ca-btn" data-action="copy" ' +
-              'data-val="' + _e(c.twilio_number) + '" ' +
-              'title="Copy Twilio number">Copy Twilio</button>'
-    : '';
-
   return (
     '<div class="ca-card" data-id="' + _e(c.id) + '">' +
 
-      '<div class="ca-card-top">' +
-        '<div class="ca-card-biz">' + _e(c.business_name || '—') + '</div>' +
-        '<div class="ca-card-badges">' +
-          '<span class="ca-badge ' + statusClass + '">' + _e(statusLabel) + '</span>' +
-          planBadge +
-        '</div>' +
+      // Business name + owner name
+      '<div class="ca-biz-name">' + _e(c.business_name || '—') + '</div>' +
+      (c.owner_name ? '<div class="ca-owner-name">' + _e(c.owner_name) + '</div>' : '') +
+
+      // CONTACT
+      '<span class="ca-section-label">Contact</span>' +
+      (c.email
+        ? '<div class="ca-detail"><a href="mailto:' + _e(c.email) + '">' + _e(c.email) + '</a></div>'
+        : '<div class="ca-detail ca-muted">—</div>') +
+      (c.owner_phone
+        ? '<div class="ca-detail">' + _e(c.owner_phone) + '</div>'
+        : '') +
+
+      // SUBSCRIPTION
+      '<span class="ca-section-label">Subscription</span>' +
+      '<div class="ca-detail">' +
+        planBadge +
+        (planBadge ? ' ' : '') +
+        '<span class="ca-badge ' + statusCls + '">' + _e(statusLabel) + '</span>' +
+      '</div>' +
+      '<div class="ca-detail">' + _e(renewal) + '</div>' +
+
+      // CALLMAGNET
+      '<span class="ca-section-label">CallMagnet</span>' +
+      twilioHtml +
+      mmHtml +
+
+      // ACTIVITY
+      '<span class="ca-section-label">Activity</span>' +
+      '<div class="ca-detail">' +
+        '<span class="ca-sms-count">' + smsCount.toLocaleString() + '</span>' +
+        '&nbsp;missed call SMSes sent' +
       '</div>' +
 
-      '<div class="ca-card-details">' +
-        (c.owner_name
-          ? '<div class="ca-row"><span class="ca-label">Owner</span>' +
-            '<span class="ca-value">' + _e(c.owner_name) + '</span></div>'
-          : '') +
-        (c.email
-          ? '<div class="ca-row"><span class="ca-label">Email</span>' +
-            '<span class="ca-value"><a href="mailto:' + _e(c.email) + '" class="ca-link">' +
-            _e(c.email) + '</a></span></div>'
-          : '') +
-        (c.owner_phone
-          ? '<div class="ca-row"><span class="ca-label">Phone</span>' +
-            '<span class="ca-value">' + _e(c.owner_phone) + '</span></div>'
-          : '') +
-        twilioRow +
-        mmRow +
-        '<div class="ca-row"><span class="ca-label">Renewal</span>' +
-        '<span class="ca-value">' + _e(renewalText) + '</span></div>' +
-        '<div class="ca-row"><span class="ca-label">SMS</span>' +
-        '<span class="ca-value">' + smsCount.toLocaleString() + '</span></div>' +
-      '</div>' +
-
-      '<div class="ca-card-actions">' +
+      // Action buttons
+      '<div class="ca-actions">' +
         '<a href="/admin/middle-man.html?client=' + _e(c.id) + '" class="ca-btn">Manage</a>' +
-        copyTwilioBtn +
+        (c.twilio_number
+          ? '<button class="ca-btn" data-action="copy" data-val="' + _e(c.twilio_number) + '">Copy Twilio</button>'
+          : '') +
         toggleBtn +
       '</div>' +
 
@@ -254,9 +223,12 @@ function caCard(c) {
   );
 }
 
-// ─── Real-time search filter ──────────────────────────────────────────────────
+// ─── Real-time search ─────────────────────────────────────────────────────────
 function caFilter() {
-  var q = ((document.getElementById('caSearch') || {}).value || '').toLowerCase().trim();
+  var q = '';
+  var searchEl = document.getElementById('caSearch');
+  if (searchEl) q = searchEl.value.toLowerCase().trim();
+
   if (!q) {
     currentList = allClients.slice();
   } else {
@@ -279,14 +251,14 @@ function caCopy(btn) {
   var val  = btn.dataset.val || '';
   var orig = btn.textContent;
 
-  function done() {
+  function onSuccess() {
     btn.textContent = 'Copied!';
     btn.disabled = true;
     setTimeout(function() { btn.textContent = orig; btn.disabled = false; }, 2000);
   }
 
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(val).then(done).catch(fallback);
+    navigator.clipboard.writeText(val).then(onSuccess).catch(fallback);
   } else {
     fallback();
   }
@@ -300,7 +272,7 @@ function caCopy(btn) {
       ta.select();
       document.execCommand('copy');
       document.body.removeChild(ta);
-      done();
+      onSuccess();
     } catch (_) { /* silently ignore */ }
   }
 }
@@ -318,10 +290,7 @@ async function caToggle(btn) {
   btn.disabled    = true;
   btn.textContent = 'Updating…';
 
-  var result = await caSb
-    .from('clients')
-    .update({ account_status: next })
-    .eq('id', id);
+  var result = await caSb.from('clients').update({ account_status: next }).eq('id', id);
 
   if (result.error) {
     alert('Update failed: ' + result.error.message);
@@ -330,7 +299,7 @@ async function caToggle(btn) {
     return;
   }
 
-  // Update in-memory data so filter stays correct
+  // Update in-memory data so filter is consistent after re-render
   [allClients, currentList].forEach(function(arr) {
     var c = arr.find(function(x) { return x.id === id; });
     if (c) c.account_status = next;
@@ -339,9 +308,7 @@ async function caToggle(btn) {
   caRender(currentList);
 }
 
-// ─── Boot ─────────────────────────────────────────────────────────────────────
-// Verbatim copy of the middle-man-admin.js boot pattern — elements captured
-// before the first await so a failed getSession() cannot orphan references.
+// ─── Boot — verbatim middle-man-admin.js pattern ──────────────────────────────
 document.addEventListener('DOMContentLoaded', async function() {
   var gateEl = document.getElementById('caAuthGate');
   var pageEl = document.getElementById('caPage');
@@ -362,7 +329,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   var sess = sessionResult.data && sessionResult.data.session;
 
   if (!sess) {
-    window.location.href = '/';
+    window.location.href = '/admin/';
     return;
   }
 
@@ -370,7 +337,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   var email   = ((sess.user && sess.user.email) || '').toLowerCase();
 
   if (!isAdmin || email !== CA_REAL_ADMIN_EMAIL) {
-    window.location.href = '/';
+    window.location.href = '/admin/';
     return;
   }
 
@@ -380,7 +347,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   // Wire back button
   var backBtn = document.getElementById('caBackBtn');
-  if (backBtn) backBtn.addEventListener('click', function() { window.location.href = '/'; });
+  if (backBtn) backBtn.addEventListener('click', function() { window.location.href = '/admin/'; });
 
   // Wire search
   var searchEl = document.getElementById('caSearch');
