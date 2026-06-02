@@ -340,26 +340,33 @@ async function caToggle(btn) {
 }
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
+// Verbatim copy of the middle-man-admin.js boot pattern — elements captured
+// before the first await so a failed getSession() cannot orphan references.
 document.addEventListener('DOMContentLoaded', async function() {
-  // Initialise Supabase — same storage key as dashboard (shared session)
+  var gateEl = document.getElementById('caAuthGate');
+  var pageEl = document.getElementById('caPage');
+
+  // Initialise Supabase (same storage key as dashboard — shared session)
   caSb = supabase.createClient(CA_SUPABASE_URL, CA_SUPABASE_ANON_KEY, {
     auth: {
-      persistSession:     true,
-      storage:            window.localStorage,
-      storageKey:         'callmagnet-auth-token',
-      autoRefreshToken:   true,
+      persistSession: true,
+      storage: window.localStorage,
+      storageKey: 'callmagnet-auth-token',
+      autoRefreshToken: true,
       detectSessionInUrl: false,
-    },
+    }
   });
 
-  // ── Dual auth gate (same logic as middle-man-admin.js) ──────────────────
+  // Auth check
   var sessionResult = await caSb.auth.getSession();
   var sess = sessionResult.data && sessionResult.data.session;
 
-  if (!sess) { window.location.href = '/'; return; }
+  if (!sess) {
+    window.location.href = '/';
+    return;
+  }
 
-  var isAdmin = sess.user && sess.user.app_metadata &&
-                sess.user.app_metadata.is_admin === true;
+  var isAdmin = sess.user && sess.user.app_metadata && sess.user.app_metadata.is_admin === true;
   var email   = ((sess.user && sess.user.email) || '').toLowerCase();
 
   if (!isAdmin || email !== CA_REAL_ADMIN_EMAIL) {
@@ -367,17 +374,17 @@ document.addEventListener('DOMContentLoaded', async function() {
     return;
   }
 
-  // Auth passed — show page
-  document.getElementById('caAuthGate').style.display = 'none';
-  document.getElementById('caPage').style.display     = 'block';
+  // Show page
+  if (gateEl) gateEl.style.display = 'none';
+  if (pageEl) pageEl.style.display  = 'block';
 
   // Wire back button
-  document.getElementById('caBackBtn').addEventListener('click', function() {
-    window.location.href = '/';
-  });
+  var backBtn = document.getElementById('caBackBtn');
+  if (backBtn) backBtn.addEventListener('click', function() { window.location.href = '/'; });
 
   // Wire search
-  document.getElementById('caSearch').addEventListener('input', caFilter);
+  var searchEl = document.getElementById('caSearch');
+  if (searchEl) searchEl.addEventListener('input', caFilter);
 
   // Load data
   await caLoad();
