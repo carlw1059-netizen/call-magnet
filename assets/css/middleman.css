@@ -600,24 +600,3 @@
     100% { opacity: 0;   transform: translate(var(--sparkle-drift, 0px), -56px) scale(0.15); }
   }
 
-  /* ── Light Runner effect — SVG stroke-dashoffset ────────────────────────
-     .btn-runner-svg is appended inside .tap-btn (position:relative).
-     Four <rect pathLength="1000"> elements share @keyframes runner-dash.
-     No @property, no color-mix(), no mask, no conic-gradient.
-     Supported: iOS Safari 10+, Android Chrome, all modern browsers.       */
-  .btn-runner-svg {
-    position: absolute;
-    inset: -2px;        /* extends 2px outward to overlay the button border */
-    pointer-events: none;
-    z-index: 2;
-    overflow: visible;
-    border-radius: 12px;
-    filter: blur(0.4px);
-  }
-  .runner-animated {
-    animation: runner-dash 8s linear infinite;
-  }
-  @keyframes runner-dash {
-    from { stroke-dashoffset: 0; }
-    to   { stroke-dashoffset: -1000; }
-  }
