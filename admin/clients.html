@@ -4,475 +4,66 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0E1419">
-<title>CallMagnet — Client Management</title>
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { background: #0E1419; min-height: 100vh; overscroll-behavior: none; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    color: rgba(255,255,255,0.92);
-    -webkit-font-smoothing: antialiased;
-    padding: 1.5rem 1rem 4rem;
-  }
-  :root {
-    --bg:           #0E1419;
-    --accent:       #06D6A0;
-    --accent-glow:  rgba(6, 214, 160, 0.18);
-    --accent-border:rgba(6, 214, 160, 0.25);
-    --accent-soft:  rgba(6, 214, 160, 0.08);
-    --red:          #CC5500;
-    --red-glow:     rgba(204, 85, 0, 0.18);
-    --red-border:   rgba(204, 85, 0, 0.4);
-    --text:         rgba(255,255,255,0.92);
-    --muted:        rgba(255,255,255,0.55);
-    --glass:        rgba(255,255,255,0.04);
-  }
-  .wrap { max-width: 520px; margin: 0 auto; }
-  .topbar {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 0.5rem 0 1.5rem;
-  }
-  .logo {
-    font-weight: 700; font-size: 16px; letter-spacing: 0.06em; color: var(--accent);
-    text-transform: uppercase;
-  }
-  .logo .star { display: inline-block; margin-right: 4px; }
-  .nav-links { display: flex; gap: 8px; }
-  .nav-btn {
-    background: transparent; border: 1px solid var(--accent-border); color: var(--accent);
-    padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;
-    font-family: inherit; letter-spacing: 0.04em; text-decoration: none;
-    display: inline-block;
-  }
-  .nav-btn:hover { background: var(--accent-soft); }
-  .card {
-    background: var(--glass);
-    border: 1px solid var(--accent-border);
-    border-radius: 16px;
-    padding: 1.75rem 1.5rem;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.35), 0 0 32px var(--accent-glow);
-    margin-bottom: 1rem;
-  }
-  .danger-card {
-    background: var(--glass);
-    border: 1px solid var(--red-border);
-    border-left: 3px solid var(--red);
-    border-radius: 16px;
-    padding: 1.75rem 1.5rem;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.35);
-    margin-bottom: 1rem;
-  }
-  h1 { font-size: 22px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; margin-bottom: 0.4rem; }
-  h2 { font-size: 16px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; margin-bottom: 0.75rem; }
-  .danger-label {
-    font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--red); margin-bottom: 8px;
-  }
-  .subtitle { font-size: 13px; color: var(--muted); margin-bottom: 1.25rem; }
-  .field { margin-bottom: 1rem; }
-  .field label {
-    display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
-    text-transform: uppercase; color: var(--accent); margin-bottom: 6px;
-  }
-  .field input, .field select {
-    width: 100%; padding: 11px 12px; font-size: 15px; font-family: inherit;
-    background: rgba(0,0,0,0.3); color: var(--text);
-    border: 1px solid var(--accent-border); border-radius: 8px;
-    outline: none; transition: border-color 0.15s, box-shadow 0.15s;
-    -webkit-appearance: none; -moz-appearance: none; appearance: none;
-  }
-  .field input:focus, .field select:focus {
-    border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
-  }
-  .field select {
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2306D6A0' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e");
-    background-repeat: no-repeat; background-position: right 12px center; background-size: 14px;
-    padding-right: 36px;
-  }
-  .field textarea {
-    width: 100%; padding: 11px 12px; font-size: 14px; font-family: inherit;
-    background: rgba(0,0,0,0.3); color: var(--text);
-    border: 1px solid var(--accent-border); border-radius: 8px;
-    outline: none; resize: vertical; min-height: 72px; line-height: 1.4;
-    transition: border-color 0.15s;
-  }
-  .field textarea:focus { border-color: var(--accent); }
-  .lookup-btn {
-    width: 100%; padding: 12px; font-size: 14px; font-weight: 600;
-    background: transparent; color: var(--accent); border: 1px solid var(--accent);
-    border-radius: 8px; cursor: pointer; font-family: inherit;
-    transition: background 0.15s;
-  }
-  .lookup-btn:hover:not(:disabled) { background: var(--accent-soft); }
-  .lookup-btn:disabled { opacity: 0.5; cursor: wait; }
-  /* Client info panel */
-  .client-panel {
-    background: rgba(0,0,0,0.3); border: 1px solid var(--accent-border);
-    border-radius: 10px; padding: 14px 16px; margin: 1rem 0;
-    display: none;
-  }
-  .client-panel.visible { display: block; }
-  .client-name { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-  .client-meta { font-size: 12px; color: var(--muted); }
-  .status-badge {
-    display: inline-block; padding: 2px 8px; border-radius: 12px;
-    font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
-    margin-left: 6px; vertical-align: middle;
-  }
-  .status-active   { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-border); }
-  .status-cancelled { background: var(--red-glow); color: var(--red); border: 1px solid var(--red-border); }
-  /* Cancel action */
-  .cancel-section { margin-top: 1.5rem; display: none; }
-  .cancel-section.visible { display: block; }
-  .divider {
-    border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 1.25rem 0;
-  }
-  .cancel-btn {
-    width: 100%; padding: 13px; font-size: 14px; font-weight: 700;
-    background: var(--red); color: #fff; border: none; border-radius: 10px;
-    cursor: pointer; font-family: inherit; letter-spacing: 0.02em;
-    box-shadow: 0 0 16px var(--red-glow);
-    transition: transform 0.08s, opacity 0.15s;
-  }
-  .cancel-btn:hover:not(:disabled) { opacity: 0.9; }
-  .cancel-btn:active:not(:disabled) { transform: scale(0.98); }
-  .cancel-btn:disabled { opacity: 0.5; cursor: wait; }
-  /* Error / success */
-  .msg-box {
-    border-radius: 8px; padding: 10px 12px; font-size: 13px;
-    margin-bottom: 1rem; display: none;
-  }
-  .msg-box.visible { display: block; }
-  .msg-box.error   { color: var(--red); background: var(--red-glow); border: 1px solid var(--red-border); }
-  .msg-box.success { color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-border); }
-  /* Gate states */
-  .gate-state { text-align: center; padding: 3rem 1rem; display: none; }
-  .gate-state.visible { display: block; }
-  .gate-state h2 { font-size: 18px; color: var(--text); margin-bottom: 0.5rem; }
-  .gate-state p { font-size: 14px; color: var(--muted); }
-  .spinner {
-    display: inline-block; width: 32px; height: 32px;
-    border: 3px solid var(--accent-border); border-top-color: var(--accent);
-    border-radius: 50%; animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-</style>
+<title>Clients — CallMagnet Admin</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="/icon.svg?v=2026-05-14" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/css/clients-admin.css">
 </head>
 <body>
 
-<div class="wrap">
-  <div class="topbar">
-    <div class="logo"><span class="star">★</span>CallMagnet — Admin</div>
-    <div class="nav-links">
-      <a href="/admin/onboard.html" class="nav-btn">Onboard</a>
-      <button class="nav-btn" id="signoutBtn" style="display:none" onclick="handleSignout()">Sign out</button>
-    </div>
-  </div>
-
-  <!-- Loading -->
-  <div class="gate-state visible" id="gateLoading">
-    <div class="spinner"></div>
-    <h2 style="margin-top:1rem">Checking access…</h2>
-  </div>
-
-  <!-- Not logged in -->
-  <div class="gate-state" id="gateLogin">
-    <h2>Sign in required</h2>
-    <p>You need to sign in as an admin to manage clients.</p>
-    <p style="margin-top:1rem"><a href="/" style="color:var(--accent)">Go to login →</a></p>
-  </div>
-
-  <!-- Not authorized -->
-  <div class="gate-state" id="gateForbidden">
-    <h2>Not authorized</h2>
-    <p>This page is for admin users only.</p>
-    <p style="margin-top:1rem"><a href="/" style="color:var(--accent)">Back to dashboard →</a></p>
-  </div>
-
-  <!-- Main content -->
-  <div id="mainContent" style="display:none">
-
-    <!-- Client lookup -->
-    <div class="card">
-      <h1>Client Management</h1>
-      <p class="subtitle">Look up a client by email to view status or take action.</p>
-
-      <div class="msg-box" id="lookupError"></div>
-
-      <div class="field">
-        <label>Client email</label>
-        <input type="email" id="clientEmailInput" placeholder="owner@example.com" autocomplete="email" />
-      </div>
-
-      <button class="lookup-btn" id="lookupBtn" onclick="lookupClient()">Look up client</button>
-
-      <!-- Client info panel -->
-      <div class="client-panel" id="clientPanel">
-        <div class="client-name" id="clientName"></div>
-        <div class="client-meta" id="clientMeta"></div>
-      </div>
-    </div>
-
-    <!-- Danger zone: cancel subscription -->
-    <div class="danger-card" id="cancelCard" style="display:none">
-      <div class="danger-label">⚠️ Danger zone</div>
-      <h2>Cancel Subscription</h2>
-
-      <div class="msg-box" id="cancelMsg"></div>
-
-      <div class="field">
-        <label>Reason</label>
-        <select id="cancelReasonSelect">
-          <option value="">— Select reason —</option>
-          <option value="admin_decision">Admin decision</option>
-          <option value="pricing">Pricing</option>
-          <option value="not_enough_calls">Not enough missed calls</option>
-          <option value="found_alternative">Found alternative</option>
-          <option value="closing_business">Closing business</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label>Notes <span style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--muted)">(optional)</span></label>
-        <textarea id="cancelDetailInput" placeholder="Internal notes — not visible to the client." maxlength="500"></textarea>
-      </div>
-
-      <button class="cancel-btn" id="cancelBtn" onclick="cancelClient()">
-        Cancel subscription at period end
-      </button>
-    </div>
-
-  </div><!-- end mainContent -->
+<!-- Auth gates — visible while checking / if unauthorised -->
+<div class="gate-state visible" id="gateLoading">
+  <div class="spinner"></div>
+  <h2>Checking access…</h2>
 </div>
+<div class="gate-state" id="gateLogin">
+  <h2>Sign in required</h2>
+  <p>You need to sign in as an admin to view clients.</p>
+  <p style="margin-top:0.75rem"><a href="/">Go to login →</a></p>
+</div>
+<div class="gate-state" id="gateForbidden">
+  <h2>Not authorized</h2>
+  <p>This page is for admin users only.</p>
+  <p style="margin-top:0.75rem"><a href="/">Back to dashboard →</a></p>
+</div>
+
+<!-- Main page — shown after auth passes -->
+<div id="mainContent">
+
+  <!-- Sticky header -->
+  <header class="ca-header">
+    <div class="ca-header-left">
+      <span class="ca-title">Clients</span>
+      <span class="ca-count" id="caCount"></span>
+    </div>
+    <div class="ca-header-actions">
+      <button class="ca-signout" id="caSignout" onclick="caSignout()">Sign out</button>
+    </div>
+  </header>
+
+  <div class="ca-wrap">
+
+    <!-- Search -->
+    <div class="ca-search-wrap">
+      <input
+        id="caSearch"
+        class="ca-search"
+        type="search"
+        placeholder="Search by name, email, phone or Twilio number…"
+        autocomplete="off"
+        spellcheck="false"
+      />
+    </div>
+
+    <!-- Client grid — filled by clients-admin.js -->
+    <div class="ca-grid" id="caGrid"></div>
+
+  </div><!-- /.ca-wrap -->
+
+</div><!-- /#mainContent -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/admin/admin-nav.js"></script>
-<script>
-const SUPABASE_URL      = 'https://iskvvnhacqdxybpmwuni.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
-
-let sb = null;
-let session = null;
-let lookedUpClient = null;
-
-function showLookupError(msg) {
-  const box = document.getElementById('lookupError');
-  box.textContent = msg;
-  box.className = 'msg-box error visible';
-}
-function clearLookupError() {
-  document.getElementById('lookupError').classList.remove('visible');
-}
-function showCancelMsg(msg, type) {
-  const box = document.getElementById('cancelMsg');
-  box.textContent = msg;
-  box.className = 'msg-box ' + type + ' visible';
-}
-function clearCancelMsg() {
-  document.getElementById('cancelMsg').classList.remove('visible');
-}
-
-async function lookupClient() {
-  clearLookupError();
-  clearCancelMsg();
-
-  const email = document.getElementById('clientEmailInput').value.trim().toLowerCase();
-  if (!email || !email.includes('@')) {
-    showLookupError('Enter a valid email address.');
-    return;
-  }
-
-  const btn = document.getElementById('lookupBtn');
-  btn.disabled = true;
-  btn.textContent = 'Looking up…';
-
-  try {
-    const res = await fetch(
-      SUPABASE_URL + '/rest/v1/clients?email=eq.' + encodeURIComponent(email) +
-      '&select=id,business_name,account_status,cancellation_scheduled,created_at,vertical',
-      {
-        headers: {
-          apikey:        SUPABASE_ANON_KEY,
-          Authorization: 'Bearer ' + session.access_token,
-        },
-      },
-    );
-    const data = await res.json().catch(() => []);
-
-    if (!res.ok || !Array.isArray(data)) {
-      showLookupError('Lookup failed: ' + res.status);
-      return;
-    }
-
-    if (data.length === 0) {
-      showLookupError('No client found for ' + email);
-      document.getElementById('clientPanel').classList.remove('visible');
-      document.getElementById('cancelCard').style.display = 'none';
-      return;
-    }
-
-    lookedUpClient = data[0];
-    renderClientPanel(lookedUpClient);
-
-  } catch (e) {
-    showLookupError('Network error: ' + (e?.message || e));
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Look up client';
-  }
-}
-
-function renderClientPanel(client) {
-  const statusClass   = client.cancellation_scheduled ? 'status-cancelled' : 'status-active';
-  const statusLabel   = client.cancellation_scheduled ? 'Cancellation requested' : client.account_status;
-  const joinedDate    = new Date(client.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
-
-  document.getElementById('clientName').innerHTML =
-    escHtml(client.business_name) +
-    `<span class="status-badge ${statusClass}">${escHtml(statusLabel)}</span>`;
-  document.getElementById('clientMeta').textContent =
-    `Vertical: ${client.vertical || 'unknown'}  ·  Joined: ${joinedDate}`;
-
-  document.getElementById('clientPanel').classList.add('visible');
-
-  // Show cancel card only if not already cancelled
-  const cancelCard = document.getElementById('cancelCard');
-  if (client.cancellation_scheduled) {
-    cancelCard.style.display = 'none';
-  } else {
-    cancelCard.style.display = 'block';
-    document.getElementById('cancelReasonSelect').value = '';
-    document.getElementById('cancelDetailInput').value  = '';
-    document.getElementById('cancelBtn').disabled = false;
-    document.getElementById('cancelBtn').textContent = 'Cancel subscription at period end';
-  }
-}
-
-async function cancelClient() {
-  clearCancelMsg();
-
-  const reasonKey    = document.getElementById('cancelReasonSelect').value;
-  const reasonDetail = (document.getElementById('cancelDetailInput').value || '').trim();
-
-  if (!reasonKey) {
-    showCancelMsg('Select a reason before cancelling.', 'error');
-    return;
-  }
-
-  if (!lookedUpClient) {
-    showCancelMsg('No client loaded — look up a client first.', 'error');
-    return;
-  }
-
-  // Confirmation dialog
-  const confirmed = window.confirm(
-    `Are you sure you want to cancel the subscription for "${lookedUpClient.business_name}"?\n\n` +
-    `They will remain active until the end of their billing period, then automatically stop receiving SMS replies.`
-  );
-  if (!confirmed) return;
-
-  const btn = document.getElementById('cancelBtn');
-  btn.disabled = true;
-  btn.textContent = 'Cancelling…';
-
-  try {
-    const res = await fetch(SUPABASE_URL + '/functions/v1/admin-cancel-client', {
-      method:  'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization:  'Bearer ' + session.access_token,
-      },
-      body: JSON.stringify({
-        client_email:  document.getElementById('clientEmailInput').value.trim().toLowerCase(),
-        reason_key:    reasonKey,
-        reason_detail: reasonDetail || undefined,
-      }),
-    });
-    const data = await res.json().catch(() => ({}));
-
-    if (res.status === 409) {
-      showCancelMsg('Cancellation was already requested for this client.', 'error');
-      return;
-    }
-    if (!res.ok) {
-      showCancelMsg('Cancel failed: ' + (data.detail || data.error || res.status), 'error');
-      btn.disabled = false;
-      btn.textContent = 'Cancel subscription at period end';
-      return;
-    }
-
-    let successMsg = `✓ Cancellation scheduled for ${data.business_name}.`;
-    if (data.cancel_at) {
-      const d = new Date(data.cancel_at);
-      const label = d.toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
-      successMsg += ` Active until ${label}.`;
-    } else if (!data.stripe_sub_id) {
-      successMsg += ' Note: no Stripe subscription ID — cancel manually in the Stripe Dashboard.';
-    }
-    showCancelMsg(successMsg, 'success');
-
-    // Refresh client panel to show cancelled state
-    lookedUpClient.cancellation_scheduled = true;
-    renderClientPanel(lookedUpClient);
-
-  } catch (e) {
-    showCancelMsg('Network error: ' + (e?.message || e), 'error');
-    btn.disabled = false;
-    btn.textContent = 'Cancel subscription at period end';
-  }
-}
-
-function escHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
-async function handleSignout() {
-  await sb.auth.signOut();
-  window.location.href = '/';
-}
-
-document.addEventListener('DOMContentLoaded', async () => {
-  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: {
-      persistSession:     true,
-      storage:            window.localStorage,
-      storageKey:         'callmagnet-auth-token',
-      autoRefreshToken:   true,
-      detectSessionInUrl: true,
-    },
-  });
-
-  const { data: { session: s } } = await sb.auth.getSession();
-  session = s;
-
-  document.getElementById('gateLoading').classList.remove('visible');
-
-  if (!session) {
-    document.getElementById('gateLogin').classList.add('visible');
-    return;
-  }
-
-  const isAdmin = session.user?.app_metadata?.is_admin === true;
-  if (!isAdmin) {
-    document.getElementById('gateForbidden').classList.add('visible');
-    document.getElementById('signoutBtn').style.display = 'block';
-    return;
-  }
-  window.refreshAdminFab(session);
-
-  document.getElementById('signoutBtn').style.display = 'block';
-  document.getElementById('mainContent').style.display = 'block';
-
-  // Allow Enter key on email field to trigger lookup
-  document.getElementById('clientEmailInput').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') lookupClient();
-  });
-});
-</script>
+<script src="/assets/js/clients-admin.js"></script>
 </body>
 </html>
