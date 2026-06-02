@@ -82,6 +82,7 @@ function buildPushMessage(
   originalBookingTime: string,
   requestedChange: string,
   note: string,
+  companyName: string,
 ): string {
   const bn = businessName;
   const cn = callerName;
@@ -89,8 +90,10 @@ function buildPushMessage(
   switch (formType) {
     case 'change_cancel':
       return `★ ${bn} — CHANGE/CANCEL REQUEST — ${cn} — ${ph} — ${originalBookingTime} — ${requestedChange}`;
-    case 'function':
-      return `★ ${bn} — FUNCTION ENQUIRY — ${cn} — ${ph} — ${note}`;
+    case 'function': {
+      const co = companyName ? ` (${companyName})` : '';
+      return `★ ${bn} — FUNCTION ENQUIRY — ${cn}${co} — ${ph} — ${note}`;
+    }
     case 'late_arrival':
       return `★ ${bn} — LATE ARRIVAL — ${cn} — ${ph} — booked ${originalBookingTime} — running ${note}`;
     case 'lost_found':
@@ -136,6 +139,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const requestedChange     = typeof body.requested_change     === 'string' ? body.requested_change.trim()    : '';
   const rawNote             = typeof body.note                 === 'string' ? body.note.trim()                : '';
   const note                = rawNote.slice(0, 200);
+  const companyName         = typeof body.company_name         === 'string' ? body.company_name.trim().slice(0, 100) : '';
 
   // ── Validate required fields ────────────────────────────────────────────────
   if (!slug)       return err400('Missing slug');
@@ -212,7 +216,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   // ── Fire-and-forget: send-client-notification ───────────────────────────────
   const pushMessage = buildPushMessage(
     businessName, formType, callerName, callerPhone,
-    originalBookingTime, requestedChange, note,
+    originalBookingTime, requestedChange, note, companyName,
   );
 
   if (INTERNAL_SECRET) {
