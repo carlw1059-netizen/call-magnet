@@ -75,6 +75,7 @@ Deno.serve(async (req) => {
     if (!body) return json(400, { error: 'invalid_body', detail: 'JSON body required' });
 
     const business_name = String(body.business_name ?? '').trim();
+    const owner_name    = typeof body.owner_name === 'string' ? body.owner_name.trim() : null;
     const vertical      = String(body.vertical      ?? '').trim();
     const twilio_number = String(body.twilio_number ?? '').trim();
     const owner_phone   = String(body.owner_phone   ?? '').trim();
@@ -220,6 +221,7 @@ Deno.serve(async (req) => {
     const clientInsertPayload: Record<string, unknown> = {
       business_name,
       email:                  owner_email,
+      owner_name:             owner_name || null,
       owner_phone,
       twilio_number,
       vertical,
