@@ -6,24 +6,23 @@
 <title>Clients — CallMagnet Admin</title>
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" href="/icon.svg?v=2026-05-14" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/css/clients-admin.css">
+<link rel="stylesheet" href="/assets/css/clients-admin.css?v=20260603c">
 </head>
 <body>
 
-<!-- Auth gate: shown while checking session, then hidden (same pattern as middle-man.html) -->
+<!-- Auth gate: shown while checking session, then hidden -->
 <div id="caAuthGate">Checking access…</div>
 
 <!-- Main page: hidden until auth passes -->
 <div id="caPage" style="display:none;">
 
-  <header class="ca-header">
-    <span class="ca-header-title">Clients <span id="caCount" class="ca-header-count"></span></span>
-    <button id="caBackBtn" class="ca-back-btn">← Dashboard</button>
+  <header class="mma-header">
+    <span class="mma-header-title">Clients <span id="caCount"></span></span>
+    <button id="caBackBtn" class="mma-back-btn">← Dashboard</button>
   </header>
 
-  <div class="ca-body">
+  <div class="mma-body">
 
-    <!-- Search bar -->
     <div class="ca-search-wrap">
       <input
         id="caSearch"
@@ -35,7 +34,6 @@
       />
     </div>
 
-    <!-- Client grid — filled by clients-admin.js -->
     <div class="ca-grid" id="caGrid"></div>
 
   </div>
@@ -43,6 +41,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/assets/js/clients-admin.js?v=20260603b"></script>
+<script src="/assets/js/clients-admin.js?v=20260603c"></script>
 </body>
 </html>
