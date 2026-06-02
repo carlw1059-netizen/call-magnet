@@ -133,14 +133,13 @@
 
     // pathLength="1000" normalises every rect's perimeter to 1000 SVG units
     // so the CSS keyframe values (0 → -1000) work for any button size.
-    // Layers (back → front, all animated):
-    //   rTail — 24% dash, 12% opacity, sw=2    → long, very faint trail
-    //   rMid  — 10% dash, 35% opacity, sw=2.5  → mid-body
-    //   rBody —  4.5% dash, 65% opacity, sw=2.5 → bright body, rounded caps
-    //   rHead —  1.5% dash, 100% opacity, sw=3.5 → glowing leading point
-    // Combined opacity staircase (Porter-Duff source-over):
-    //   head zone ≈ 100%  →  body zone ≈ 80%  →  mid zone ≈ 43%  →  tail 12%
-    // No static ghost outline — cleaner look on the button border.
+    // Comet layers (back → front, all animated, gap = 1000 − dash):
+    //   rGhost —  350/650   8% opacity, sw=1.5 butt  → last whisper of the tail
+    //   rTail  —  180/820  25% opacity, sw=2   butt  → long fading comet trail
+    //   rBody  —   30/970  70% opacity, sw=3   round → bright core behind nucleus
+    //   rHead  —    8/992 100% opacity, sw=4   round → bright comet nucleus
+    // Combined Porter-Duff source-over opacity staircase:
+    //   head ≈ 100%  →  body ≈ 79%  →  tail ≈ 31%  →  ghost 8%
     function mkRect(opacity, sw, dashArray, rounded) {
       var r = document.createElementNS(NS, 'rect');
       r.setAttribute('fill',             'none');
@@ -154,13 +153,13 @@
       return r;
     }
 
-    var rTail = mkRect(0.12, 2,   '240 760', false);
-    var rMid  = mkRect(0.35, 2.5, '100 900', false);
-    var rBody = mkRect(0.65, 2.5, '45 955',  true);
-    var rHead = mkRect(1.00, 3.5, '15 985',  true);
+    var rGhost = mkRect(0.08, 1.5, '350 650', false);
+    var rTail  = mkRect(0.25, 2,   '180 820', false);
+    var rBody  = mkRect(0.70, 3,   '30 970',  true);
+    var rHead  = mkRect(1.00, 4,   '8 992',   true);
 
+    svg.appendChild(rGhost);
     svg.appendChild(rTail);
-    svg.appendChild(rMid);
     svg.appendChild(rBody);
     svg.appendChild(rHead);
     btnEl.appendChild(svg);
@@ -169,20 +168,22 @@
     // SVG is positioned with inset:-2px so its origin aligns with the outer
     // border edge of the button. viewBox uses offsetWidth/Height (border-box).
     // Rect starts at x=2,y=2 so the stroke straddles the button border line.
-    var rects = [rTail, rMid, rBody, rHead];
+    // rx is read from computed style so it matches the button's actual border-radius.
+    var rects = [rGhost, rTail, rBody, rHead];
     var ro = new ResizeObserver(function() {
       var w = btnEl.offsetWidth;
       var h = btnEl.offsetHeight;
       if (!w || !h) return;
       ro.disconnect();
+      var rx = parseFloat(getComputedStyle(btnEl).borderRadius) || 14;
       svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
       rects.forEach(function(r) {
         r.setAttribute('x',      '2');
         r.setAttribute('y',      '2');
         r.setAttribute('width',  String(w - 2));
         r.setAttribute('height', String(h - 2));
-        r.setAttribute('rx',     '12');
-        r.setAttribute('ry',     '12');
+        r.setAttribute('rx',     String(rx));
+        r.setAttribute('ry',     String(rx));
       });
     });
     ro.observe(btnEl);
