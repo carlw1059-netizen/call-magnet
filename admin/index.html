@@ -164,7 +164,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // ─────────────────────────────────────────────────────────────────────────
 const TOOLS = [
   { id: 'onboard', label: 'Onboard new client', icon: '👤', url: '/admin/onboard.html' },
-  { id: 'clients', label: 'Manage clients',    icon: '📋', url: '/admin/clients.html' },
   // { id: 'audit',   label: 'Audit logs',      icon: '🔍', url: '/admin/audit.html'   },
 ];
 
@@ -185,7 +184,8 @@ function renderSidebar(activeId) {
       `<span class="ic">${t.icon}</span><span class="lbl">${t.label}</span>` +
     `</div>`
   ).join('');
-  nav.innerHTML = label + items;
+  const clientsLink = '<a href="/admin/clients.html" class="nav-item" style="text-decoration:none;"><span class="ic">📋</span><span class="lbl">Manage clients</span></a>';
+  nav.innerHTML = label + items + clientsLink;
   nav.querySelectorAll('.nav-item').forEach((el) => {
     el.addEventListener('click', () => selectTool(el.dataset.id));
     el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectTool(el.dataset.id); } });
