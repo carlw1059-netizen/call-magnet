@@ -1132,7 +1132,7 @@ function closeAdminPanel() {
 }
 
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') { closeToolPanel(); closeAdminPanel(); closeMmPanel(); }
+  if (e.key === 'Escape') { closeAdminPanel(); closeMmPanel(); }
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1564,54 +1564,6 @@ async function sendTestNotification() {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// TOOL PANELS — admin slide-out panels for each tool
-// ═══════════════════════════════════════════════════════════════════════════
-
-let _activeToolPanelId = null;
-
-function openToolPanel(panelId, iframeId, iframeSrc) {
-  // Close any existing tool panel first, close FAB admin panel
-  closeAdminPanel();
-  if (_activeToolPanelId && _activeToolPanelId !== panelId) {
-    const prev = document.getElementById(_activeToolPanelId);
-    if (prev) prev.classList.remove('open');
-  }
-  const overlay = document.getElementById('toolPanelOverlay');
-  const panel   = document.getElementById(panelId);
-  if (!overlay || !panel) return;
-
-  // Lazy-load iframe src on first open
-  if (iframeId && iframeSrc) {
-    const frame = document.getElementById(iframeId);
-    if (frame && !frame.src.endsWith(iframeSrc.split('?')[0]) && frame.src !== location.origin + iframeSrc) {
-      frame.src = iframeSrc;
-    }
-  }
-
-  _activeToolPanelId = panelId;
-  overlay.classList.add('open');
-  panel.classList.add('open');
-  document.body.classList.add('panel-open');
-}
-
-function closeToolPanel() {
-  const overlay = document.getElementById('toolPanelOverlay');
-  if (overlay) overlay.classList.remove('open');
-  if (_activeToolPanelId) {
-    const panel = document.getElementById(_activeToolPanelId);
-    if (panel) panel.classList.remove('open');
-    _activeToolPanelId = null;
-  }
-  document.body.classList.remove('panel-open');
-}
-
-function openOnboardPanel() {
-  openToolPanel('toolOnboardPanel', 'toolOnboardFrame', '/admin/onboard.html');
-}
-function openCancelPanel() {
-  openToolPanel('toolCancelPanel', 'toolCancelFrame', '/cancel.html');
-}
 // ─── Middle Man Manager — _escMgr kept for buildMmCard (customer requests viewer) ──
 
 function _escMgr(s) {
