@@ -70,6 +70,7 @@ html, body {
 .mma-section {
   background: #FFFFFF;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 0 rgba(6,214,160,0.4);
+  border: 1px solid #000000;
   border-radius: 10px;
   margin-bottom: 18px;
   padding: 20px;
@@ -87,6 +88,7 @@ html, body {
 .mma-client-card {
   background: #FFFFFF;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 0 rgba(6,214,160,0.4);
+  border: 1px solid #000000;
   border-radius: 10px;
   margin-bottom: 14px;
   padding: 16px 20px;
