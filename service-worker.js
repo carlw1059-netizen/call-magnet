@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
 // Last bumped: 16 May 2026 — email+password login replaces magic-link; must_change_password first-login flow
-const CACHE_VERSION = 'callmagnet-v51-caller-page-sw-bypass-2026-05-29';
+const CACHE_VERSION = 'callmagnet-v52-caller-page-sw-bypass-2026-06-04';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
