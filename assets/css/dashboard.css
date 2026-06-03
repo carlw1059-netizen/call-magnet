@@ -972,7 +972,8 @@ body.panel-open .main { pointer-events: none; }
   border-left: 1.5px solid #06D6A0;
   box-shadow: -4px 0 24px rgba(6,214,160,0.25);
   transform: translateX(100%);
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, visibility 0s ease 0.3s;
+  visibility: hidden;
   display: flex; flex-direction: column;
   overflow: hidden;
   touch-action: pan-y;
@@ -980,7 +981,7 @@ body.panel-open .main { pointer-events: none; }
   /* -webkit-overflow-scrolling removed: overflow:hidden here makes it dead code */
 }
 @media (min-width: 601px) { .mm-panel { width: 95%; } }
-.mm-panel.open { transform: translateX(0); }
+.mm-panel.open { transform: translateX(0); visibility: visible; transition: transform 0.3s ease, visibility 0s ease 0s; }
 
 /* ── Panel header (sticky) ── */
 .mm-panel-header {
