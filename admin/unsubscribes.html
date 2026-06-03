@@ -3,52 +3,54 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0E1419">
+<meta name="theme-color" content="#F5F5F5">
 <title>CallMagnet — Unsubscribes</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { background: #0E1419; min-height: 100vh; overscroll-behavior: none; }
+  html, body { background: #F5F5F5; min-height: 100vh; overscroll-behavior: none; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    color: rgba(255,255,255,0.92);
+    color: #000000;
     -webkit-font-smoothing: antialiased;
-    padding: 1.5rem 1rem 5rem;
+    padding: 0;
   }
   :root {
-    --bg:            #0E1419;
-    --accent:        #06D6A0;
-    --accent-glow:   rgba(6, 214, 160, 0.18);
-    --accent-border: rgba(6, 214, 160, 0.25);
-    --accent-soft:   rgba(6, 214, 160, 0.08);
-    --red:           #CC5500;
-    --red-glow:      rgba(204, 85, 0, 0.18);
-    --red-border:    rgba(204, 85, 0, 0.4);
-    --text:          rgba(255,255,255,0.92);
-    --muted:         rgba(255,255,255,0.55);
-    --glass:         rgba(255,255,255,0.04);
+    --bg:            #F5F5F5;
+    --accent:        #10b981;
+    --accent-glow:   rgba(16, 185, 129, 0.18);
+    --accent-border: rgba(16, 185, 129, 0.4);
+    --accent-soft:   rgba(16, 185, 129, 0.08);
+    --red:           #CC0000;
+    --red-glow:      rgba(204, 0, 0, 0.08);
+    --red-border:    rgba(204, 0, 0, 0.4);
+    --text:          #000000;
+    --muted:         #555555;
+    --glass:         #FFFFFF;
   }
-  .wrap { max-width: 780px; margin: 0 auto; }
-
-  /* ── Topbar ──────────────────────────────────────────────────────────── */
-  .topbar {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 0.5rem 0 1.5rem;
+  .mma-header {
+    background: #FFFFFF;
+    border-bottom: 2px solid rgba(16,185,129,0.35);
+    padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 0 rgba(16,185,129,0.4);
   }
-  .logo { font-weight: 700; font-size: 16px; letter-spacing: 0.06em; color: var(--accent); text-transform: uppercase; }
-  .logo .star { display: inline-block; margin-right: 4px; }
-  .nav-links { display: flex; gap: 8px; }
-  .nav-btn {
-    background: transparent; border: 1px solid var(--accent-border); color: var(--accent);
-    padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;
-    font-family: inherit; letter-spacing: 0.04em; text-decoration: none; display: inline-block;
+  .mma-header-title {
+    font-size: 20px; font-weight: 700; color: #111111; letter-spacing: -0.01em;
   }
-  .nav-btn:hover { background: var(--accent-soft); }
+  .mma-back-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #CC0000; color: #FFFFFF; border: none; border-radius: 8px;
+    padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  .mma-back-btn:hover { background: #AA0000; }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 1.5rem 1rem 5rem; }
 
   /* ── Gate states ─────────────────────────────────────────────────────── */
   .gate-state { text-align: center; padding: 3rem 1rem; display: none; }
   .gate-state.visible { display: block; }
-  .gate-state h2 { font-size: 18px; color: var(--text); margin-bottom: 0.5rem; }
-  .gate-state p  { font-size: 14px; color: var(--muted); }
+  .gate-state h2 { font-size: 18px; color: #000000; margin-bottom: 0.5rem; }
+  .gate-state p  { font-size: 14px; color: #555555; }
   .spinner {
     display: inline-block; width: 32px; height: 32px;
     border: 3px solid var(--accent-border); border-top-color: var(--accent);
@@ -57,13 +59,13 @@
   @keyframes spin { to { transform: rotate(360deg); } }
 
   /* ── Page header ─────────────────────────────────────────────────────── */
-  .page-title    { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 0.3rem; }
-  .page-subtitle { font-size: 13px; color: var(--muted); margin-bottom: 1.5rem; }
+  .page-title    { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 0.3rem; color: #000000; }
+  .page-subtitle { font-size: 13px; color: #555555; margin-bottom: 1.5rem; }
 
   /* ── Global error ────────────────────────────────────────────────────── */
   .page-error {
-    font-size: 13px; color: var(--red); background: var(--red-glow);
-    border: 1px solid var(--red-border); border-radius: 8px;
+    font-size: 13px; color: #CC0000; background: rgba(204,0,0,0.06);
+    border: 1px solid rgba(204,0,0,0.3); border-radius: 8px;
     padding: 10px 12px; margin-bottom: 1.25rem; display: none;
   }
   .page-error.visible { display: block; }
@@ -71,7 +73,7 @@
   /* ── Section label ───────────────────────────────────────────────────── */
   .section-label {
     font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--accent); margin-bottom: 10px; display: block;
+    color: #10b981; margin-bottom: 10px; display: block;
   }
 
   /* ── Stat tiles ──────────────────────────────────────────────────────── */
@@ -81,21 +83,21 @@
   }
   @media (min-width: 500px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
   .stat-tile {
-    background: var(--glass); border: 1px solid var(--accent-border); border-radius: 12px;
+    background: #FFFFFF; border: 1px solid #000000; border-radius: 10px;
     padding: 14px 14px 12px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.25), 0 0 16px var(--accent-glow);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 0 rgba(6,214,160,0.4);
   }
   .stat-value {
-    font-size: 26px; font-weight: 700; color: var(--accent); line-height: 1;
+    font-size: 26px; font-weight: 700; color: #10b981; line-height: 1;
     margin-bottom: 5px; font-variant-numeric: tabular-nums;
   }
-  .stat-label { font-size: 11px; color: var(--muted); line-height: 1.3; }
+  .stat-label { font-size: 11px; color: #000000; line-height: 1.3; }
 
   /* ── Section card ────────────────────────────────────────────────────── */
   .section-card {
-    background: var(--glass); border: 1px solid var(--accent-border); border-radius: 14px;
+    background: #FFFFFF; border: 1px solid #000000; border-radius: 10px;
     padding: 1.25rem 1.25rem 1rem;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 24px var(--accent-glow);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 0 rgba(6,214,160,0.4);
     margin-bottom: 1.25rem;
     overflow: hidden;
   }
@@ -108,83 +110,80 @@
   }
   thead th {
     text-align: left; font-size: 10px; font-weight: 700;
-    letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
+    letter-spacing: 0.1em; text-transform: uppercase; color: #10b981;
     padding: 0 10px 8px; white-space: nowrap;
   }
   thead th:first-child { padding-left: 0; }
   thead th:last-child  { padding-right: 0; text-align: right; }
-  tbody tr { border-top: 1px solid rgba(255,255,255,0.05); }
-  tbody tr:hover { background: rgba(255,255,255,0.025); }
+  tbody tr { border-top: 1px solid #E0E0E0; }
+  tbody tr:hover { background: rgba(0,0,0,0.025); }
   tbody td {
-    padding: 10px 10px; color: var(--text); vertical-align: middle;
+    padding: 10px 10px; color: #000000; vertical-align: middle;
     white-space: nowrap;
   }
   tbody td:first-child { padding-left: 0; }
   tbody td:last-child  { padding-right: 0; text-align: right; }
   .td-biz { font-weight: 600; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
   .td-num { font-variant-numeric: tabular-nums; text-align: right; }
-  .td-muted { color: var(--muted); }
+  .td-muted { color: #555555; }
   .td-phone { font-family: ui-monospace, 'Cascadia Code', monospace; font-size: 12px; }
-  .td-forever { color: var(--red); }
-  .td-until   { color: var(--accent); }
+  .td-forever { color: #CC0000; }
+  .td-until   { color: #10b981; }
 
   /* ── Search bar ──────────────────────────────────────────────────────── */
   .search-row { margin-bottom: 10px; }
   .search-input {
     width: 100%; padding: 8px 12px; font-size: 13px; font-family: inherit;
-    background: rgba(0,0,0,0.3); color: var(--text);
-    border: 1px solid var(--accent-border); border-radius: 8px;
+    background: #FFFFFF; color: #000000;
+    border: 1px solid #CCCCCC; border-radius: 8px;
     outline: none; transition: border-color 0.15s, box-shadow 0.15s;
   }
-  .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-  .search-input::placeholder { color: var(--muted); }
+  .search-input:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.12); }
+  .search-input::placeholder { color: #AAAAAA; }
 
   /* ── Remove button ───────────────────────────────────────────────────── */
   .remove-btn {
     padding: 5px 10px; font-size: 11px; font-weight: 600;
-    background: transparent; color: var(--red);
-    border: 1px solid var(--red-border); border-radius: 6px;
+    background: transparent; color: #CC0000;
+    border: 1px solid rgba(204,0,0,0.4); border-radius: 6px;
     cursor: pointer; font-family: inherit; transition: background 0.12s;
     white-space: nowrap;
   }
-  .remove-btn:hover:not(:disabled) { background: var(--red-glow); }
+  .remove-btn:hover:not(:disabled) { background: rgba(204,0,0,0.06); }
   .remove-btn:disabled { opacity: 0.4; cursor: wait; }
 
   /* ── Empty state ─────────────────────────────────────────────────────── */
   .empty-row td {
-    text-align: center; color: var(--muted); padding: 1.5rem 0; font-size: 13px;
+    text-align: center; color: #555555; padding: 1.5rem 0; font-size: 13px;
     font-style: italic;
   }
 
   /* ── Skeleton ────────────────────────────────────────────────────────── */
-  @keyframes pulse { 0%,100% { opacity: 0.35; } 50% { opacity: 0.7; } }
+  @keyframes pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 0.8; } }
   .skeleton-block {
-    background: rgba(255,255,255,0.07); border-radius: 4px;
+    background: #E0E0E0; border-radius: 4px;
     animation: pulse 1.4s ease-in-out infinite;
   }
   .skeleton-stats {
     display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 1.75rem;
   }
   @media (min-width: 500px) { .skeleton-stats { grid-template-columns: repeat(4, 1fr); } }
-  .skeleton-tile { height: 72px; border-radius: 12px; }
+  .skeleton-tile { height: 72px; border-radius: 10px; }
   .skeleton-card-wrap {
-    background: var(--glass); border: 1px solid var(--accent-border); border-radius: 14px;
+    background: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 10px;
     padding: 1.25rem; margin-bottom: 1.25rem; animation: pulse 1.4s ease-in-out infinite;
   }
-  .skel-line { background: rgba(255,255,255,0.08); border-radius: 4px; margin-bottom: 10px; height: 14px; }
+  .skel-line { background: #E8E8E8; border-radius: 4px; margin-bottom: 10px; height: 14px; }
   .skel-sm   { width: 55%; }
 </style>
 </head>
 <body>
 
+<header class="mma-header">
+  <span class="mma-header-title">Unsubscribes</span>
+  <button class="mma-back-btn" onclick="window.location.href='/'">← Dashboard</button>
+</header>
 <div class="wrap">
-  <div class="topbar">
-    <div class="logo"><span class="star">★</span>CallMagnet — Admin</div>
-    <div class="nav-links">
-      <a href="/admin/clients.html" class="nav-btn">Clients</a>
-      <button class="nav-btn" id="signoutBtn" style="display:none" onclick="handleSignout()">Sign out</button>
-    </div>
-  </div>
 
   <!-- Gate states -->
   <div class="gate-state visible" id="gateLoading">
@@ -615,13 +614,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const adminEmail = (session.user?.email || '').toLowerCase();
   if (!isAdmin || adminEmail !== 'car312@hotmail.com') {
     showGate('gateForbidden');
-    document.getElementById('signoutBtn').style.display = 'block';
+    // signout button removed from this page
     return;
   }
 
   showGate(null);
   window.refreshAdminFab(session);
-  document.getElementById('signoutBtn').style.display = 'block';
+  // signout button removed from this page
   document.getElementById('mainContent').style.display = 'block';
 
   try {
