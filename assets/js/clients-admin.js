@@ -329,7 +329,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   var sess = sessionResult.data && sessionResult.data.session;
 
   if (!sess) {
-    window.location.href = '/admin/';
+    window.location.href = '/';
     return;
   }
 
@@ -337,7 +337,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   var email   = ((sess.user && sess.user.email) || '').toLowerCase();
 
   if (!isAdmin || email !== CA_REAL_ADMIN_EMAIL) {
-    window.location.href = '/admin/';
+    window.location.href = '/';
     return;
   }
 
@@ -347,7 +347,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   // Wire back button
   var backBtn = document.getElementById('caBackBtn');
-  if (backBtn) backBtn.addEventListener('click', function() { window.location.href = '/admin/'; });
+  if (backBtn) backBtn.addEventListener('click', function() { window.location.href = '/'; });
 
   // Wire search
   var searchEl = document.getElementById('caSearch');
