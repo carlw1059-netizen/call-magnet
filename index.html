@@ -170,7 +170,7 @@
   <!-- Admin sidebar — desktop only, visible when _isAdminCached === true -->
   <aside id="adminSidebar" class="dash-admin-sidebar" aria-label="Admin tools">
     <button class="dash-admin-sidebar-link" onclick="openOnboardPanel()">Onboard new client</button>
-    <button class="dash-admin-sidebar-link" onclick="openClientsPanel()">Manage clients</button>
+    <a href="/admin/clients.html" class="dash-admin-sidebar-link">Manage clients</a>
     <a href="/admin/middle-man.html" class="dash-admin-sidebar-link desktop-only-nav">Middle Man</a>
     <a href="/admin/unsubscribes.html" class="dash-admin-sidebar-link">Unsubscribes</a>
     <button class="dash-admin-sidebar-link cancel-link" onclick="openCancelPanel()">Cancel subscription</button>
@@ -316,7 +316,7 @@
       <div class="admin-panel-section">
         <div class="admin-panel-section-label">Clients</div>
         <button class="admin-panel-link" onclick="openOnboardPanel()">Onboard new client</button>
-        <button class="admin-panel-link" onclick="openClientsPanel()">Manage clients</button>
+        <a href="/admin/clients.html" class="admin-panel-link">Manage clients</a>
         <a href="/admin/middle-man.html" class="admin-panel-link desktop-only-nav">Middle Man</a>
         <a href="/admin/unsubscribes.html" class="admin-panel-link">Unsubscribes</a>
       </div>
@@ -359,16 +359,6 @@
     </div>
   </div>
 
-  <!-- Manage clients — iframe panel -->
-  <div class="tool-panel" id="toolClientsPanel" role="dialog" aria-modal="true" aria-label="Manage clients">
-    <div class="tool-panel-header">
-      <span class="tool-panel-title">Manage Clients</span>
-      <button class="tool-panel-close" onclick="closeToolPanel()" aria-label="Close">✕</button>
-    </div>
-    <div class="tool-panel-iframe-body">
-      <iframe class="tool-panel-iframe" id="toolClientsFrame" src="" title="Manage clients" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
-    </div>
-  </div>
 
   <!-- Cancel subscription — iframe panel -->
   <div class="tool-panel" id="toolCancelPanel" role="dialog" aria-modal="true" aria-label="Cancel subscription">
