@@ -203,9 +203,6 @@ async function handleSignout() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  window.location.href = '/';
-  return;
-
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
       persistSession: true,
