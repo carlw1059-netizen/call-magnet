@@ -169,11 +169,11 @@
 
   <!-- Admin sidebar — desktop only, visible when _isAdminCached === true -->
   <aside id="adminSidebar" class="dash-admin-sidebar" aria-label="Admin tools">
-    <button class="dash-admin-sidebar-link" onclick="openOnboardPanel()">Onboard new client</button>
+    <a href="/admin/onboard.html" class="dash-admin-sidebar-link">Onboard new client</a>
     <a href="/admin/clients.html" class="dash-admin-sidebar-link">Manage clients</a>
     <a href="/admin/middle-man.html" class="dash-admin-sidebar-link desktop-only-nav">Middle Man</a>
     <a href="/admin/unsubscribes.html" class="dash-admin-sidebar-link">Unsubscribes</a>
-    <button class="dash-admin-sidebar-link cancel-link" onclick="openCancelPanel()">Cancel subscription</button>
+    <a href="/cancel.html" class="dash-admin-sidebar-link cancel-link">Cancel subscription</a>
     <button class="dash-admin-sidebar-link" id="sidebarTestNotifBtn" onclick="sendTestNotification()">Send test notification</button>
   </aside>
 
@@ -315,14 +315,14 @@
     <div class="admin-panel-body">
       <div class="admin-panel-section">
         <div class="admin-panel-section-label">Clients</div>
-        <button class="admin-panel-link" onclick="openOnboardPanel()">Onboard new client</button>
+        <a href="/admin/onboard.html" class="admin-panel-link">Onboard new client</a>
         <a href="/admin/clients.html" class="admin-panel-link">Manage clients</a>
         <a href="/admin/middle-man.html" class="admin-panel-link desktop-only-nav">Middle Man</a>
         <a href="/admin/unsubscribes.html" class="admin-panel-link">Unsubscribes</a>
       </div>
       <div class="admin-panel-section">
         <div class="admin-panel-section-label">Subscription</div>
-        <button class="admin-panel-link destructive" onclick="openCancelPanel()">Cancel subscription</button>
+        <a href="/cancel.html" class="admin-panel-link destructive">Cancel subscription</a>
       </div>
       <div class="admin-panel-section admin-panel-testing">
         <div class="admin-panel-section-label">Testing</div>
@@ -342,34 +342,6 @@
     <div class="mm-panel-body" id="mmPanelBody"></div>
   </div>
 
-
-  <!-- ═══ TOOL PANELS — admin tools slide-out panels ═══════════════════ -->
-
-  <!-- Shared overlay for all level-1 tool panels -->
-  <div class="tool-panel-overlay" id="toolPanelOverlay" onclick="closeToolPanel()" aria-hidden="true"></div>
-
-  <!-- Onboard new client — iframe panel -->
-  <div class="tool-panel" id="toolOnboardPanel" role="dialog" aria-modal="true" aria-label="Onboard new client">
-    <div class="tool-panel-header">
-      <span class="tool-panel-title">Onboard New Client</span>
-      <button class="tool-panel-close" onclick="closeToolPanel()" aria-label="Close">✕</button>
-    </div>
-    <div class="tool-panel-iframe-body">
-      <iframe class="tool-panel-iframe" id="toolOnboardFrame" src="" title="Onboard new client" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
-    </div>
-  </div>
-
-
-  <!-- Cancel subscription — iframe panel -->
-  <div class="tool-panel" id="toolCancelPanel" role="dialog" aria-modal="true" aria-label="Cancel subscription">
-    <div class="tool-panel-header">
-      <span class="tool-panel-title" style="color:#CC5500;">Cancel Subscription</span>
-      <button class="tool-panel-close" onclick="closeToolPanel()" aria-label="Close">✕</button>
-    </div>
-    <div class="tool-panel-iframe-body">
-      <iframe class="tool-panel-iframe" id="toolCancelFrame" src="" title="Cancel subscription" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
-    </div>
-  </div>
 
   <div class="dash-footer">
     <a href="/legal.html" target="_blank">Terms of Service</a>
