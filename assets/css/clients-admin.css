@@ -240,12 +240,12 @@ html, body {
   text-align: center;
   padding: 3rem 1rem;
   font-size: 15px;
-  color: #888888;
+  color: #111111;
   grid-column: 1 / -1;
 }
 .ca-empty-title {
   font-size: 18px;
   font-weight: 600;
-  color: #444444;
+  color: #111111;
   margin-bottom: 6px;
 }
