@@ -3,28 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0E1419">
+<meta name="theme-color" content="#F5F5F5">
 <title>CallMagnet — New Client Onboarding</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { background: #0E1419; min-height: 100vh; overscroll-behavior: none; }
+  html, body { background: #F5F5F5; min-height: 100vh; overscroll-behavior: none; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    color: rgba(255,255,255,0.92);
+    font-family: 'Aptos', 'Candara', 'Segoe UI', Arial, sans-serif;
+    color: #111111;
     -webkit-font-smoothing: antialiased;
     padding: 1.5rem 1rem 4rem;
   }
   :root {
-    --bg: #0E1419;
+    --bg: #F5F5F5;
     --accent: #06D6A0;
     --accent-glow: rgba(6, 214, 160, 0.18);
-    --accent-border: rgba(6, 214, 160, 0.25);
+    --accent-border: rgba(6, 214, 160, 0.4);
     --accent-soft: rgba(6, 214, 160, 0.08);
-    --red: #CC5500;
-    --red-glow: rgba(204, 85, 0, 0.18);
-    --text: rgba(255,255,255,0.92);
-    --muted: rgba(255,255,255,0.55);
-    --glass: rgba(255,255,255,0.04);
+    --red: #CC0000;
+    --red-glow: rgba(204, 0, 0, 0.08);
+    --text: #111111;
+    --muted: #111111;
+    --glass: #FFFFFF;
   }
   .wrap { max-width: 520px; margin: 0 auto; }
   .topbar {
@@ -32,32 +32,29 @@
     padding: 0.5rem 0 1.5rem;
   }
   .logo {
-    font-weight: 700; font-size: 16px; letter-spacing: 0.06em; color: var(--accent);
+    font-weight: 700; font-size: 16px; letter-spacing: 0.06em; color: #06D6A0;
     text-transform: uppercase;
   }
   .logo .star { display: inline-block; margin-right: 4px; }
   .signout {
-    background: transparent; border: 1px solid var(--accent-border); color: var(--accent);
-    padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;
+    background: transparent; border: 1px solid rgba(6,214,160,0.4); color: #06D6A0;
+    padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer;
     font-family: inherit; letter-spacing: 0.04em;
   }
-  .signout:hover { background: var(--accent-soft); }
+  .signout:hover { background: rgba(6,214,160,0.08); }
   .card {
-    background: var(--glass);
-    border: 1px solid var(--accent-border);
-    border-radius: 16px;
-    padding: 1.75rem 1.5rem;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.35), 0 0 32px var(--accent-glow);
-    margin-bottom: 1rem;
+    background: #FFFFFF;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 0 rgba(6,214,160,0.4);
+    padding: 20px;
+    margin-bottom: 18px;
   }
   h1 {
-    font-size: 22px; font-weight: 600; color: var(--text);
-    letter-spacing: -0.01em; margin-bottom: 0.4rem;
+    font-size: 20px; font-weight: 700; color: #06D6A0;
+    letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.4rem;
   }
   .subtitle {
-    font-size: 13px; color: var(--muted); margin-bottom: 1.25rem;
+    font-size: 14px; color: #111111; margin-bottom: 1.25rem;
   }
   .field { margin-bottom: 1rem; }
   .field label {
@@ -66,14 +63,14 @@
   }
   .field label .opt { color: var(--muted); font-weight: 500; text-transform: none; letter-spacing: 0; }
   .field input, .field select {
-    width: 100%; padding: 11px 12px; font-size: 15px; font-family: inherit;
-    background: rgba(0,0,0,0.3); color: var(--text);
-    border: 1px solid var(--accent-border); border-radius: 8px;
+    width: 100%; padding: 9px 12px; font-size: 16px; font-family: inherit;
+    background: #F8F8F8; color: #111111;
+    border: 1px solid #000000; border-radius: 7px;
     outline: none; transition: border-color 0.15s, box-shadow 0.15s;
     -webkit-appearance: none; -moz-appearance: none; appearance: none;
   }
   .field input:focus, .field select:focus {
-    border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+    border-color: #06D6A0; box-shadow: 0 0 0 2px rgba(6,214,160,0.15);
   }
   .field select {
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2306D6A0' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e");
@@ -81,7 +78,7 @@
     padding-right: 36px;
   }
   .field .hint {
-    font-size: 11px; color: var(--muted); margin-top: 4px; font-style: italic;
+    font-size: 13px; color: #111111; margin-top: 4px; font-style: italic;
   }
   /* Customer SMS field */
   .sms-section { margin: 1.25rem 0 0.75rem; }
@@ -92,45 +89,45 @@
   .sms-section .field label .counter.warn { color: #FFC56A; }
   .sms-section .field label .counter.over { color: var(--red); }
   .sms-textarea {
-    width: 100%; padding: 11px 12px; font-size: 14px; font-family: inherit;
-    background: rgba(0,0,0,0.3); color: var(--text);
-    border: 1px solid var(--accent-border); border-radius: 8px 8px 0 0;
+    width: 100%; padding: 9px 12px; font-size: 16px; font-family: inherit;
+    background: #F8F8F8; color: #111111;
+    border: 1px solid #000000; border-radius: 7px 7px 0 0;
     outline: none; transition: border-color 0.15s, box-shadow 0.15s;
     line-height: 1.4; resize: vertical; min-height: 78px;
     border-bottom: none;
   }
   .sms-textarea:focus {
-    border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+    border-color: #06D6A0; box-shadow: 0 0 0 2px rgba(6,214,160,0.15);
   }
   .sms-tail {
-    background: rgba(0,0,0,0.3); color: rgba(255,255,255,0.45);
-    border: 1px solid var(--accent-border); border-top: 1px dashed rgba(255,255,255,0.12);
-    border-radius: 0 0 8px 8px; padding: 9px 12px; font-size: 14px;
+    background: #F0F0F0; color: #555555;
+    border: 1px solid #000000; border-top: 1px dashed #CCCCCC;
+    border-radius: 0 0 7px 7px; padding: 9px 12px; font-size: 14px;
     user-select: none; cursor: default;
   }
-  .sms-tail::before { content: 'appended → '; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.28); margin-right: 2px; }
+  .sms-tail::before { content: 'appended → '; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #888888; margin-right: 2px; }
   .sms-examples { margin-top: 10px; }
   .sms-examples-label {
-    font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--muted); margin-bottom: 6px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: #111111; margin-bottom: 6px;
   }
   .sms-example-btn {
     display: block; width: 100%; text-align: left;
-    background: transparent; border: 1px solid rgba(6,214,160,0.15);
+    background: #F8F8F8; border: 1px solid #E0E0E0;
     border-radius: 6px; padding: 7px 10px; margin-bottom: 5px;
-    color: var(--text); font-size: 12px; font-family: inherit;
+    color: #111111; font-size: 13px; font-family: inherit;
     cursor: pointer; line-height: 1.3;
     transition: border-color 0.15s, background 0.15s;
   }
-  .sms-example-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .sms-example-btn:hover { border-color: #06D6A0; background: rgba(6,214,160,0.06); }
   .toggle-row {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.06);
+    padding: 12px 0; border-top: 1px solid #E0E0E0;
     margin-top: 4px;
   }
-  .toggle-label { font-size: 14px; color: var(--text); }
+  .toggle-label { font-size: 14px; color: #111111; }
   .toggle-switch {
-    position: relative; width: 44px; height: 26px; background: rgba(255,255,255,0.1);
+    position: relative; width: 44px; height: 26px; background: #CCCCCC;
     border-radius: 13px; cursor: pointer; transition: background 0.2s;
     flex-shrink: 0;
   }
@@ -142,19 +139,19 @@
   }
   .toggle-switch.on::after { left: 21px; }
   .submit {
-    width: 100%; padding: 14px; font-size: 15px; font-weight: 700;
-    background: var(--accent); color: #0a1110; border: none; border-radius: 10px;
+    width: 100%; padding: 12px; font-size: 15px; font-weight: 700;
+    background: #111111; color: #FFFFFF; border: none; border-radius: 8px;
     cursor: pointer; font-family: inherit; letter-spacing: 0.02em;
-    margin-top: 0.5rem; box-shadow: 0 0 16px var(--accent-glow);
-    transition: transform 0.08s, box-shadow 0.15s;
+    margin-top: 0.5rem;
+    transition: background 0.12s, transform 0.08s;
   }
-  .submit:hover:not(:disabled) { box-shadow: 0 0 24px var(--accent-glow); }
+  .submit:hover:not(:disabled) { background: #333333; }
   .submit:active:not(:disabled) { transform: scale(0.98); }
-  .submit:disabled { opacity: 0.55; cursor: wait; }
+  .submit:disabled { opacity: 0.45; cursor: wait; }
   .error {
-    color: var(--red); background: var(--red-glow);
-    border: 1px solid rgba(204,85,0,0.4); border-radius: 8px;
-    padding: 10px 12px; font-size: 13px; margin-bottom: 1rem;
+    color: #CC0000; background: rgba(204,0,0,0.06);
+    border: 1px solid rgba(204,0,0,0.3); border-radius: 8px;
+    padding: 10px 12px; font-size: 14px; margin-bottom: 1rem;
     display: none;
   }
   .error.visible { display: block; }
@@ -169,32 +166,32 @@
   }
   .success-card h2 { font-size: 20px; font-weight: 600; margin-bottom: 1.25rem; color: var(--text); }
   .url-box {
-    background: rgba(0,0,0,0.4); border: 1px solid var(--accent-border);
-    border-radius: 8px; padding: 12px 14px; font-family: 'SF Mono', Menlo, monospace;
-    font-size: 12px; color: var(--accent); word-break: break-all;
+    background: #F8F8F8; border: 1px solid #000000;
+    border-radius: 7px; padding: 12px 14px; font-family: 'SF Mono', Menlo, monospace;
+    font-size: 13px; color: #06A07A; word-break: break-all;
     text-align: left; margin-bottom: 0.75rem;
   }
   .copy-btn {
-    background: transparent; border: 1px solid var(--accent); color: var(--accent);
-    padding: 8px 16px; border-radius: 8px; font-size: 13px; cursor: pointer;
+    background: transparent; border: 1px solid #06D6A0; color: #06D6A0;
+    padding: 8px 16px; border-radius: 7px; font-size: 14px; cursor: pointer;
     font-family: inherit; margin-bottom: 1rem;
   }
-  .copy-btn:hover { background: var(--accent-soft); }
-  .copy-btn.copied { background: var(--accent); color: #0a1110; }
-  .sms-status { font-size: 13px; padding: 10px 12px; border-radius: 8px; margin-bottom: 1rem; }
-  .sms-status.ok { color: var(--accent); background: var(--accent-soft); }
-  .sms-status.fail { color: var(--red); background: var(--red-glow); }
+  .copy-btn:hover { background: rgba(6,214,160,0.08); }
+  .copy-btn.copied { background: #06D6A0; color: #FFFFFF; }
+  .sms-status { font-size: 14px; padding: 10px 12px; border-radius: 7px; margin-bottom: 1rem; }
+  .sms-status.ok { color: #007A5E; background: #D4F7EE; border: 1px solid #06D6A0; }
+  .sms-status.fail { color: #CC0000; background: rgba(204,0,0,0.06); border: 1px solid rgba(204,0,0,0.3); }
   .another-btn {
     width: 100%; padding: 12px; font-size: 14px; font-weight: 600;
-    background: transparent; color: var(--accent); border: 1px solid var(--accent);
-    border-radius: 10px; cursor: pointer; font-family: inherit;
+    background: transparent; color: #06D6A0; border: 1px solid #06D6A0;
+    border-radius: 8px; cursor: pointer; font-family: inherit;
   }
-  .another-btn:hover { background: var(--accent-soft); }
+  .another-btn:hover { background: rgba(6,214,160,0.08); }
   /* Auth-gate states */
   .gate-state { text-align: center; padding: 3rem 1rem; display: none; }
   .gate-state.visible { display: block; }
-  .gate-state h2 { font-size: 18px; color: var(--text); margin-bottom: 0.5rem; }
-  .gate-state p { font-size: 14px; color: var(--muted); }
+  .gate-state h2 { font-size: 18px; color: #111111; margin-bottom: 0.5rem; }
+  .gate-state p { font-size: 14px; color: #111111; }
   .spinner {
     display: inline-block; width: 32px; height: 32px;
     border: 3px solid var(--accent-border); border-top-color: var(--accent);
@@ -206,31 +203,32 @@
   .page-layout { display: flex; min-height: 100vh; }
   .tools-sidebar {
     width: 200px; flex-shrink: 0;
-    background: rgba(255,255,255,0.025);
-    border-right: 1px solid rgba(6,214,160,0.12);
+    background: #FFFFFF;
+    border-right: 1px solid rgba(6,214,160,0.25);
     padding: 1.75rem 0 2rem;
     position: sticky; top: 0; height: 100vh; overflow-y: auto;
     display: flex; flex-direction: column;
+    box-shadow: 2px 0 0 rgba(6,214,160,0.4);
   }
   .tools-sidebar-label {
     font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
-    text-transform: uppercase; color: var(--accent);
+    text-transform: uppercase; color: #06D6A0;
     padding: 0 16px 12px; display: block;
   }
   .tools-sidebar-link {
     display: block; width: 100%; padding: 10px 16px;
-    font-size: 13px; color: rgba(255,255,255,0.65); text-decoration: none;
+    font-size: 14px; color: #111111; text-decoration: none;
     cursor: pointer; background: transparent; border: none; outline: none;
     text-align: left; font-family: inherit; line-height: 1.4;
     transition: background 0.12s, color 0.12s;
     -webkit-appearance: none; appearance: none;
-    border-radius: 0; /* prevent iOS rounding on button elements */
+    border-radius: 0;
   }
-  .tools-sidebar-link:hover { background: rgba(6,214,160,0.07); color: rgba(255,255,255,0.92); }
-  .tools-sidebar-link:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-  .tools-sidebar-link.active { color: var(--accent); background: rgba(6,214,160,0.09); font-weight: 600; }
-  .tools-sidebar-link.cancel-link { color: #CC5500; }
-  .tools-sidebar-link.cancel-link:hover { background: rgba(204,85,0,0.08); color: #CC5500; }
+  .tools-sidebar-link:hover { background: rgba(6,214,160,0.07); color: #000000; }
+  .tools-sidebar-link:focus-visible { outline: 2px solid #06D6A0; outline-offset: -2px; }
+  .tools-sidebar-link.active { color: #06D6A0; background: rgba(6,214,160,0.09); font-weight: 600; }
+  .tools-sidebar-link.cancel-link { color: #CC0000; }
+  .tools-sidebar-link.cancel-link:hover { background: rgba(204,0,0,0.06); color: #CC0000; }
   .tools-main { flex: 1; padding: 1.5rem 1.5rem 4rem; min-width: 0; }
   @media (max-width: 767px) {
     .tools-sidebar { display: none; }
@@ -240,27 +238,27 @@
   /* ── Middle Man section ──────────────────────────────────────────────── */
   .mm-section { margin: 1.25rem 0 0.75rem; }
   .mm-section-label {
-    font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
-    text-transform: uppercase; color: var(--accent); margin-bottom: 10px; display: block;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: #06D6A0; margin-bottom: 10px; display: block;
   }
   /* slug field with inline prefix */
   .slug-wrap {
     display: flex; align-items: stretch;
-    border: 1px solid var(--accent-border); border-radius: 8px; overflow: hidden;
-    background: rgba(0,0,0,0.3);
+    border: 1px solid #000000; border-radius: 7px; overflow: hidden;
+    background: #F8F8F8;
     transition: box-shadow 0.15s, border-color 0.15s;
   }
   .slug-wrap:focus-within {
-    border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+    border-color: #06D6A0; box-shadow: 0 0 0 2px rgba(6,214,160,0.15);
   }
   .slug-prefix {
-    padding: 11px 8px 11px 12px; font-size: 13px;
-    color: rgba(255,255,255,0.35); white-space: nowrap; user-select: none;
+    padding: 9px 8px 9px 12px; font-size: 14px;
+    color: #888888; white-space: nowrap; user-select: none;
     background: transparent; flex-shrink: 0;
   }
   .slug-input {
-    flex: 1; padding: 11px 12px 11px 0; font-size: 15px; font-family: inherit;
-    background: transparent; color: var(--text);
+    flex: 1; padding: 9px 12px 9px 0; font-size: 16px; font-family: inherit;
+    background: transparent; color: #111111;
     border: none; outline: none;
     min-width: 0;
   }
@@ -367,9 +365,9 @@
     <div class="mm-section">
 
       <!-- Live Middle Man URL preview — updates on every business name keypress -->
-      <div id="mmPreviewWrap" style="margin-bottom:0.75rem;padding:10px 12px;background:rgba(6,214,160,0.06);border:1px solid rgba(6,214,160,0.2);border-radius:8px;display:none">
+      <div id="mmPreviewWrap" style="margin-bottom:0.75rem;padding:10px 12px;background:rgba(6,214,160,0.08);border:1px solid rgba(6,214,160,0.35);border-radius:8px;display:none">
         <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent);margin-bottom:4px">Middle Man page will be</div>
-        <div id="mmPreviewUrl" style="font-size:13px;color:rgba(255,255,255,0.85);font-family:'SF Mono',Menlo,monospace;word-break:break-all">callmagnet.com.au/b/…</div>
+        <div id="mmPreviewUrl" style="font-size:13px;color:#06A07A;font-family:'SF Mono',Menlo,monospace;word-break:break-all">callmagnet.com.au/b/…</div>
       </div>
 
       <!-- Middle Man toggle -->
