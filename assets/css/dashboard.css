@@ -831,8 +831,8 @@ body.panel-open .main { pointer-events: none; }
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ── Section wrapper ── */
-.mm-section { display: none; margin-top: 1.25rem; overflow: hidden; }
-.mm-section.visible { display: block; overflow: hidden; }
+.mm-section { display: none; margin-top: 1.25rem; }
+.mm-section.visible { display: block; }
 
 /* ── Tile grid: always 2 equal columns — uniform size across all tiles ── */
 .mm-grid {
@@ -840,7 +840,6 @@ body.panel-open .main { pointer-events: none; }
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin-bottom: 0;
-  padding: 4px;
 }
 
 /* ── Tile — neon colour via --mm-neon (hex) and --mm-neon-rgb (r,g,b) set per-tile by JS ── */
