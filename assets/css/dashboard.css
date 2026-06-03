@@ -832,7 +832,7 @@ body.panel-open .main { pointer-events: none; }
 
 /* ── Section wrapper ── */
 .mm-section { display: none; margin-top: 1.25rem; overflow: hidden; }
-.mm-section.visible { display: block; }
+.mm-section.visible { display: block; overflow: hidden; }
 
 /* ── Tile grid: always 2 equal columns — uniform size across all tiles ── */
 .mm-grid {
