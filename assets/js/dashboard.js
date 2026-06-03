@@ -1609,9 +1609,6 @@ function closeToolPanel() {
 function openOnboardPanel() {
   openToolPanel('toolOnboardPanel', 'toolOnboardFrame', '/admin/onboard.html');
 }
-function openClientsPanel() {
-  openToolPanel('toolClientsPanel', 'toolClientsFrame', '/admin/clients.html');
-}
 function openCancelPanel() {
   openToolPanel('toolCancelPanel', 'toolCancelFrame', '/cancel.html');
 }
