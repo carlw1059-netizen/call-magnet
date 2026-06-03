@@ -122,6 +122,11 @@
 
   // ── 2. Inject HTML into <body> ─────────────────────────────────────────────
   function injectHTML() {
+    // Guard: skip all injection on the onboarding page — it has its own header
+    // and no longer uses a sidebar/tools column.
+    var path = window.location.pathname.replace(/\/+$/, '');
+    if (path === '/admin/onboard.html' || path === '/admin/onboard') return;
+
     // FAB — hidden until refreshAdminFab() confirms the real admin
     const fab = document.createElement('button');
     fab.id        = 'adminFab';
