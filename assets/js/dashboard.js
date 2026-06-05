@@ -1060,6 +1060,13 @@ window.addEventListener('beforeinstallprompt', (e) => {
   maybeShowInstallBanner();
 });
 
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  localStorage.setItem('callmagnet-install-dismissed', '1');
+  const banner = document.getElementById('installPromptBanner');
+  if (banner) banner.style.display = 'none';
+});
+
 function isIOSSafari() {
   const ua = navigator.userAgent;
   const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
