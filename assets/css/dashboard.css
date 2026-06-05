@@ -178,7 +178,7 @@ body.panel-open .main { pointer-events: none; }
 
 
 .main { max-width: 900px; margin: 0 auto; padding: 0.75rem 1.5rem 1.5rem; }
-.biz-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; gap: 1rem; }
+.biz-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.6rem; gap: 1rem; }
 .biz-header-left { display: flex; flex-direction: column; min-width: 0; }
 .biz-name-large { font-size: 36px; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; line-height: 1.1; }
 .biz-tagline { font-family: var(--sans); font-size: 12px; color: var(--accent); letter-spacing: 0.02em; margin-top: 4px; font-weight: 700; white-space: nowrap; display: block; }
@@ -831,7 +831,7 @@ body.panel-open .main { pointer-events: none; }
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ── Section wrapper ── */
-.mm-section { display: none; margin-top: 1.25rem; }
+.mm-section { display: none; margin-top: 0.75rem; }
 .mm-section.visible { display: block; }
 
 /* ── Tile grid: always 2 equal columns — uniform size across all tiles ── */
