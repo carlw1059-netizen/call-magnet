@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Last reviewed: 30 April 2026 -->
+<!-- Last reviewed: 30 June 2026 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -94,7 +94,7 @@ li strong { color: #111111; }
 
   <h1 id="terms">Terms of Service</h1>
   <div class="effective-date">
-    <span>Effective: April 2026</span> &nbsp;·&nbsp;
+    <span>Effective: June 2026</span> &nbsp;·&nbsp;
     <span>Operator: CallMagnet, a trading name of Nextpak Pty Ltd ABN 78 686 984 789</span> &nbsp;·&nbsp;
     <span>Contact: hello@callmagnet.com.au</span>
   </div>
@@ -112,6 +112,8 @@ li strong { color: #111111; }
     <li><strong>Client dashboard</strong> — accessible at callmagnet.com.au, showing SMS events, link clicks, bookings logged, and estimated revenue recovered</li>
     <li><strong>Booking link tracking</strong> — recording whether callers tapped the booking link in the SMS</li>
     <li><strong>Billing management</strong> — automated monthly subscription billing via Stripe</li>
+    <li><strong>Customisable buttons and links</strong> — the SMS link can direct callers to a booking page, menu, website, or other destination of your choosing</li>
+    <li><strong>Customisable SMS message</strong> — the message sent to missed callers can be personalised to your business</li>
   </ul>
 
   <h2 id="t3">3. Eligibility</h2>
@@ -150,10 +152,31 @@ li strong { color: #111111; }
   <h2 id="t8">8. SMS Compliance</h2>
   <h3>8.1 Nature of the SMS</h3>
   <p>The SMS sent by CallMagnet is a service notification sent in direct response to an initiated contact — a caller who dialled your registered business number and did not connect. CallMagnet operates on the basis that this constitutes a transactional or service-related message responding to an existing commercial relationship or initiated contact.</p>
-  <h3>8.2 Your responsibilities</h3>
-  <p>As a subscriber, you are the sender of record for the SMS messages sent to your missed callers. You are responsible for ensuring the booking link in the SMS is accurate, the SMS content is not false or misleading, and you respond promptly to any unsubscribe requests.</p>
-  <h3>8.3 Unsubscribe</h3>
-  <p>Callers who do not wish to receive further SMS messages may reply STOP. Opt-out is handled automatically at the carrier level via Twilio — no manual action is required.</p>
+  <h3>8.2 Sender ID modes</h3>
+  <p>CallMagnet supports two sender ID configurations:</p>
+  <ul>
+    <li><strong>Standard (numeric) sender ID</strong> — your SMS is sent from a Twilio-assigned phone number. This is the default configuration. Callers can reply STOP directly to that number and opt-out is handled automatically at the carrier level via Twilio.</li>
+    <li><strong>Alphanumeric sender ID</strong> — your SMS is sent using your business name or a custom identifier instead of a phone number. This is an optional upgrade. Because recipients cannot reply to an alphanumeric sender ID, STOP replies are received and processed by a separate reply number managed by CallMagnet. Opt-out remains fully automatic — no manual action is required from you.</li>
+  </ul>
+  <h3>8.3 Alphanumeric sender ID registration</h3>
+  <p>If you elect to use an alphanumeric sender ID, the following additional conditions apply:</p>
+  <ul>
+    <li>CallMagnet will register your sender ID with the ACMA SMS Sender ID Register on your behalf, as required under Australian law from 1 July 2026.</li>
+    <li>Registration is performed using your ABN and registered business name, company name, trademark, or domain name as required by ACMA. You must ensure this information is accurate.</li>
+    <li>Each alphanumeric sender ID is unique to your business and may not be shared with or transferred to any other party.</li>
+    <li>You authorise CallMagnet to submit your business details to Twilio and ACMA for the sole purpose of sender ID registration.</li>
+    <li>You must notify us immediately at hello@callmagnet.com.au if your registered business name, ABN, or other registration details change.</li>
+    <li>CallMagnet does not guarantee that a requested alphanumeric sender ID will be approved by ACMA or accepted by all carriers.</li>
+  </ul>
+  <h3>8.4 Your responsibilities</h3>
+  <p>Regardless of sender ID mode, as a subscriber you are the sender of record for SMS messages sent to your missed callers. You are responsible for ensuring:</p>
+  <ul>
+    <li>The link or destination in the SMS is accurate and belongs to your business</li>
+    <li>The SMS content is not false or misleading</li>
+    <li>You respond promptly to any unsubscribe requests received outside the automated system</li>
+    <li>Your business name and ABN are accurate if you are using an alphanumeric sender ID</li>
+  </ul>
+  <h3>8.5 Compliance position</h3>
   <div class="info-box">
     <p>The missed call SMS is positioned as a service notification responding to an initiated contact rather than a commercial marketing message. This is the strongest available compliance position under the Spam Act 2003. We recommend you obtain independent legal advice from a telecommunications lawyer before scaling the Service.</p>
   </div>
@@ -185,7 +208,7 @@ li strong { color: #111111; }
 
   <h1 id="privacy">Privacy Policy</h1>
   <div class="effective-date">
-    <span>Effective: April 2026</span> &nbsp;·&nbsp;
+    <span>Effective: June 2026</span> &nbsp;·&nbsp;
     <span>Operator: CallMagnet, a trading name of Nextpak Pty Ltd ABN 78 686 984 789</span> &nbsp;·&nbsp;
     <span>Contact: hello@callmagnet.com.au</span>
   </div>
@@ -204,7 +227,8 @@ li strong { color: #111111; }
     <li><strong>Business name</strong> — collected during signup</li>
     <li><strong>Email address</strong> — used for login and service communications</li>
     <li><strong>Password</strong> — stored in encrypted form, never readable by CallMagnet</li>
-    <li><strong>Booking URL</strong> — your online booking page, provided during onboarding</li>
+    <li><strong>Booking URL or custom destination link</strong> — your preferred destination for missed callers, provided during onboarding</li>
+    <li><strong>ABN and registered business name</strong> — required for alphanumeric sender ID registration (if applicable)</li>
     <li><strong>Average job value</strong> — used to calculate estimated revenue recovered on your dashboard</li>
     <li><strong>Date of birth</strong> — optional, used only for a birthday acknowledgement on your dashboard</li>
   </ul>
@@ -240,7 +264,7 @@ li strong { color: #111111; }
   <h2 id="p6">6. Disclosure of Information</h2>
   <h3>Third party service providers</h3>
   <ul>
-    <li><strong>Twilio</strong> — receives caller phone numbers and your business number to send SMS</li>
+    <li><strong>Twilio</strong> — receives caller phone numbers and your business number to send SMS. For clients using alphanumeric sender IDs, Twilio also receives your business name and ABN for the purpose of ACMA Sender ID Register registration. This data is used solely for registration and is not used for any other purpose.</li>
     <li><strong>Stripe</strong> — receives your email address and payment details for billing</li>
     <li><strong>Resend</strong> — receives your email address to deliver service emails</li>
     <li><strong>Netlify</strong> — hosts the dashboard, does not receive personal data</li>
@@ -267,7 +291,7 @@ li strong { color: #111111; }
   <p>For any privacy-related enquiries, contact us at <a href="mailto:hello@callmagnet.com.au" style="color: var(--accent);">hello@callmagnet.com.au</a>.</p>
 
   <div class="footer">
-    CallMagnet is a trading name of Nextpak Pty Ltd ABN 78 686 984 789 &nbsp;·&nbsp; callmagnet.com.au &nbsp;·&nbsp; hello@callmagnet.com.au &nbsp;·&nbsp; April 2026
+    CallMagnet is a trading name of Nextpak Pty Ltd ABN 78 686 984 789 &nbsp;·&nbsp; callmagnet.com.au &nbsp;·&nbsp; hello@callmagnet.com.au &nbsp;·&nbsp; June 2026
   </div>
 
 </div>
