@@ -83,7 +83,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   const { data: clientRow, error: clientErr } = await supa
     .from('clients')
-    .select('id')
+    .select('id, business_name')
     .eq('middle_man_slug', slug)
     .eq('account_status', 'active')
     .maybeSingle();
@@ -97,8 +97,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
     return OK;
   }
 
-  const clientId = clientRow.id as string;
-  const now      = new Date().toISOString();
+  const clientId     = clientRow.id as string;
+  const businessName = (clientRow.business_name as string) || '';
+  const now          = new Date().toISOString();
 
   // ── Insert into link_clicks ─────────────────────────────────────────────────
   const insertPayload: Record<string, unknown> = {
@@ -117,6 +118,25 @@ Deno.serve(async (req: Request): Promise<Response> => {
   if (insertErr) {
     console.error(`log-middle-man-tap: link_clicks insert failed for client ${clientId}:`, insertErr.message);
     // Continue to notification even if insert fails
+  }
+
+  // ── Best-effort Pushover alert ──────────────────────────────────────────────
+  if (INTERNAL_SECRET) {
+    try {
+      fetch(`${SUPABASE_URL}/functions/v1/send-pushover-alert`, {
+        method:  'POST',
+        headers: {
+          'Content-Type':      'application/json',
+          'X-Internal-Secret': INTERNAL_SECRET,
+        },
+        body: JSON.stringify({
+          title:   '★ Link Tapped',
+          message: `${businessName} — ${customerNumber ?? 'unknown number'}`,
+        }),
+      }).catch(() => {});
+    } catch {
+      // silent
+    }
   }
 
   // ── Fire-and-forget: send-client-notification (event: link_tapped) ──────────

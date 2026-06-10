@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
 
 
     const clientRes = await fetch(
-      `${supabaseUrl}/rest/v1/clients?id=eq.${clientId}&select=booking_url`,
+      `${supabaseUrl}/rest/v1/clients?id=eq.${clientId}&select=booking_url,business_name`,
       {
         headers: {
           apikey: supabaseKey,
@@ -93,6 +93,25 @@ Deno.serve(async (req) => {
       }
     )
 
+
+    // ── Best-effort Pushover alert ────────────────────────────────────────────
+    if (INTERNAL_SECRET) {
+      try {
+        fetch(`${supabaseUrl}/functions/v1/send-pushover-alert`, {
+          method:  'POST',
+          headers: {
+            'Content-Type':      'application/json',
+            'X-Internal-Secret': INTERNAL_SECRET,
+          },
+          body: JSON.stringify({
+            title:   '★ Link Tapped',
+            message: `${clients[0].business_name || ''} — direct link`,
+          }),
+        }).catch(() => {});
+      } catch {
+        // silent
+      }
+    }
 
     // Fire-and-forget push notification — never block redirect
     if (INTERNAL_SECRET) {
