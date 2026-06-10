@@ -19,8 +19,6 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const JOTFORM_WEBHOOK_SECRET    = Deno.env.get('JOTFORM_WEBHOOK_SECRET');
-const INTERNAL_SECRET           = Deno.env.get('INTERNAL_SECRET');
 
 Deno.serve(async (req) => {
   if (new URL(req.url).searchParams.get('warmup') === '1') {
@@ -33,6 +31,10 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405 });
   }
+
+  // Read secrets inside the handler so they are never cached at cold-start
+  const JOTFORM_WEBHOOK_SECRET = Deno.env.get('JOTFORM_WEBHOOK_SECRET');
+  const INTERNAL_SECRET        = Deno.env.get('INTERNAL_SECRET');
 
   // ── Secret verification ────────────────────────────────────────────────────
   const providedSecret = req.headers.get('X-Jotform-Secret') || new URL(req.url).searchParams.get('secret');
