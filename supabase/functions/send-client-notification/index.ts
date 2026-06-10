@@ -261,6 +261,7 @@ Deno.serve(async (req) => {
         return json(404, { error: 'client_not_found', detail: `no client with id ${clientId}` });
       }
       const ltVertical = ltClientArr[0].vertical;
+      const ltBusinessName = ltClientArr[0].business_name ?? '';
 
       // submit-middle-man-form populates context.intent with buildPushMessage() output,
       // always prefixed with ★ (e.g. "★ The Chophouse — CHANGE/CANCEL REQUEST — …").
@@ -281,7 +282,7 @@ Deno.serve(async (req) => {
 
       if (isFormSubmit) {
         if      (intentStr.includes('CHANGE/CANCEL REQUEST')) ltTitle = '★ Change/Cancel Request';
-        else if (intentStr.includes('FUNCTION ENQUIRY'))      ltTitle = '★ Function Enquiry';
+        else if (intentStr.includes('FUNCTION ENQUIRY'))      ltTitle = '★ ' + ltBusinessName + ' — Function Enquiry';
         else if (intentStr.includes('LATE ARRIVAL'))          ltTitle = '★ Late Arrival Alert';
         else if (intentStr.includes('LOST & FOUND'))          ltTitle = '★ Lost & Found';
         else                                                   ltTitle = '★ New Enquiry';
