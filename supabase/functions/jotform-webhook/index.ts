@@ -35,7 +35,8 @@ Deno.serve(async (req) => {
   }
 
   // ── Secret verification ────────────────────────────────────────────────────
-  if (!JOTFORM_WEBHOOK_SECRET || req.headers.get('X-Jotform-Secret') !== JOTFORM_WEBHOOK_SECRET) {
+  const providedSecret = req.headers.get('X-Jotform-Secret') || new URL(req.url).searchParams.get('secret');
+  if (!JOTFORM_WEBHOOK_SECRET || providedSecret !== JOTFORM_WEBHOOK_SECRET) {
     return json(401, { error: 'unauthorized' });
   }
 
