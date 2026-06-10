@@ -161,13 +161,13 @@ Deno.serve(async (req) => {
               const expiresAt  = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(); // 72 h
 
               // Insert into unsubscribe_tokens (best-effort — non-fatal)
-              await fetch(`${SUPABASE_URL}/rest/v1/unsubscribe_tokens`, {
+              await fetch(`${SUPABASE_URL}/rest/v1/unsubscribe_tokens?on_conflict=client_id,phone_number`, {
                 method:  'POST',
                 headers: {
                   apikey:         SUPABASE_SERVICE_ROLE_KEY,
                   Authorization:  `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
                   'Content-Type': 'application/json',
-                  Prefer:         'return=minimal',
+                  Prefer:         'resolution=merge-duplicates,return=minimal',
                 },
                 body: JSON.stringify({
                   token:        unsubToken,
