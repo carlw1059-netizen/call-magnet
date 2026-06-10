@@ -513,6 +513,11 @@ verify_jwt = false
 [functions.update-rebrandly-destination]
 verify_jwt = true
 
+# jotform-webhook is called by JotForm when a client agreement form is submitted.
+# JotForm carries no Supabase JWT — auth is the X-Jotform-Secret header.
+[functions.jotform-webhook]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
