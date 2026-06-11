@@ -47,6 +47,7 @@ Deno.serve(async (req) => {
   try {
     const text = await req.text();
     params = new URLSearchParams(text);
+    console.log('JOTFORM BODY:', JSON.stringify(Object.fromEntries(params)));
   } catch {
     return json(400, { error: 'invalid_body', detail: 'Could not parse form body' });
   }
