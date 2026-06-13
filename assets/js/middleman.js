@@ -666,17 +666,23 @@
       var display   = emoji ? emoji + ' ' + rawLabel : rawLabel; // FIX 3: emoji prefix
       var btnKey    = 'btn' + idx;
 
+      // Per-button URL overrides the shared bookingUrl when set.
+      // For non-booking buttons a url makes the button navigate instead of opening the inline form.
+      var btnDestUrl = (btn.url && btn.url.trim()) ? btn.url.trim() : '';
+      var effectiveUrl = btnDestUrl || (formType === 'booking' ? bookingUrl : '');
+      var navigates = !!effectiveUrl;
+
       // Build button element
       var btnEl;
-      if (formType === 'booking' && bookingUrl) {
+      if (navigates) {
         // <a> for graceful no-JS degradation
         btnEl = document.createElement('a');
-        btnEl.href = bookingUrl;
+        btnEl.href = effectiveUrl;
         btnEl.className = 'tap-btn';
         btnEl.textContent = display;
         btnEl.addEventListener('click', function(e) {
           e.preventDefault();
-          handleTap(btnEl, btnKey, formType, bookingUrl, display);
+          handleTap(btnEl, btnKey, formType, effectiveUrl, display);
         });
       } else {
         btnEl = document.createElement('button');
@@ -695,8 +701,8 @@
       unit.dataset.neon = btn.color || NEON[Math.min(idx, NEON.length - 1)];
       unit.appendChild(btnEl);
 
-      // Form container (non-booking only)
-      if (formType !== 'booking') {
+      // Form container (non-booking, non-navigating buttons only)
+      if (formType !== 'booking' && !navigates) {
         // Close button — sibling of form-wrap, outside overflow:hidden so iOS Safari never clips it
         var closeBtn = document.createElement('button');
         closeBtn.className = 'form-close-btn';

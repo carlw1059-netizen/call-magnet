@@ -391,6 +391,7 @@ function buildBtnRowHtml(btn, idx) {
     '<input type="number" min="1" max="6" value="' + _e(btn.sort_order || idx + 1) + '" class="mma-btn-order" />' +
     '<input type="checkbox"' + (btn.enabled !== false ? ' checked' : '') + ' class="mma-btn-enabled mma-btn-enabled-cb" />' +
     '<input type="text" value="' + _e(btn.label || '') + '" maxlength="40" placeholder="Button label…" class="mma-btn-label" />' +
+    '<input type="url" value="' + _e(btn.url || '') + '" placeholder="Button URL (optional)…" class="mma-btn-url" />' +
     '<input type="color" class="mma-btn-color" value="' + _e(btn.color || '#00D4FF') + '" title="Button colour" style="width:36px;height:32px;padding:2px;border:none;border-radius:6px;cursor:pointer;background:none;" />' +
     '<input type="text" class="mma-btn-hex" value="' + _e(btn.color || '#00D4FF') + '" maxlength="7" placeholder="#rrggbb" style="width:62px;padding:3px 5px;font-size:11px;font-family:monospace;border:1px solid #ccc;border-radius:5px;background:#fff;color:#111;outline:none;" />' +
     '<button type="button" class="mma-btn-pulse' + (btn.animate !== false ? ' mma-btn-pulse-on' : '') + '" title="' + (btn.animate !== false ? 'Glow ON — click to turn off' : 'Glow OFF — click to turn on') + '" style="width:36px;height:32px;border:none;border-radius:6px;cursor:pointer;font-size:16px;background:' + (btn.animate !== false ? 'rgba(0,200,100,0.2)' : 'rgba(255,255,255,0.1)') + ';">✦</button>' +
@@ -563,6 +564,7 @@ async function saveButtons() {
       color:      color,
       animate:    animate,
       sparkles:   sparklesBtn ? sparklesBtn.classList.contains('mma-btn-sparkles-on') : false,
+      url:        row.querySelector('.mma-btn-url').value.trim(),
     });
   });
   try {
@@ -774,6 +776,7 @@ async function saveNotifications() {
       color:        color,
       animate:      animate,
       sparkles:     sparklesBtn ? sparklesBtn.classList.contains('mma-btn-sparkles-on') : false,
+      url:          row.querySelector('.mma-btn-url').value.trim(),
       push_title:   (titleEl && titleEl.value.trim()) || MMA_DEFAULT_PUSH_TITLE,
       push_message: (msgEl   && msgEl.value.trim())   || MMA_DEFAULT_PUSH_MSG,
     });
