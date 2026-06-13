@@ -5,6 +5,7 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 export interface ClientStats {
   smsSent:          number;
+  optOuts:          number;
   linkClicks:       number;
   bookingsLogged:   number;
   conversionRate:   string;
@@ -41,8 +42,9 @@ async function fetchButtonClicks(clientId: string, weekStart: string, weekEnd: s
 export async function calcClientStats(client: ClientRow, weekStart: string, weekEnd: string): Promise<ClientStats> {
   const now         = new Date().toISOString();
   const periodStart = client.last_renewal_date ?? new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  const [smsSent, linkClicks, bookingsLogged, currentPeriodSms, buttonClicks] = await Promise.all([
+  const [smsSent, optOuts, linkClicks, bookingsLogged, currentPeriodSms, buttonClicks] = await Promise.all([
     countRows('sms_events',  'received_at', client.id, weekStart, weekEnd),
+    countRows('opt_outs',    'opted_out_at', client.id, weekStart, weekEnd),
     countRows('link_clicks', 'clicked_at',  client.id, weekStart, weekEnd),
     countRows('bookings',    'booked_at',   client.id, weekStart, weekEnd),
     countRows('sms_events',  'received_at', client.id, periodStart, now),
@@ -55,7 +57,7 @@ export async function calcClientStats(client: ClientRow, weekStart: string, week
     daysUntilRenewal = msUntil > 0 ? Math.ceil(msUntil / 86_400_000) : 0;
   }
   const overage = Math.max(0, currentPeriodSms - (client.sms_included ?? 0));
-  return { smsSent, linkClicks, bookingsLogged, conversionRate, daysUntilRenewal, overage, buttonClicks };
+  return { smsSent, optOuts, linkClicks, bookingsLogged, conversionRate, daysUntilRenewal, overage, buttonClicks };
 }
 
 function escapeHtml(str: string): string {
@@ -65,6 +67,7 @@ function escapeHtml(str: string): string {
 function buildStatsRows(stats: ClientStats): string {
   const rows = [
     { label: 'SMS Sent',           value: String(stats.smsSent) },
+    ...(stats.optOuts > 0 ? [{ label: 'Opt-Outs', value: String(stats.optOuts) }] : []),
     { label: 'Link Clicks',        value: String(stats.linkClicks) },
     { label: 'Bookings Logged',    value: String(stats.bookingsLogged) },
     { label: 'Conversion Rate',    value: stats.conversionRate },
