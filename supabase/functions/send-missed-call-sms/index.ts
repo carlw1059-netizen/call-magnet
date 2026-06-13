@@ -198,10 +198,31 @@ Deno.serve(async (req) => {
       console.warn(`send-missed-call-sms: pre-send processing error (non-fatal): ${preErr instanceof Error ? preErr.message : String(preErr)}`);
     }
 
+    // ── Twilio Lookup: skip landlines ────────────────────────────────────────
+    // Fail open: if lookup errors for any reason, SMS sends anyway.
+    const credentials = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
+    try {
+      const lookupRes = await fetch(
+        `https://lookups.twilio.com/v2/PhoneNumbers/${encodeURIComponent(to)}?Fields=line_type_intelligence`,
+        { headers: { Authorization: `Basic ${credentials}` } },
+      );
+      if (lookupRes.ok) {
+        const lookupData = await lookupRes.json() as { line_type_intelligence?: { type?: string } };
+        const lineType = lookupData?.line_type_intelligence?.type;
+        if (lineType === 'landline' || lineType === 'voip' || lineType === 'non-fixed-voip') {
+          console.log(`send-missed-call-sms: SMS suppressed — to=${to} is ${lineType}`);
+          return json(200, { ok: true, suppressed: true, reason: 'landline' });
+        }
+      } else {
+        console.warn(`send-missed-call-sms: Lookup failed (non-fatal): ${lookupRes.status}`);
+      }
+    } catch (lookupErr) {
+      console.warn(`send-missed-call-sms: Lookup error (non-fatal): ${lookupErr instanceof Error ? lookupErr.message : String(lookupErr)}`);
+    }
+
     // ── Send SMS via Twilio Messages API ─────────────────────────────────────
     // From = the client's own Twilio number (not a fixed TWILIO_FROM_NUMBER)
     // so the customer sees the same number they called.
-    const credentials = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
     const params = new URLSearchParams({
       To:             to,
       From:           from,
