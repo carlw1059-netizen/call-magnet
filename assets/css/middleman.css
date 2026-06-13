@@ -69,6 +69,8 @@
     z-index: 10;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    scroll-snap-type: none;
     display: flex;
     flex-direction: column;
     animation: fadeIn 0.4s ease both;
@@ -151,6 +153,7 @@
     justify-content: flex-start;
     flex: 1;
     min-height: 100%;
+    touch-action: pan-y;
     padding: 20px 0;
   }
   #mainPage.visible {

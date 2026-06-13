@@ -49,6 +49,8 @@ body {
   font-weight: 400;
   overflow-x: hidden;
   overscroll-behavior: none;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
   -webkit-tap-highlight-color: transparent;
 }
 .hidden { display: none !important; }
