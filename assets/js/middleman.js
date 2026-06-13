@@ -475,6 +475,16 @@
     btnEl.classList.add('pressed');
     setTimeout(function() { btnEl.classList.remove('pressed'); }, 180);
 
+    if (bookingUrl && formType !== 'booking') {
+      fetch(LOG_FUNC_URL, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client_id: clientId, intent: intentLabel, customer_number: customerNumber || null }),
+      }).catch(function() {});
+      setTimeout(function() { window.location.href = bookingUrl; }, 220);
+      return;
+    }
+
     if (formType === 'booking') {
       // Log immediately + redirect
       fetch(LOG_FUNC_URL, {
