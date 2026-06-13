@@ -568,8 +568,9 @@ async function saveButtons() {
     });
   });
   try {
-    var result = await mmaSb.from('clients').update({ middle_man_buttons: buttons }).eq('id', _editClientId);
+    var result = await mmaSb.from('clients').update({ middle_man_buttons: buttons }).eq('id', _editClientId).select('id');
     if (result.error) throw result.error;
+    if (!result.data || result.data.length === 0) throw new Error('No rows updated — check client ID or RLS');
     if (_editClientData) _editClientData.middle_man_buttons = buttons;
     _flash('mmaBtnsMsg', '✓ Saved', false);
   } catch (err) {
