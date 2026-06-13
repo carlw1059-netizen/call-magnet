@@ -884,7 +884,7 @@ body.panel-open .main { pointer-events: none; }
 
 .mm-tile-label {
   font-family: var(--font-serif);
-  font-size: 14px;
+  font-size: 15px;
   color: var(--mm-neon, #06D6A0);
   letter-spacing: 0.02em;
   line-height: 1.4;
@@ -911,7 +911,7 @@ body.panel-open .main { pointer-events: none; }
 }
 @media (max-width: 600px) {
   .mm-tile-count { font-size: 34px; }
-  .mm-tile-label { font-size: 13px; }
+  .mm-tile-label { font-size: 14px; }
 }
 @media (min-width: 601px) {
   .mm-tile-count { font-size: 46px; }
