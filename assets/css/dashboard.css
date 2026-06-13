@@ -16,7 +16,7 @@
 
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { background: #0E1419; overscroll-behavior: none; }
+html { background: #0E1419; overscroll-behavior: none; height: 100%; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
 :root {
   --bg-primary: #0E1419;
   --accent: #06D6A0;
@@ -42,6 +42,7 @@ body {
   background: #0E1419;
   color: var(--text);
   font-family: var(--font-body);
+  height: 100%;
   min-height: 100vh;
   font-size: 17px;
   line-height: 1.5;
