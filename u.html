@@ -74,10 +74,10 @@ html, body {
   display: block;
   width: 100%;
   padding: 18px 24px;
-  background: rgba(204, 0, 0, 0.12);
-  border: 2px solid #CC0000;
+  background: #FFFFFF;
+  border: none;
   border-radius: 12px;
-  color: #FF4444;
+  color: #0E1419;
   font-size: 17px;
   font-weight: 700;
   font-family: inherit;
@@ -87,16 +87,15 @@ html, body {
   text-align: center;
   transition: background 0.12s, transform 0.08s;
   -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 0 20px rgba(204, 0, 0, 0.18), 0 0 40px rgba(204, 0, 0, 0.06);
   margin-bottom: 20px;
 }
-.u-opt-btn:active { transform: scale(0.97); background: rgba(204, 0, 0, 0.22); }
+.u-opt-btn:active { transform: scale(0.97); background: rgba(255,255,255,0.88); }
 .u-opt-btn:disabled { opacity: 0.45; cursor: wait; transform: none; }
 
 .u-cancel {
   background: none;
   border: none;
-  color: rgba(255,255,255,0.25);
+  color: rgba(255,255,255,0.5);
   font-size: 13px;
   font-family: inherit;
   cursor: pointer;
@@ -104,7 +103,7 @@ html, body {
   -webkit-tap-highlight-color: transparent;
   transition: color 0.12s;
 }
-.u-cancel:hover { color: rgba(255,255,255,0.5); }
+.u-cancel:hover { color: rgba(255,255,255,0.75); }
 
 /* ── Success state ─────────────────────────────────────────────────────── */
 #stateSuccess { display: none; width: 100%; }
@@ -171,18 +170,17 @@ html, body {
 
   <!-- Main: shown when token validates -->
   <div id="stateMain">
-    <div class="u-eyebrow">Text opt-out</div>
     <div class="u-heading">Stop texts from<br><span class="u-biz-name" id="uBizName">this business</span></div>
     <div class="u-subtext">You'll never receive another text message from this business via CallMagnet.</div>
-    <button class="u-opt-btn" id="uOptBtn" type="button">Opt out</button>
-    <button class="u-cancel" id="uCancelBtn" type="button">Cancel</button>
+    <button class="u-opt-btn" id="uOptBtn" type="button">Stop texts</button>
+    <button class="u-cancel" id="uCancelBtn" type="button">Keep receiving texts</button>
   </div>
 
   <!-- Success: shown after process-unsubscribe returns ok -->
   <div id="stateSuccess">
     <div class="u-success-mark">✓</div>
-    <div class="u-success-heading">Done</div>
-    <div class="u-success-msg" id="uSuccessMsg">You won't get any more texts from this business.</div>
+    <div class="u-success-heading">Done — no more texts</div>
+    <div class="u-success-msg" id="uSuccessMsg">You won't receive any more texts from this business.</div>
   </div>
 
   <!-- Error: shown for invalid / expired / already-used token -->
@@ -312,7 +310,7 @@ html, body {
         if (data && data.ok) {
           if (successMsgEl) {
             successMsgEl.textContent =
-              'Done. You won\'t get any more texts from ' + businessName + '. ✓';
+              'You won\'t receive any more texts from ' + businessName + '.';
           }
           showState(stateSuccess);
         } else {
