@@ -62,10 +62,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     const now = new Date();
 
-    // Look up token with JOIN to clients for business_name and slug
+    // Look up token with JOIN to clients for business_name, slug, and background fields
     const { data: tokenRow, error: tokenErr } = await supa
       .from('unsubscribe_tokens')
-      .select('id, expires_at, used_at, clients(business_name, middle_man_slug)')
+      .select('id, expires_at, used_at, clients(business_name, middle_man_slug, middle_man_background_url, middle_man_background_type, middle_man_background_poster_url)')
       .eq('token', token)
       .maybeSingle();
 
@@ -83,11 +83,20 @@ Deno.serve(async (req: Request): Promise<Response> => {
       return json(400, { ok: false, error: 'invalid_token' });
     }
 
-    const clientData   = tokenRow.clients as { business_name: string | null; middle_man_slug: string | null } | null;
-    const businessName = clientData?.business_name ?? '';
-    const slug         = clientData?.middle_man_slug ?? '';
+    const clientData   = tokenRow.clients as {
+      business_name: string | null;
+      middle_man_slug: string | null;
+      middle_man_background_url: string | null;
+      middle_man_background_type: string | null;
+      middle_man_background_poster_url: string | null;
+    } | null;
+    const businessName  = clientData?.business_name ?? '';
+    const slug          = clientData?.middle_man_slug ?? '';
+    const bgUrl         = clientData?.middle_man_background_url ?? null;
+    const bgType        = clientData?.middle_man_background_type ?? null;
+    const bgPosterUrl   = clientData?.middle_man_background_poster_url ?? null;
 
-    return json(200, { ok: true, business_name: businessName, slug });
+    return json(200, { ok: true, business_name: businessName, slug, bg_url: bgUrl, bg_type: bgType, bg_poster_url: bgPosterUrl });
 
   } catch (err) {
     console.error('get-unsubscribe-context: unhandled error:', err);
