@@ -564,7 +564,7 @@ async function saveButtons() {
       color:      color,
       animate:    animate,
       sparkles:   sparklesBtn ? sparklesBtn.classList.contains('mma-btn-sparkles-on') : false,
-      url:        (row.querySelector('.mma-btn-url') || { value: '' }).value.trim(),
+      url:        (function(v) { return v && !/^https?:\/\//i.test(v) ? 'https://' + v : v; })((row.querySelector('.mma-btn-url') || { value: '' }).value.trim()),
     });
   });
   try {
@@ -777,7 +777,7 @@ async function saveNotifications() {
       color:        color,
       animate:      animate,
       sparkles:     sparklesBtn ? sparklesBtn.classList.contains('mma-btn-sparkles-on') : false,
-      url:          (row.querySelector('.mma-btn-url') || { value: '' }).value.trim(),
+      url:          (function(v) { return v && !/^https?:\/\//i.test(v) ? 'https://' + v : v; })((row.querySelector('.mma-btn-url') || { value: '' }).value.trim()),
       push_title:   (titleEl && titleEl.value.trim()) || MMA_DEFAULT_PUSH_TITLE,
       push_message: (msgEl   && msgEl.value.trim())   || MMA_DEFAULT_PUSH_MSG,
     });
