@@ -689,7 +689,7 @@
         btnEl.type = 'button';
         btnEl.textContent = display;
         btnEl.addEventListener('click', function() {
-          handleTap(btnEl, btnKey, formType, bookingUrl, display);
+          handleTap(btnEl, btnKey, formType, '', display);
         });
       }
 
