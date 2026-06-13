@@ -475,26 +475,15 @@
     btnEl.classList.add('pressed');
     setTimeout(function() { btnEl.classList.remove('pressed'); }, 180);
 
-    if (bookingUrl && formType !== 'booking') {
-      fetch(LOG_FUNC_URL, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ client_id: clientId, intent: intentLabel, customer_number: customerNumber || null }),
-      }).catch(function() {});
-      setTimeout(function() { window.location.href = bookingUrl; }, 220);
-      return;
-    }
-
-    if (formType === 'booking') {
-      // Log immediately + redirect
+    // bookingUrl here is the per-button effectiveUrl passed from the click handler.
+    // Navigate if a URL is set — formType does not matter.
+    if (bookingUrl) {
       fetch(LOG_FUNC_URL, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug: gSlug, intent: intentLabel }),
       }).catch(function() {});
-      if (bookingUrl) {
-        setTimeout(function() { window.location.href = bookingUrl; }, 220);
-      }
+      setTimeout(function() { window.location.href = bookingUrl; }, 220);
       return;
     }
 
@@ -677,10 +666,9 @@
       var display   = emoji ? emoji + ' ' + rawLabel : rawLabel; // FIX 3: emoji prefix
       var btnKey    = 'btn' + idx;
 
-      // Per-button URL overrides the shared bookingUrl when set.
-      // For non-booking buttons a url makes the button navigate instead of opening the inline form.
+      // Per-button URL drives navigation. No fallback to shared bookingUrl.
       var btnDestUrl = (btn.url && btn.url.trim()) ? btn.url.trim() : '';
-      var effectiveUrl = btnDestUrl || (formType === 'booking' ? bookingUrl : '');
+      var effectiveUrl = btnDestUrl;
       var navigates = !!effectiveUrl;
 
       // Build button element
