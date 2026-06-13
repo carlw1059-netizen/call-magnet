@@ -169,6 +169,10 @@
     min-height: 100px;
     text-align: center;
   }
+  .page-header.compact {
+    min-height: 60px;
+    padding-bottom: 8px;
+  }
   .hero-business-name {
     width: 100%;
     text-align: center;
@@ -198,6 +202,9 @@
   /* No background — buttons sit directly below the business name, not at the bottom */
   #mainPage.no-bg .content {
     margin-top: 0;
+  }
+  #mainPage.no-bg .buttons {
+    padding-top: 16px;
   }
 
   .section-label {
