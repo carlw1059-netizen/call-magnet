@@ -195,6 +195,11 @@
     margin-top: auto; /* anchors button stack to the bottom of available space */
   }
 
+  /* No background — buttons sit directly below the business name, not at the bottom */
+  #mainPage.no-bg .content {
+    margin-top: 0;
+  }
+
   .section-label {
     font-size: 11px;
     font-weight: 600;

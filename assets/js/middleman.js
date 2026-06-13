@@ -633,6 +633,7 @@
       bgFixed.classList.add('loaded');
       document.getElementById('pageHeader').classList.add('compact');
       document.getElementById('bgOverlay').style.background = 'none';
+      document.getElementById('mainPage').classList.add('no-bg');
     }
 
     // ── Business name + promo ─────────────────────────────────────────────
