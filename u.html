@@ -44,15 +44,6 @@ html, body {
 /* ── Main opt-out UI ───────────────────────────────────────────────────── */
 #stateMain { display: none; width: 100%; }
 
-.u-eyebrow {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.3);
-  margin-bottom: 16px;
-}
-
 .u-heading {
   font-size: 24px;
   font-weight: 700;
@@ -63,24 +54,18 @@ html, body {
 }
 
 .u-biz-name {
-  color: #06D6A0; /* emerald — matches CallMagnet brand */
+  color: #FFFFFF;
 }
 
-.u-subtext {
-  font-size: 14px;
-  color: rgba(255,255,255,0.42);
-  line-height: 1.6;
-  margin-bottom: 40px;
-}
 
 .u-opt-btn {
   display: block;
   width: 100%;
   padding: 18px 24px;
-  background: #FFFFFF;
+  background: #CC0000;
   border: none;
   border-radius: 12px;
-  color: #0E1419;
+  color: #FFFFFF;
   font-size: 17px;
   font-weight: 700;
   font-family: inherit;
@@ -90,23 +75,11 @@ html, body {
   text-align: center;
   transition: background 0.12s, transform 0.08s;
   -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 0 20px rgba(204,0,0,0.4);
   margin-bottom: 20px;
 }
-.u-opt-btn:active { transform: scale(0.97); background: rgba(255,255,255,0.88); }
+.u-opt-btn:active { transform: scale(0.97); background: #AA0000; }
 .u-opt-btn:disabled { opacity: 0.45; cursor: wait; transform: none; }
-
-.u-cancel {
-  background: none;
-  border: none;
-  color: rgba(255,255,255,0.5);
-  font-size: 13px;
-  font-family: inherit;
-  cursor: pointer;
-  padding: 6px 0;
-  -webkit-tap-highlight-color: transparent;
-  transition: color 0.12s;
-}
-.u-cancel:hover { color: rgba(255,255,255,0.75); }
 
 /* ── Success state ─────────────────────────────────────────────────────── */
 #stateSuccess { display: none; width: 100%; }
@@ -174,9 +147,7 @@ html, body {
   <!-- Main: shown when token validates -->
   <div id="stateMain">
     <div class="u-heading">Stop texts from<br><span class="u-biz-name" id="uBizName">this business</span></div>
-    <div class="u-subtext">You'll never receive another text message from this business via CallMagnet.</div>
     <button class="u-opt-btn" id="uOptBtn" type="button">Stop texts</button>
-    <button class="u-cancel" id="uCancelBtn" type="button">Keep receiving texts</button>
   </div>
 
   <!-- Success: shown after process-unsubscribe returns ok -->
@@ -219,7 +190,6 @@ html, body {
   var bizNameEl    = document.getElementById('uBizName');
   var successMsgEl = document.getElementById('uSuccessMsg');
   var optBtn       = document.getElementById('uOptBtn');
-  var cancelBtn    = document.getElementById('uCancelBtn');
 
   var businessName = '';
   var pageLoadTime = Date.now();
@@ -324,21 +294,11 @@ html, body {
       .catch(function() {
         // Network error — restore so user can retry
         optBtn.disabled    = false;
-        optBtn.textContent = 'Opt out';
+        optBtn.textContent = 'Stop texts';
       });
     });
   }
 
-  // ── Cancel button ─────────────────────────────────────────────────────────
-  if (cancelBtn) {
-    cancelBtn.addEventListener('click', function() {
-      if (window.history.length > 1) {
-        window.history.back();
-      } else {
-        window.close();
-      }
-    });
-  }
 
 })();
 </script>
