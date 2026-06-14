@@ -385,6 +385,12 @@
       </div>
     </div>
 
+    <div class="field">
+      <label>Free period (days)</label>
+      <input type="number" id="freePeriodDaysInput" min="0" value="0" placeholder="0 = billing starts immediately" />
+      <div class="hint">Number of free days before billing starts. 0 = charge immediately.</div>
+    </div>
+
     <div class="toggle-row">
       <div class="toggle-label">Send login SMS to client</div>
       <div class="toggle-switch on" id="sendSmsToggle" onclick="toggleSms()"></div>
@@ -615,6 +621,7 @@ async function submitForm() {
   const avg_job_value = avg_raw ? Number(avg_raw) : null;
   const rebrandly_url = document.getElementById('rebrandlyUrlInput').value.trim();
   const customer_sms_template = (document.getElementById('smsTemplateInput').value || '').trim();
+  const free_period_days = Math.max(0, parseInt(document.getElementById('freePeriodDaysInput').value || '0', 10) || 0);
 
   if (!business_name) return showError('Business name is required.');
   if (!vertical)      return showError('Pick a vertical.');
@@ -654,6 +661,7 @@ async function submitForm() {
         customer_sms_template,
         send_sms:           sendSmsOn,
         middle_man_enabled: mmEnabledOn,
+        free_period_days,
         // middle_man_slug and middle_man_buttons omitted — create-client auto-generates both
       })
     });
