@@ -111,7 +111,7 @@ async function loadClientForEdit(clientId) {
   try {
     var result = await mmaSb
       .from('clients')
-      .select('id,business_name,vertical,middle_man_enabled,middle_man_slug,booking_url,middle_man_logo_url,middle_man_promo_text,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_buttons,middle_man_updated_at')
+      .select('id,business_name,email,vertical,middle_man_enabled,middle_man_slug,booking_url,middle_man_logo_url,middle_man_promo_text,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_buttons,middle_man_updated_at')
       .eq('id', clientId)
       .single();
     if (result.error) throw result.error;
@@ -191,6 +191,27 @@ function renderEditBody(client) {
         '<button id="mmaSlugSaveBtn" class="mma-save-btn">Save</button>' +
       '</div>' +
       '<div id="mmaSlugMsg" class="mma-saved-msg" style="margin-left:0;margin-top:6px;"></div>' +
+    '</div>';
+
+  // ── 3b. Client Login (email display + password reset)
+  var clientLoginSection =
+    '<div class="mma-section">' +
+      '<div class="mma-section-label">Client Login</div>' +
+      '<div style="margin-bottom:10px;">' +
+        '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:4px;">Login email</div>' +
+        '<div style="font-size:14px;color:#111111;font-family:monospace;padding:8px 10px;background:#F8F8F8;border:1px solid #CCCCCC;border-radius:7px;">' +
+          _e(client.email || '—') +
+        '</div>' +
+      '</div>' +
+      '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:4px;">New password</div>' +
+      '<div style="display:flex;gap:8px;align-items:center;">' +
+        '<div style="position:relative;flex:1;">' +
+          '<input id="mmaPwInput" type="password" minlength="8" placeholder="Min 8 characters" class="mma-field-input" style="padding-right:52px;" />' +
+          '<button type="button" id="mmaPwShowBtn" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:#06D6A0;font-size:12px;font-weight:700;cursor:pointer;padding:2px 4px;font-family:inherit;line-height:1;">Show</button>' +
+        '</div>' +
+        '<button id="mmaPwSaveBtn" class="mma-save-btn">Save</button>' +
+      '</div>' +
+      '<div id="mmaPwMsg" class="mma-saved-msg" style="margin-left:0;margin-top:6px;"></div>' +
     '</div>';
 
   // ── 4. Booking URL
@@ -288,7 +309,7 @@ function renderEditBody(client) {
       '</div>'
     : '<div id="mmaPreviewLinkWrap"></div>';
 
-  content.innerHTML = heading + toggleSection + slugSection + bookingSection + promoSection + logoSection + mediaSection + btnsSection + notifSection + previewHtml;
+  content.innerHTML = heading + toggleSection + slugSection + clientLoginSection + bookingSection + promoSection + logoSection + mediaSection + btnsSection + notifSection + previewHtml;
 
   // ── Wire event listeners ─────────────────────────────────────────────────────
   document.getElementById('mmaLogoUploadBtn').addEventListener('click', uploadLogo);
@@ -298,6 +319,14 @@ function renderEditBody(client) {
   document.getElementById('mmaToggleBtn').addEventListener('click', toggleEnabled);
   document.getElementById('mmaSlugSaveBtn').addEventListener('click', saveSlug);
   document.getElementById('mmaBookingUrlSaveBtn').addEventListener('click', saveBookingUrl);
+
+  // Client Login — show/hide toggle + save password
+  document.getElementById('mmaPwShowBtn').addEventListener('click', function() {
+    var inp = document.getElementById('mmaPwInput');
+    if (inp.type === 'password') { inp.type = 'text';     this.textContent = 'Hide'; }
+    else                         { inp.type = 'password'; this.textContent = 'Show'; }
+  });
+  document.getElementById('mmaPwSaveBtn').addEventListener('click', saveClientPassword);
 
   var promoInput = document.getElementById('mmaPromoInput');
   promoInput.addEventListener('input', function() {
@@ -505,6 +534,45 @@ async function saveSlug() {
   } catch (err) {
     _flash('mmaSlugMsg', '✗ ' + err.message, true);
   }
+}
+
+// ─── Reset client password ───────────────────────────────────────────────────
+async function saveClientPassword() {
+  if (!_editClientId) return;
+  var inp = document.getElementById('mmaPwInput');
+  var pw  = inp ? inp.value : '';
+  if (!pw || pw.length < 8) {
+    _flash('mmaPwMsg', '✗ Password must be at least 8 characters', true);
+    return;
+  }
+  var sessionResult = await mmaSb.auth.getSession();
+  var sess = sessionResult.data && sessionResult.data.session;
+  if (!sess) {
+    _flash('mmaPwMsg', '✗ Not signed in — please refresh', true);
+    return;
+  }
+  var btn = document.getElementById('mmaPwSaveBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  try {
+    var res  = await fetch('https://iskvvnhacqdxybpmwuni.supabase.co/functions/v1/reset-client-password', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + sess.access_token },
+      body:    JSON.stringify({ client_id: _editClientId, new_password: pw }),
+    });
+    var data = await res.json().catch(function() { return {}; });
+    if (res.ok && data.ok) {
+      _flash('mmaPwMsg', '✓ Password reset', false);
+      inp.value = '';
+      inp.type  = 'password';
+      var showBtn = document.getElementById('mmaPwShowBtn');
+      if (showBtn) showBtn.textContent = 'Show';
+    } else {
+      _flash('mmaPwMsg', '✗ ' + (data.detail || data.error || res.status), true);
+    }
+  } catch (e) {
+    _flash('mmaPwMsg', '✗ Network error: ' + (e && e.message ? e.message : e), true);
+  }
+  if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
 }
 
 // ─── Save booking URL ─────────────────────────────────────────────────────────
