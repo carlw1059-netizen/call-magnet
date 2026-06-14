@@ -256,9 +256,11 @@ Deno.serve(async (req) => {
     const client_id = insertedClient.id;
 
     // ── 5b. Create Stripe customer (best-effort — never blocks onboarding) ──
-    let stripe_customer_id:    string | null = null;
-    let stripe_subscription_id: string | null = null;
-    let stripe_error:           string | null = null;
+    let stripe_customer_id:          string | null = null;
+    let stripe_subscription_id:      string | null = null;
+    let stripe_error:                string | null = null;
+    let setup_fee_payment_intent_id: string | null = null;
+    let setup_fee_error:             string | null = null;
     try {
       // Fetch Stripe secret key from Vault via service-role client
       const { data: vaultRow, error: vaultErr } = await supa
@@ -348,6 +350,52 @@ Deno.serve(async (req) => {
     } catch (e) {
       stripe_error = (e as Error)?.message ?? String(e);
       console.warn(`create-client: Stripe customer/subscription failed (non-fatal) — ${stripe_error}`);
+    }
+
+    // ── 5c. Setup fee payment intent (best-effort — never blocks onboarding) ─
+    if (stripe_customer_id) {
+      try {
+        // Re-fetch Stripe key (stripe_customer_id being set confirms vault fetch succeeded earlier,
+        // but we need the key again for this separate request)
+        const { data: vaultRow2, error: vaultErr2 } = await supa
+          .schema('vault')
+          .from('decrypted_secrets')
+          .select('decrypted_secret')
+          .eq('name', 'stripe_secret_key')
+          .single();
+        if (vaultErr2 || !vaultRow2?.decrypted_secret) {
+          throw new Error(`Vault fetch failed: ${vaultErr2?.message ?? 'key not found'}`);
+        }
+        const stripeKey2 = vaultRow2.decrypted_secret as string;
+
+        const setupAmount = vertical === 'restaurant' ? 49900 : 24900;
+        const piParams = new URLSearchParams({
+          amount:                    String(setupAmount),
+          currency:                  'aud',
+          customer:                  stripe_customer_id,
+          confirm:                   'true',
+          'payment_method_types[0]': 'card',
+          'metadata[client_id]':     client_id,
+          'metadata[type]':          'setup_fee',
+        });
+        const piRes = await fetch('https://api.stripe.com/v1/payment_intents', {
+          method:  'POST',
+          headers: {
+            'Authorization': `Basic ${btoa(stripeKey2 + ':')}`,
+            'Content-Type':  'application/x-www-form-urlencoded',
+          },
+          body: piParams.toString(),
+        });
+        const piData = await piRes.json() as Record<string, unknown>;
+        if (!piRes.ok) {
+          throw new Error(`Stripe payment_intent ${piRes.status}: ${JSON.stringify(piData)}`);
+        }
+        setup_fee_payment_intent_id = piData.id as string;
+        console.log(`create-client: setup fee payment intent created — ${setup_fee_payment_intent_id} (${setupAmount} AUD cents)`);
+      } catch (e) {
+        setup_fee_error = (e as Error)?.message ?? String(e);
+        console.warn(`create-client: setup fee payment intent failed (non-fatal) — ${setup_fee_error}`);
+      }
     }
 
     // ── 5d. Create Short.io link (best-effort — never blocks onboarding) ───
@@ -581,6 +629,8 @@ Deno.serve(async (req) => {
       stripe_customer_id,
       stripe_subscription_id,
       stripe_error,
+      setup_fee_payment_intent_id,
+      setup_fee_error,
     });
 
   } catch (err) {
