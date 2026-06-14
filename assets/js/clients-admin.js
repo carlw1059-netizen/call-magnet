@@ -446,18 +446,8 @@ async function caDeleteMM(btn) {
     return;
   }
 
-  // Update in-memory record so re-render reflects cleared state
-  [allClients, currentList].forEach(function(arr) {
-    var c = arr.find(function(x) { return x.id === id; });
-    if (c) {
-      c.buttons        = [];
-      c.background_url = null;
-      c.logo_url       = null;
-      c.booking_url    = null;
-      c.shortio_link   = null;
-    }
-  });
-
+  allClients  = allClients.filter(function(x) { return x.id !== id; });
+  currentList = currentList.filter(function(x) { return x.id !== id; });
   caRender(currentList);
 }
 
