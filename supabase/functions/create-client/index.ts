@@ -357,30 +357,51 @@ Deno.serve(async (req) => {
     }
 
     // ── 7. Send branded onboarding welcome email via Resend (best-effort) ──
-    // For new users: includes temp password and instructs them to change it.
-    // For re-onboarded users: temp password was NOT changed — they already have
-    // a password, so we omit it and direct them to Forgot Password if needed.
+    // For new users: includes temp password and magic-link button.
+    // For re-onboarded users: no password change — direct to login page.
     let welcome_email_sent = false;
     let welcome_email_error: string | null = null;
+
+    // Generate magic link for new users (best-effort — fall back to homepage)
+    let loginButtonUrl = 'https://callmagnet.com.au';
+    if (isNewUser) {
+      try {
+        const { data: linkData } = await supa.auth.admin.generateLink({
+          type: 'magiclink',
+          email: owner_email,
+          options: { redirectTo: 'https://callmagnet.com.au' },
+        });
+        const actionLink = (linkData as Record<string, unknown> | null)?.properties
+          ? ((linkData as Record<string, unknown>).properties as Record<string, unknown>)?.action_link
+          : null;
+        if (typeof actionLink === 'string' && actionLink.startsWith('http')) {
+          loginButtonUrl = actionLink;
+        }
+      } catch (e) {
+        console.warn(`create-client: magic link generation failed — ${(e as Error)?.message ?? e}`);
+      }
+    }
+
     if (RESEND_API_KEY) {
       try {
         const escapedBiz = business_name.replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]!));
-        const loginPageUrl = 'https://callmagnet.com.au';
+        const loginPageUrl = loginButtonUrl;
 
-        // Temp-password block: only shown for new users
+        // Credential block: always show for new users
         const credentialBlock = isNewUser
           ? `<div style="margin:0 0 24px;padding:18px;background:rgba(6,214,160,0.06);border:1px solid rgba(6,214,160,0.28);border-radius:10px;">
           <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#06D6A0;font-weight:700;margin-bottom:10px;">Your login details</div>
           <table style="width:100%;font-size:14px;line-height:1.6;color:rgba(255,255,255,0.85);border-collapse:collapse;">
-            <tr><td style="padding:2px 0;color:rgba(255,255,255,0.55);width:90px;">Email</td><td style="padding:2px 0;font-family:ui-monospace,monospace;font-weight:700;">${owner_email}</td></tr>
-            <tr><td style="padding:2px 0;color:rgba(255,255,255,0.55);">Password</td><td style="padding:2px 0;font-family:ui-monospace,monospace;font-weight:700;letter-spacing:0.08em;">${initial_password}</td></tr>
+            <tr><td style="padding:2px 0;color:rgba(255,255,255,0.55);width:130px;">Business</td><td style="padding:2px 0;font-weight:700;">${escapedBiz}</td></tr>
+            <tr><td style="padding:2px 0;color:rgba(255,255,255,0.55);">Email</td><td style="padding:2px 0;font-family:ui-monospace,monospace;font-weight:700;">${owner_email}</td></tr>
+            <tr><td style="padding:2px 0;color:rgba(255,255,255,0.55);">Temporary password</td><td style="padding:2px 0;font-family:ui-monospace,monospace;font-weight:700;letter-spacing:0.08em;">${initial_password}</td></tr>
           </table>
-          <p style="margin:10px 0 0;font-size:12px;color:rgba(255,255,255,0.5);">You'll be prompted to set a new password on first login.</p>
+          <p style="margin:10px 0 0;font-size:12px;color:rgba(255,255,255,0.5);">Save your password — you'll need it if you log out and come back.</p>
         </div>`
           : `<p style="margin:0 0 24px;font-size:14px;line-height:1.55;color:rgba(255,255,255,0.65);">Use your existing email and password to sign in. If you've forgotten your password, tap "Forgot password?" on the login page.</p>`;
 
         const credentialText = isNewUser
-          ? `Your login details:\n  Email:    ${owner_email}\n  Password: ${initial_password}\n\nYou'll be prompted to set a new password on first login.\n\n`
+          ? `Your login details:\n  Business: ${business_name}\n  Email:    ${owner_email}\n  Temporary password: ${initial_password}\n\nSave your password — you'll need it if you log out and come back.\n\n`
           : `Use your existing password to sign in. If you've forgotten it, use "Forgot password?" on the login page.\n\n`;
 
         const html = `<!doctype html>
@@ -396,7 +417,7 @@ Deno.serve(async (req) => {
         <p style="margin:0 0 24px;font-size:15px;line-height:1.55;color:rgba(255,255,255,0.78);">Your CallMagnet account is set up. Log in to see your dashboard and watch SMS replies fire to customers in real time once your phone forwarding is configured.</p>
         ${credentialBlock}
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding:0 0 24px;">
-          <a href="${loginPageUrl}" style="display:inline-block;background:#06D6A0;color:#0a1110;text-decoration:none;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;letter-spacing:0.01em;">Go to CallMagnet</a>
+          <a href="${loginPageUrl}" style="display:inline-block;background:#06D6A0;color:#0a1110;text-decoration:none;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;letter-spacing:0.01em;">Go to my dashboard</a>
         </td></tr></table>
         <div style="margin:0 0 24px;padding:18px 18px;background:rgba(6,214,160,0.06);border:1px solid rgba(6,214,160,0.18);border-radius:10px;">
           <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#06D6A0;font-weight:700;margin-bottom:10px;">Next steps</div>
