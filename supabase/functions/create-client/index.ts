@@ -262,17 +262,12 @@ Deno.serve(async (req) => {
     let setup_fee_payment_intent_id: string | null = null;
     let setup_fee_error:             string | null = null;
     try {
-      // Fetch Stripe secret key from Vault via service-role client
-      const { data: vaultRow, error: vaultErr } = await supa
-        .schema('vault')
-        .from('decrypted_secrets')
-        .select('decrypted_secret')
-        .eq('name', 'stripe_secret_key')
-        .single();
-      if (vaultErr || !vaultRow?.decrypted_secret) {
+      // Fetch Stripe secret key from Vault via public RPC (SECURITY DEFINER)
+      const { data: stripeKey, error: vaultErr } = await supa
+        .rpc('get_vault_secret', { secret_name: 'stripe_secret_key' });
+      if (vaultErr || !stripeKey) {
         throw new Error(`Vault fetch failed: ${vaultErr?.message ?? 'key not found'}`);
       }
-      const stripeKey = vaultRow.decrypted_secret as string;
 
       // Create Stripe customer
       const stripeBody = new URLSearchParams({
@@ -355,18 +350,12 @@ Deno.serve(async (req) => {
     // ── 5c. Setup fee payment intent (best-effort — never blocks onboarding) ─
     if (stripe_customer_id) {
       try {
-        // Re-fetch Stripe key (stripe_customer_id being set confirms vault fetch succeeded earlier,
-        // but we need the key again for this separate request)
-        const { data: vaultRow2, error: vaultErr2 } = await supa
-          .schema('vault')
-          .from('decrypted_secrets')
-          .select('decrypted_secret')
-          .eq('name', 'stripe_secret_key')
-          .single();
-        if (vaultErr2 || !vaultRow2?.decrypted_secret) {
+        // Fetch Stripe key from Vault via public RPC
+        const { data: stripeKey2, error: vaultErr2 } = await supa
+          .rpc('get_vault_secret', { secret_name: 'stripe_secret_key' });
+        if (vaultErr2 || !stripeKey2) {
           throw new Error(`Vault fetch failed: ${vaultErr2?.message ?? 'key not found'}`);
         }
-        const stripeKey2 = vaultRow2.decrypted_secret as string;
 
         const setupAmount = vertical === 'restaurant' ? 49900 : 24900;
         const piParams = new URLSearchParams({
