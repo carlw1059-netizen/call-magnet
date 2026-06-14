@@ -428,11 +428,13 @@ async function caDeleteMM(btn) {
   btn.textContent = 'Clearing…';
 
   var result = await caSb.from('clients').update({
-    buttons:        [],
-    background_url: null,
-    logo_url:       null,
-    booking_url:    null,
-    shortio_link:   null,
+    middle_man_buttons:               [],
+    middle_man_background_url:        null,
+    middle_man_background_poster_url: null,
+    middle_man_background_type:       null,
+    middle_man_logo_url:              null,
+    booking_url:                      null,
+    shortio_link:                     null,
   }).eq('id', id);
 
   console.log('[caDeleteMM] supabase result:', JSON.stringify({ error: result.error, data: result.data }));
