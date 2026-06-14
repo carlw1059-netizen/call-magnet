@@ -89,6 +89,44 @@ function caRender(list) {
   grid.querySelectorAll('[data-action="toggle"]').forEach(function(btn) {
     btn.addEventListener('click', function() { caToggle(btn); });
   });
+
+  // Wire reset-password buttons
+  grid.querySelectorAll('[data-action="reset-pw"]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var id   = btn.dataset.id;
+      var form = document.getElementById('ca-pw-form-' + id);
+      if (form) form.classList.toggle('visible');
+    });
+  });
+
+  // Wire show/hide toggle
+  grid.querySelectorAll('[data-action="pw-show"]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var id  = btn.dataset.id;
+      var inp = document.getElementById('ca-pw-input-' + id);
+      if (!inp) return;
+      if (inp.type === 'password') { inp.type = 'text';     btn.textContent = 'Hide'; }
+      else                         { inp.type = 'password'; btn.textContent = 'Show'; }
+    });
+  });
+
+  // Wire confirm buttons
+  grid.querySelectorAll('[data-action="pw-confirm"]').forEach(function(btn) {
+    btn.addEventListener('click', function() { caResetPassword(btn.dataset.id, btn); });
+  });
+
+  // Wire cancel buttons
+  grid.querySelectorAll('[data-action="pw-cancel"]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var id   = btn.dataset.id;
+      var form = document.getElementById('ca-pw-form-' + id);
+      var inp  = document.getElementById('ca-pw-input-' + id);
+      var flash = document.getElementById('ca-pw-flash-' + id);
+      if (form)  form.classList.remove('visible');
+      if (inp)   { inp.value = ''; inp.type = 'password'; }
+      if (flash) { flash.className = 'ca-pw-flash'; flash.textContent = ''; }
+    });
+  });
 }
 
 // ─── Build one client card ─────────────────────────────────────────────────────
@@ -217,6 +255,21 @@ function caCard(c) {
           ? '<button class="ca-btn" data-action="copy" data-val="' + _e(c.twilio_number) + '">Copy Twilio</button>'
           : '') +
         toggleBtn +
+        '<button class="ca-btn" data-action="reset-pw" data-id="' + _e(c.id) + '">Reset password</button>' +
+      '</div>' +
+
+      // Inline reset-password form (hidden until button clicked)
+      '<div class="ca-pw-form" id="ca-pw-form-' + _e(c.id) + '">' +
+        '<div class="ca-pw-row">' +
+          '<div class="ca-pw-input-wrap">' +
+            '<input class="ca-pw-input" type="password" minlength="8" placeholder="New password (min 8 chars)" ' +
+                   'id="ca-pw-input-' + _e(c.id) + '" />' +
+            '<button type="button" class="ca-pw-show" data-action="pw-show" data-id="' + _e(c.id) + '">Show</button>' +
+          '</div>' +
+          '<button class="ca-btn success" data-action="pw-confirm" data-id="' + _e(c.id) + '">Confirm</button>' +
+          '<button class="ca-btn danger"  data-action="pw-cancel"  data-id="' + _e(c.id) + '">Cancel</button>' +
+        '</div>' +
+        '<div class="ca-pw-flash" id="ca-pw-flash-' + _e(c.id) + '"></div>' +
       '</div>' +
 
     '</div>'
@@ -306,6 +359,64 @@ async function caToggle(btn) {
   });
 
   caRender(currentList);
+}
+
+// ─── Reset client password ───────────────────────────────────────────────────
+async function caResetPassword(clientId, confirmBtn) {
+  var inp   = document.getElementById('ca-pw-input-'  + clientId);
+  var flash = document.getElementById('ca-pw-flash-'  + clientId);
+  if (!inp || !flash) return;
+
+  var pw = inp.value;
+  if (!pw || pw.length < 8) {
+    flash.className   = 'ca-pw-flash fail';
+    flash.textContent = 'Password must be at least 8 characters.';
+    return;
+  }
+
+  var sessionResult = await caSb.auth.getSession();
+  var sess = sessionResult.data && sessionResult.data.session;
+  if (!sess) {
+    flash.className   = 'ca-pw-flash fail';
+    flash.textContent = 'Not signed in — please refresh and try again.';
+    return;
+  }
+
+  confirmBtn.disabled    = true;
+  confirmBtn.textContent = 'Saving…';
+  flash.className        = 'ca-pw-flash';
+  flash.textContent      = '';
+
+  try {
+    var res  = await fetch(CA_SUPABASE_URL + '/functions/v1/reset-client-password', {
+      method:  'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + sess.access_token,
+      },
+      body: JSON.stringify({ client_id: clientId, new_password: pw }),
+    });
+    var data = await res.json().catch(function() { return {}; });
+
+    if (res.ok && data.ok) {
+      flash.className   = 'ca-pw-flash ok';
+      flash.textContent = 'Password reset.';
+      inp.value         = '';
+      inp.type          = 'password';
+      // Reset show/hide label
+      var showBtn = inp.parentNode && inp.parentNode.querySelector('[data-action="pw-show"]');
+      if (showBtn) showBtn.textContent = 'Show';
+    } else {
+      flash.className   = 'ca-pw-flash fail';
+      flash.textContent = 'Failed: ' + (data.detail || data.error || res.status);
+    }
+  } catch (e) {
+    flash.className   = 'ca-pw-flash fail';
+    flash.textContent = 'Network error: ' + (e && e.message ? e.message : e);
+  }
+
+  confirmBtn.disabled    = false;
+  confirmBtn.textContent = 'Confirm';
 }
 
 // ─── Boot — verbatim middle-man-admin.js pattern ──────────────────────────────

@@ -229,6 +229,65 @@ html, body {
 .ca-btn.success                { background: #06D6A0; }
 .ca-btn.success:hover:not(:disabled) { background: #05B88A; }
 
+/* ─── Inline reset-password form ─── */
+.ca-pw-form {
+  display: none;
+  margin-top: 12px;
+  padding: 12px;
+  background: #F8F8F8;
+  border: 1px solid #000000;
+  border-radius: 8px;
+}
+.ca-pw-form.visible { display: block; }
+.ca-pw-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ca-pw-input-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 160px;
+}
+.ca-pw-input {
+  width: 100%;
+  padding: 8px 44px 8px 10px;
+  font-size: 15px;
+  font-family: inherit;
+  border: 1px solid #000000;
+  border-radius: 7px;
+  background: #FFFFFF;
+  color: #111111;
+  outline: none;
+}
+.ca-pw-input:focus { border-color: #06D6A0; box-shadow: 0 0 0 2px rgba(6,214,160,0.15); }
+.ca-pw-show {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #06D6A0;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 2px 4px;
+  font-family: inherit;
+  line-height: 1;
+}
+.ca-pw-flash {
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  display: none;
+}
+.ca-pw-flash.ok   { display: block; background: #D4F7EE; color: #007A5E; border: 1px solid #06D6A0; }
+.ca-pw-flash.fail { display: block; background: rgba(204,0,0,0.06); color: #CC0000; border: 1px solid rgba(204,0,0,0.3); }
+
 /* ─── Loading / empty states ─── */
 .ca-loading {
   text-align: center;
