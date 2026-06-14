@@ -222,6 +222,11 @@ Deno.serve(async (req) => {
     }
 
     // ── 5. Insert clients row ──────────────────────────────────────────────
+    const now = new Date();
+    const free_period_ends_at = free_period_days > 0
+      ? new Date(now.getTime() + free_period_days * 24 * 60 * 60 * 1000).toISOString()
+      : null;
+
     const clientInsertPayload: Record<string, unknown> = {
       business_name,
       email:                  owner_email,
@@ -235,10 +240,11 @@ Deno.serve(async (req) => {
       customer_sms_template,
       account_status:         'active',
       terms_accepted:         true,
-      subscription_start:     new Date().toISOString(),
+      subscription_start:     now.toISOString(),
       must_change_password:   isNewUser,
       middle_man_enabled:     middle_man_enabled,
       middle_man_slug:        slug,
+      free_period_ends_at,
     };
 
     const { data: insertedClient, error: insertErr } = await supa
