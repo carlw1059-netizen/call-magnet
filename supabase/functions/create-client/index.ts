@@ -311,9 +311,11 @@ Deno.serve(async (req) => {
       const overagePriceId = 'price_1TMmTG3MTu8r2rLhYSWnqheS'; // SMS overage (all verticals)
 
       const subParams = new URLSearchParams({
-        customer:          stripe_customer_id,
-        'items[0][price]': monthlyPriceId,
-        'items[1][price]': overagePriceId,
+        customer:             stripe_customer_id,
+        'items[0][price]':    monthlyPriceId,
+        'items[1][price]':    overagePriceId,
+        collection_method:    'send_invoice',
+        days_until_due:       '30',
       });
       if (free_period_days > 0) {
         subParams.set('trial_period_days', String(free_period_days));
