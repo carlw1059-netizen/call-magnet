@@ -127,6 +127,11 @@ function caRender(list) {
       if (flash) { flash.className = 'ca-pw-flash'; flash.textContent = ''; }
     });
   });
+
+  // Wire delete-mm buttons
+  grid.querySelectorAll('[data-action="delete-mm"]').forEach(function(btn) {
+    btn.addEventListener('click', function() { caDeleteMM(btn); });
+  });
 }
 
 // ─── Build one client card ─────────────────────────────────────────────────────
@@ -256,6 +261,7 @@ function caCard(c) {
           : '') +
         toggleBtn +
         '<button class="ca-btn" data-action="reset-pw" data-id="' + _e(c.id) + '">Reset password</button>' +
+        '<button class="ca-btn" style="background:#CC5500;" data-action="delete-mm" data-id="' + _e(c.id) + '" data-name="' + _e(c.business_name || '') + '">Delete MM config</button>' +
       '</div>' +
 
       // Inline reset-password form (hidden until button clicked)
@@ -417,6 +423,46 @@ async function caResetPassword(clientId, confirmBtn) {
 
   confirmBtn.disabled    = false;
   confirmBtn.textContent = 'Confirm';
+}
+
+// ─── Delete Middle Man config (does NOT delete the row) ──────────────────────
+async function caDeleteMM(btn) {
+  var id   = btn.dataset.id;
+  var name = btn.dataset.name || 'this client';
+
+  if (!confirm('This will remove all Middle Man configuration for ' + name + '. The client row in Supabase will NOT be deleted. Are you sure?')) return;
+
+  btn.disabled    = true;
+  btn.textContent = 'Clearing…';
+
+  var result = await caSb.from('clients').update({
+    buttons:        [],
+    background_url: null,
+    logo_url:       null,
+    booking_url:    null,
+    shortio_link:   null,
+  }).eq('id', id);
+
+  if (result.error) {
+    alert('Clear failed: ' + result.error.message);
+    btn.disabled    = false;
+    btn.textContent = 'Delete MM config';
+    return;
+  }
+
+  // Update in-memory record so re-render reflects cleared state
+  [allClients, currentList].forEach(function(arr) {
+    var c = arr.find(function(x) { return x.id === id; });
+    if (c) {
+      c.buttons        = [];
+      c.background_url = null;
+      c.logo_url       = null;
+      c.booking_url    = null;
+      c.shortio_link   = null;
+    }
+  });
+
+  caRender(currentList);
 }
 
 // ─── Boot — verbatim middle-man-admin.js pattern ──────────────────────────────
