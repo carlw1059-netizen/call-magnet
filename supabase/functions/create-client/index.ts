@@ -607,10 +607,10 @@ Deno.serve(async (req) => {
             ${checkoutUrl
               ? `<li style="margin-bottom:6px;">Complete payment using the button above</li>
             <li style="margin-bottom:6px;">You'll receive a confirmation email once your account is active</li>
-            <li>Reply to this email or text Carl if anything looks wrong</li>`
+            <li>Email us at hello@callmagnet.com.au if anything looks wrong</li>`
               : `<li style="margin-bottom:6px;">Log in at callmagnet.com.au with the details above</li>
             <li style="margin-bottom:6px;">Walk through the dashboard tiles</li>
-            <li>Reply to this email or text Carl if anything looks wrong</li>`}
+            <li>Email us at hello@callmagnet.com.au if anything looks wrong</li>`}
           </ol>
         </div>
       </td></tr>
@@ -627,7 +627,7 @@ Deno.serve(async (req) => {
             `Next steps:\n` +
             `1. Complete payment using the link above\n` +
             `2. You'll receive a confirmation email once your account is active\n` +
-            `3. Reply to this email or text Carl if anything looks wrong\n\n` +
+            `3. Email us at hello@callmagnet.com.au if anything looks wrong\n\n` +
             `CallMagnet — callmagnet.com.au\n`
           : `Welcome, ${business_name}.\n\n` +
             `Your CallMagnet account is set up. Log in at ${loginPageUrl} to see your dashboard.\n\n` +
@@ -635,7 +635,7 @@ Deno.serve(async (req) => {
             `Next steps:\n` +
             `1. Log in at callmagnet.com.au with the details above\n` +
             `2. Walk through the dashboard tiles\n` +
-            `3. Reply to this email or text Carl if anything looks wrong\n\n` +
+            `3. Email us at hello@callmagnet.com.au if anything looks wrong\n\n` +
             `CallMagnet — callmagnet.com.au\n`;
         const resendRes = await fetch('https://api.resend.com/emails', {
           method:  'POST',
