@@ -318,79 +318,49 @@ Deno.serve(async (req) => {
           console.warn(`create-client: stripe_customer_id UPDATE failed — ${stripeUpdateErr.message}`);
         }
 
-        // Price IDs by package
-        const monthlyPriceId = pricing_package === 'restaurant'
-          ? 'price_1Ti51u3MTu8r2rLhBNxFra0k'   // Restaurant $249/month
-          : 'price_1TD12P3MTu8r2rLhJYFPksVx';  // Hairdresser $99/month
-        const overagePriceId = 'price_1TMmTG3MTu8r2rLhYSWnqheS'; // SMS overage metered
-
-        const subParams = new URLSearchParams({
-          customer:             stripe_customer_id,
-          'items[0][price]':    monthlyPriceId,
-          'items[1][price]':    overagePriceId,
-          collection_method:    'send_invoice',
-          days_until_due:       '30',
-        });
-        if (free_period_days > 0) {
-          subParams.set('trial_period_days', String(free_period_days));
-        }
-
-        const subRes = await fetch('https://api.stripe.com/v1/subscriptions', {
-          method:  'POST',
-          headers: {
-            'Authorization': `Basic ${btoa(stripeKey + ':')}`,
-            'Content-Type':  'application/x-www-form-urlencoded',
-          },
-          body: subParams.toString(),
-        });
-        const subData = await subRes.json() as Record<string, unknown>;
-        if (!subRes.ok) {
-          throw new Error(`Stripe subscription ${subRes.status}: ${JSON.stringify(subData)}`);
-        }
-        stripe_subscription_id = subData.id as string;
-        console.log(`create-client: Stripe subscription created — ${stripe_subscription_id}`);
-
-        // Update clients row with stripe_subscription_id
-        const { error: subUpdateErr } = await supa
-          .from('clients')
-          .update({ stripe_subscription_id })
-          .eq('id', client_id);
-        if (subUpdateErr) {
-          console.warn(`create-client: stripe_subscription_id UPDATE failed — ${subUpdateErr.message}`);
-        }
-      } catch (e) {
-        stripe_error = (e as Error)?.message ?? String(e);
-        console.warn(`create-client: Stripe customer/subscription failed (non-fatal) — ${stripe_error}`);
-      }
-
-      // ── 5c. Checkout Session for setup fee (best-effort) ─────────────────
-      if (stripe_customer_id) {
-        try {
-          const { data: stripeKey2, error: vaultErr2 } = await supa
-            .rpc('get_vault_secret', { secret_name: 'stripe_secret_key' });
-          if (vaultErr2 || !stripeKey2) {
-            throw new Error(`Vault fetch failed: ${vaultErr2?.message ?? 'key not found'}`);
-          }
-
-          const setupPriceId = pricing_package === 'restaurant'
-            ? 'price_1Ti51s3MTu8r2rLhmmtEk3Fb'   // Restaurant setup $499
-            : 'price_1TD0jm3MTu8r2rLhkXPpx0AH';  // Hairdresser setup $249
-
-          const csParams = new URLSearchParams({
-            customer:                                    stripe_customer_id,
-            mode:                                        'payment',
-            'line_items[0][price]':                      setupPriceId,
-            'line_items[0][quantity]':                   '1',
-            success_url:                                 'https://callmagnet.com.au/payment-success',
-            cancel_url:                                  'https://callmagnet.com.au',
-            'payment_intent_data[setup_future_usage]':   'off_session',
-            'metadata[client_id]':                       client_id,
-            'metadata[slug]':                            slug,
+        if (pricing_package === 'restaurant') {
+          // ── Restaurant: invoice item for setup fee + subscription-mode checkout session ──
+          // Step 1: pending invoice item for the $499 setup fee
+          const iiParams = new URLSearchParams({
+            customer:     stripe_customer_id,
+            amount:       '49900',
+            currency:     'aud',
+            description:  'One-time setup fee',
           });
+          const iiRes = await fetch('https://api.stripe.com/v1/invoiceitems', {
+            method:  'POST',
+            headers: {
+              'Authorization': `Basic ${btoa(stripeKey + ':')}`,
+              'Content-Type':  'application/x-www-form-urlencoded',
+            },
+            body: iiParams.toString(),
+          });
+          const iiData = await iiRes.json() as Record<string, unknown>;
+          if (!iiRes.ok) {
+            throw new Error(`Stripe invoiceitem ${iiRes.status}: ${JSON.stringify(iiData)}`);
+          }
+          console.log(`create-client: invoice item created — ${iiData.id}`);
+
+          // Step 2: subscription-mode checkout session (monthly + SMS overage)
+          const csParams = new URLSearchParams({
+            customer:                                          stripe_customer_id,
+            mode:                                             'subscription',
+            'line_items[0][price]':                           'price_1Ti51u3MTu8r2rLhBNxFra0k',
+            'line_items[0][quantity]':                        '1',
+            'line_items[1][price]':                           'price_1TMmTG3MTu8r2rLhYSWnqheS',
+            'subscription_data[metadata][client_id]':         client_id,
+            'subscription_data[metadata][slug]':              slug,
+            payment_method_collection:                        'always',
+            success_url:                                      'https://callmagnet.com.au/payment-success',
+            cancel_url:                                       'https://callmagnet.com.au',
+          });
+          if (free_period_days > 0) {
+            csParams.set('subscription_data[trial_period_days]', String(free_period_days));
+          }
           const csRes = await fetch('https://api.stripe.com/v1/checkout/sessions', {
             method:  'POST',
             headers: {
-              'Authorization': `Basic ${btoa(stripeKey2 + ':')}`,
+              'Authorization': `Basic ${btoa(stripeKey + ':')}`,
               'Content-Type':  'application/x-www-form-urlencoded',
             },
             body: csParams.toString(),
@@ -399,13 +369,77 @@ Deno.serve(async (req) => {
           if (!csRes.ok) {
             throw new Error(`Stripe checkout session ${csRes.status}: ${JSON.stringify(csData)}`);
           }
-          checkoutUrl      = csData.url as string;
+          checkoutUrl         = csData.url as string;
           checkout_session_id = csData.id as string;
-          console.log(`create-client: Checkout Session created — ${checkout_session_id}`);
-        } catch (e) {
-          checkout_error = (e as Error)?.message ?? String(e);
-          console.warn(`create-client: Checkout Session failed (non-fatal) — ${checkout_error}`);
+          // stripe_subscription_id stays null — populated by checkout.session.completed webhook
+          console.log(`create-client: restaurant checkout session created — ${checkout_session_id}`);
+
+        } else {
+          // ── Hairdresser: subscription + payment-mode checkout session for setup fee ──
+          const subParams = new URLSearchParams({
+            customer:             stripe_customer_id,
+            'items[0][price]':    'price_1TD12P3MTu8r2rLhJYFPksVx',
+            'items[1][price]':    'price_1TMmTG3MTu8r2rLhYSWnqheS',
+            collection_method:    'send_invoice',
+            days_until_due:       '30',
+          });
+          if (free_period_days > 0) {
+            subParams.set('trial_period_days', String(free_period_days));
+          }
+          const subRes = await fetch('https://api.stripe.com/v1/subscriptions', {
+            method:  'POST',
+            headers: {
+              'Authorization': `Basic ${btoa(stripeKey + ':')}`,
+              'Content-Type':  'application/x-www-form-urlencoded',
+            },
+            body: subParams.toString(),
+          });
+          const subData = await subRes.json() as Record<string, unknown>;
+          if (!subRes.ok) {
+            throw new Error(`Stripe subscription ${subRes.status}: ${JSON.stringify(subData)}`);
+          }
+          stripe_subscription_id = subData.id as string;
+          console.log(`create-client: hairdresser subscription created — ${stripe_subscription_id}`);
+
+          const { error: subUpdateErr } = await supa
+            .from('clients')
+            .update({ stripe_subscription_id })
+            .eq('id', client_id);
+          if (subUpdateErr) {
+            console.warn(`create-client: stripe_subscription_id UPDATE failed — ${subUpdateErr.message}`);
+          }
+
+          // Checkout session for hairdresser setup fee (payment mode)
+          const csParams2 = new URLSearchParams({
+            customer:                                    stripe_customer_id,
+            mode:                                        'payment',
+            'line_items[0][price]':                      'price_1TD0jm3MTu8r2rLhkXPpx0AH',
+            'line_items[0][quantity]':                   '1',
+            success_url:                                 'https://callmagnet.com.au/payment-success',
+            cancel_url:                                  'https://callmagnet.com.au',
+            'payment_intent_data[setup_future_usage]':   'off_session',
+            'metadata[client_id]':                       client_id,
+            'metadata[slug]':                            slug,
+          });
+          const csRes2 = await fetch('https://api.stripe.com/v1/checkout/sessions', {
+            method:  'POST',
+            headers: {
+              'Authorization': `Basic ${btoa(stripeKey + ':')}`,
+              'Content-Type':  'application/x-www-form-urlencoded',
+            },
+            body: csParams2.toString(),
+          });
+          const csData2 = await csRes2.json() as Record<string, unknown>;
+          if (!csRes2.ok) {
+            throw new Error(`Stripe checkout session ${csRes2.status}: ${JSON.stringify(csData2)}`);
+          }
+          checkoutUrl         = csData2.url as string;
+          checkout_session_id = csData2.id as string;
+          console.log(`create-client: hairdresser checkout session created — ${checkout_session_id}`);
         }
+      } catch (e) {
+        stripe_error = (e as Error)?.message ?? String(e);
+        console.warn(`create-client: Stripe block failed (non-fatal) — ${stripe_error}`);
       }
     } else {
       console.log(`create-client: pricing_package=free_trial — Stripe skipped`);
