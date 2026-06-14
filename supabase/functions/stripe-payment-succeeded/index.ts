@@ -79,7 +79,86 @@ Deno.serve(async (req) => {
 
 
 
-    if (event.type === 'invoice.payment_succeeded') {
+    if (event.type === 'checkout.session.completed') {
+      const session   = event.data.object
+      const clientId  = session.metadata?.client_id
+      const slug      = session.metadata?.slug || ''
+
+      if (!clientId) {
+        return new Response(JSON.stringify({ message: 'no client_id in metadata' }), {
+          status: 200, headers: { 'Content-Type': 'application/json' }
+        })
+      }
+
+      // Activate the client
+      await fetch(
+        `${supabaseUrl}/rest/v1/clients?id=eq.${clientId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=minimal',
+          },
+          body: JSON.stringify({ account_status: 'active' }),
+        }
+      )
+      console.log(`checkout.session.completed: activated client ${clientId}`)
+
+      // Fetch client email + name for confirmation email
+      const clientRes = await fetch(
+        `${supabaseUrl}/rest/v1/clients?id=eq.${clientId}&select=email,business_name`,
+        { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }
+      )
+      const clients = await clientRes.json()
+      const client  = clients?.[0]
+
+      if (client && resendKey) {
+        const bizSafe  = String(client.business_name).replace(/[&<>"']/g, (c) =>
+          ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])
+        )
+        const dashUrl  = slug ? `https://callmagnet.com.au/b/${slug}` : 'https://callmagnet.com.au'
+        const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Your CallMagnet account is now live</title></head>
+<body style="margin:0;padding:0;background:#0E1419;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#FFFFFF;-webkit-text-size-adjust:100%;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0E1419;">
+  <tr><td align="center" style="padding:32px 16px 24px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;background:rgba(255,255,255,0.04);border:1px solid rgba(16,185,129,0.22);border-radius:14px;">
+      <tr><td style="padding:36px 30px 32px;color:#FFFFFF;">
+        <div style="font-size:14px;letter-spacing:0.16em;color:#10b981;text-transform:uppercase;font-weight:700;margin-bottom:28px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">★ CallMagnet</div>
+        <h1 style="margin:0 0 12px;font-size:24px;font-weight:600;color:#FFFFFF;letter-spacing:-0.01em;">Your account is now live.</h1>
+        <p style="margin:0 0 24px;font-size:15px;line-height:1.55;color:rgba(255,255,255,0.75);">Hi ${bizSafe} — your payment was received and your CallMagnet account is now active.</p>
+        <p style="margin:0 0 28px;font-size:15px;line-height:1.55;color:rgba(255,255,255,0.75);">Log in at your dashboard to get started.</p>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding:0 0 24px;">
+          <a href="${dashUrl}" style="display:inline-block;background:#10b981;color:#0a1a14;text-decoration:none;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;letter-spacing:0.01em;">Go to my dashboard</a>
+        </td></tr></table>
+        <p style="margin:0;font-size:13px;color:rgba(255,255,255,0.4);">Questions? Reply to this email or contact hello@callmagnet.com.au</p>
+      </td></tr>
+    </table>
+    <div style="font-size:12px;color:rgba(255,255,255,0.25);margin-top:18px;letter-spacing:0.06em;">CallMagnet</div>
+  </td></tr>
+</table>
+</body></html>`
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from:    'CallMagnet <hello@callmagnet.com.au>',
+            to:      client.email,
+            subject: 'Your CallMagnet account is now live',
+            html,
+            text: `Your account is now live, ${client.business_name}.\n\nYour payment was received and your CallMagnet account is now active.\n\nLog in at: ${dashUrl}\n\nQuestions? Reply to this email.\n\nCallMagnet — callmagnet.com.au\n`,
+          }),
+        }).catch((e) => console.warn(`checkout activation email failed — ${e?.message}`))
+        console.log(`checkout.session.completed: confirmation email sent to ${client.email}`)
+      }
+
+      return new Response(JSON.stringify({ received: true }), {
+        status: 200, headers: { 'Content-Type': 'application/json' }
+      })
+
+    } else if (event.type === 'invoice.payment_succeeded') {
       const stripeCustomerId      = event.data.object.customer
       const stripeSubscriptionId  = typeof event.data.object.subscription === 'string'
         ? event.data.object.subscription

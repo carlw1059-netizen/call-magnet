@@ -245,7 +245,7 @@ Deno.serve(async (req) => {
       avg_job_value,
       abn,
       customer_sms_template,
-      account_status:         'active',
+      account_status:         pricing_package === 'free_trial' ? 'active' : 'pending_payment',
       terms_accepted:         true,
       subscription_start:     now.toISOString(),
       must_change_password:   isNewUser,
@@ -271,11 +271,12 @@ Deno.serve(async (req) => {
     const client_id = insertedClient.id;
 
     // ── 5b. Create Stripe customer + subscription (best-effort; skipped for free_trial) ──
-    let stripe_customer_id:          string | null = null;
-    let stripe_subscription_id:      string | null = null;
-    let stripe_error:                string | null = null;
-    let setup_fee_payment_intent_id: string | null = null;
-    let setup_fee_error:             string | null = null;
+    let stripe_customer_id:     string | null = null;
+    let stripe_subscription_id: string | null = null;
+    let stripe_error:           string | null = null;
+    let checkoutUrl:            string | null = null;
+    let checkout_session_id:    string | null = null;
+    let checkout_error:         string | null = null;
 
     if (pricing_package !== 'free_trial') {
       try {
@@ -362,7 +363,7 @@ Deno.serve(async (req) => {
         console.warn(`create-client: Stripe customer/subscription failed (non-fatal) — ${stripe_error}`);
       }
 
-      // ── 5c. Setup fee payment intent (best-effort) ────────────────────────
+      // ── 5c. Checkout Session for setup fee (best-effort) ─────────────────
       if (stripe_customer_id) {
         try {
           const { data: stripeKey2, error: vaultErr2 } = await supa
@@ -371,33 +372,39 @@ Deno.serve(async (req) => {
             throw new Error(`Vault fetch failed: ${vaultErr2?.message ?? 'key not found'}`);
           }
 
-          const setupAmount = pricing_package === 'restaurant' ? 49900 : 24900;
-          const piParams = new URLSearchParams({
-            amount:                    String(setupAmount),
-            currency:                  'aud',
-            customer:                  stripe_customer_id,
-            confirm:                   'true',
-            'payment_method_types[0]': 'card',
-            'metadata[client_id]':     client_id,
-            'metadata[type]':          'setup_fee',
+          const setupPriceId = pricing_package === 'restaurant'
+            ? 'price_1Ti51s3MTu8r2rLhmmtEk3Fb'   // Restaurant setup $499
+            : 'price_1TD0jm3MTu8r2rLhkXPpx0AH';  // Hairdresser setup $249
+
+          const csParams = new URLSearchParams({
+            customer:                                    stripe_customer_id,
+            mode:                                        'payment',
+            'line_items[0][price]':                      setupPriceId,
+            'line_items[0][quantity]':                   '1',
+            success_url:                                 'https://callmagnet.com.au/payment-success',
+            cancel_url:                                  'https://callmagnet.com.au',
+            'payment_intent_data[setup_future_usage]':   'off_session',
+            'metadata[client_id]':                       client_id,
+            'metadata[slug]':                            slug,
           });
-          const piRes = await fetch('https://api.stripe.com/v1/payment_intents', {
+          const csRes = await fetch('https://api.stripe.com/v1/checkout/sessions', {
             method:  'POST',
             headers: {
               'Authorization': `Basic ${btoa(stripeKey2 + ':')}`,
               'Content-Type':  'application/x-www-form-urlencoded',
             },
-            body: piParams.toString(),
+            body: csParams.toString(),
           });
-          const piData = await piRes.json() as Record<string, unknown>;
-          if (!piRes.ok) {
-            throw new Error(`Stripe payment_intent ${piRes.status}: ${JSON.stringify(piData)}`);
+          const csData = await csRes.json() as Record<string, unknown>;
+          if (!csRes.ok) {
+            throw new Error(`Stripe checkout session ${csRes.status}: ${JSON.stringify(csData)}`);
           }
-          setup_fee_payment_intent_id = piData.id as string;
-          console.log(`create-client: setup fee payment intent created — ${setup_fee_payment_intent_id} (${setupAmount} AUD cents)`);
+          checkoutUrl      = csData.url as string;
+          checkout_session_id = csData.id as string;
+          console.log(`create-client: Checkout Session created — ${checkout_session_id}`);
         } catch (e) {
-          setup_fee_error = (e as Error)?.message ?? String(e);
-          console.warn(`create-client: setup fee payment intent failed (non-fatal) — ${setup_fee_error}`);
+          checkout_error = (e as Error)?.message ?? String(e);
+          console.warn(`create-client: Checkout Session failed (non-fatal) — ${checkout_error}`);
         }
       }
     } else {
@@ -568,12 +575,17 @@ Deno.serve(async (req) => {
         <h1 style="margin:0 0 12px;font-size:24px;font-weight:600;color:rgba(255,255,255,0.92);letter-spacing:-0.01em;">Welcome, ${escapedBiz}.</h1>
         <p style="margin:0 0 24px;font-size:15px;line-height:1.55;color:rgba(255,255,255,0.78);">Your CallMagnet account is set up. Log in to see your dashboard and watch SMS replies fire to customers in real time once your phone forwarding is configured.</p>
         ${credentialBlock}
+        ${checkoutUrl ? `<p style="margin:0 0 14px;font-size:14px;line-height:1.55;color:rgba(255,255,255,0.65);">You'll need to complete payment before your account goes live.</p>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding:0 0 16px;">
+          <a href="${checkoutUrl}" style="display:inline-block;background:#06D6A0;color:#0a1110;text-decoration:none;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;letter-spacing:0.01em;">Complete your account setup</a>
+        </td></tr></table>` : ''}
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding:0 0 24px;">
-          <a href="${loginPageUrl}" style="display:inline-block;background:#06D6A0;color:#0a1110;text-decoration:none;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;letter-spacing:0.01em;">Go to my dashboard</a>
+          <a href="${loginPageUrl}" style="display:inline-block;background:${checkoutUrl ? 'transparent' : '#06D6A0'};color:${checkoutUrl ? '#06D6A0' : '#0a1110'};border:${checkoutUrl ? '1px solid rgba(6,214,160,0.5)' : 'none'};text-decoration:none;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;letter-spacing:0.01em;">Go to my dashboard</a>
         </td></tr></table>
         <div style="margin:0 0 24px;padding:18px 18px;background:rgba(6,214,160,0.06);border:1px solid rgba(6,214,160,0.18);border-radius:10px;">
           <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#06D6A0;font-weight:700;margin-bottom:10px;">Next steps</div>
           <ol style="margin:0;padding:0 0 0 20px;font-size:14px;line-height:1.55;color:rgba(255,255,255,0.85);">
+            ${checkoutUrl ? '<li style="margin-bottom:6px;">Complete payment using the button above</li>' : ''}
             <li style="margin-bottom:6px;">Log in at callmagnet.com.au with the details above</li>
             <li style="margin-bottom:6px;">Walk through the dashboard tiles</li>
             <li>Reply to this email or text Carl if anything looks wrong</li>
@@ -585,14 +597,16 @@ Deno.serve(async (req) => {
   </td></tr>
 </table>
 </body></html>`;
+        const checkoutTextBlock = checkoutUrl
+          ? `You'll need to complete payment before your account goes live.\nComplete your account setup: ${checkoutUrl}\n\n`
+          : '';
         const text =
           `Welcome, ${business_name}.\n\n` +
           `Your CallMagnet account is set up. Log in at ${loginPageUrl} to see your dashboard.\n\n` +
           credentialText +
+          checkoutTextBlock +
           `Next steps:\n` +
-          `1. Log in at callmagnet.com.au\n` +
-          `2. Walk through the dashboard tiles\n` +
-          `3. Reply to this email or text Carl if anything looks wrong\n\n` +
+          (checkoutUrl ? `1. Complete payment: ${checkoutUrl}\n2. Log in at callmagnet.com.au\n3. Walk through the dashboard tiles\n4. Reply to this email or text Carl if anything looks wrong\n\n` : `1. Log in at callmagnet.com.au\n2. Walk through the dashboard tiles\n3. Reply to this email or text Carl if anything looks wrong\n\n`) +
           `CallMagnet — callmagnet.com.au\n`;
         const resendRes = await fetch('https://api.resend.com/emails', {
           method:  'POST',
@@ -635,8 +649,9 @@ Deno.serve(async (req) => {
       stripe_customer_id,
       stripe_subscription_id,
       stripe_error,
-      setup_fee_payment_intent_id,
-      setup_fee_error,
+      checkout_session_id,
+      checkout_url:  checkoutUrl,
+      checkout_error,
     });
 
   } catch (err) {

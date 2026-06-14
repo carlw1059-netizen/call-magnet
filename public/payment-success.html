@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="robots" content="noindex,nofollow">
+<title>Payment received — CallMagnet</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    min-height: 100vh;
+    background: #0E1419;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #FFFFFF;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+  .card {
+    width: 100%;
+    max-width: 440px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(16,185,129,0.22);
+    border-radius: 18px;
+    padding: 40px 36px 36px;
+    text-align: center;
+    box-shadow: 0 8px 48px rgba(0,0,0,0.4);
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+  .logo-icon {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+  }
+  .logo-text {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #10b981;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .check-wrap {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: rgba(16,185,129,0.12);
+    border: 2px solid rgba(16,185,129,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    box-shadow: 0 0 32px rgba(16,185,129,0.2);
+  }
+  .check-icon {
+    width: 36px;
+    height: 36px;
+    color: #10b981;
+  }
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #FFFFFF;
+    letter-spacing: -0.01em;
+    margin-bottom: 12px;
+  }
+  .sub {
+    font-size: 15px;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.65);
+    margin-bottom: 32px;
+  }
+  .go-btn {
+    display: inline-block;
+    background: #10b981;
+    color: #0a1a14;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 14px 32px;
+    border-radius: 10px;
+    letter-spacing: 0.01em;
+    transition: background 0.15s;
+  }
+  .go-btn:hover { background: #0ea573; }
+  .footer {
+    margin-top: 28px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 0.06em;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div class="logo">
+    <svg class="logo-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="256" cy="256" r="256" fill="#0E1419"/>
+      <polygon points="256,108 291,208 396,210 312,272 342,372 256,314 170,372 200,272 116,210 221,208" fill="#10b981"/>
+    </svg>
+    <span class="logo-text">CallMagnet</span>
+  </div>
+
+  <div class="check-wrap">
+    <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  </div>
+
+  <h1>Payment received.</h1>
+  <p class="sub">Your account is being activated. You'll receive a confirmation email shortly.</p>
+
+  <a href="https://callmagnet.com.au" class="go-btn">Go to CallMagnet</a>
+
+  <div class="footer">CallMagnet</div>
+</div>
+</body>
+</html>
