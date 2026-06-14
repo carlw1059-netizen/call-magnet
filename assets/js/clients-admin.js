@@ -46,18 +46,8 @@ async function caLoad() {
   currentList = allClients.slice();
   caSetCount(allClients.length);
 
-  // Single SMS count query — all client_id rows, grouped in JS
+  // SMS count intentionally omitted — non-critical, removed to avoid RLS 500
   smsCountMap = {};
-  try {
-    var sr = await caSb.from('sms_events').select('client_id').limit(500000);
-    if (!sr.error) {
-      (sr.data || []).forEach(function(row) {
-        if (row.client_id) {
-          smsCountMap[row.client_id] = (smsCountMap[row.client_id] || 0) + 1;
-        }
-      });
-    }
-  } catch (_) { /* non-fatal */ }
 
   caRender(currentList);
 }
