@@ -542,24 +542,7 @@ Deno.serve(async (req) => {
     let welcome_email_error: string | null = null;
 
     // Generate magic link for new users (best-effort — fall back to homepage)
-    let loginButtonUrl = 'https://callmagnet.com.au';
-    if (isNewUser) {
-      try {
-        const { data: linkData } = await supa.auth.admin.generateLink({
-          type: 'magiclink',
-          email: owner_email,
-          options: { redirectTo: 'https://callmagnet.com.au' },
-        });
-        const actionLink = (linkData as Record<string, unknown> | null)?.properties
-          ? ((linkData as Record<string, unknown>).properties as Record<string, unknown>)?.action_link
-          : null;
-        if (typeof actionLink === 'string' && actionLink.startsWith('http')) {
-          loginButtonUrl = actionLink;
-        }
-      } catch (e) {
-        console.warn(`create-client: magic link generation failed — ${(e as Error)?.message ?? e}`);
-      }
-    }
+    const loginButtonUrl = 'https://callmagnet.com.au';
 
     if (RESEND_API_KEY) {
       try {
