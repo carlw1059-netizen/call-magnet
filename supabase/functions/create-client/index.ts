@@ -637,6 +637,7 @@ Deno.serve(async (req) => {
             `2. Walk through the dashboard tiles\n` +
             `3. Email us at hello@callmagnet.com.au if anything looks wrong\n\n` +
             `CallMagnet — callmagnet.com.au\n`;
+        console.log(`create-client: email send — checkoutUrl=${checkoutUrl}, pricing_package=${pricing_package}`);
         const resendRes = await fetch('https://api.resend.com/emails', {
           method:  'POST',
           headers: {
