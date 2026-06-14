@@ -252,7 +252,58 @@ Deno.serve(async (req) => {
     }
     const client_id = insertedClient.id;
 
-    // ── 5b. Create Short.io link (best-effort — never blocks onboarding) ───
+    // ── 5b. Create Stripe customer (best-effort — never blocks onboarding) ──
+    let stripe_customer_id: string | null = null;
+    let stripe_error: string | null = null;
+    try {
+      // Fetch Stripe secret key from Vault via service-role client
+      const { data: vaultRow, error: vaultErr } = await supa
+        .schema('vault')
+        .from('decrypted_secrets')
+        .select('decrypted_secret')
+        .eq('name', 'stripe_secret_key')
+        .single();
+      if (vaultErr || !vaultRow?.decrypted_secret) {
+        throw new Error(`Vault fetch failed: ${vaultErr?.message ?? 'key not found'}`);
+      }
+      const stripeKey = vaultRow.decrypted_secret as string;
+
+      // Create Stripe customer
+      const stripeBody = new URLSearchParams({
+        email:                  owner_email,
+        name:                   business_name,
+        'metadata[client_id]':  client_id,
+        'metadata[vertical]':   vertical,
+      });
+      const stripeRes = await fetch('https://api.stripe.com/v1/customers', {
+        method:  'POST',
+        headers: {
+          'Authorization': `Basic ${btoa(stripeKey + ':')}`,
+          'Content-Type':  'application/x-www-form-urlencoded',
+        },
+        body: stripeBody.toString(),
+      });
+      const stripeData = await stripeRes.json() as Record<string, unknown>;
+      if (!stripeRes.ok) {
+        throw new Error(`Stripe API ${stripeRes.status}: ${JSON.stringify(stripeData)}`);
+      }
+      stripe_customer_id = stripeData.id as string;
+      console.log(`create-client: Stripe customer created — ${stripe_customer_id}`);
+
+      // Update clients row with stripe_customer_id
+      const { error: stripeUpdateErr } = await supa
+        .from('clients')
+        .update({ stripe_customer_id })
+        .eq('id', client_id);
+      if (stripeUpdateErr) {
+        console.warn(`create-client: stripe_customer_id UPDATE failed — ${stripeUpdateErr.message}`);
+      }
+    } catch (e) {
+      stripe_error = (e as Error)?.message ?? String(e);
+      console.warn(`create-client: Stripe customer creation failed (non-fatal) — ${stripe_error}`);
+    }
+
+    // ── 5d. Create Short.io link (best-effort — never blocks onboarding) ───
     // slug is always set (auto-generated if not supplied). On any failure: log and continue.
     if (SHORTIO_API_KEY) {
       try {
@@ -470,16 +521,18 @@ Deno.serve(async (req) => {
     }
 
     return json(200, {
-      success:           true,
+      success:             true,
       client_id,
       sms_sent,
       sms_error,
       welcome_email_sent,
       welcome_email_error,
-      auth_user_id:      authUserId,
-      is_new_user:       isNewUser,
-      middle_man_slug:   slug,
+      auth_user_id:        authUserId,
+      is_new_user:         isNewUser,
+      middle_man_slug:     slug,
       middle_man_enabled,
+      stripe_customer_id,
+      stripe_error,
     });
 
   } catch (err) {
