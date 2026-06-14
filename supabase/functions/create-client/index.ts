@@ -87,7 +87,12 @@ Deno.serve(async (req) => {
     const customer_sms_template_input = typeof body.customer_sms_template === 'string'
       ? body.customer_sms_template.trim()
       : '';
-    const send_sms      = body.send_sms !== false; // default true
+    const send_sms         = body.send_sms !== false; // default true
+    const initial_password = typeof body.initial_password === 'string' ? body.initial_password : '';
+
+    if (!initial_password || initial_password.length < 8) {
+      return json(400, { error: 'invalid_field', field: 'initial_password', detail: 'initial_password must be at least 8 characters' });
+    }
 
     // ── Middle Man fields ──────────────────────────────────────────────────
     // Slug: use whatever the form sent, or auto-generate from business_name.
@@ -187,12 +192,8 @@ Deno.serve(async (req) => {
     }
 
     // ── 4. Create (or reuse) auth user ─────────────────────────────────────
-    // Generate a 12-char temporary password for new users. Excludes visually
-    // ambiguous chars (0/O/l/I/1) so it can be typed from an email if needed.
-    const TEMP_PWD_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-    const pwdBytes = new Uint8Array(12);
-    crypto.getRandomValues(pwdBytes);
-    const temp_password = Array.from(pwdBytes).map(b => TEMP_PWD_CHARS[b % TEMP_PWD_CHARS.length]).join('');
+    // Use the admin-supplied initial_password (validated above). For existing
+    // users the password is NOT changed — they already have credentials.
 
     let authUserId: string | null = null;
     let isNewUser = false;
@@ -205,7 +206,7 @@ Deno.serve(async (req) => {
       const { data: createRes, error: createErr } = await supa.auth.admin.createUser({
         email:         owner_email,
         phone:         owner_phone,
-        password:      temp_password,
+        password:      initial_password,
         email_confirm: true,
         phone_confirm: true,
         user_metadata: { business_name },
@@ -372,14 +373,14 @@ Deno.serve(async (req) => {
           <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#06D6A0;font-weight:700;margin-bottom:10px;">Your login details</div>
           <table style="width:100%;font-size:14px;line-height:1.6;color:rgba(255,255,255,0.85);border-collapse:collapse;">
             <tr><td style="padding:2px 0;color:rgba(255,255,255,0.55);width:90px;">Email</td><td style="padding:2px 0;font-family:ui-monospace,monospace;font-weight:700;">${owner_email}</td></tr>
-            <tr><td style="padding:2px 0;color:rgba(255,255,255,0.55);">Password</td><td style="padding:2px 0;font-family:ui-monospace,monospace;font-weight:700;letter-spacing:0.08em;">${temp_password}</td></tr>
+            <tr><td style="padding:2px 0;color:rgba(255,255,255,0.55);">Password</td><td style="padding:2px 0;font-family:ui-monospace,monospace;font-weight:700;letter-spacing:0.08em;">${initial_password}</td></tr>
           </table>
           <p style="margin:10px 0 0;font-size:12px;color:rgba(255,255,255,0.5);">You'll be prompted to set a new password on first login.</p>
         </div>`
           : `<p style="margin:0 0 24px;font-size:14px;line-height:1.55;color:rgba(255,255,255,0.65);">Use your existing email and password to sign in. If you've forgotten your password, tap "Forgot password?" on the login page.</p>`;
 
         const credentialText = isNewUser
-          ? `Your login details:\n  Email:    ${owner_email}\n  Password: ${temp_password}\n\nYou'll be prompted to set a new password on first login.\n\n`
+          ? `Your login details:\n  Email:    ${owner_email}\n  Password: ${initial_password}\n\nYou'll be prompted to set a new password on first login.\n\n`
           : `Use your existing password to sign in. If you've forgotten it, use "Forgot password?" on the login page.\n\n`;
 
         const html = `<!doctype html>

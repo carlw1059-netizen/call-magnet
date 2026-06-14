@@ -313,6 +313,15 @@
     </div>
 
     <div class="field">
+      <label>Initial password</label>
+      <div style="position:relative;">
+        <input type="password" id="initialPasswordInput" placeholder="Set client's login password" minlength="8" autocomplete="new-password" style="padding-right:48px;" />
+        <button type="button" id="togglePasswordBtn" onclick="togglePasswordVisibility()" style="position:absolute;top:50%;right:10px;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:13px;color:#06D6A0;padding:4px;line-height:1;font-family:inherit;font-weight:600;">Show</button>
+      </div>
+      <div class="hint">Minimum 8 characters — shown in welcome email. Client can change on first login.</div>
+    </div>
+
+    <div class="field">
       <label>Owner mobile</label>
       <input type="tel" id="ownerPhoneInput" placeholder="04xx xxx xxx" autocomplete="tel" />
       <div class="hint">Auto-converts to +614XXXXXXXX</div>
@@ -568,6 +577,18 @@ function updateMmPreview() {
   urlEl.textContent = 'callmagnet.com.au/b/' + slug;
 }
 
+function togglePasswordVisibility() {
+  const inp = document.getElementById('initialPasswordInput');
+  const btn = document.getElementById('togglePasswordBtn');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    btn.textContent = 'Hide';
+  } else {
+    inp.type = 'password';
+    btn.textContent = 'Show';
+  }
+}
+
 function showError(msg) {
   const box = document.getElementById('errorBox');
   box.textContent = msg;
@@ -585,8 +606,9 @@ async function submitForm() {
   const business_name = document.getElementById('businessNameInput').value.trim();
   const owner_name    = document.getElementById('ownerNameInput').value.trim();
   const vertical      = document.getElementById('verticalSelect').value;
-  const owner_email   = document.getElementById('ownerEmailInput').value.trim().toLowerCase();
-  const owner_phone   = formatAuPhone(document.getElementById('ownerPhoneInput').value);
+  const owner_email        = document.getElementById('ownerEmailInput').value.trim().toLowerCase();
+  const initial_password   = document.getElementById('initialPasswordInput').value;
+  const owner_phone        = formatAuPhone(document.getElementById('ownerPhoneInput').value);
   const twilio_number = formatAuPhone(document.getElementById('twilioNumberInput').value);
   const abn           = document.getElementById('abnInput').value.replace(/\D/g, '');
   const avg_raw       = document.getElementById('avgJobValueInput').value.trim();
@@ -597,6 +619,7 @@ async function submitForm() {
   if (!business_name) return showError('Business name is required.');
   if (!vertical)      return showError('Pick a vertical.');
   if (!owner_email || !owner_email.includes('@')) return showError('Valid owner email is required.');
+  if (!initial_password || initial_password.length < 8) return showError('Initial password must be at least 8 characters.');
   if (!owner_phone || !/^\+61\d{8,11}$/.test(owner_phone)) return showError('Owner phone must be an Australian mobile (04xx or +614xx).');
   if (!twilio_number || !/^\+614\d{8}$/.test(twilio_number)) return showError('Twilio number must be a valid AU mobile (+614XXXXXXXX).');
   if (abn && abn.length !== 11) return showError('ABN must be 11 digits.');
@@ -622,6 +645,7 @@ async function submitForm() {
         owner_name:         owner_name || null,
         vertical,
         owner_email,
+        initial_password,
         owner_phone,
         twilio_number,
         abn: abn || null,
@@ -723,6 +747,9 @@ function resetForm() {
   document.getElementById('successCard').classList.remove('visible');
   document.getElementById('businessNameInput').value = '';
   document.getElementById('ownerEmailInput').value = '';
+  document.getElementById('initialPasswordInput').value = '';
+  document.getElementById('initialPasswordInput').type = 'password';
+  document.getElementById('togglePasswordBtn').textContent = 'Show';
   document.getElementById('ownerPhoneInput').value = '';
   document.getElementById('twilioNumberInput').value = '';
   document.getElementById('abnInput').value = '';
