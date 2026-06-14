@@ -244,6 +244,7 @@ Deno.serve(async (req) => {
       must_change_password:   isNewUser,
       middle_man_enabled:     middle_man_enabled,
       middle_man_slug:        slug,
+      free_period_days,
       free_period_ends_at,
     };
 
