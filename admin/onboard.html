@@ -297,6 +297,16 @@
     </div>
 
     <div class="field">
+      <label>Pricing Package</label>
+      <select id="pricingPackageSelect" required>
+        <option value="">Select a package…</option>
+        <option value="restaurant">Restaurant — $499 setup + $249/month + 75 SMS free</option>
+        <option value="hairdresser">Hairdresser/Barber — $249 setup + $99/month + 50 SMS free</option>
+        <option value="free_trial">Free trial only — 25 SMS free</option>
+      </select>
+    </div>
+
+    <div class="field">
       <label>Business name</label>
       <input type="text" id="businessNameInput" placeholder="e.g. Brunswick Barbershop" autocomplete="organization" />
     </div>
@@ -609,9 +619,10 @@ function clearError() {
 async function submitForm() {
   clearError();
 
-  const business_name = document.getElementById('businessNameInput').value.trim();
-  const owner_name    = document.getElementById('ownerNameInput').value.trim();
-  const vertical      = document.getElementById('verticalSelect').value;
+  const business_name    = document.getElementById('businessNameInput').value.trim();
+  const owner_name       = document.getElementById('ownerNameInput').value.trim();
+  const vertical         = document.getElementById('verticalSelect').value;
+  const pricing_package  = document.getElementById('pricingPackageSelect').value;
   const owner_email        = document.getElementById('ownerEmailInput').value.trim().toLowerCase();
   const initial_password   = document.getElementById('initialPasswordInput').value;
   const owner_phone        = formatAuPhone(document.getElementById('ownerPhoneInput').value);
@@ -623,8 +634,9 @@ async function submitForm() {
   const customer_sms_template = (document.getElementById('smsTemplateInput').value || '').trim();
   const free_period_days = Math.max(0, parseInt(document.getElementById('freePeriodDaysInput').value || '0', 10) || 0);
 
-  if (!business_name) return showError('Business name is required.');
-  if (!vertical)      return showError('Pick a vertical.');
+  if (!business_name)    return showError('Business name is required.');
+  if (!vertical)         return showError('Pick a vertical.');
+  if (!pricing_package)  return showError('Select a pricing package.');
   if (!owner_email || !owner_email.includes('@')) return showError('Valid owner email is required.');
   if (!initial_password || initial_password.length < 8) return showError('Initial password must be at least 8 characters.');
   if (!owner_phone || !/^\+61\d{8,11}$/.test(owner_phone)) return showError('Owner phone must be an Australian mobile (04xx or +614xx).');
@@ -662,6 +674,7 @@ async function submitForm() {
         send_sms:           sendSmsOn,
         middle_man_enabled: mmEnabledOn,
         free_period_days,
+        pricing_package,
         // middle_man_slug and middle_man_buttons omitted — create-client auto-generates both
       })
     });

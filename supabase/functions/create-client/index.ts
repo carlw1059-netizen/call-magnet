@@ -92,10 +92,17 @@ Deno.serve(async (req) => {
     const free_period_days = typeof body.free_period_days === 'number' && body.free_period_days > 0
       ? Math.floor(body.free_period_days)
       : 0;
+    const pricing_package  = typeof body.pricing_package === 'string' ? body.pricing_package.trim() : '';
 
     if (!initial_password || initial_password.length < 8) {
       return json(400, { error: 'invalid_field', field: 'initial_password', detail: 'initial_password must be at least 8 characters' });
     }
+    if (!['restaurant', 'hairdresser', 'free_trial'].includes(pricing_package)) {
+      return json(400, { error: 'invalid_field', field: 'pricing_package', detail: 'pricing_package must be restaurant, hairdresser, or free_trial' });
+    }
+    const sms_included = pricing_package === 'restaurant' ? 75
+      : pricing_package === 'hairdresser' ? 50
+      : 25;
 
     // ── Middle Man fields ──────────────────────────────────────────────────
     // Slug: use whatever the form sent, or auto-generate from business_name.
@@ -246,6 +253,7 @@ Deno.serve(async (req) => {
       middle_man_slug:        slug,
       free_period_days,
       free_period_ends_at,
+      sms_included,
     };
 
     const { data: insertedClient, error: insertErr } = await supa
@@ -262,138 +270,138 @@ Deno.serve(async (req) => {
     }
     const client_id = insertedClient.id;
 
-    // ── 5b. Create Stripe customer (best-effort — never blocks onboarding) ──
+    // ── 5b. Create Stripe customer + subscription (best-effort; skipped for free_trial) ──
     let stripe_customer_id:          string | null = null;
     let stripe_subscription_id:      string | null = null;
     let stripe_error:                string | null = null;
     let setup_fee_payment_intent_id: string | null = null;
     let setup_fee_error:             string | null = null;
-    try {
-      // Fetch Stripe secret key from Vault via public RPC (SECURITY DEFINER)
-      const { data: stripeKey, error: vaultErr } = await supa
-        .rpc('get_vault_secret', { secret_name: 'stripe_secret_key' });
-      if (vaultErr || !stripeKey) {
-        throw new Error(`Vault fetch failed: ${vaultErr?.message ?? 'key not found'}`);
-      }
 
-      // Create Stripe customer
-      const stripeBody = new URLSearchParams({
-        email:                  owner_email,
-        name:                   business_name,
-        'metadata[client_id]':  client_id,
-        'metadata[vertical]':   vertical,
-      });
-      const stripeRes = await fetch('https://api.stripe.com/v1/customers', {
-        method:  'POST',
-        headers: {
-          'Authorization': `Basic ${btoa(stripeKey + ':')}`,
-          'Content-Type':  'application/x-www-form-urlencoded',
-        },
-        body: stripeBody.toString(),
-      });
-      const stripeData = await stripeRes.json() as Record<string, unknown>;
-      if (!stripeRes.ok) {
-        throw new Error(`Stripe API ${stripeRes.status}: ${JSON.stringify(stripeData)}`);
-      }
-      stripe_customer_id = stripeData.id as string;
-      console.log(`create-client: Stripe customer created — ${stripe_customer_id}`);
-
-      // Update clients row with stripe_customer_id
-      const { error: stripeUpdateErr } = await supa
-        .from('clients')
-        .update({ stripe_customer_id })
-        .eq('id', client_id);
-      if (stripeUpdateErr) {
-        console.warn(`create-client: stripe_customer_id UPDATE failed — ${stripeUpdateErr.message}`);
-      }
-
-      // Create Stripe subscription
-      const isRestaurant   = vertical === 'restaurant';
-      const monthlyPriceId = isRestaurant
-        ? 'price_1Ti51u3MTu8r2rLhBNxFra0k'   // Restaurant $249/month
-        : 'price_1TD12P3MTu8r2rLhJYFPksVx';  // Bronze $99/month
-      const setupPriceId   = isRestaurant
-        ? 'price_1Ti51s3MTu8r2rLhmmtEk3Fb'   // Restaurant setup $499
-        : 'price_1TD0jm3MTu8r2rLhkXPpx0AH';  // Bronze setup $249
-      const overagePriceId = 'price_1TMmTG3MTu8r2rLhYSWnqheS'; // SMS overage (all verticals)
-
-      const subParams = new URLSearchParams({
-        customer:             stripe_customer_id,
-        'items[0][price]':    monthlyPriceId,
-        'items[1][price]':    overagePriceId,
-        collection_method:    'send_invoice',
-        days_until_due:       '30',
-      });
-      if (free_period_days > 0) {
-        subParams.set('trial_period_days', String(free_period_days));
-      }
-
-      const subRes = await fetch('https://api.stripe.com/v1/subscriptions', {
-        method:  'POST',
-        headers: {
-          'Authorization': `Basic ${btoa(stripeKey + ':')}`,
-          'Content-Type':  'application/x-www-form-urlencoded',
-        },
-        body: subParams.toString(),
-      });
-      const subData = await subRes.json() as Record<string, unknown>;
-      if (!subRes.ok) {
-        throw new Error(`Stripe subscription ${subRes.status}: ${JSON.stringify(subData)}`);
-      }
-      stripe_subscription_id = subData.id as string;
-      console.log(`create-client: Stripe subscription created — ${stripe_subscription_id}`);
-
-      // Update clients row with stripe_subscription_id
-      const { error: subUpdateErr } = await supa
-        .from('clients')
-        .update({ stripe_subscription_id })
-        .eq('id', client_id);
-      if (subUpdateErr) {
-        console.warn(`create-client: stripe_subscription_id UPDATE failed — ${subUpdateErr.message}`);
-      }
-    } catch (e) {
-      stripe_error = (e as Error)?.message ?? String(e);
-      console.warn(`create-client: Stripe customer/subscription failed (non-fatal) — ${stripe_error}`);
-    }
-
-    // ── 5c. Setup fee payment intent (best-effort — never blocks onboarding) ─
-    if (stripe_customer_id) {
+    if (pricing_package !== 'free_trial') {
       try {
-        // Fetch Stripe key from Vault via public RPC
-        const { data: stripeKey2, error: vaultErr2 } = await supa
+        // Fetch Stripe secret key from Vault via public RPC (SECURITY DEFINER)
+        const { data: stripeKey, error: vaultErr } = await supa
           .rpc('get_vault_secret', { secret_name: 'stripe_secret_key' });
-        if (vaultErr2 || !stripeKey2) {
-          throw new Error(`Vault fetch failed: ${vaultErr2?.message ?? 'key not found'}`);
+        if (vaultErr || !stripeKey) {
+          throw new Error(`Vault fetch failed: ${vaultErr?.message ?? 'key not found'}`);
         }
 
-        const setupAmount = vertical === 'restaurant' ? 49900 : 24900;
-        const piParams = new URLSearchParams({
-          amount:                    String(setupAmount),
-          currency:                  'aud',
-          customer:                  stripe_customer_id,
-          confirm:                   'true',
-          'payment_method_types[0]': 'card',
-          'metadata[client_id]':     client_id,
-          'metadata[type]':          'setup_fee',
+        // Create Stripe customer
+        const stripeBody = new URLSearchParams({
+          email:                  owner_email,
+          name:                   business_name,
+          'metadata[client_id]':  client_id,
+          'metadata[vertical]':   vertical,
         });
-        const piRes = await fetch('https://api.stripe.com/v1/payment_intents', {
+        const stripeRes = await fetch('https://api.stripe.com/v1/customers', {
           method:  'POST',
           headers: {
-            'Authorization': `Basic ${btoa(stripeKey2 + ':')}`,
+            'Authorization': `Basic ${btoa(stripeKey + ':')}`,
             'Content-Type':  'application/x-www-form-urlencoded',
           },
-          body: piParams.toString(),
+          body: stripeBody.toString(),
         });
-        const piData = await piRes.json() as Record<string, unknown>;
-        if (!piRes.ok) {
-          throw new Error(`Stripe payment_intent ${piRes.status}: ${JSON.stringify(piData)}`);
+        const stripeData = await stripeRes.json() as Record<string, unknown>;
+        if (!stripeRes.ok) {
+          throw new Error(`Stripe API ${stripeRes.status}: ${JSON.stringify(stripeData)}`);
         }
-        setup_fee_payment_intent_id = piData.id as string;
-        console.log(`create-client: setup fee payment intent created — ${setup_fee_payment_intent_id} (${setupAmount} AUD cents)`);
+        stripe_customer_id = stripeData.id as string;
+        console.log(`create-client: Stripe customer created — ${stripe_customer_id}`);
+
+        // Update clients row with stripe_customer_id
+        const { error: stripeUpdateErr } = await supa
+          .from('clients')
+          .update({ stripe_customer_id })
+          .eq('id', client_id);
+        if (stripeUpdateErr) {
+          console.warn(`create-client: stripe_customer_id UPDATE failed — ${stripeUpdateErr.message}`);
+        }
+
+        // Price IDs by package
+        const monthlyPriceId = pricing_package === 'restaurant'
+          ? 'price_1Ti51u3MTu8r2rLhBNxFra0k'   // Restaurant $249/month
+          : 'price_1TD12P3MTu8r2rLhJYFPksVx';  // Hairdresser $99/month
+        const overagePriceId = 'price_1TMmTG3MTu8r2rLhYSWnqheS'; // SMS overage metered
+
+        const subParams = new URLSearchParams({
+          customer:             stripe_customer_id,
+          'items[0][price]':    monthlyPriceId,
+          'items[1][price]':    overagePriceId,
+          collection_method:    'send_invoice',
+          days_until_due:       '30',
+        });
+        if (free_period_days > 0) {
+          subParams.set('trial_period_days', String(free_period_days));
+        }
+
+        const subRes = await fetch('https://api.stripe.com/v1/subscriptions', {
+          method:  'POST',
+          headers: {
+            'Authorization': `Basic ${btoa(stripeKey + ':')}`,
+            'Content-Type':  'application/x-www-form-urlencoded',
+          },
+          body: subParams.toString(),
+        });
+        const subData = await subRes.json() as Record<string, unknown>;
+        if (!subRes.ok) {
+          throw new Error(`Stripe subscription ${subRes.status}: ${JSON.stringify(subData)}`);
+        }
+        stripe_subscription_id = subData.id as string;
+        console.log(`create-client: Stripe subscription created — ${stripe_subscription_id}`);
+
+        // Update clients row with stripe_subscription_id
+        const { error: subUpdateErr } = await supa
+          .from('clients')
+          .update({ stripe_subscription_id })
+          .eq('id', client_id);
+        if (subUpdateErr) {
+          console.warn(`create-client: stripe_subscription_id UPDATE failed — ${subUpdateErr.message}`);
+        }
       } catch (e) {
-        setup_fee_error = (e as Error)?.message ?? String(e);
-        console.warn(`create-client: setup fee payment intent failed (non-fatal) — ${setup_fee_error}`);
+        stripe_error = (e as Error)?.message ?? String(e);
+        console.warn(`create-client: Stripe customer/subscription failed (non-fatal) — ${stripe_error}`);
       }
+
+      // ── 5c. Setup fee payment intent (best-effort) ────────────────────────
+      if (stripe_customer_id) {
+        try {
+          const { data: stripeKey2, error: vaultErr2 } = await supa
+            .rpc('get_vault_secret', { secret_name: 'stripe_secret_key' });
+          if (vaultErr2 || !stripeKey2) {
+            throw new Error(`Vault fetch failed: ${vaultErr2?.message ?? 'key not found'}`);
+          }
+
+          const setupAmount = pricing_package === 'restaurant' ? 49900 : 24900;
+          const piParams = new URLSearchParams({
+            amount:                    String(setupAmount),
+            currency:                  'aud',
+            customer:                  stripe_customer_id,
+            confirm:                   'true',
+            'payment_method_types[0]': 'card',
+            'metadata[client_id]':     client_id,
+            'metadata[type]':          'setup_fee',
+          });
+          const piRes = await fetch('https://api.stripe.com/v1/payment_intents', {
+            method:  'POST',
+            headers: {
+              'Authorization': `Basic ${btoa(stripeKey2 + ':')}`,
+              'Content-Type':  'application/x-www-form-urlencoded',
+            },
+            body: piParams.toString(),
+          });
+          const piData = await piRes.json() as Record<string, unknown>;
+          if (!piRes.ok) {
+            throw new Error(`Stripe payment_intent ${piRes.status}: ${JSON.stringify(piData)}`);
+          }
+          setup_fee_payment_intent_id = piData.id as string;
+          console.log(`create-client: setup fee payment intent created — ${setup_fee_payment_intent_id} (${setupAmount} AUD cents)`);
+        } catch (e) {
+          setup_fee_error = (e as Error)?.message ?? String(e);
+          console.warn(`create-client: setup fee payment intent failed (non-fatal) — ${setup_fee_error}`);
+        }
+      }
+    } else {
+      console.log(`create-client: pricing_package=free_trial — Stripe skipped`);
     }
 
     // ── 5d. Create Short.io link (best-effort — never blocks onboarding) ───
