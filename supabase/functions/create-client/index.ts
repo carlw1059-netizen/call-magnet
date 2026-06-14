@@ -319,40 +319,22 @@ Deno.serve(async (req) => {
         }
 
         if (pricing_package === 'restaurant') {
-          // ── Restaurant: invoice item for setup fee + subscription-mode checkout session ──
-          // Step 1: pending invoice item for the $499 setup fee
-          const iiParams = new URLSearchParams({
-            customer:     stripe_customer_id,
-            amount:       '49900',
-            currency:     'aud',
-            description:  'One-time setup fee',
-          });
-          const iiRes = await fetch('https://api.stripe.com/v1/invoiceitems', {
-            method:  'POST',
-            headers: {
-              'Authorization': `Basic ${btoa(stripeKey + ':')}`,
-              'Content-Type':  'application/x-www-form-urlencoded',
-            },
-            body: iiParams.toString(),
-          });
-          const iiData = await iiRes.json() as Record<string, unknown>;
-          if (!iiRes.ok) {
-            throw new Error(`Stripe invoiceitem ${iiRes.status}: ${JSON.stringify(iiData)}`);
-          }
-          console.log(`create-client: invoice item created — ${iiData.id}`);
-
-          // Step 2: subscription-mode checkout session (monthly + SMS overage)
+          // ── Restaurant: subscription-mode checkout session ──
+          // Setup fee is added via subscription_data.add_invoice_items so it
+          // appears on the first invoice alongside the monthly charge.
           const csParams = new URLSearchParams({
-            customer:                                          stripe_customer_id,
-            mode:                                             'subscription',
-            'line_items[0][price]':                           'price_1Ti51u3MTu8r2rLhBNxFra0k',
-            'line_items[0][quantity]':                        '1',
-            'line_items[1][price]':                           'price_1TMmTG3MTu8r2rLhYSWnqheS',
-            'subscription_data[metadata][client_id]':         client_id,
-            'subscription_data[metadata][slug]':              slug,
-            payment_method_collection:                        'always',
-            success_url:                                      'https://callmagnet.com.au/payment-success',
-            cancel_url:                                       'https://callmagnet.com.au',
+            customer:                                                  stripe_customer_id,
+            mode:                                                      'subscription',
+            'line_items[0][price]':                                    'price_1Ti51u3MTu8r2rLhBNxFra0k',
+            'line_items[0][quantity]':                                 '1',
+            'line_items[1][price]':                                    'price_1TMmTG3MTu8r2rLhYSWnqheS',
+            'subscription_data[add_invoice_items][0][price]':          'price_1Ti51s3MTu8r2rLhmmtEk3Fb',
+            'subscription_data[add_invoice_items][0][quantity]':       '1',
+            'subscription_data[metadata][client_id]':                  client_id,
+            'subscription_data[metadata][slug]':                       slug,
+            payment_method_collection:                                 'always',
+            success_url:                                               'https://callmagnet.com.au/payment-success',
+            cancel_url:                                                'https://callmagnet.com.au',
           });
           if (free_period_days > 0) {
             csParams.set('subscription_data[trial_period_days]', String(free_period_days));
