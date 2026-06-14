@@ -518,6 +518,9 @@ verify_jwt = true
 [functions.jotform-webhook]
 verify_jwt = false
 
+[functions.reset-client-password]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
