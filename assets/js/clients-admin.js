@@ -32,7 +32,7 @@ async function caLoad() {
   // Clients — newest first
   var cr = await caSb
     .from('clients')
-    .select('id,business_name,owner_name,email,owner_phone,twilio_number,plan_type,account_status,last_renewal_date,middle_man_slug,middle_man_enabled,created_at')
+    .select('id,business_name,owner_name,email,owner_phone,twilio_number,plan_type,account_status,last_renewal_date,middle_man_slug,middle_man_enabled,created_at,cancellation_scheduled,cancelled_at,stripe_subscription_id')
     .order('created_at', { ascending: false });
 
   if (cr.error) {
@@ -121,6 +121,11 @@ function caRender(list) {
   // Wire delete-mm buttons
   grid.querySelectorAll('[data-action="delete-mm"]').forEach(function(btn) {
     btn.addEventListener('click', function() { caDeleteMM(btn); });
+  });
+
+  // Wire cancel-sub buttons
+  grid.querySelectorAll('[data-action="cancel-sub"]').forEach(function(btn) {
+    btn.addEventListener('click', function() { caCancel(btn); });
   });
 }
 
@@ -252,6 +257,11 @@ function caCard(c) {
         toggleBtn +
         '<button class="ca-btn" data-action="reset-pw" data-id="' + _e(c.id) + '">Reset password</button>' +
         '<button class="ca-btn" style="background:#CC5500;" data-action="delete-mm" data-id="' + _e(c.id) + '" data-name="' + _e(c.business_name || '') + '">Delete MM config</button>' +
+        (c.cancellation_scheduled
+          ? '<span class="ca-badge ca-status-cancelled" style="font-size:11px;padding:4px 10px;">Cancellation scheduled</span>'
+          : ((c.account_status === 'active' || c.account_status === 'suspended')
+              ? '<button class="ca-btn" style="background:#CC5500;" data-action="cancel-sub" data-id="' + _e(c.id) + '" data-name="' + _e(c.business_name || '') + '">Cancel subscription</button>'
+              : '')) +
       '</div>' +
 
       // Inline reset-password form (hidden until button clicked)
@@ -449,6 +459,55 @@ async function caDeleteMM(btn) {
   allClients  = allClients.filter(function(x) { return x.id !== id; });
   currentList = currentList.filter(function(x) { return x.id !== id; });
   caRender(currentList);
+}
+
+// ─── Cancel subscription ──────────────────────────────────────────────────────
+async function caCancel(btn) {
+  var id   = btn.dataset.id;
+  var name = btn.dataset.name || 'this client';
+
+  if (!confirm('This will cancel ' + name + '\'s subscription at the end of their current billing period. They will keep access until then. Are you sure?')) return;
+
+  btn.disabled    = true;
+  btn.textContent = 'Cancelling…';
+
+  var sessionResult = await caSb.auth.getSession();
+  var sess = sessionResult.data && sessionResult.data.session;
+  if (!sess) {
+    alert('Not signed in — please refresh and try again.');
+    btn.disabled    = false;
+    btn.textContent = 'Cancel subscription';
+    return;
+  }
+
+  try {
+    var res  = await fetch(CA_SUPABASE_URL + '/functions/v1/cancel-client', {
+      method:  'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': 'Bearer ' + sess.access_token,
+      },
+      body: JSON.stringify({ client_id: id }),
+    });
+    var data = await res.json().catch(function() { return {}; });
+
+    if (res.ok && data.success) {
+      // Update in-memory record and re-render to show badge
+      [allClients, currentList].forEach(function(arr) {
+        var c = arr.find(function(x) { return x.id === id; });
+        if (c) c.cancellation_scheduled = true;
+      });
+      caRender(currentList);
+    } else {
+      alert('Cancel failed: ' + (data.detail || data.error || res.status));
+      btn.disabled    = false;
+      btn.textContent = 'Cancel subscription';
+    }
+  } catch (e) {
+    alert('Network error: ' + (e && e.message ? e.message : e));
+    btn.disabled    = false;
+    btn.textContent = 'Cancel subscription';
+  }
 }
 
 // ─── Boot — verbatim middle-man-admin.js pattern ──────────────────────────────
