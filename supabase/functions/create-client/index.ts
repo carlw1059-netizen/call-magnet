@@ -297,8 +297,9 @@ Deno.serve(async (req) => {
         const stripeRes = await fetch('https://api.stripe.com/v1/customers', {
           method:  'POST',
           headers: {
-            'Authorization': `Basic ${btoa(stripeKey + ':')}`,
-            'Content-Type':  'application/x-www-form-urlencoded',
+            'Authorization':  `Basic ${btoa(stripeKey + ':')}`,
+            'Content-Type':   'application/x-www-form-urlencoded',
+            'Stripe-Version': '2025-01-27.acacia',
           },
           body: stripeBody.toString(),
         });
@@ -323,18 +324,18 @@ Deno.serve(async (req) => {
           // Setup fee is added via subscription_data.add_invoice_items so it
           // appears on the first invoice alongside the monthly charge.
           const csParams = new URLSearchParams({
-            customer:                                                  stripe_customer_id,
-            mode:                                                      'subscription',
-            'line_items[0][price]':                                    'price_1Ti51u3MTu8r2rLhBNxFra0k',
-            'line_items[0][quantity]':                                 '1',
-            'line_items[1][price]':                                    'price_1TMmTG3MTu8r2rLhYSWnqheS',
-            'subscription_data[add_invoice_items][0][price]':          'price_1Ti51s3MTu8r2rLhmmtEk3Fb',
-            'subscription_data[add_invoice_items][0][quantity]':       '1',
-            'subscription_data[metadata][client_id]':                  client_id,
-            'subscription_data[metadata][slug]':                       slug,
-            payment_method_collection:                                 'always',
-            success_url:                                               'https://callmagnet.com.au/payment-success',
-            cancel_url:                                                'https://callmagnet.com.au',
+            customer:                                 stripe_customer_id,
+            mode:                                     'subscription',
+            'line_items[0][price]':                   'price_1Ti51s3MTu8r2rLhmmtEk3Fb',
+            'line_items[0][quantity]':                '1',
+            'line_items[1][price]':                   'price_1Ti51u3MTu8r2rLhBNxFra0k',
+            'line_items[1][quantity]':                '1',
+            'line_items[2][price]':                   'price_1TMmTG3MTu8r2rLhYSWnqheS',
+            'subscription_data[metadata][client_id]': client_id,
+            'subscription_data[metadata][slug]':      slug,
+            payment_method_collection:                'always',
+            success_url:                              'https://callmagnet.com.au/payment-success',
+            cancel_url:                               'https://callmagnet.com.au',
           });
           if (free_period_days > 0) {
             csParams.set('subscription_data[trial_period_days]', String(free_period_days));
@@ -342,8 +343,9 @@ Deno.serve(async (req) => {
           const csRes = await fetch('https://api.stripe.com/v1/checkout/sessions', {
             method:  'POST',
             headers: {
-              'Authorization': `Basic ${btoa(stripeKey + ':')}`,
-              'Content-Type':  'application/x-www-form-urlencoded',
+              'Authorization':  `Basic ${btoa(stripeKey + ':')}`,
+              'Content-Type':   'application/x-www-form-urlencoded',
+              'Stripe-Version': '2025-01-27.acacia',
             },
             body: csParams.toString(),
           });
@@ -371,8 +373,9 @@ Deno.serve(async (req) => {
           const subRes = await fetch('https://api.stripe.com/v1/subscriptions', {
             method:  'POST',
             headers: {
-              'Authorization': `Basic ${btoa(stripeKey + ':')}`,
-              'Content-Type':  'application/x-www-form-urlencoded',
+              'Authorization':  `Basic ${btoa(stripeKey + ':')}`,
+              'Content-Type':   'application/x-www-form-urlencoded',
+              'Stripe-Version': '2025-01-27.acacia',
             },
             body: subParams.toString(),
           });
@@ -406,8 +409,9 @@ Deno.serve(async (req) => {
           const csRes2 = await fetch('https://api.stripe.com/v1/checkout/sessions', {
             method:  'POST',
             headers: {
-              'Authorization': `Basic ${btoa(stripeKey + ':')}`,
-              'Content-Type':  'application/x-www-form-urlencoded',
+              'Authorization':  `Basic ${btoa(stripeKey + ':')}`,
+              'Content-Type':   'application/x-www-form-urlencoded',
+              'Stripe-Version': '2025-01-27.acacia',
             },
             body: csParams2.toString(),
           });
