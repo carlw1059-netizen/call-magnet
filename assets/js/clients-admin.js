@@ -32,7 +32,7 @@ async function caLoad() {
   // Clients — newest first
   var cr = await caSb
     .from('clients')
-    .select('id,business_name,owner_name,email,owner_phone,twilio_number,plan_type,account_status,last_renewal_date,middle_man_slug,middle_man_enabled,created_at,cancellation_scheduled,cancelled_at,stripe_subscription_id')
+    .select('id,business_name,owner_name,email,owner_phone,twilio_number,plan_type,account_status,last_renewal_date,middle_man_slug,middle_man_enabled,created_at,cancellation_scheduled,cancelled_at,stripe_subscription_id,stripe_customer_id')
     .order('created_at', { ascending: false });
 
   if (cr.error) {
@@ -127,6 +127,11 @@ function caRender(list) {
   grid.querySelectorAll('[data-action="cancel-sub"]').forEach(function(btn) {
     btn.addEventListener('click', function() { caCancel(btn); });
   });
+
+  // Wire activate buttons
+  grid.querySelectorAll('[data-action="activate"]').forEach(function(btn) {
+    btn.addEventListener('click', function() { caActivate(btn); });
+  });
 }
 
 // ─── Build one client card ─────────────────────────────────────────────────────
@@ -134,8 +139,10 @@ function caCard(c) {
 
   // ── Status badge ──
   var statusCls =
-    c.account_status === 'active'    ? 'ca-status-active'    :
-    c.account_status === 'suspended' ? 'ca-status-suspended' :
+    c.account_status === 'active'          ? 'ca-status-active'    :
+    c.account_status === 'suspended'       ? 'ca-status-suspended' :
+    c.account_status === 'pending_setup'   ? 'ca-status-pending'   :
+    c.account_status === 'pending_payment' ? 'ca-status-pending'   :
     'ca-status-cancelled';
   var statusLabel = c.account_status
     ? c.account_status.charAt(0).toUpperCase() + c.account_status.slice(1)
@@ -255,6 +262,13 @@ function caCard(c) {
           ? '<button class="ca-btn" data-action="copy" data-val="' + _e(c.twilio_number) + '">Copy Twilio</button>'
           : '') +
         toggleBtn +
+        (c.account_status === 'pending_setup'
+          ? '<button class="ca-btn" style="background:#10b981;color:#0a1a14;font-weight:700;" ' +
+              'data-action="activate" ' +
+              'data-id="' + _e(c.id) + '" ' +
+              'data-name="' + _e(c.business_name || '') + '" ' +
+              'data-pkg="' + _e(c.plan_type || '') + '">Activate</button>'
+          : '') +
         '<button class="ca-btn" data-action="reset-pw" data-id="' + _e(c.id) + '">Reset password</button>' +
         '<button class="ca-btn" style="background:#CC5500;" data-action="delete-mm" data-id="' + _e(c.id) + '" data-name="' + _e(c.business_name || '') + '">Delete MM config</button>' +
         (c.cancellation_scheduled
@@ -459,6 +473,65 @@ async function caDeleteMM(btn) {
   allClients  = allClients.filter(function(x) { return x.id !== id; });
   currentList = currentList.filter(function(x) { return x.id !== id; });
   caRender(currentList);
+}
+
+// ─── Activate client (pending_setup → active + create subscription) ──────────
+async function caActivate(btn) {
+  var id   = btn.dataset.id;
+  var name = btn.dataset.name || 'this client';
+  var pkg  = btn.dataset.pkg  || '';
+
+  // Prompt for pricing_package if not stored in plan_type
+  if (!['restaurant', 'hairdresser'].includes(pkg)) {
+    pkg = prompt('Enter pricing package for ' + name + ' (restaurant or hairdresser):') || '';
+    pkg = pkg.trim().toLowerCase();
+    if (!['restaurant', 'hairdresser'].includes(pkg)) {
+      alert('Invalid package — must be "restaurant" or "hairdresser".');
+      return;
+    }
+  }
+
+  if (!confirm('Activate ' + name + '? This will start their ' + pkg + ' subscription and send them their account-live email.')) return;
+
+  btn.disabled    = true;
+  btn.textContent = 'Activating…';
+
+  var sessionResult = await caSb.auth.getSession();
+  var sess = sessionResult.data && sessionResult.data.session;
+  if (!sess) {
+    alert('Not signed in — please refresh and try again.');
+    btn.disabled    = false;
+    btn.textContent = 'Activate';
+    return;
+  }
+
+  try {
+    var res  = await fetch(CA_SUPABASE_URL + '/functions/v1/activate-client', {
+      method:  'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': 'Bearer ' + sess.access_token,
+      },
+      body: JSON.stringify({ client_id: id, pricing_package: pkg }),
+    });
+    var data = await res.json().catch(function() { return {}; });
+
+    if (res.ok && data.success) {
+      [allClients, currentList].forEach(function(arr) {
+        var c = arr.find(function(x) { return x.id === id; });
+        if (c) c.account_status = 'active';
+      });
+      caRender(currentList);
+    } else {
+      alert('Activate failed: ' + (data.detail || data.error || res.status));
+      btn.disabled    = false;
+      btn.textContent = 'Activate';
+    }
+  } catch (e) {
+    alert('Network error: ' + (e && e.message ? e.message : e));
+    btn.disabled    = false;
+    btn.textContent = 'Activate';
+  }
 }
 
 // ─── Cancel subscription ──────────────────────────────────────────────────────

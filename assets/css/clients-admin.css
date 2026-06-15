@@ -169,6 +169,7 @@ html, body {
 .ca-status-active    { background: #D4F7EE; color: #007A5E; border: 1px solid #06D6A0; }
 .ca-status-suspended { background: #FFF3CD; color: #856404; border: 1px solid #FFC107; }
 .ca-status-cancelled { background: #F0F0F0; color: #888888; border: 1px solid #CCCCCC; }
+.ca-status-pending   { background: #FFF0E0; color: #7A4400; border: 1px solid #FFA040; }
 /* Plan badges — solid colour with white text */
 .ca-plan-bronze     { background: #CD7F32; color: #FFFFFF; border: none; }
 .ca-plan-silver     { background: #A8A9AD; color: #FFFFFF; border: none; }
