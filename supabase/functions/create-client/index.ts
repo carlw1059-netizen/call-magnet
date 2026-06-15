@@ -254,6 +254,7 @@ Deno.serve(async (req) => {
       free_period_days,
       free_period_ends_at,
       sms_included,
+      pricing_package,
     };
 
     const { data: insertedClient, error: insertErr } = await supa
