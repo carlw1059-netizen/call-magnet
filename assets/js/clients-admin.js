@@ -150,15 +150,19 @@ function caCard(c) {
 
   // ── Plan badge ──
   var planBadge = '';
-  if (c.plan_type) {
-    var pk = c.plan_type.toLowerCase();
-    var planCls =
-      pk === 'bronze'     ? 'ca-plan-bronze'     :
-      pk === 'silver'     ? 'ca-plan-silver'     :
-      pk === 'gold'       ? 'ca-plan-gold'       :
-      pk === 'restaurant' ? 'ca-plan-restaurant' :
+  if (c.pricing_package) {
+    var pkgLabel =
+      c.pricing_package === 'restaurant'  ? 'Restaurant'       :
+      c.pricing_package === 'hairdresser' ? 'Hairdresser/Barber' :
+      c.pricing_package === 'free_trial'  ? 'Free Trial'       :
+      null;
+    var pkgCls =
+      c.pricing_package === 'restaurant'  ? 'ca-plan-restaurant' :
+      c.pricing_package === 'hairdresser' ? 'ca-plan-other'      :
       'ca-plan-other';
-    planBadge = '<span class="ca-badge ' + planCls + '">' + _e(c.plan_type) + '</span>';
+    if (pkgLabel) {
+      planBadge = '<span class="ca-badge ' + pkgCls + '">' + _e(pkgLabel) + '</span>';
+    }
   }
 
   // ── Renewal date — DD MMM YYYY ──
@@ -174,7 +178,7 @@ function caCard(c) {
   // ── Middle Man ──
   var mmHtml = '';
   if (c.middle_man_slug) {
-    var mmBadge = c.middle_man_enabled
+    var mmBadge = (c.middle_man_enabled && c.account_status === 'active')
       ? '<span class="ca-badge ca-status-active" style="font-size:10px;">Live</span>'
       : '<span class="ca-badge ca-status-cancelled" style="font-size:10px;">Off</span>';
     mmHtml =
