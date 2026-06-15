@@ -204,7 +204,7 @@ function caCard(c) {
 
   // ── Toggle action button ──
   var toggleBtn = '';
-  if (c.account_status === 'active' || c.account_status === 'pending_payment') {
+  if (c.account_status === 'active') {
     toggleBtn =
       '<button class="ca-btn danger" data-action="toggle" ' +
               'data-id="' + _e(c.id) + '" ' +
@@ -273,7 +273,7 @@ function caCard(c) {
         '<button class="ca-btn" style="background:#CC5500;" data-action="delete-mm" data-id="' + _e(c.id) + '" data-name="' + _e(c.business_name || '') + '">Delete MM config</button>' +
         (c.cancellation_scheduled
           ? '<span class="ca-badge ca-status-cancelled" style="font-size:11px;padding:4px 10px;">Cancellation scheduled</span>'
-          : ((c.account_status === 'active' || c.account_status === 'suspended' || c.account_status === 'pending_payment')
+          : ((c.account_status === 'active' || c.account_status === 'suspended')
               ? '<button class="ca-btn" style="background:#CC5500;" data-action="cancel-sub" data-id="' + _e(c.id) + '" data-name="' + _e(c.business_name || '') + '">Cancel subscription</button>'
               : '')) +
       '</div>' +
