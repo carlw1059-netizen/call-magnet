@@ -32,7 +32,7 @@ async function caLoad() {
   // Clients — newest first
   var cr = await caSb
     .from('clients')
-    .select('id,business_name,owner_name,email,owner_phone,twilio_number,plan_type,account_status,last_renewal_date,middle_man_slug,middle_man_enabled,created_at,cancellation_scheduled,cancelled_at,stripe_subscription_id,stripe_customer_id')
+    .select('id,business_name,owner_name,email,owner_phone,twilio_number,plan_type,pricing_package,account_status,last_renewal_date,middle_man_slug,middle_man_enabled,created_at,cancellation_scheduled,cancelled_at,stripe_subscription_id,stripe_customer_id')
     .order('created_at', { ascending: false });
 
   if (cr.error) {
@@ -267,7 +267,7 @@ function caCard(c) {
               'data-action="activate" ' +
               'data-id="' + _e(c.id) + '" ' +
               'data-name="' + _e(c.business_name || '') + '" ' +
-              'data-pkg="' + _e(c.plan_type || '') + '">Activate</button>'
+              'data-pkg="' + _e(c.pricing_package || c.plan_type || '') + '">Activate</button>'
           : '') +
         '<button class="ca-btn" data-action="reset-pw" data-id="' + _e(c.id) + '">Reset password</button>' +
         '<button class="ca-btn" style="background:#CC5500;" data-action="delete-mm" data-id="' + _e(c.id) + '" data-name="' + _e(c.business_name || '') + '">Delete MM config</button>' +
