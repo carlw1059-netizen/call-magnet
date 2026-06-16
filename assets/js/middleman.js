@@ -95,7 +95,7 @@
       + '?middle_man_slug=eq.' + encodeURIComponent(slug)
       + '&account_status=eq.active'
       + '&select=business_name,middle_man_logo_url,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_promo_text,'
-      + 'middle_man_buttons,middle_man_show_whats_on,booking_url,vertical'
+      + 'middle_man_buttons,middle_man_show_whats_on,vertical'
       + '&limit=1';
     var res = await fetch(url, {
       headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON },
@@ -532,7 +532,7 @@
     var businessName = client.business_name || '';
     var promoText   = client.middle_man_promo_text || '';
     var buttons     = [];
-    var bookingUrl  = (client.booking_url || '').trim();
+
     var showWhatsOn = client.middle_man_show_whats_on === true;
 
     try {
@@ -717,7 +717,7 @@
         formWrap.dataset.neon = btn.color || NEON[Math.min(idx, NEON.length - 1)];
         formWrap.innerHTML = buildFormHtml(formType, businessName);
         unit.appendChild(formWrap);
-        attachFormListeners(formWrap, formType, businessName, display, bookingUrl);
+        attachFormListeners(formWrap, formType, businessName, display, btnDestUrl);
       }
 
       wrap.appendChild(unit);

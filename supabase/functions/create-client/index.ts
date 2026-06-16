@@ -241,7 +241,7 @@ Deno.serve(async (req) => {
       owner_phone,
       twilio_number,
       vertical,
-      booking_url:            rebrandly_url,
+
       avg_job_value,
       abn,
       customer_sms_template,
