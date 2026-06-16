@@ -158,33 +158,47 @@ html, body {
 .mma-demo-toggle-wrap {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
 }
 .mma-demo-toggle-label {
-  font-size: 11px;
-  color: #888888;
-  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111;
 }
 .mma-demo-toggle {
-  background: #E0E0E0;
-  color: #888888;
-  border: 1px solid #CCCCCC;
-  border-radius: 7px;
-  padding: 5px 10px;
-  font-size: 12px;
-  font-weight: 700;
+  position: relative;
+  width: 48px;
+  height: 26px;
+  background: #ccc;
+  border-radius: 13px;
   cursor: pointer;
-  font-family: inherit;
-  transition: background 0.12s, color 0.12s;
-  min-width: 42px;
+  transition: background 0.2s;
+  border: none;
+  outline: none;
+  flex-shrink: 0;
 }
-.mma-demo-toggle:disabled { opacity: 0.4; cursor: not-allowed; }
-.mma-demo-toggle-on {
-  background: #10b981;
-  color: #FFFFFF;
-  border-color: #10b981;
+.mma-demo-toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
 }
-.mma-demo-toggle-on:hover { background: #059669; }
+.mma-demo-toggle.mma-demo-toggle-on {
+  background: #CC0000;
+}
+.mma-demo-toggle.mma-demo-toggle-on::after {
+  transform: translateX(22px);
+}
+.mma-demo-toggle[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 .mma-slug-link {
   font-size: 14px;       /* was 12 */
   color: #06A07A;

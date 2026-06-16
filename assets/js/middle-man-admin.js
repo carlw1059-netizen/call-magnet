@@ -71,7 +71,9 @@ async function loadManager() {
       return;
     }
 
-    listEl.innerHTML = clients.map(buildClientCard).join('');
+    var isAnyDemoActive = clients.some(function(c) { return c.is_demo_account && c.demo_active; });
+    var activeDemoId    = isAnyDemoActive ? clients.find(function(c) { return c.is_demo_account && c.demo_active; }).id : null;
+    listEl.innerHTML = clients.map(function(c) { return buildClientCard(c, isAnyDemoActive, activeDemoId); }).join('');
 
     // Wire edit buttons via delegation
     listEl.addEventListener('click', function(ev) {
@@ -80,14 +82,14 @@ async function loadManager() {
       var lockBtn = ev.target.closest('.mma-lock-btn, .mma-unlock-btn');
       if (lockBtn) lockUnlockClient(lockBtn);
       var demoToggle = ev.target.closest('.mma-demo-toggle');
-      if (demoToggle && !demoToggle.disabled) toggleDemoActive(demoToggle.dataset.id);
+      if (demoToggle && !demoToggle.disabled) toggleDemoActive(demoToggle.dataset.id, demoToggle.dataset.active === '1');
     });
   } catch (err) {
     listEl.innerHTML = '<div class="mma-error">Failed to load: ' + _e(err.message) + '</div>';
   }
 }
 
-function buildClientCard(c) {
+function buildClientCard(c, isAnyDemoActive, activeDemoId) {
   var liveBadge  = c.middle_man_enabled
     ? '<span class="mma-badge mma-badge-live">LIVE</span>'
     : '<span class="mma-badge mma-badge-off">OFF</span>';
@@ -111,15 +113,15 @@ function buildClientCard(c) {
   var demoToggleHtml = '';
   if (c.is_demo_account) {
     var isActive   = !!c.demo_active;
-    var isDisabled = !!c.is_locked;
+    var isDisabled = c.is_locked || (isAnyDemoActive && !isActive);
     demoToggleHtml =
       '<div class="mma-demo-toggle-wrap">' +
         '<span class="mma-demo-toggle-label">Active demo</span>' +
         '<button class="mma-demo-toggle' + (isActive ? ' mma-demo-toggle-on' : '') + '"' +
           ' data-id="' + _e(c.id) + '"' +
+          ' data-active="' + (isActive ? '1' : '0') + '"' +
           (isDisabled ? ' disabled' : '') +
-          ' title="' + (isActive ? 'This is the active demo — click to deactivate' : 'Set as active demo') + '">' +
-          (isActive ? 'ON' : 'OFF') +
+          ' title="' + (isActive ? 'Active demo — click to deactivate' : 'Set as active demo') + '">' +
         '</button>' +
       '</div>';
   }
@@ -160,9 +162,9 @@ async function lockUnlockClient(btn) {
   }
 }
 
-async function toggleDemoActive(clientId) {
+async function toggleDemoActive(clientId, currentlyActive) {
   try {
-    var res = await mmaSb.from('clients').update({ demo_active: true }).eq('id', clientId);
+    var res = await mmaSb.from('clients').update({ demo_active: !currentlyActive }).eq('id', clientId);
     if (res.error) throw res.error;
     loadManager();
   } catch (err) {
