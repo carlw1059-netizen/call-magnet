@@ -82,7 +82,7 @@ async function loadManager() {
       var lockBtn = ev.target.closest('.mma-lock-btn, .mma-unlock-btn');
       if (lockBtn) lockUnlockClient(lockBtn);
       var demoToggle = ev.target.closest('.mma-demo-toggle');
-      if (demoToggle && !demoToggle.disabled) toggleDemoActive(demoToggle.dataset.id, demoToggle.dataset.active === '1');
+      if (demoToggle && !demoToggle.disabled) toggleDemoActive(demoToggle);
     });
   } catch (err) {
     listEl.innerHTML = '<div class="mma-error">Failed to load: ' + _e(err.message) + '</div>';
@@ -162,13 +162,35 @@ async function lockUnlockClient(btn) {
   }
 }
 
-async function toggleDemoActive(clientId, currentlyActive) {
+async function toggleDemoActive(btn) {
+  var clientId       = btn.dataset.id;
+  var currentlyActive = btn.dataset.active === '1';
+  var newActive       = !currentlyActive;
+
+  // Optimistic DOM update — instant visual response
+  if (newActive) {
+    btn.classList.add('mma-demo-toggle-on');
+    btn.dataset.active = '1';
+    btn.title = 'Active demo — click to deactivate';
+    document.querySelectorAll('.mma-demo-toggle').forEach(function(t) {
+      if (t !== btn) t.disabled = true;
+    });
+  } else {
+    btn.classList.remove('mma-demo-toggle-on');
+    btn.dataset.active = '0';
+    btn.title = 'Set as active demo';
+    document.querySelectorAll('.mma-demo-toggle').forEach(function(t) {
+      if (t !== btn) t.disabled = false;
+    });
+  }
+
+  // Background Supabase update — revert via full re-render only on failure
   try {
-    var res = await mmaSb.from('clients').update({ demo_active: !currentlyActive }).eq('id', clientId);
+    var res = await mmaSb.from('clients').update({ demo_active: newActive }).eq('id', clientId);
     if (res.error) throw res.error;
-    loadManager();
   } catch (err) {
-    alert('Error: ' + err.message);
+    alert('Error updating demo state: ' + err.message);
+    loadManager();
   }
 }
 
