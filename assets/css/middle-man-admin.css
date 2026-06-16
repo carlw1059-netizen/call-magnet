@@ -127,6 +127,34 @@ html, body {
 .mma-badge-live { background: #D4F7EE; color: #007A5E; border: 1px solid #06D6A0; }
 .mma-badge-off  { background: #F0F0F0; color: #888888; border: 1px solid #CCCCCC; }
 .mma-badge-vert { background: #EEF9F6; color: #06A07A; border: 1px solid rgba(6,214,160,0.3); }
+.mma-badge-demo   { background: #EEF4FF; color: #3B50B8; border: 1px solid #A0AAEE; }
+.mma-badge-locked { background: #D4F7EE; color: #007A5E; border: 1px solid #06D6A0; }
+.mma-lock-btn {
+  background: #10b981;
+  color: #FFFFFF;
+  border: 1px solid #10b981;
+  border-radius: 7px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.12s;
+}
+.mma-lock-btn:hover { background: #059669; }
+.mma-unlock-btn {
+  background: #F5F5F5;
+  color: #555555;
+  border: 1px solid #CCCCCC;
+  border-radius: 7px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.12s;
+}
+.mma-unlock-btn:hover { background: #E8E8E8; }
 .mma-slug-link {
   font-size: 14px;       /* was 12 */
   color: #06A07A;

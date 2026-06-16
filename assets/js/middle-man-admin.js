@@ -58,7 +58,7 @@ async function loadManager() {
   try {
     var result = await mmaSb
       .from('clients')
-      .select('id,business_name,vertical,middle_man_enabled,middle_man_slug')
+      .select('id,business_name,vertical,middle_man_enabled,middle_man_slug,is_demo_account,is_locked')
       .order('business_name', { ascending: true });
     if (result.error) throw result.error;
 
@@ -77,6 +77,8 @@ async function loadManager() {
     listEl.addEventListener('click', function(ev) {
       var btn = ev.target.closest('.mma-edit-btn');
       if (btn) showEditView(btn.dataset.id);
+      var lockBtn = ev.target.closest('.mma-lock-btn, .mma-unlock-btn');
+      if (lockBtn) lockUnlockClient(lockBtn);
     });
   } catch (err) {
     listEl.innerHTML = '<div class="mma-error">Failed to load: ' + _e(err.message) + '</div>';
@@ -88,20 +90,55 @@ function buildClientCard(c) {
     ? '<span class="mma-badge mma-badge-live">LIVE</span>'
     : '<span class="mma-badge mma-badge-off">OFF</span>';
   var vertBadge  = '<span class="mma-badge mma-badge-vert">' + _e(c.vertical || 'unknown') + '</span>';
+  var demoBadge  = c.is_demo_account ? '<span class="mma-badge mma-badge-demo">DEMO</span>' : '';
   var slugHtml   = c.middle_man_slug
     ? '<a href="https://callmagnet.com.au/b/' + encodeURIComponent(c.middle_man_slug) + '" target="_blank" rel="noopener" class="mma-slug-link">callmagnet.com.au/b/' + _e(c.middle_man_slug) + '</a>'
     : '<span class="mma-no-slug">No slug set</span>';
+
+  var lockCtrl = '';
+  if (c.is_demo_account) {
+    if (c.is_locked) {
+      lockCtrl =
+        '<span class="mma-badge mma-badge-locked">LOCKED</span>' +
+        '<button class="mma-unlock-btn" data-id="' + _e(c.id) + '" data-locked="1">Unlock</button>';
+    } else {
+      lockCtrl = '<button class="mma-lock-btn" data-id="' + _e(c.id) + '" data-locked="0">Lock</button>';
+    }
+  }
 
   return '<div class="mma-client-card">' +
     '<div class="mma-client-header">' +
       '<div class="mma-client-left">' +
         '<span class="mma-client-name">' + _e(c.business_name) + '</span>' +
-        vertBadge + liveBadge +
+        vertBadge + liveBadge + demoBadge +
       '</div>' +
-      '<button class="mma-edit-btn" data-id="' + _e(c.id) + '">Edit</button>' +
+      '<div style="display:flex;gap:6px;align-items:center;">' +
+        lockCtrl +
+        '<button class="mma-edit-btn" data-id="' + _e(c.id) + '">Edit</button>' +
+      '</div>' +
     '</div>' +
     slugHtml +
   '</div>';
+}
+
+async function lockUnlockClient(btn) {
+  var id       = btn.dataset.id;
+  var isLocked = btn.dataset.locked === '1';
+  var action   = isLocked ? 'unlock' : 'lock';
+  var pwd = prompt('Enter the demo password to ' + action + ' this client:');
+  if (pwd === null) return;
+  if (pwd !== 'Demo2026!') { alert('Incorrect password.'); return; }
+  btn.disabled = true;
+  btn.textContent = '…';
+  try {
+    var res = await mmaSb.from('clients').update({ is_locked: !isLocked }).eq('id', id);
+    if (res.error) throw res.error;
+    showManagerView();
+  } catch (err) {
+    alert('Error: ' + err.message);
+    btn.disabled = false;
+    btn.textContent = isLocked ? '🔒 Unlock' : '🔓 Lock';
+  }
 }
 
 // ─── Edit view: fetch client and render editor ────────────────────────────────
@@ -111,7 +148,7 @@ async function loadClientForEdit(clientId) {
   try {
     var result = await mmaSb
       .from('clients')
-      .select('id,business_name,email,vertical,middle_man_enabled,middle_man_slug,booking_url,middle_man_logo_url,middle_man_promo_text,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_buttons,middle_man_updated_at')
+      .select('id,business_name,email,vertical,middle_man_enabled,middle_man_slug,booking_url,middle_man_logo_url,middle_man_promo_text,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_buttons,middle_man_updated_at,is_demo_account,is_locked')
       .eq('id', clientId)
       .single();
     if (result.error) throw result.error;
@@ -309,7 +346,13 @@ function renderEditBody(client) {
       '</div>'
     : '<div id="mmaPreviewLinkWrap"></div>';
 
-  content.innerHTML = heading + toggleSection + slugSection + clientLoginSection + bookingSection + promoSection + logoSection + mediaSection + btnsSection + notifSection + previewHtml;
+  var lockedDemo    = !!(client.is_demo_account && client.is_locked);
+  var lockedBanner  = lockedDemo
+    ? '<div style="background:#FFF0E0;border:1px solid #FFA040;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:14px;font-weight:600;color:#7A4400;">🔒 DEMO LOCKED — use the Lock/Unlock button on the client list to unlock before editing.</div>'
+    : '';
+  var formWrapStart = lockedDemo ? '<div style="opacity:0.6;pointer-events:none;">' : '';
+  var formWrapEnd   = lockedDemo ? '</div>' : '';
+  content.innerHTML = heading + lockedBanner + formWrapStart + toggleSection + slugSection + clientLoginSection + bookingSection + promoSection + logoSection + mediaSection + btnsSection + notifSection + previewHtml + formWrapEnd;
 
   // ── Wire event listeners ─────────────────────────────────────────────────────
   document.getElementById('mmaLogoUploadBtn').addEventListener('click', uploadLogo);

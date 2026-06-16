@@ -37,6 +37,7 @@ export async function fetchActiveClients(): Promise<ClientRow[]> {
     `${SUPABASE_URL}/rest/v1/clients` +
     `?account_status=eq.active` +
     `&is_test_account=not.is.true` +
+    `&is_demo_account=not.is.true` +
     `&select=id,business_name,email,sms_included,reset_date,last_renewal_date`,
     {
       headers: {
