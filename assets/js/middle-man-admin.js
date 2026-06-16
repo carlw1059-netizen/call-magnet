@@ -58,7 +58,7 @@ async function loadManager() {
   try {
     var result = await mmaSb
       .from('clients')
-      .select('id,business_name,vertical,middle_man_enabled,middle_man_slug,is_demo_account,is_locked')
+      .select('id,business_name,vertical,middle_man_enabled,middle_man_slug,is_demo_account,is_locked,demo_active')
       .order('business_name', { ascending: true });
     if (result.error) throw result.error;
 
@@ -79,6 +79,8 @@ async function loadManager() {
       if (btn) showEditView(btn.dataset.id);
       var lockBtn = ev.target.closest('.mma-lock-btn, .mma-unlock-btn');
       if (lockBtn) lockUnlockClient(lockBtn);
+      var demoToggle = ev.target.closest('.mma-demo-toggle');
+      if (demoToggle && !demoToggle.disabled) toggleDemoActive(demoToggle.dataset.id);
     });
   } catch (err) {
     listEl.innerHTML = '<div class="mma-error">Failed to load: ' + _e(err.message) + '</div>';
@@ -106,6 +108,22 @@ function buildClientCard(c) {
     }
   }
 
+  var demoToggleHtml = '';
+  if (c.is_demo_account) {
+    var isActive   = !!c.demo_active;
+    var isDisabled = !!c.is_locked;
+    demoToggleHtml =
+      '<div class="mma-demo-toggle-wrap">' +
+        '<span class="mma-demo-toggle-label">Active demo</span>' +
+        '<button class="mma-demo-toggle' + (isActive ? ' mma-demo-toggle-on' : '') + '"' +
+          ' data-id="' + _e(c.id) + '"' +
+          (isDisabled ? ' disabled' : '') +
+          ' title="' + (isActive ? 'This is the active demo — click to deactivate' : 'Set as active demo') + '">' +
+          (isActive ? 'ON' : 'OFF') +
+        '</button>' +
+      '</div>';
+  }
+
   return '<div class="mma-client-card">' +
     '<div class="mma-client-header">' +
       '<div class="mma-client-left">' +
@@ -113,6 +131,7 @@ function buildClientCard(c) {
         vertBadge + liveBadge + demoBadge +
       '</div>' +
       '<div style="display:flex;gap:6px;align-items:center;">' +
+        demoToggleHtml +
         lockCtrl +
         '<button class="mma-edit-btn" data-id="' + _e(c.id) + '">Edit</button>' +
       '</div>' +
@@ -138,6 +157,16 @@ async function lockUnlockClient(btn) {
     alert('Error: ' + err.message);
     btn.disabled = false;
     btn.textContent = isLocked ? '🔒 Unlock' : '🔓 Lock';
+  }
+}
+
+async function toggleDemoActive(clientId) {
+  try {
+    var res = await mmaSb.from('clients').update({ demo_active: true }).eq('id', clientId);
+    if (res.error) throw res.error;
+    loadManager();
+  } catch (err) {
+    alert('Error: ' + err.message);
   }
 }
 

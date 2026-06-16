@@ -155,6 +155,36 @@ html, body {
   transition: background 0.12s;
 }
 .mma-unlock-btn:hover { background: #E8E8E8; }
+.mma-demo-toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.mma-demo-toggle-label {
+  font-size: 11px;
+  color: #888888;
+  white-space: nowrap;
+}
+.mma-demo-toggle {
+  background: #E0E0E0;
+  color: #888888;
+  border: 1px solid #CCCCCC;
+  border-radius: 7px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.12s, color 0.12s;
+  min-width: 42px;
+}
+.mma-demo-toggle:disabled { opacity: 0.4; cursor: not-allowed; }
+.mma-demo-toggle-on {
+  background: #10b981;
+  color: #FFFFFF;
+  border-color: #10b981;
+}
+.mma-demo-toggle-on:hover { background: #059669; }
 .mma-slug-link {
   font-size: 14px;       /* was 12 */
   color: #06A07A;

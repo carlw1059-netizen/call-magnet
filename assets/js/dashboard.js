@@ -293,11 +293,10 @@ async function crossFadeToDashboard(user, fromEl) {
 }
 
 async function loadDashboard(user, opts = {}) {
-  const { data: clients, error } = await sb
-    .from('clients')
-    .select('*')
-    .eq('email', user.email)
-    .limit(1);
+  const demoQuery = user.email === 'demo@callmagnet.com.au'
+    ? sb.from('clients').select('*').eq('email', user.email).eq('demo_active', true).limit(1)
+    : sb.from('clients').select('*').eq('email', user.email).limit(1);
+  const { data: clients, error } = await demoQuery;
 
   if (error || !clients || clients.length === 0) {
     document.getElementById('errorMsg').textContent = 'No client record found. Contact hello@callmagnet.com.au';
