@@ -142,13 +142,87 @@ function buildClientCard(c, isAnyDemoActive, activeDemoId) {
   '</div>';
 }
 
+function mmaPasswordModal(actionText) {
+  return new Promise(function(resolve) {
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;';
+
+    var box = document.createElement('div');
+    box.style.cssText = 'background:#FFFFFF;border:1px solid #000000;border-radius:10px;padding:24px;width:320px;box-shadow:0 4px 24px rgba(0,0,0,0.18);font-family:inherit;';
+
+    var labelEl = document.createElement('div');
+    labelEl.style.cssText = 'font-size:14px;font-weight:600;color:#000000;margin-bottom:14px;';
+    labelEl.textContent = actionText;
+
+    var inputEl = document.createElement('input');
+    inputEl.type = 'password';
+    inputEl.placeholder = 'Password';
+    inputEl.style.cssText = 'width:100%;box-sizing:border-box;border:1px solid #CCCCCC;border-radius:7px;padding:8px 10px;font-size:14px;margin-bottom:6px;outline:none;font-family:inherit;';
+
+    var errEl = document.createElement('div');
+    errEl.style.cssText = 'font-size:12px;color:#CC0000;min-height:18px;margin-bottom:12px;';
+
+    var btnsEl = document.createElement('div');
+    btnsEl.style.cssText = 'display:flex;gap:8px;justify-content:flex-end;';
+
+    var cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.style.cssText = 'background:#F5F5F5;color:#333333;border:1px solid #CCCCCC;border-radius:7px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;';
+
+    var okBtn = document.createElement('button');
+    okBtn.textContent = 'OK';
+    okBtn.style.cssText = 'background:#10b981;color:#FFFFFF;border:none;border-radius:7px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;';
+
+    function dismiss(confirmed) {
+      document.removeEventListener('keydown', onKey);
+      overlay.remove();
+      resolve(confirmed);
+    }
+
+    function onKey(e) {
+      if (e.key === 'Escape') dismiss(false);
+      if (e.key === 'Enter')  okBtn.click();
+    }
+
+    cancelBtn.addEventListener('click', function() { dismiss(false); });
+    okBtn.addEventListener('click', function() {
+      if (inputEl.value !== 'Demo2026!') {
+        errEl.textContent = 'Incorrect password.';
+        inputEl.value = '';
+        inputEl.focus();
+        return;
+      }
+      dismiss(true);
+    });
+
+    document.addEventListener('keydown', onKey);
+
+    btnsEl.appendChild(cancelBtn);
+    btnsEl.appendChild(okBtn);
+    box.appendChild(labelEl);
+    box.appendChild(inputEl);
+    box.appendChild(errEl);
+    box.appendChild(btnsEl);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    setTimeout(function() { inputEl.focus(); }, 30);
+  });
+}
+
+function mmaFlashError(msg) {
+  var el = document.createElement('div');
+  el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#FFFFFF;border:1px solid #CC0000;border-radius:8px;padding:10px 20px;font-size:13px;color:#CC0000;font-weight:600;z-index:10000;box-shadow:0 2px 12px rgba(0,0,0,0.12);font-family:inherit;';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(function() { el.remove(); }, 3500);
+}
+
 async function lockUnlockClient(btn) {
   var id       = btn.dataset.id;
   var isLocked = btn.dataset.locked === '1';
   var action   = isLocked ? 'unlock' : 'lock';
-  var pwd = prompt('Enter the demo password to ' + action + ' this client:');
-  if (pwd === null) return;
-  if (pwd !== 'Demo2026!') { alert('Incorrect password.'); return; }
+  var confirmed = await mmaPasswordModal('Enter the demo password to ' + action + ' this client:');
+  if (!confirmed) return;
   btn.disabled = true;
   btn.textContent = '…';
   try {
@@ -156,9 +230,9 @@ async function lockUnlockClient(btn) {
     if (res.error) throw res.error;
     showManagerView();
   } catch (err) {
-    alert('Error: ' + err.message);
+    mmaFlashError('Error: ' + err.message);
     btn.disabled = false;
-    btn.textContent = isLocked ? '🔒 Unlock' : '🔓 Lock';
+    btn.textContent = isLocked ? 'Unlock' : 'Lock';
   }
 }
 
