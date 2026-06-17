@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
 
       // ── Look up client ────────────────────────────────────────────────────
       const clientRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/clients?stripe_customer_id=eq.${stripeCustomerId}&is_test_account=eq.false&select=id,business_name,email,account_status,created_at`,
+        `${SUPABASE_URL}/rest/v1/clients?stripe_customer_id=eq.${stripeCustomerId}&is_test_account=eq.false&select=id,business_name,email,account_status,created_at,is_test_account`,
         { headers: { apikey: SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` } },
       );
       const clients = await clientRes.json() as {
@@ -94,6 +94,7 @@ Deno.serve(async (req) => {
         email: string | null;
         account_status: string;
         created_at: string;
+        is_test_account: boolean;
       }[];
 
       if (!clients || clients.length === 0) {
@@ -104,6 +105,13 @@ Deno.serve(async (req) => {
       }
 
       const client = clients[0];
+
+      if (client.is_test_account) {
+        console.log(`stripe-subscription-deleted: Skipping test account ${client.business_name}`);
+        return new Response(JSON.stringify({ received: true, skipped: 'test_account' }), {
+          status: 200, headers: { 'Content-Type': 'application/json' },
+        });
+      }
 
       // Idempotency: if already cancelled, return 200 without re-sending email
       if (client.account_status === 'cancelled') {

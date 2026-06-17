@@ -199,8 +199,12 @@ Deno.serve(async (req) => {
 
       const client = clients[0]
 
-
-
+      if (client.is_test_account) {
+        console.log(`stripe-payment-succeeded: Skipping test account ${client.business_name}`)
+        return new Response(JSON.stringify({ received: true, skipped: 'test_account' }), {
+          status: 200, headers: { 'Content-Type': 'application/json' }
+        })
+      }
 
       // Reactivate account
       await fetch(
