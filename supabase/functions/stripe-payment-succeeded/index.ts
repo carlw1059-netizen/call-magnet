@@ -130,6 +130,21 @@ Deno.serve(async (req) => {
         }).catch((e: Error) => console.warn(`checkout pushover alert failed — ${e?.message}`))
       }
 
+      // Alert email to Carl
+      if (client && resendKey) {
+        fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from:    'CallMagnet <hello@callmagnet.com.au>',
+            to:      'carl@callmagnet.com.au',
+            subject: 'New client paid — ready to build',
+            text:    `Business: ${client.business_name}\nEmail: ${client.email}\nPackage: ${pricingPackage || '(not set)'}`,
+          }),
+        }).catch((e: Error) => console.warn(`checkout carl alert email failed — ${e?.message}`))
+        console.log(`checkout.session.completed: carl alert email sent for ${client.business_name}`)
+      }
+
       // Confirmation email to client
       if (client && resendKey) {
         const bizSafe = String(client.business_name).replace(/[&<>"']/g, (c: string) =>
