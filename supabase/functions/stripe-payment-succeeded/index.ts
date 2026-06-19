@@ -133,17 +133,9 @@ Deno.serve(async (req) => {
       )
       console.log(`checkout.session.completed: set client ${clientId} to pending_setup`)
 
-      // Fetch client details for notifications
-      const clientRes = await fetch(
-        `${supabaseUrl}/rest/v1/clients?id=eq.${clientId}&select=email,business_name`,
-        { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }
-      )
-      const clients = await clientRes.json()
-      const client  = clients?.[0]
-
       // Pushover alert to Carl
       const internalSecret = Deno.env.get('INTERNAL_SECRET')
-      if (internalSecret && client) {
+      if (internalSecret) {
         fetch(`${supabaseUrl}/functions/v1/send-pushover-alert`, {
           method:  'POST',
           headers: {
@@ -152,7 +144,7 @@ Deno.serve(async (req) => {
           },
           body: JSON.stringify({
             title:   'New client paid',
-            message: `${client.business_name} has paid their setup fee. Go to admin to activate.`,
+            message: `${clientGuardRows[0].business_name} has paid their setup fee. Go to admin to activate.`,
           }),
         }).catch((e: Error) => console.warn(`checkout pushover alert failed — ${e?.message}`))
       }
@@ -163,7 +155,7 @@ Deno.serve(async (req) => {
         console.log(`checkout.session.completed: emails already sent for id=${clientId}`)
       } else {
         // Alert email to Carl
-        if (client && resendKey) {
+        if (resendKey) {
           fetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
@@ -171,15 +163,15 @@ Deno.serve(async (req) => {
               from:    'CallMagnet <hello@callmagnet.com.au>',
               to:      'hello@callmagnet.com.au',
               subject: 'New client paid — ready to build',
-              text:    `Business: ${client.business_name}\nEmail: ${client.email}\nPackage: ${pricingPackage || '(not set)'}`,
+              text:    `Business: ${clientGuardRows[0].business_name}\nEmail: ${clientGuardRows[0].email}\nPackage: ${pricingPackage || '(not set)'}`,
             }),
           }).catch((e: Error) => console.warn(`checkout carl alert email failed — ${e?.message}`))
-          console.log(`checkout.session.completed: carl alert email sent for ${client.business_name}`)
+          console.log(`checkout.session.completed: carl alert email sent for ${clientGuardRows[0].business_name}`)
         }
 
         // Confirmation email to client
-        if (client && resendKey) {
-          const bizSafe = String(client.business_name).replace(/[&<>"']/g, (c: string) =>
+        if (resendKey) {
+          const bizSafe = String(clientGuardRows[0].business_name).replace(/[&<>"']/g, (c: string) =>
             ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])
           )
           const html = `<!doctype html>
@@ -204,13 +196,13 @@ Deno.serve(async (req) => {
             headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
               from:    'CallMagnet <hello@callmagnet.com.au>',
-              to:      client.email,
+              to:      clientGuardRows[0].email,
               subject: 'Payment received — we\'re setting up your account',
               html,
-              text: `Payment received.\n\nThanks for your payment, ${client.business_name}. Carl will be in touch within 24 hours to get your account configured and live.\n\nQuestions? Contact hello@callmagnet.com.au\n\nCallMagnet — callmagnet.com.au\n`,
+              text: `Payment received.\n\nThanks for your payment, ${clientGuardRows[0].business_name}. Carl will be in touch within 24 hours to get your account configured and live.\n\nQuestions? Contact hello@callmagnet.com.au\n\nCallMagnet — callmagnet.com.au\n`,
             }),
           }).catch((e: Error) => console.warn(`checkout confirmation email failed — ${e?.message}`))
-          console.log(`checkout.session.completed: confirmation email sent to ${client.email}`)
+          console.log(`checkout.session.completed: confirmation email sent to ${clientGuardRows[0].email}`)
         }
 
         // Mark emails sent so retries don't re-send
