@@ -157,27 +157,32 @@ Deno.serve(async (req) => {
         }).catch((e: Error) => console.warn(`checkout pushover alert failed — ${e?.message}`))
       }
 
-      // Alert email to Carl
-      if (client && resendKey) {
-        fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            from:    'CallMagnet <hello@callmagnet.com.au>',
-            to:      'hello@callmagnet.com.au',
-            subject: 'New client paid — ready to build',
-            text:    `Business: ${client.business_name}\nEmail: ${client.email}\nPackage: ${pricingPackage || '(not set)'}`,
-          }),
-        }).catch((e: Error) => console.warn(`checkout carl alert email failed — ${e?.message}`))
-        console.log(`checkout.session.completed: carl alert email sent for ${client.business_name}`)
-      }
+      // Idempotency: only send emails once per checkout event
+      const emailsSent = Array.isArray(clientGuardRows[0].emails_sent) ? clientGuardRows[0].emails_sent : []
+      if (emailsSent.includes('setup_confirmation')) {
+        console.log(`checkout.session.completed: emails already sent for id=${clientId}`)
+      } else {
+        // Alert email to Carl
+        if (client && resendKey) {
+          fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              from:    'CallMagnet <hello@callmagnet.com.au>',
+              to:      'hello@callmagnet.com.au',
+              subject: 'New client paid — ready to build',
+              text:    `Business: ${client.business_name}\nEmail: ${client.email}\nPackage: ${pricingPackage || '(not set)'}`,
+            }),
+          }).catch((e: Error) => console.warn(`checkout carl alert email failed — ${e?.message}`))
+          console.log(`checkout.session.completed: carl alert email sent for ${client.business_name}`)
+        }
 
-      // Confirmation email to client
-      if (client && resendKey) {
-        const bizSafe = String(client.business_name).replace(/[&<>"']/g, (c: string) =>
-          ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])
-        )
-        const html = `<!doctype html>
+        // Confirmation email to client
+        if (client && resendKey) {
+          const bizSafe = String(client.business_name).replace(/[&<>"']/g, (c: string) =>
+            ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])
+          )
+          const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Payment received</title></head>
 <body style="margin:0;padding:0;background:#0E1419;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#FFFFFF;-webkit-text-size-adjust:100%;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0E1419;">
@@ -194,18 +199,35 @@ Deno.serve(async (req) => {
   </td></tr>
 </table>
 </body></html>`
-        await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            from:    'CallMagnet <hello@callmagnet.com.au>',
-            to:      client.email,
-            subject: 'Payment received — we\'re setting up your account',
-            html,
-            text: `Payment received.\n\nThanks for your payment, ${client.business_name}. Carl will be in touch within 24 hours to get your account configured and live.\n\nQuestions? Contact hello@callmagnet.com.au\n\nCallMagnet — callmagnet.com.au\n`,
-          }),
-        }).catch((e: Error) => console.warn(`checkout confirmation email failed — ${e?.message}`))
-        console.log(`checkout.session.completed: confirmation email sent to ${client.email}`)
+          await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              from:    'CallMagnet <hello@callmagnet.com.au>',
+              to:      client.email,
+              subject: 'Payment received — we\'re setting up your account',
+              html,
+              text: `Payment received.\n\nThanks for your payment, ${client.business_name}. Carl will be in touch within 24 hours to get your account configured and live.\n\nQuestions? Contact hello@callmagnet.com.au\n\nCallMagnet — callmagnet.com.au\n`,
+            }),
+          }).catch((e: Error) => console.warn(`checkout confirmation email failed — ${e?.message}`))
+          console.log(`checkout.session.completed: confirmation email sent to ${client.email}`)
+        }
+
+        // Mark emails sent so retries don't re-send
+        await fetch(
+          `${supabaseUrl}/rest/v1/clients?id=eq.${clientId}`,
+          {
+            method: 'PATCH',
+            headers: {
+              apikey: supabaseKey,
+              Authorization: `Bearer ${supabaseKey}`,
+              'Content-Type': 'application/json',
+              Prefer: 'return=minimal',
+            },
+            body: JSON.stringify({ emails_sent: [...emailsSent, 'setup_confirmation'] }),
+          }
+        )
+        console.log(`checkout.session.completed: emails_sent updated for id=${clientId}`)
       }
 
       return new Response(JSON.stringify({ received: true }), {
