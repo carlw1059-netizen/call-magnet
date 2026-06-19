@@ -90,6 +90,19 @@ Deno.serve(async (req) => {
         })
       }
 
+      // Fetch client row upfront for guards and notifications
+      const clientGuardRes = await fetch(
+        `${supabaseUrl}/rest/v1/clients?id=eq.${clientId}&select=id,account_status,is_test_account,email,business_name,emails_sent`,
+        { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }
+      )
+      const clientGuardRows = await clientGuardRes.json()
+      if (!clientGuardRows || clientGuardRows.length === 0) {
+        console.log(`checkout.session.completed: client not found for id=${clientId}`)
+        return new Response(JSON.stringify({ received: true, skipped: 'client_not_found' }), {
+          status: 200, headers: { 'Content-Type': 'application/json' }
+        })
+      }
+
       // Set account to pending_setup — Carl will manually activate after account configuration
       await fetch(
         `${supabaseUrl}/rest/v1/clients?id=eq.${clientId}`,
