@@ -44,7 +44,7 @@ async function sendCarlSummary(): Promise<void> {
     headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       from:    'CallMagnet <hello@callmagnet.com.au>',
-      to:      'carl@callmagnet.com.au',
+      to:      'hello@callmagnet.com.au',
       subject: `CallMagnet Weekly — ${dateRange}`,
       text: [
         `CallMagnet Weekly — ${dateRange}`,

@@ -137,7 +137,7 @@ Deno.serve(async (req) => {
           headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
             from:    'CallMagnet <hello@callmagnet.com.au>',
-            to:      'carl@callmagnet.com.au',
+            to:      'hello@callmagnet.com.au',
             subject: 'New client paid — ready to build',
             text:    `Business: ${client.business_name}\nEmail: ${client.email}\nPackage: ${pricingPackage || '(not set)'}`,
           }),
