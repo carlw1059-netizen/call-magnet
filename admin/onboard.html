@@ -386,7 +386,7 @@
           <span>Customer SMS message <span class="opt">— what customers see</span></span>
           <span class="counter" id="smsCounter">0/138 (+22 tail = 22/160)</span>
         </label>
-        <textarea class="sms-textarea" id="smsTemplateInput" rows="3" maxlength="138" placeholder="Pick a vertical to pre-fill — or write your own. Use [LINK] for the booking URL placeholder."></textarea>
+        <textarea class="sms-textarea" id="smsTemplateInput" rows="3" maxlength="160" placeholder="Pick a vertical to pre-fill — or write your own. Use [LINK] for the booking URL placeholder."></textarea>
         <div class="sms-tail" id="smsTailPreview">Reply STOP to opt out</div>
       </div>
       <div class="sms-examples">
@@ -551,12 +551,21 @@ function updateSmsCounter() {
   const ta = document.getElementById('smsTemplateInput');
   const body = ta.value || '';
   const len = body.length;
-  const total = len + ' Reply STOP to opt out'.length;
   const el = document.getElementById('smsCounter');
-  el.textContent = len + '/138 (+22 tail = ' + total + '/160)';
+  const tailEl = document.getElementById('smsTailPreview');
   el.classList.remove('warn', 'over');
-  if (len > 138) el.classList.add('over');
-  else if (len > 120) el.classList.add('warn');
+  if (mmEnabledOn) {
+    el.textContent = len + '/160';
+    if (len > 160) el.classList.add('over');
+    else if (len > 140) el.classList.add('warn');
+    tailEl.style.display = 'none';
+  } else {
+    const total = len + ' Reply STOP to opt out'.length;
+    el.textContent = len + '/138 (+22 tail = ' + total + '/160)';
+    if (len > 138) el.classList.add('over');
+    else if (len > 120) el.classList.add('warn');
+    tailEl.style.display = '';
+  }
 }
 
 function escapeHtml(s) {
@@ -580,6 +589,7 @@ function toggleSms() {
 function toggleMmEnabled() {
   mmEnabledOn = !mmEnabledOn;
   document.getElementById('mmEnabledToggle').classList.toggle('on', mmEnabledOn);
+  updateSmsCounter();
 }
 
 /** Update the live Middle Man URL preview from the current business name. */
@@ -646,7 +656,11 @@ async function submitForm() {
   if (!customer_sms_template) return showError('Customer SMS message is required.');
   if (!/^Hi\b/i.test(customer_sms_template)) return showError('Customer SMS must start with "Hi" (brand voice rule).');
   if (/callmagnet\.com\.au/i.test(customer_sms_template)) return showError('Customer SMS must not mention callmagnet.com.au (customer-facing — brand stays invisible).');
-  if (customer_sms_template.length > 138) return showError('SMS body too long — must be 138 chars or fewer so it fits under 160 with " Reply STOP to opt out" tail.');
+  if (mmEnabledOn) {
+    if (customer_sms_template.length > 160) return showError('SMS body too long — must be 160 chars or fewer (Middle Man ON: no tail appended).');
+  } else {
+    if (customer_sms_template.length > 138) return showError('SMS body too long — must be 138 chars or fewer so it fits under 160 with " Reply STOP to opt out" tail.');
+  }
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;

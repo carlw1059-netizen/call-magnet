@@ -172,16 +172,16 @@ Deno.serve(async (req) => {
 
     // ── Validate + finalize customer SMS template ───────────────────────────
     // Use the input if supplied, else fall back to the vertical's default.
-    // The fixed tail " Reply STOP to opt out" (22 chars) is appended at send
-    // time by Twilio Studio, NOT stored — but we validate the body length so
-    // body + tail ≤ 160 chars.
-    //
     // [LINK] is stored as a literal placeholder. fetch-client-vertical.js
     // substitutes the correct Short.io link (or Middle Man URL) at call time.
     // Baking the booking URL in here would bypass the Short.io fallback chain.
+    //
+    // Length limits depend on Middle Man:
+    //   MM ON  → send-missed-call-sms sends the body as-is (no tail) → up to 160 chars.
+    //   MM OFF → send-missed-call-sms appends " Reply STOP to opt out" (22 chars) → body ≤ 138.
     const STOP_TAIL = ' Reply STOP to opt out';
     const MAX_TOTAL = 160;
-    const MAX_BODY  = MAX_TOTAL - STOP_TAIL.length;
+    const MAX_BODY  = middle_man_enabled ? MAX_TOTAL : MAX_TOTAL - STOP_TAIL.length;
 
     const customer_sms_template = customer_sms_template_input.length > 0
       ? customer_sms_template_input
@@ -198,7 +198,10 @@ Deno.serve(async (req) => {
       return json(400, { error: 'invalid_sms_template', detail: 'customer_sms_template must not contain callmagnet.com.au (customer-facing message; brand stays invisible)' });
     }
     if (customer_sms_template.length > MAX_BODY) {
-      return json(400, { error: 'sms_template_too_long', detail: `body must be ≤ ${MAX_BODY} chars to fit within 160-char single SMS segment after appending "${STOP_TAIL}"`, current_length: customer_sms_template.length });
+      return json(400, { error: 'sms_template_too_long', detail: middle_man_enabled
+        ? `body must be ≤ ${MAX_BODY} chars (Middle Man ON — no tail appended at send time)`
+        : `body must be ≤ ${MAX_BODY} chars to fit within 160-char single SMS segment after appending "${STOP_TAIL}"`,
+        current_length: customer_sms_template.length });
     }
 
     // ── 4. Create (or reuse) auth user ─────────────────────────────────────

@@ -187,6 +187,12 @@ Deno.serve(async (req) => {
               console.warn(`send-missed-call-sms: token generation failed (non-fatal): ${tokenErr instanceof Error ? tokenErr.message : String(tokenErr)}`);
               // finalMessage stays as message — SMS sends without token
             }
+          } else if (!client.middle_man_enabled) {
+            // MM OFF: no opt-out link in the message — append the tail directly.
+            const STOP_TAIL = ' Reply STOP to opt out';
+            if (!finalMessage.endsWith(STOP_TAIL)) {
+              finalMessage = finalMessage + STOP_TAIL;
+            }
           }
 
         }
