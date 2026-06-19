@@ -418,6 +418,9 @@ verify_jwt = false
 [functions.twilio-missed-call]
 verify_jwt = false
 
+[functions.twilio-inbound-sms]
+verify_jwt = false
+
 [functions.send-pushover-alert]
 verify_jwt = false
 
