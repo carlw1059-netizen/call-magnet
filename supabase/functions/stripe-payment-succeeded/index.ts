@@ -103,6 +103,20 @@ Deno.serve(async (req) => {
         })
       }
 
+      if (clientGuardRows[0].is_test_account) {
+        console.log(`checkout.session.completed: skipping test account id=${clientId}`)
+        return new Response(JSON.stringify({ received: true, skipped: 'test_account' }), {
+          status: 200, headers: { 'Content-Type': 'application/json' }
+        })
+      }
+
+      if (clientGuardRows[0].account_status !== 'pending_payment') {
+        console.log(`checkout.session.completed: skipping — unexpected status=${clientGuardRows[0].account_status} for id=${clientId}`)
+        return new Response(JSON.stringify({ received: true, skipped: 'unexpected_status', status: clientGuardRows[0].account_status }), {
+          status: 200, headers: { 'Content-Type': 'application/json' }
+        })
+      }
+
       // Set account to pending_setup — Carl will manually activate after account configuration
       await fetch(
         `${supabaseUrl}/rest/v1/clients?id=eq.${clientId}`,
