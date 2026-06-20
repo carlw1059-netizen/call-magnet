@@ -42,6 +42,9 @@ async function caLoad() {
       inp.style.cssText = 'width:100%;padding:10px;font-size:1rem;border:1px solid #000;border-radius:6px;box-sizing:border-box;';
       inp.addEventListener('input', caApplyFilters);
       wrap.appendChild(inp);
+      console.log('INPUT CREATED, value at creation:', inp.value);
+      setTimeout(function() { console.log('INPUT VALUE AT 500ms:', document.getElementById('cm-client-filter') && document.getElementById('cm-client-filter').value); }, 500);
+      setTimeout(function() { console.log('INPUT VALUE AT 2000ms:', document.getElementById('cm-client-filter') && document.getElementById('cm-client-filter').value); }, 2000);
     }
   }
   var grid = document.getElementById('caGrid');
