@@ -34,9 +34,9 @@ Deno.serve(async (req) => {
     const to   = (form.get('To')   ?? '').toString().trim();
     const body = (form.get('Body') ?? '').toString().trim().toUpperCase();
 
-    // Ignore everything except STOP replies
-    if (!body.startsWith('STOP')) {
-      console.log(`twilio-inbound-sms: ignoring non-STOP message from=${from} to=${to}`);
+    // Ignore everything except STOP and START replies
+    if (!body.startsWith('STOP') && !body.startsWith('START')) {
+      console.log(`twilio-inbound-sms: ignoring non-STOP/START message from=${from} to=${to}`);
       return ok();
     }
 
@@ -45,9 +45,7 @@ Deno.serve(async (req) => {
       return ok();
     }
 
-    console.log(`twilio-inbound-sms: STOP received from=${from} to=${to}`);
-
-    // Look up client by their Twilio number
+    // Look up client by their Twilio number (shared by STOP and START handlers)
     const clientRes = await fetch(
       `${SUPABASE_URL}/rest/v1/clients` +
       `?twilio_number=eq.${encodeURIComponent(to)}` +
@@ -75,31 +73,60 @@ Deno.serve(async (req) => {
 
     const clientId = clients[0].id;
 
-    // Upsert into opt_outs — on conflict update permanence and opted_out_at
-    const upsertRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/opt_outs`,
-      {
-        method: 'POST',
-        headers: {
-          apikey:         SUPABASE_SERVICE_ROLE_KEY,
-          Authorization:  `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-          'Content-Type': 'application/json',
-          Prefer:         'resolution=merge-duplicates,return=minimal',
-        },
-        body: JSON.stringify({
-          client_id:    clientId,
-          phone_number: from,
-          permanence:   'forever',
-          opted_out_at: new Date().toISOString(),
-        }),
-      },
-    );
+    // ── STOP — upsert into opt_outs ──────────────────────────────────────────
+    if (body.startsWith('STOP')) {
+      console.log(`twilio-inbound-sms: STOP received from=${from} to=${to}`);
 
-    if (!upsertRes.ok) {
-      const detail = await upsertRes.text();
-      console.error(`twilio-inbound-sms: opt_outs upsert failed ${upsertRes.status}: ${detail}`);
-    } else {
-      console.log(`twilio-inbound-sms: opt_out written client_id=${clientId} phone=${from} permanence=forever`);
+      const upsertRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/opt_outs`,
+        {
+          method: 'POST',
+          headers: {
+            apikey:         SUPABASE_SERVICE_ROLE_KEY,
+            Authorization:  `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+            'Content-Type': 'application/json',
+            Prefer:         'resolution=merge-duplicates,return=minimal',
+          },
+          body: JSON.stringify({
+            client_id:    clientId,
+            phone_number: from,
+            permanence:   'forever',
+            opted_out_at: new Date().toISOString(),
+          }),
+        },
+      );
+
+      if (!upsertRes.ok) {
+        const detail = await upsertRes.text();
+        console.error(`twilio-inbound-sms: opt_outs upsert failed ${upsertRes.status}: ${detail}`);
+      } else {
+        console.log(`twilio-inbound-sms: opt_out written client_id=${clientId} phone=${from} permanence=forever`);
+      }
+    }
+
+    // ── START — delete from opt_outs (re-subscribe) ──────────────────────────
+    if (body.startsWith('START')) {
+      console.log(`twilio-inbound-sms: START received from=${from} to=${to}`);
+
+      const deleteRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/opt_outs` +
+        `?client_id=eq.${encodeURIComponent(clientId)}` +
+        `&phone_number=eq.${encodeURIComponent(from)}`,
+        {
+          method: 'DELETE',
+          headers: {
+            apikey:        SUPABASE_SERVICE_ROLE_KEY,
+            Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          },
+        },
+      );
+
+      if (!deleteRes.ok) {
+        const detail = await deleteRes.text();
+        console.error(`twilio-inbound-sms: opt_outs delete failed ${deleteRes.status}: ${detail}`);
+      } else {
+        console.log(`twilio-inbound-sms: opt_out cleared client_id=${clientId} phone=${from}`);
+      }
     }
 
   } catch (err) {
