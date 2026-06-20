@@ -35,13 +35,8 @@ async function caLoad() {
       inp.id = 'cm-client-filter';
       inp.name = 'cm-client-filter-x';
       inp.setAttribute('autocomplete', 'off');
-      inp.setAttribute('data-1p-ignore', '');
-      inp.setAttribute('data-lpignore', 'true');
-      inp.setAttribute('data-form-type', 'other');
-      inp.setAttribute('readonly', 'true');
       inp.placeholder = 'Search clients...';
       inp.style.cssText = 'width:100%;padding:10px;font-size:1rem;border:1px solid #000;border-radius:6px;box-sizing:border-box;';
-      inp.addEventListener('focus', function() { inp.removeAttribute('readonly'); });
       inp.addEventListener('input', caApplyFilters);
       wrap.appendChild(inp);
     }
