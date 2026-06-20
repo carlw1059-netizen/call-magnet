@@ -309,18 +309,9 @@ function caApplyFilters() {
   var searchEl = document.getElementById('cm-client-filter');
   if (searchEl) q = searchEl.value.toLowerCase().trim();
   currentList = allClients.filter(function(c) {
-    if (!showCancelled) {
-      if (c.is_test_account) return false;
-      if (c.account_status === 'cancelled') return false;
-    }
+    if (c.account_status === 'cancelled' && !showCancelled) return false;
     if (!q) return true;
-    return (
-      (c.business_name || '').toLowerCase().includes(q) ||
-      (c.owner_name    || '').toLowerCase().includes(q) ||
-      (c.email         || '').toLowerCase().includes(q) ||
-      (c.owner_phone   || '').toLowerCase().includes(q) ||
-      (c.twilio_number || '').toLowerCase().includes(q)
-    );
+    return (c.business_name || '').toLowerCase().includes(q);
   });
   caSetCount(currentList.length);
   caRender(currentList);
