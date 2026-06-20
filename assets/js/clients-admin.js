@@ -332,6 +332,7 @@ function toggleCancelled() {
   if (btn) btn.textContent = showCancelled ? 'Hide cancelled' : 'Show cancelled';
   caApplyFilters();
 }
+window.toggleCancelled = toggleCancelled;
 
 // ─── Copy to clipboard ────────────────────────────────────────────────────────
 function caCopy(btn) {
