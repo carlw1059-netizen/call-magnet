@@ -38,6 +38,19 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/assets/js/clients-admin.js?v=20260620l"></script>
+<script src="/assets/js/clients-admin.js?v=20260620m"></script>
+<script>
+var _input = document.getElementById('cm-client-filter');
+var _orig = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+Object.defineProperty(_input, 'value', {
+  set: function(v) {
+    console.log('INPUT VALUE SET TO:', v, new Error().stack);
+    _orig.set.call(this, v);
+  },
+  get: function() {
+    return _orig.get.call(this);
+  }
+});
+</script>
 </body>
 </html>
