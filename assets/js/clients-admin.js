@@ -644,6 +644,8 @@ document.addEventListener('DOMContentLoaded', async function() {
   var searchEl = document.getElementById('caSearch');
   if (searchEl) {
     searchEl.removeAttribute('readonly');
+    searchEl.value = '';
+    caApplyFilters();
     searchEl.addEventListener('input', caApplyFilters);
   }
 
