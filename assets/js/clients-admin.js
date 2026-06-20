@@ -34,7 +34,6 @@ async function caLoad() {
   var cr = await caSb
     .from('clients')
     .select('id,business_name,owner_name,email,owner_phone,twilio_number,plan_type,pricing_package,account_status,last_renewal_date,middle_man_slug,middle_man_enabled,created_at,cancellation_scheduled,cancelled_at,stripe_subscription_id,stripe_customer_id,is_test_account')
-    .eq('is_test_account', false)
     .order('created_at', { ascending: false });
 
   if (cr.error) {
@@ -311,7 +310,7 @@ function caApplyFilters() {
   if (searchEl) q = searchEl.value.toLowerCase().trim();
 
   currentList = allClients.filter(function(c) {
-    if (!showCancelled && c.account_status === 'cancelled') return false;
+    if (!showCancelled && (c.is_test_account || c.account_status === 'cancelled')) return false;
     if (!q) return true;
     return (
       (c.business_name || '').toLowerCase().includes(q) ||
