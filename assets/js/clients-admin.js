@@ -51,7 +51,7 @@ async function caLoad() {
   // SMS count intentionally omitted — non-critical, removed to avoid RLS 500
   smsCountMap = {};
 
-  caRender(currentList);
+  caApplyFilters();
 }
 
 // ─── Render grid ──────────────────────────────────────────────────────────────
