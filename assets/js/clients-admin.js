@@ -34,7 +34,6 @@ async function caLoad() {
   var cr = await caSb
     .from('clients')
     .select('id,business_name,owner_name,email,owner_phone,twilio_number,plan_type,pricing_package,account_status,last_renewal_date,middle_man_slug,middle_man_enabled,created_at,cancellation_scheduled,cancelled_at,stripe_subscription_id,stripe_customer_id,is_test_account')
-    .neq('account_status', 'cancelled')
     .eq('is_test_account', false)
     .order('created_at', { ascending: false });
 
