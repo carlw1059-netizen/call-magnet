@@ -41,6 +41,8 @@ async function caLoad() {
       inp.placeholder = 'Search clients...';
       inp.style.cssText = 'width:100%;padding:10px;font-size:1rem;border:1px solid #000;border-radius:6px;box-sizing:border-box;';
       inp.addEventListener('input', caApplyFilters);
+      inp.addEventListener('blur', function() { if (inp.value === 'car312@hotmail.com') { inp.value = ''; caApplyFilters(); } });
+      inp.addEventListener('change', function() { if (inp.value === 'car312@hotmail.com') { inp.value = ''; caApplyFilters(); } });
       wrap.appendChild(inp);
       console.log('INPUT CREATED, value at creation:', inp.value);
       setTimeout(function() { console.log('INPUT VALUE AT 500ms:', document.getElementById('cm-client-filter') && document.getElementById('cm-client-filter').value); }, 500);
