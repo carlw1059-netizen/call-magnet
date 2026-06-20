@@ -1,29 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  var observer = new MutationObserver(function(mutations) {
-    mutations.forEach(function(m) {
-      if (m.target && m.target.id === 'cm-client-filter') {
-        console.log('MUTATION on cm-client-filter:', m.type, m.target.value, new Error().stack);
-      }
-    });
-  });
-  observer.observe(document.body, { subtree: true, attributes: true, characterData: true });
-
-  var _orig = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
-  Object.defineProperty(HTMLInputElement.prototype, 'value', {
-    set: function(v) {
-      if (this.id === 'cm-client-filter') {
-        console.log('VALUE SET on cm-client-filter:', v, new Error().stack);
-      }
-      _orig.set.call(this, v);
-    },
-    get: function() { return _orig.get.call(this); }
-  });
-});
-</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Clients — CallMagnet Admin</title>
@@ -32,34 +9,20 @@ document.addEventListener('DOMContentLoaded', function() {
 <link rel="stylesheet" href="/assets/css/clients-admin.css?v=20260615a">
 </head>
 <body>
-
-<!-- Auth gate: shown while checking session, then hidden -->
 <div id="caAuthGate">Checking access…</div>
-
-<!-- Main page: hidden until auth passes -->
 <div id="caPage" style="display:none;">
-
   <header class="mma-header">
     <span class="mma-header-title">Clients <span id="caCount"></span></span>
     <button id="caBackBtn" class="mma-back-btn" onclick="window.location.href='/'">← Dashboard</button>
   </header>
-
   <div class="mma-body">
-
-    <div class="ca-search-wrap">
-      <input type="text" id="cm-client-filter" name="cm-client-filter-x" autocomplete="off" data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other" placeholder="Search clients..." style="width:100%;padding:10px;font-size:1rem;border:1px solid #000;border-radius:6px;box-sizing:border-box;">
-    </div>
-
+    <div class="ca-search-wrap" id="caSearchWrap"></div>
     <div class="ca-filter-bar">
       <button id="caShowCancelledBtn" onclick="toggleCancelled()" style="font-size:13px;padding:6px 14px;border:1px solid #ccc;background:#fff;border-radius:6px;cursor:pointer;">Show cancelled</button>
     </div>
-
     <div class="ca-grid" id="caGrid"></div>
-
   </div>
-
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/assets/js/clients-admin.js?v=20260620o"></script>
 </body>
