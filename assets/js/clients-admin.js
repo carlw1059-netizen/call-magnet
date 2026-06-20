@@ -642,7 +642,10 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   // Wire search
   var searchEl = document.getElementById('caSearch');
-  if (searchEl) searchEl.addEventListener('input', caApplyFilters);
+  if (searchEl) {
+    searchEl.removeAttribute('readonly');
+    searchEl.addEventListener('input', caApplyFilters);
+  }
 
   // Load data
   await caLoad();
