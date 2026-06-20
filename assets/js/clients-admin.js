@@ -27,6 +27,7 @@ function caSetCount(n) {
 
 // ─── Load clients + SMS counts ────────────────────────────────────────────────
 async function caLoad() {
+  document.getElementById('cm-client-filter').value = '';
   var grid = document.getElementById('caGrid');
   if (grid) grid.innerHTML = '<div class="ca-loading">Loading…</div>';
 
@@ -305,6 +306,7 @@ function caCard(c) {
 
 // ─── Real-time search + status filter ────────────────────────────────────────
 function caApplyFilters() {
+  document.getElementById('cm-client-filter').value = '';
   var q = '';
   var searchEl = document.getElementById('cm-client-filter');
   if (searchEl) q = searchEl.value.toLowerCase().trim();
