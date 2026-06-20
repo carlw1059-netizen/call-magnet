@@ -27,6 +27,23 @@ function caSetCount(n) {
 
 // ─── Load clients + SMS counts ────────────────────────────────────────────────
 async function caLoad() {
+  if (!document.getElementById('cm-client-filter')) {
+    var wrap = document.getElementById('caSearchWrap');
+    if (wrap) {
+      var inp = document.createElement('input');
+      inp.type = 'text';
+      inp.id = 'cm-client-filter';
+      inp.name = 'cm-client-filter-x';
+      inp.setAttribute('autocomplete', 'off');
+      inp.setAttribute('data-1p-ignore', '');
+      inp.setAttribute('data-lpignore', 'true');
+      inp.setAttribute('data-form-type', 'other');
+      inp.placeholder = 'Search clients...';
+      inp.style.cssText = 'width:100%;padding:10px;font-size:1rem;border:1px solid #000;border-radius:6px;box-sizing:border-box;';
+      inp.addEventListener('input', caApplyFilters);
+      wrap.appendChild(inp);
+    }
+  }
   var grid = document.getElementById('caGrid');
   if (grid) grid.innerHTML = '<div class="ca-loading">Loading…</div>';
 
