@@ -1,6 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(m) {
+      if (m.target && m.target.id === 'cm-client-filter') {
+        console.log('MUTATION on cm-client-filter:', m.type, m.target.value, new Error().stack);
+      }
+    });
+  });
+  observer.observe(document.body, { subtree: true, attributes: true, characterData: true });
+
+  var _orig = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+  Object.defineProperty(HTMLInputElement.prototype, 'value', {
+    set: function(v) {
+      if (this.id === 'cm-client-filter') {
+        console.log('VALUE SET on cm-client-filter:', v, new Error().stack);
+      }
+      _orig.set.call(this, v);
+    },
+    get: function() { return _orig.get.call(this); }
+  });
+});
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Clients — CallMagnet Admin</title>
@@ -38,19 +61,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/assets/js/clients-admin.js?v=20260620n"></script>
-<script>
-var _input = document.getElementById('cm-client-filter');
-var _orig = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
-Object.defineProperty(_input, 'value', {
-  set: function(v) {
-    console.log('INPUT VALUE SET TO:', v, new Error().stack);
-    _orig.set.call(this, v);
-  },
-  get: function() {
-    return _orig.get.call(this);
-  }
-});
-</script>
+<script src="/assets/js/clients-admin.js?v=20260620o"></script>
 </body>
 </html>
