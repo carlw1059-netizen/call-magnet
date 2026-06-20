@@ -63,8 +63,6 @@ async function caLoad() {
   }
 
   allClients  = cr.data || [];
-  console.log('allClients count:', allClients.length);
-  console.log('all rows:', allClients.map(c => c.business_name + ' / status:' + c.account_status + ' / test:' + c.is_test_account + ' / demo:' + c.is_demo_account));
   currentList = allClients.slice();
   caSetCount(allClients.length);
 
@@ -470,8 +468,6 @@ async function caDeleteMM(btn) {
   var id   = btn.dataset.id;
   var name = btn.dataset.name || 'this client';
 
-  console.log('[caDeleteMM] clearing MM config for client id:', id);
-
   if (!confirm('This will remove all Middle Man configuration for ' + name + '. The client row in Supabase will NOT be deleted. Are you sure?')) return;
 
   btn.disabled    = true;
@@ -486,8 +482,6 @@ async function caDeleteMM(btn) {
     booking_url:                      null,
     shortio_link:                     null,
   }).eq('id', id);
-
-  console.log('[caDeleteMM] supabase result:', JSON.stringify({ error: result.error, data: result.data }));
 
   if (result.error) {
     alert('Clear failed: ' + result.error.message);
