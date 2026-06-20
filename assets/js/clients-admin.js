@@ -6,10 +6,11 @@ const CA_SUPABASE_URL      = 'https://iskvvnhacqdxybpmwuni.supabase.co';
 const CA_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
 const CA_REAL_ADMIN_EMAIL  = 'car312@hotmail.com';
 
-let caSb        = null;
-let allClients  = [];   // full sorted list from DB
-let smsCountMap = {};   // { client_id → total count }
-let currentList = [];   // currently displayed (after filter)
+let caSb          = null;
+let allClients    = [];   // full sorted list from DB
+let smsCountMap   = {};   // { client_id → total count }
+let currentList   = [];   // currently displayed (after filter)
+let showCancelled = false;
 
 // ─── HTML escape ──────────────────────────────────────────────────────────────
 function _e(s) {
@@ -32,7 +33,9 @@ async function caLoad() {
   // Clients — newest first
   var cr = await caSb
     .from('clients')
-    .select('id,business_name,owner_name,email,owner_phone,twilio_number,plan_type,pricing_package,account_status,last_renewal_date,middle_man_slug,middle_man_enabled,created_at,cancellation_scheduled,cancelled_at,stripe_subscription_id,stripe_customer_id')
+    .select('id,business_name,owner_name,email,owner_phone,twilio_number,plan_type,pricing_package,account_status,last_renewal_date,middle_man_slug,middle_man_enabled,created_at,cancellation_scheduled,cancelled_at,stripe_subscription_id,stripe_customer_id,is_test_account')
+    .neq('account_status', 'cancelled')
+    .eq('is_test_account', false)
     .order('created_at', { ascending: false });
 
   if (cr.error) {
@@ -300,27 +303,33 @@ function caCard(c) {
   );
 }
 
-// ─── Real-time search ─────────────────────────────────────────────────────────
-function caFilter() {
+// ─── Real-time search + status filter ────────────────────────────────────────
+function caApplyFilters() {
   var q = '';
   var searchEl = document.getElementById('caSearch');
   if (searchEl) q = searchEl.value.toLowerCase().trim();
 
-  if (!q) {
-    currentList = allClients.slice();
-  } else {
-    currentList = allClients.filter(function(c) {
-      return (
-        (c.business_name || '').toLowerCase().includes(q) ||
-        (c.owner_name    || '').toLowerCase().includes(q) ||
-        (c.email         || '').toLowerCase().includes(q) ||
-        (c.owner_phone   || '').toLowerCase().includes(q) ||
-        (c.twilio_number || '').toLowerCase().includes(q)
-      );
-    });
-  }
+  currentList = allClients.filter(function(c) {
+    if (!showCancelled && c.account_status === 'cancelled') return false;
+    if (!q) return true;
+    return (
+      (c.business_name || '').toLowerCase().includes(q) ||
+      (c.owner_name    || '').toLowerCase().includes(q) ||
+      (c.email         || '').toLowerCase().includes(q) ||
+      (c.owner_phone   || '').toLowerCase().includes(q) ||
+      (c.twilio_number || '').toLowerCase().includes(q)
+    );
+  });
   caSetCount(currentList.length);
   caRender(currentList);
+}
+
+// ─── Show/hide cancelled toggle ───────────────────────────────────────────────
+function toggleCancelled() {
+  showCancelled = !showCancelled;
+  var btn = document.getElementById('caShowCancelledBtn');
+  if (btn) btn.textContent = showCancelled ? 'Hide cancelled' : 'Show cancelled';
+  caApplyFilters();
 }
 
 // ─── Copy to clipboard ────────────────────────────────────────────────────────
@@ -630,7 +639,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   // Wire search
   var searchEl = document.getElementById('caSearch');
-  if (searchEl) searchEl.addEventListener('input', caFilter);
+  if (searchEl) searchEl.addEventListener('input', caApplyFilters);
 
   // Load data
   await caLoad();
