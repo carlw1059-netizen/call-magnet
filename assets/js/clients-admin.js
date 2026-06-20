@@ -45,6 +45,8 @@ async function caLoad() {
       console.log('INPUT CREATED, value at creation:', inp.value);
       setTimeout(function() { console.log('INPUT VALUE AT 500ms:', document.getElementById('cm-client-filter') && document.getElementById('cm-client-filter').value); }, 500);
       setTimeout(function() { console.log('INPUT VALUE AT 2000ms:', document.getElementById('cm-client-filter') && document.getElementById('cm-client-filter').value); }, 2000);
+      setTimeout(function() { console.log('INPUT VALUE AT 5000ms:', document.getElementById('cm-client-filter') && document.getElementById('cm-client-filter').value); }, 5000);
+      setTimeout(function() { console.log('INPUT VALUE AT 10000ms:', document.getElementById('cm-client-filter') && document.getElementById('cm-client-filter').value); }, 10000);
     }
   }
   var grid = document.getElementById('caGrid');
