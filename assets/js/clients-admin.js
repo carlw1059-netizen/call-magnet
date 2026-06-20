@@ -643,8 +643,6 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Wire search
   var searchEl = document.getElementById('cm-client-filter');
   if (searchEl) {
-    searchEl.removeAttribute('readonly');
-    searchEl.value = '';
     searchEl.addEventListener('input', caApplyFilters);
   }
 
