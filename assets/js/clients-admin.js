@@ -45,7 +45,7 @@ async function caLoad() {
 
   allClients  = cr.data || [];
   console.log('allClients count:', allClients.length);
-  console.log('statuses:', allClients.map(c => c.account_status + ' / test:' + c.is_test_account));
+  console.log('all rows:', allClients.map(c => c.business_name + ' / status:' + c.account_status + ' / test:' + c.is_test_account + ' / demo:' + c.is_demo_account));
   currentList = allClients.slice();
   caSetCount(allClients.length);
 
