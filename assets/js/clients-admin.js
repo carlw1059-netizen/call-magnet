@@ -61,7 +61,7 @@ function caRender(list) {
   if (!grid) return;
 
   var q = '';
-  var searchEl = document.getElementById('caSearch');
+  var searchEl = document.getElementById('cm-client-filter');
   if (searchEl) q = searchEl.value || '';
 
   if (list.length === 0) {
@@ -306,7 +306,7 @@ function caCard(c) {
 // ─── Real-time search + status filter ────────────────────────────────────────
 function caApplyFilters() {
   var q = '';
-  var searchEl = document.getElementById('caSearch');
+  var searchEl = document.getElementById('cm-client-filter');
   if (searchEl) q = searchEl.value.toLowerCase().trim();
   currentList = allClients.filter(function(c) {
     if (!showCancelled) {
@@ -641,7 +641,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   if (backBtn) backBtn.addEventListener('click', function() { window.location.href = '/'; });
 
   // Wire search
-  var searchEl = document.getElementById('caSearch');
+  var searchEl = document.getElementById('cm-client-filter');
   if (searchEl) {
     searchEl.removeAttribute('readonly');
     searchEl.value = '';
