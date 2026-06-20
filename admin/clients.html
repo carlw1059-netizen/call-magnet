@@ -9,6 +9,17 @@
 <link rel="stylesheet" href="/assets/css/clients-admin.css?v=20260615a">
 </head>
 <body>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var el = document.getElementById('cm-client-filter');
+  if (el) {
+    el.value = '';
+    setTimeout(function() { el.value = ''; }, 100);
+    setTimeout(function() { el.value = ''; }, 500);
+    setTimeout(function() { el.value = ''; }, 1000);
+  }
+});
+</script>
 
 <!-- Auth gate: shown while checking session, then hidden -->
 <div id="caAuthGate">Checking access…</div>
@@ -38,6 +49,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/assets/js/clients-admin.js?v=20260620i"></script>
+<script src="/assets/js/clients-admin.js?v=20260620j"></script>
 </body>
 </html>
