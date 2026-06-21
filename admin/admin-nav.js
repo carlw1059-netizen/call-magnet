@@ -121,7 +121,10 @@
   document.head.appendChild(style);
 
   // ── 2. Inject HTML into <body> ─────────────────────────────────────────────
-  function injectHTML() {
+  var _htmlInjected = false;
+  function injectHTML(isAdmin) {
+    if (_htmlInjected) return;
+    _htmlInjected = true;
     // Guard: skip all injection on the onboarding page — it has its own header
     // and no longer uses a sidebar/tools column.
     var path = window.location.pathname.replace(/\/+$/, '');
@@ -166,9 +169,7 @@
         </div>
         <div class="admin-panel-section">
           <span class="admin-panel-section-label">Clients</span>
-          <a href="/admin/onboard.html" class="admin-panel-link">Onboard new client</a>
-          <a href="/admin/clients.html" class="admin-panel-link">Manage clients</a>
-          <a href="/admin/middle-man.html" class="admin-panel-link">Middle Man</a>
+          ${isAdmin ? '<a href="/admin/onboard.html" class="admin-panel-link">Onboard new client</a><a href="/admin/clients.html" class="admin-panel-link">Manage clients</a><a href="/admin/middle-man.html" class="admin-panel-link">Middle Man</a>' : ''}
           <a href="/admin/unsubscribes.html" class="admin-panel-link">Unsubscribes</a>
         </div>
         <div class="admin-panel-section">
@@ -185,11 +186,7 @@
     document.body.appendChild(panel);
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', injectHTML);
-  } else {
-    injectHTML(); // already parsed
-  }
+  // injectHTML() is now called from refreshAdminFab() once isAdmin is known.
 
   // ── 3. Panel open / close ──────────────────────────────────────────────────
   window.openAdminPanel = function openAdminPanel() {
@@ -224,6 +221,7 @@
     var email    = (session && session.user && session.user.email)
                    ? session.user.email.toLowerCase() : '';
     var showFab  = isAdmin && (email === ADMIN_EMAIL);
+    injectHTML(showFab);
     var fab      = document.getElementById('adminFab');
     if (fab) fab.style.display = showFab ? 'flex' : 'none';
   };
