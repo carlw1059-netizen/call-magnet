@@ -12,8 +12,9 @@
 <div id="caAuthGate">Checking access…</div>
 <div id="caPage" style="display:none;">
   <header class="mma-header">
-    <span class="mma-header-title">Clients <span id="caCount"></span></span>
+    <span class="mma-header-title">Client Management <span id="caCount"></span></span>
     <button id="caBackBtn" class="mma-back-btn" onclick="window.location.href='/'">← Dashboard</button>
+    <button onclick="history.back()" style="background:#1D4ED8;color:#fff;font-weight:700;border:none;border-radius:6px;padding:8px 16px;cursor:pointer;font-size:14px;margin-left:8px;">← Back</button>
   </header>
   <div class="mma-body">
     <div class="ca-search-wrap" id="caSearchWrap"></div>
@@ -24,6 +25,6 @@
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/assets/js/clients-admin.js?v=20260622e"></script>
+<script src="/assets/js/clients-admin.js?v=20260622f"></script>
 </body>
 </html>
