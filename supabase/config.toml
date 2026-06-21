@@ -527,6 +527,11 @@ verify_jwt = false
 [functions.reset-client-password]
 verify_jwt = false
 
+# notify-expiry is triggered by pg_cron via dispatch_notify_expiry() which
+# passes X-Internal-Secret. No Supabase JWT from the cron caller.
+[functions.notify-expiry]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

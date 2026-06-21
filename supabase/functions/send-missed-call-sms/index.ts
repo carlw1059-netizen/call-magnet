@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
         `${SUPABASE_URL}/rest/v1/clients` +
         `?twilio_number=eq.${encodeURIComponent(from)}` +
         `&is_test_account=eq.false&account_status=eq.active` +
-        `&select=id,middle_man_enabled,middle_man_slug,rebrandly_link_id&limit=1`,
+        `&select=id,middle_man_enabled,middle_man_slug,rebrandly_link_id,sms_included&limit=1`,
         {
           headers: {
             apikey:        SUPABASE_SERVICE_ROLE_KEY,
@@ -124,6 +124,7 @@ Deno.serve(async (req) => {
           middle_man_enabled: boolean;
           middle_man_slug: string | null;
           rebrandly_link_id: string | null;
+          sms_included: number;
         }[];
 
         if (clients.length > 0) {
@@ -149,6 +150,33 @@ Deno.serve(async (req) => {
             if (optOuts.length > 0) {
               console.log(`send-missed-call-sms: SMS suppressed — to=${to} is opted out for client=${clientId}`);
               return json(200, { ok: true, suppressed: true, reason: 'opted_out' });
+            }
+          }
+
+          // ── SMS monthly cap check ────────────────────────────────────────────
+          const smsIncluded = typeof client.sms_included === 'number' ? client.sms_included : 50;
+          const monthStart  = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1)).toISOString();
+          const capRes = await fetch(
+            `${SUPABASE_URL}/rest/v1/sms_events` +
+            `?client_id=eq.${encodeURIComponent(clientId)}` +
+            `&received_at=gte.${encodeURIComponent(monthStart)}` +
+            `&select=id`,
+            {
+              method: 'HEAD',
+              headers: {
+                apikey:        SUPABASE_SERVICE_ROLE_KEY,
+                Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+                Prefer:        'count=exact',
+              },
+            }
+          );
+          if (capRes.ok) {
+            const contentRange = capRes.headers.get('content-range') || '*/0';
+            const slash        = contentRange.lastIndexOf('/');
+            const smsCount     = parseInt(slash >= 0 ? contentRange.slice(slash + 1) : '0', 10);
+            if (Number.isFinite(smsCount) && smsCount >= smsIncluded) {
+              console.log(`send-missed-call-sms: SMS cap reached for client_id=${clientId} (${smsCount}/${smsIncluded} this month)`);
+              return json(200, { ok: true, suppressed: true, reason: 'sms_cap_reached' });
             }
           }
 
