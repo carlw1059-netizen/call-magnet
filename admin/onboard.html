@@ -680,7 +680,6 @@ async function submitForm() {
   if (abn && abn.length !== 11) return showError('ABN must be 11 digits.');
   if (!mmEnabledOn && (!rebrandly_url || !/^https?:\/\//.test(rebrandly_url))) return showError('Booking URL must start with https://');
   if (!customer_sms_template) return showError('Customer SMS message is required.');
-  if (!/^Hi\b/i.test(customer_sms_template)) return showError('Customer SMS must start with "Hi" (brand voice rule).');
   if (/callmagnet\.com\.au/i.test(customer_sms_template)) return showError('Customer SMS must not mention callmagnet.com.au (customer-facing — brand stays invisible).');
   if (mmEnabledOn) {
     if (customer_sms_template.length > 160) return showError('SMS body too long — must be 160 chars or fewer (Middle Man ON: no tail appended).');
