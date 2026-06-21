@@ -146,7 +146,7 @@ Deno.serve(async (req) => {
     if (abn && !/^\d{11}$/.test(abn)) {
       return json(400, { error: 'invalid_abn', detail: 'ABN must be 11 digits' });
     }
-    if (!/^https?:\/\//.test(rebrandly_url)) {
+    if (!middle_man_enabled && !/^https?:\/\//.test(rebrandly_url)) {
       return json(400, { error: 'invalid_url', field: 'rebrandly_url', detail: 'must start with http:// or https://' });
     }
     if (slug && !/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/.test(slug)) {
