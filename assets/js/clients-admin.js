@@ -221,7 +221,7 @@ function caCard(c) {
   // ── SMS count ──
   var smsCount = smsCountMap[c.id] || 0;
 
-  var BTN = 'padding:10px 0;font-size:14px;font-weight:700;border:none;border-radius:6px;cursor:pointer;width:100%;';
+  var BTN = 'padding:8px 14px;font-size:13px;font-weight:700;border:none;border-radius:6px;cursor:pointer;';
 
   // ── Toggle action button ──
   var toggleBtn = '';
@@ -277,7 +277,7 @@ function caCard(c) {
       '</div>' +
 
       // Action buttons
-      '<div class="ca-actions">' +
+      '<div class="ca-actions" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">' +
         '<a href="/admin/middle-man.html?client=' + _e(c.id) + '" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box;' + BTN + 'background:#000;color:#fff;">Manage</a>' +
         (c.twilio_number
           ? '<button style="' + BTN + 'background:#000;color:#fff;" data-action="copy" data-val="' + _e(c.twilio_number) + '">Copy Twilio</button>'
@@ -314,7 +314,7 @@ function caCard(c) {
       '</div>' +
 
       '<button onclick="window.location.href=\'/admin/onboard.html?client=' + _e(c.id) + '\'" ' +
-        'style="margin-top:10px;' + BTN + 'background:#1D4ED8;color:#fff;">' +
+        'style="' + BTN + 'background:#1D4ED8;color:#fff;">' +
         'Edit Client' +
       '</button>' +
 
