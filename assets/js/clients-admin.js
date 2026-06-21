@@ -221,17 +221,19 @@ function caCard(c) {
   // ── SMS count ──
   var smsCount = smsCountMap[c.id] || 0;
 
+  var BTN = 'padding:10px 0;font-size:14px;font-weight:700;border:none;border-radius:6px;cursor:pointer;width:100%;';
+
   // ── Toggle action button ──
   var toggleBtn = '';
   if (c.account_status === 'active') {
     toggleBtn =
-      '<button class="ca-btn danger" data-action="toggle" ' +
+      '<button style="' + BTN + 'background:#DC2626;color:#fff;" data-action="toggle" ' +
               'data-id="' + _e(c.id) + '" ' +
               'data-name="' + _e(c.business_name || '') + '" ' +
               'data-current="' + _e(c.account_status) + '">Suspend</button>';
   } else if (c.account_status === 'suspended') {
     toggleBtn =
-      '<button class="ca-btn success" data-action="toggle" ' +
+      '<button style="' + BTN + 'background:#10b981;color:#fff;" data-action="toggle" ' +
               'data-id="' + _e(c.id) + '" ' +
               'data-name="' + _e(c.business_name || '') + '" ' +
               'data-current="suspended">Reactivate</button>';
@@ -276,24 +278,24 @@ function caCard(c) {
 
       // Action buttons
       '<div class="ca-actions">' +
-        '<a href="/admin/middle-man.html?client=' + _e(c.id) + '" class="ca-btn">Manage</a>' +
+        '<a href="/admin/middle-man.html?client=' + _e(c.id) + '" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box;' + BTN + 'background:#000;color:#fff;">Manage</a>' +
         (c.twilio_number
-          ? '<button class="ca-btn" data-action="copy" data-val="' + _e(c.twilio_number) + '">Copy Twilio</button>'
+          ? '<button style="' + BTN + 'background:#000;color:#fff;" data-action="copy" data-val="' + _e(c.twilio_number) + '">Copy Twilio</button>'
           : '') +
         toggleBtn +
         (c.account_status === 'pending_setup'
-          ? '<button class="ca-btn" style="background:#10b981;color:#0a1a14;font-weight:700;" ' +
+          ? '<button style="' + BTN + 'background:#10b981;color:#0a1a14;" ' +
               'data-action="activate" ' +
               'data-id="' + _e(c.id) + '" ' +
               'data-name="' + _e(c.business_name || '') + '" ' +
               'data-pkg="' + _e(c.pricing_package || c.plan_type || '') + '">Activate</button>'
           : '') +
-        '<button class="ca-btn" data-action="reset-pw" data-id="' + _e(c.id) + '">Reset password</button>' +
-        '<button class="ca-btn" style="background:#CC5500;" data-action="delete-mm" data-id="' + _e(c.id) + '" data-name="' + _e(c.business_name || '') + '">Delete MM config</button>' +
+        '<button style="' + BTN + 'background:#000;color:#fff;" data-action="reset-pw" data-id="' + _e(c.id) + '">Reset password</button>' +
+        '<button style="' + BTN + 'background:#000;color:#fff;" data-action="delete-mm" data-id="' + _e(c.id) + '" data-name="' + _e(c.business_name || '') + '">Delete MM config</button>' +
         (c.cancellation_scheduled
           ? '<span class="ca-badge ca-status-cancelled" style="font-size:11px;padding:4px 10px;">Cancellation scheduled</span>'
           : ((c.account_status === 'active' || c.account_status === 'suspended')
-              ? '<button class="ca-btn" style="background:#CC5500;" data-action="cancel-sub" data-id="' + _e(c.id) + '" data-name="' + _e(c.business_name || '') + '">Cancel subscription</button>'
+              ? '<button style="' + BTN + 'background:#000;color:#fff;" data-action="cancel-sub" data-id="' + _e(c.id) + '" data-name="' + _e(c.business_name || '') + '">Cancel subscription</button>'
               : '')) +
       '</div>' +
 
@@ -312,7 +314,7 @@ function caCard(c) {
       '</div>' +
 
       '<button onclick="window.location.href=\'/admin/onboard.html?client=' + _e(c.id) + '\'" ' +
-        'style="background:#1D4ED8;color:#fff;font-weight:700;border:none;border-radius:6px;padding:8px 18px;cursor:pointer;font-size:14px;margin-top:10px;width:100%;">' +
+        'style="margin-top:10px;' + BTN + 'background:#1D4ED8;color:#fff;">' +
         'Edit Client' +
       '</button>' +
 
