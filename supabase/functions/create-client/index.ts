@@ -100,9 +100,13 @@ Deno.serve(async (req) => {
     if (!['restaurant', 'hairdresser', 'free_trial'].includes(pricing_package)) {
       return json(400, { error: 'invalid_field', field: 'pricing_package', detail: 'pricing_package must be restaurant, hairdresser, or free_trial' });
     }
-    const sms_included = pricing_package === 'restaurant' ? 75
+    const pkg_sms_default = pricing_package === 'restaurant' ? 75
       : pricing_package === 'hairdresser' ? 50
       : 25;
+    const sms_included_raw = typeof body.sms_included === 'number' ? body.sms_included : null;
+    const sms_included = (sms_included_raw !== null && [25, 50, 75, 100].includes(sms_included_raw))
+      ? sms_included_raw
+      : pkg_sms_default;
 
     // ── Middle Man fields ──────────────────────────────────────────────────
     // Slug: use whatever the form sent, or auto-generate from business_name.

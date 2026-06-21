@@ -307,6 +307,16 @@
     </div>
 
     <div class="field">
+      <label>SMS included <span class="opt">(overrides package default)</span></label>
+      <select id="smsIncludedSelect">
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="75">75</option>
+        <option value="100">100</option>
+      </select>
+    </div>
+
+    <div class="field">
       <label>Business name</label>
       <input type="text" id="businessNameInput" placeholder="e.g. Brunswick Barbershop" autocomplete="organization" />
     </div>
@@ -643,6 +653,7 @@ async function submitForm() {
   const rebrandly_url = document.getElementById('rebrandlyUrlInput').value.trim();
   const customer_sms_template = (document.getElementById('smsTemplateInput').value || '').trim();
   const free_period_days = Math.max(0, parseInt(document.getElementById('freePeriodDaysInput').value || '0', 10) || 0);
+  const sms_included = parseInt(document.getElementById('smsIncludedSelect').value, 10);
 
   if (!business_name)    return showError('Business name is required.');
   if (!vertical)         return showError('Pick a vertical.');
@@ -689,6 +700,7 @@ async function submitForm() {
         middle_man_enabled: mmEnabledOn,
         free_period_days,
         pricing_package,
+        sms_included,
         // middle_man_slug and middle_man_buttons omitted — create-client auto-generates both
       })
     });
