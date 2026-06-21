@@ -378,18 +378,6 @@ function renderEditBody(client) {
       '<div id="mmaPwMsg" class="mma-saved-msg" style="margin-left:0;margin-top:6px;"></div>' +
     '</div>';
 
-  // ── 4. Booking URL
-  var bookingSection =
-    '<div class="mma-section">' +
-      '<div class="mma-section-label">Booking URL</div>' +
-      '<div class="mma-section-hint" style="font-size:12px;color:#000000;margin-bottom:6px;">Where "Book a table" sends callers — and where SMS goes when Middle Man is OFF. (OpenTable / SevenRooms / Fresha / any booking link)</div>' +
-      '<div style="display:flex;gap:8px;align-items:center;">' +
-        '<input id="mmaBookingUrlInput" class="mma-field-input" type="url" value="' + _e(_editClientData.booking_url || '') + '" placeholder="https://..." style="flex:1;" />' +
-        '<button id="mmaBookingUrlSaveBtn" class="mma-save-btn">Save</button>' +
-      '</div>' +
-      '<div id="mmaBookingUrlMsg" class="mma-saved-msg" style="margin-left:0;margin-top:6px;"></div>' +
-    '</div>';
-
   // ── 5. Promo text (FIX 1: 13px, FIX 2: #000)
   var promoSection =
     '<div class="mma-section">' +
@@ -479,7 +467,7 @@ function renderEditBody(client) {
     : '';
   var formWrapStart = lockedDemo ? '<div style="opacity:0.6;pointer-events:none;">' : '';
   var formWrapEnd   = lockedDemo ? '</div>' : '';
-  content.innerHTML = heading + lockedBanner + formWrapStart + toggleSection + slugSection + clientLoginSection + bookingSection + promoSection + logoSection + mediaSection + btnsSection + notifSection + previewHtml + formWrapEnd;
+  content.innerHTML = heading + lockedBanner + formWrapStart + toggleSection + slugSection + clientLoginSection + promoSection + logoSection + mediaSection + btnsSection + notifSection + previewHtml + formWrapEnd;
 
   // ── Wire event listeners ─────────────────────────────────────────────────────
   document.getElementById('mmaLogoUploadBtn').addEventListener('click', uploadLogo);
@@ -488,7 +476,6 @@ function renderEditBody(client) {
 
   document.getElementById('mmaToggleBtn').addEventListener('click', toggleEnabled);
   document.getElementById('mmaSlugSaveBtn').addEventListener('click', saveSlug);
-  document.getElementById('mmaBookingUrlSaveBtn').addEventListener('click', saveBookingUrl);
 
   // Client Login — show/hide toggle + save password
   document.getElementById('mmaPwShowBtn').addEventListener('click', function() {
@@ -743,25 +730,6 @@ async function saveClientPassword() {
     _flash('mmaPwMsg', '✗ Network error: ' + (e && e.message ? e.message : e), true);
   }
   if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
-}
-
-// ─── Save booking URL ─────────────────────────────────────────────────────────
-async function saveBookingUrl() {
-  if (!_editClientId) return;
-  var input = document.getElementById('mmaBookingUrlInput');
-  var url   = (input.value || '').trim();
-  if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
-    url = 'https://' + url;
-    input.value = url;
-  }
-  try {
-    var result = await mmaSb.from('clients').update({ booking_url: url || null }).eq('id', _editClientId);
-    if (result.error) throw result.error;
-    if (_editClientData) _editClientData.booking_url = url;
-    _flash('mmaBookingUrlMsg', '✓ Saved', false);
-  } catch (err) {
-    _flash('mmaBookingUrlMsg', '✗ ' + err.message, true);
-  }
 }
 
 // ─── Save promo text ──────────────────────────────────────────────────────────
