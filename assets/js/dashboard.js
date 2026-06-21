@@ -93,11 +93,12 @@ async function handleRecovery() {
     }
 
     // Clear must_change_password flag if this was a forced first-login change
-    if (currentClient?.must_change_password) {
+    const { data: { user: recoveryUser } } = await sb.auth.getUser();
+    if (recoveryUser?.email) {
       await sb.from('clients')
         .update({ must_change_password: false })
-        .eq('id', currentClient.id)
-        .catch(() => {}); // best-effort
+        .eq('email', recoveryUser.email)
+        .catch(() => {});
       if (currentClient) currentClient.must_change_password = false;
     }
 
