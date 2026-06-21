@@ -364,10 +364,12 @@
       <div class="hint">Pre-filled from vertical default — adjust if needed</div>
     </div>
 
+    <div id="bookingUrlRow">
     <div class="field">
       <label>Booking URL</label>
       <input type="url" id="rebrandlyUrlInput" placeholder="https://www.opentable.com/… or Fresha / SevenRooms link" />
       <div class="hint">Where should "Book a table" send callers? Paste their OpenTable / SevenRooms / Fresha link</div>
+    </div>
     </div>
 
     <!-- ── Middle Man section ─────────────────────────────────────────── -->
@@ -596,10 +598,23 @@ function toggleSms() {
   document.getElementById('sendSmsToggle').classList.toggle('on', sendSmsOn);
 }
 
+function syncBookingUrlRow() {
+  var row = document.getElementById('bookingUrlRow');
+  var inp = document.getElementById('rebrandlyUrlInput');
+  if (mmEnabledOn) {
+    row.style.display = 'none';
+    inp.removeAttribute('required');
+  } else {
+    row.style.display = '';
+    inp.setAttribute('required', '');
+  }
+}
+
 function toggleMmEnabled() {
   mmEnabledOn = !mmEnabledOn;
   document.getElementById('mmEnabledToggle').classList.toggle('on', mmEnabledOn);
   updateSmsCounter();
+  syncBookingUrlRow();
 }
 
 /** Update the live Middle Man URL preview from the current business name. */
@@ -663,7 +678,7 @@ async function submitForm() {
   if (!owner_phone || !/^\+61\d{8,11}$/.test(owner_phone)) return showError('Owner phone must be an Australian mobile (04xx or +614xx).');
   if (!twilio_number || !/^\+614\d{8}$/.test(twilio_number)) return showError('Twilio number must be a valid AU mobile (+614XXXXXXXX).');
   if (abn && abn.length !== 11) return showError('ABN must be 11 digits.');
-  if (!rebrandly_url || !/^https?:\/\//.test(rebrandly_url)) return showError('Booking URL must start with https://');
+  if (!mmEnabledOn && (!rebrandly_url || !/^https?:\/\//.test(rebrandly_url))) return showError('Booking URL must start with https://');
   if (!customer_sms_template) return showError('Customer SMS message is required.');
   if (!/^Hi\b/i.test(customer_sms_template)) return showError('Customer SMS must start with "Hi" (brand voice rule).');
   if (/callmagnet\.com\.au/i.test(customer_sms_template)) return showError('Customer SMS must not mention callmagnet.com.au (customer-facing — brand stays invisible).');
@@ -805,6 +820,7 @@ function resetForm() {
   mmEnabledOn = true;
   document.getElementById('mmEnabledToggle').classList.add('on');
   document.getElementById('mmPreviewWrap').style.display = 'none';
+  syncBookingUrlRow();
   prefillAvgFromVertical();
   prefillSmsFromVertical();
   updateSmsCounter();
@@ -886,6 +902,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('gateLoading').classList.remove('visible');
   // signout button removed from this page
   document.getElementById('formCard').style.display = 'block';
+  syncBookingUrlRow();
 
   try {
     await loadVerticals();
