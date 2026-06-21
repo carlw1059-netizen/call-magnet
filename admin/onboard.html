@@ -456,6 +456,7 @@ let session = null;
 let verticals = [];
 let sendSmsOn = true;
 let mmEnabledOn = true;
+let editClientId = null;
 
 /** Convert business name to a valid slug. */
 function generateSlug(name) {
@@ -907,6 +908,49 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadVerticals();
   } catch (e) {
     showError('Could not load verticals dropdown: ' + (e?.message || e));
+  }
+
+  // ── Edit mode: pre-fill form from ?client=<id> ──────────────────────────
+  const editId = new URLSearchParams(window.location.search).get('client');
+  if (editId) {
+    editClientId = editId;
+    try {
+      const res = await fetch(
+        SUPABASE_URL + '/rest/v1/clients' +
+        '?id=eq.' + encodeURIComponent(editId) +
+        '&select=business_name,owner_name,owner_email,owner_phone,twilio_number,vertical,pricing_package,sms_included,free_period_days,middle_man_enabled,customer_sms_template,abn,avg_job_value,rebrandly_url' +
+        '&limit=1',
+        { headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + session.access_token } }
+      );
+      const rows = await res.json().catch(() => []);
+      const c = rows && rows[0];
+      if (c) {
+        if (c.business_name)       document.getElementById('businessNameInput').value    = c.business_name;
+        if (c.owner_name)          document.getElementById('ownerNameInput').value        = c.owner_name;
+        if (c.owner_email)         document.getElementById('ownerEmailInput').value       = c.owner_email;
+        if (c.owner_phone)         document.getElementById('ownerPhoneInput').value       = c.owner_phone;
+        if (c.twilio_number)       document.getElementById('twilioNumberInput').value     = c.twilio_number;
+        if (c.vertical)            document.getElementById('verticalSelect').value        = c.vertical;
+        if (c.pricing_package)     document.getElementById('pricingPackageSelect').value  = c.pricing_package;
+        if (c.sms_included != null) document.getElementById('smsIncludedSelect').value   = String(c.sms_included);
+        if (c.free_period_days != null) document.getElementById('freePeriodDaysInput').value = String(c.free_period_days);
+        if (c.abn)                 document.getElementById('abnInput').value              = c.abn;
+        if (c.avg_job_value != null) document.getElementById('avgJobValueInput').value   = String(c.avg_job_value);
+        if (c.rebrandly_url)       document.getElementById('rebrandlyUrlInput').value     = c.rebrandly_url;
+        if (c.customer_sms_template) {
+          document.getElementById('smsTemplateInput').value = c.customer_sms_template;
+          smsDirty = true;
+        }
+        mmEnabledOn = c.middle_man_enabled !== false;
+        document.getElementById('mmEnabledToggle').classList.toggle('on', mmEnabledOn);
+        syncBookingUrlRow();
+        updateMmPreview();
+        updateSmsCounter();
+        document.getElementById('submitBtn').textContent = 'Save Changes';
+      }
+    } catch (e) {
+      showError('Could not load client for editing: ' + (e?.message || e));
+    }
   }
 
   document.getElementById('verticalSelect').addEventListener('change', () => {
