@@ -311,6 +311,11 @@ function caCard(c) {
         '<div class="ca-pw-flash" id="ca-pw-flash-' + _e(c.id) + '"></div>' +
       '</div>' +
 
+      '<button onclick="window.location.href=\'/admin/onboard.html?client=' + _e(c.id) + '\'" ' +
+        'style="background:#1D4ED8;color:#fff;font-weight:700;border:none;border-radius:6px;padding:8px 18px;cursor:pointer;font-size:14px;margin-top:10px;width:100%;">' +
+        'Edit Client' +
+      '</button>' +
+
     '</div>'
   );
 }
