@@ -24,7 +24,7 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const INTERNAL_SECRET           = Deno.env.get('INTERNAL_SECRET');
 const RESEND_API_KEY            = Deno.env.get('RESEND_API_KEY');
 const SHORTIO_API_KEY           = Deno.env.get('SHORTIO_API_KEY');
-const SHORTIO_DOMAIN            = 'callmagnet.s.gy';
+const SHORTIO_DOMAIN            = 'cm1.au';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin':  '*',
