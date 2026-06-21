@@ -690,6 +690,63 @@ async function submitForm() {
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
+
+  // ── Edit mode: update existing client row directly ───────────────────────
+  if (editClientId) {
+    btn.textContent = 'Saving…';
+    try {
+      const res = await fetch(
+        SUPABASE_URL + '/rest/v1/clients?id=eq.' + encodeURIComponent(editClientId),
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + session.access_token,
+            'apikey': SUPABASE_ANON_KEY,
+            'Prefer': 'return=minimal',
+          },
+          body: JSON.stringify({
+            business_name,
+            owner_name:         owner_name || null,
+            owner_email,
+            owner_phone,
+            twilio_number,
+            vertical,
+            sms_included,
+            free_period_days,
+            middle_man_enabled: mmEnabledOn,
+            customer_sms_template,
+            abn:                abn || null,
+            avg_job_value,
+            rebrandly_url:      rebrandly_url || null,
+          }),
+        }
+      );
+      if (!res.ok) {
+        const detail = await res.text().catch(() => String(res.status));
+        showError('Update failed: ' + detail);
+        btn.disabled = false;
+        btn.textContent = 'Save Changes';
+        return;
+      }
+      const box = document.getElementById('errorBox');
+      box.style.color = '#007A5E';
+      box.style.background = '#D4F7EE';
+      box.style.borderColor = '#06D6A0';
+      box.textContent = 'Client updated successfully';
+      box.classList.add('visible');
+      btn.disabled = false;
+      btn.textContent = 'Save Changes';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (e) {
+      showError('Network error: ' + (e?.message || e));
+      btn.disabled = false;
+      btn.textContent = 'Save Changes';
+    }
+    return;
+  }
+
+  // ── Create mode: call create-client edge function ────────────────────────
   btn.textContent = 'Creating…';
 
   try {
