@@ -195,9 +195,6 @@ Deno.serve(async (req) => {
     if (!customer_sms_template) {
       return json(400, { error: 'missing_field', field: 'customer_sms_template' });
     }
-    if (!/^Hi\b/i.test(customer_sms_template)) {
-      return json(400, { error: 'invalid_sms_template', detail: 'customer_sms_template must start with "Hi"' });
-    }
     if (/callmagnet\.com\.au/i.test(customer_sms_template)) {
       return json(400, { error: 'invalid_sms_template', detail: 'customer_sms_template must not contain callmagnet.com.au (customer-facing message; brand stays invisible)' });
     }
