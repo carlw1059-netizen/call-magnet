@@ -132,7 +132,7 @@ Deno.serve(async (req) => {
     if (!twilio_number) return json(400, { error: 'missing_field', field: 'twilio_number' });
     if (!owner_phone)   return json(400, { error: 'missing_field', field: 'owner_phone' });
     if (!owner_email)   return json(400, { error: 'missing_field', field: 'owner_email' });
-    if (!rebrandly_url) return json(400, { error: 'missing_field', field: 'rebrandly_url' });
+    if (!middle_man_enabled && !rebrandly_url) return json(400, { error: 'missing_field', field: 'rebrandly_url' });
 
     if (!/^\+614\d{8}$/.test(twilio_number)) {
       return json(400, { error: 'invalid_phone', field: 'twilio_number', detail: 'must be E.164 +614XXXXXXXX' });
