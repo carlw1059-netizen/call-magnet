@@ -314,7 +314,7 @@ function caCard(c) {
       '</div>' +
 
       '<button onclick="window.location.href=\'/admin/onboard.html?client=' + _e(c.id) + '\'" ' +
-        'style="padding:8px 0;font-size:13px;font-weight:700;border:none;border-radius:6px;cursor:pointer;width:100%;box-sizing:border-box;background:#1D4ED8;color:#fff;">' +
+        'style="padding:8px 0;font-size:13px;font-weight:700;border:none;border-radius:6px;cursor:pointer;width:100%;box-sizing:border-box;background:#1D4ED8;color:#fff;margin-top:8px;">' +
         'Edit Client' +
       '</button>' +
 
