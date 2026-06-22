@@ -676,7 +676,7 @@ async function submitForm() {
   if (!vertical)         return showError('Pick a vertical.');
   if (!pricing_package)  return showError('Select a pricing package.');
   if (!owner_email || !owner_email.includes('@')) return showError('Valid owner email is required.');
-  if (!initial_password || initial_password.length < 8) return showError('Initial password must be at least 8 characters.');
+  if (!editClientId && (!initial_password || initial_password.length < 8)) return showError('Initial password must be at least 8 characters.');
   if (!owner_phone || !/^\+61\d{8,11}$/.test(owner_phone)) return showError('Owner phone must be an Australian mobile (04xx or +614xx).');
   if (!twilio_number || !/^\+614\d{8}$/.test(twilio_number)) return showError('Twilio number must be a valid AU mobile (+614XXXXXXXX).');
   if (abn && abn.length !== 11) return showError('ABN must be 11 digits.');
@@ -981,6 +981,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         { headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + session.access_token } }
       );
       const rows = await res.json().catch(() => []);
+      console.log('Edit prefill response:', rows);
       const c = rows && rows[0];
       if (c) {
         if (c.business_name)       document.getElementById('businessNameInput').value    = c.business_name;
