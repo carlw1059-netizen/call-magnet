@@ -972,6 +972,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const editId = new URLSearchParams(window.location.search).get('client');
   if (editId) {
     editClientId = editId;
+    if (!session || !session.access_token) {
+      showError('Session expired — please refresh the page and try again.');
+      return;
+    }
     try {
       const res = await fetch(
         SUPABASE_URL + '/rest/v1/clients' +
@@ -1006,6 +1010,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateMmPreview();
         updateSmsCounter();
         document.getElementById('submitBtn').textContent = 'Save Changes';
+        document.querySelector('h1').textContent = 'Edit Client';
+        document.title = 'CallMagnet — Edit Client';
       }
     } catch (e) {
       showError('Could not load client for editing: ' + (e?.message || e));
