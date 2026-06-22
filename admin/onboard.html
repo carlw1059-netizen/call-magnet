@@ -709,7 +709,7 @@ async function submitForm() {
           body: JSON.stringify({
             business_name,
             owner_name:         owner_name || null,
-            owner_email,
+            email: owner_email,
             owner_phone,
             twilio_number,
             vertical,
@@ -719,7 +719,7 @@ async function submitForm() {
             customer_sms_template,
             abn:                abn || null,
             avg_job_value,
-            rebrandly_url:      rebrandly_url || null,
+            booking_url:        rebrandly_url || null,
           }),
         }
       );
