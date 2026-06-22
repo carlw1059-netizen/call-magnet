@@ -275,7 +275,7 @@ async function loadClientForEdit(clientId) {
   try {
     var result = await mmaSb
       .from('clients')
-      .select('id,business_name,email,vertical,middle_man_enabled,middle_man_slug,booking_url,middle_man_logo_url,middle_man_promo_text,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_buttons,middle_man_updated_at,is_demo_account,is_locked')
+      .select('id,business_name,email,vertical,middle_man_enabled,middle_man_slug,booking_url,middle_man_logo_url,middle_man_promo_text,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_buttons,middle_man_updated_at,is_demo_account,is_locked,shortio_link,customer_sms_template,twilio_number')
       .eq('id', clientId)
       .single();
     if (result.error) throw result.error;
@@ -451,7 +451,30 @@ function renderEditBody(client) {
       '</div>' +
     '</div>';
 
-  // ── 7. Notification Messages
+  // ── 7. SMS Preview
+  var smsTemplate  = _editClientData.customer_sms_template || '';
+  var shortioLink  = _editClientData.shortio_link || '';
+  var twilioNum    = _editClientData.twilio_number || '';
+  var smsBody      = smsTemplate
+    .replace(/\{link\}/gi, shortioLink || '[LINK]')
+    .replace(/\[LINK\]/g,  shortioLink || '[LINK]');
+  var smsLen       = smsBody.length;
+  var smsCountCol  = smsLen > 160 ? '#CC0000' : '#06D6A0';
+  var smsSection   =
+    '<div class="mma-section">' +
+      '<div class="mma-section-label">SMS Preview</div>' +
+      '<div style="background:#F8F8F8;border:1px solid #000000;border-radius:7px;padding:14px 16px;margin-bottom:12px;">' +
+        '<div style="font-size:12px;font-weight:700;color:#06D6A0;margin-bottom:10px;">' + _e(twilioNum) + ' · ' + _e(client.business_name || '') + '</div>' +
+        '<div style="background:#E8E8E8;border-radius:14px 14px 14px 4px;padding:10px 14px;font-size:14px;color:#111111;line-height:1.5;word-break:break-word;max-width:85%;">' + _e(smsBody) + '</div>' +
+        '<div style="font-size:12px;font-weight:600;color:' + smsCountCol + ';margin-top:8px;">' + smsLen + ' / 160 characters</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+        '<a href="https://app.short.io/domains/cm1.au/links" target="_blank" rel="noopener" style="background:#111111;color:#FFFFFF;border:none;border-radius:7px;padding:8px 14px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;font-family:inherit;display:inline-block;">↗ View in Short.io</a>' +
+        '<a href="/admin/onboard.html?client=' + _e(_editClientId) + '" style="background:#FFFFFF;color:#111111;border:1px solid #000000;border-radius:7px;padding:8px 14px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;font-family:inherit;display:inline-block;">✏ Edit SMS message</a>' +
+      '</div>' +
+    '</div>';
+
+  // ── 8. Notification Messages
   var notifSection = buildNotifSection(buttons);
 
   // ── 8. Preview link
@@ -467,7 +490,7 @@ function renderEditBody(client) {
     : '';
   var formWrapStart = lockedDemo ? '<div style="opacity:0.6;pointer-events:none;">' : '';
   var formWrapEnd   = lockedDemo ? '</div>' : '';
-  content.innerHTML = heading + lockedBanner + formWrapStart + toggleSection + slugSection + clientLoginSection + promoSection + logoSection + mediaSection + btnsSection + notifSection + previewHtml + formWrapEnd;
+  content.innerHTML = heading + lockedBanner + formWrapStart + toggleSection + slugSection + clientLoginSection + promoSection + logoSection + mediaSection + btnsSection + smsSection + notifSection + previewHtml + formWrapEnd;
 
   // ── Wire event listeners ─────────────────────────────────────────────────────
   document.getElementById('mmaLogoUploadBtn').addEventListener('click', uploadLogo);
