@@ -1052,6 +1052,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (recoveryConfirm) recoveryConfirm.addEventListener('keydown', e => { if (e.key === 'Enter') handleRecovery(); });
 
   const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    const { error: verifyErr } = await sb.auth.getUser();
+    if (verifyErr) {
+      await sb.auth.signOut();
+      localStorage.removeItem('callmagnet-auth-token');
+      localStorage.removeItem('dashboardMode');
+      window.location.reload();
+      return;
+    }
+  }
   _isAdminCached = (session?.user?.app_metadata && session.user.app_metadata.is_admin === true);
   _adminUserEmail = session?.user?.email ?? '';
   refreshAdminFab();
