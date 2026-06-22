@@ -590,6 +590,30 @@ function refreshAdminFab() {
   // bleed — see CSS comment above .admin-sidebar-open rule).
   const dash = document.getElementById('dash');
   if (dash) dash.classList.toggle('admin-sidebar-open', showAdmin);
+  if (showAdmin) {
+    if (sidebar && !sidebar.dataset.adminLinksInjected) {
+      const sidebarLinks = `
+      <a href="/admin/onboard.html" class="dash-admin-sidebar-link">Onboard new client</a>
+      <a href="/admin/clients.html" class="dash-admin-sidebar-link">Manage clients</a>
+      <a href="/admin/middle-man.html" class="dash-admin-sidebar-link desktop-only-nav">Middle Man</a>
+    `;
+      sidebar.insertAdjacentHTML('afterbegin', sidebarLinks);
+      sidebar.dataset.adminLinksInjected = 'true';
+    }
+    const panel = document.getElementById('adminPanel');
+    if (panel && !panel.dataset.adminLinksInjected) {
+      const panelSection = panel.querySelector('.admin-panel-section');
+      if (panelSection) {
+        const panelLinks = `
+        <a href="/admin/onboard.html" class="admin-panel-link">Onboard new client</a>
+        <a href="/admin/clients.html" class="admin-panel-link">Manage clients</a>
+        <a href="/admin/middle-man.html" class="admin-panel-link desktop-only-nav">Middle Man</a>
+      `;
+        panelSection.insertAdjacentHTML('afterbegin', panelLinks);
+        panel.dataset.adminLinksInjected = 'true';
+      }
+    }
+  }
 }
 
 
