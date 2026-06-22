@@ -980,7 +980,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const res = await fetch(
         SUPABASE_URL + '/rest/v1/clients' +
         '?id=eq.' + encodeURIComponent(editId) +
-        '&select=business_name,owner_name,owner_email,owner_phone,twilio_number,vertical,pricing_package,sms_included,free_period_days,middle_man_enabled,customer_sms_template,abn,avg_job_value,rebrandly_url' +
+        '&select=business_name,owner_name,email,owner_phone,twilio_number,vertical,pricing_package,sms_included,free_period_days,middle_man_enabled,customer_sms_template,abn,avg_job_value,rebrandly_url' +
         '&limit=1',
         { headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + session.access_token } }
       );
@@ -990,7 +990,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (c) {
         if (c.business_name)       document.getElementById('businessNameInput').value    = c.business_name;
         if (c.owner_name)          document.getElementById('ownerNameInput').value        = c.owner_name;
-        if (c.owner_email)         document.getElementById('ownerEmailInput').value       = c.owner_email;
+        if (c.email)               document.getElementById('ownerEmailInput').value       = c.email;
         if (c.owner_phone)         document.getElementById('ownerPhoneInput').value       = c.owner_phone;
         if (c.twilio_number)       document.getElementById('twilioNumberInput').value     = c.twilio_number;
         if (c.vertical)            document.getElementById('verticalSelect').value        = c.vertical;
