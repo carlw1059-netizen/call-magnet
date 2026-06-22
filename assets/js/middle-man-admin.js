@@ -469,7 +469,7 @@ function renderEditBody(client) {
         '<div style="font-size:12px;font-weight:600;color:' + smsCountCol + ';margin-top:8px;">' + smsLen + ' / 160 characters</div>' +
       '</div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
-        '<a href="https://app.short.io/links/cm1.au" target="_blank" rel="noopener" style="background:#111111;color:#FFFFFF;border:none;border-radius:7px;padding:8px 14px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;font-family:inherit;display:inline-block;">↗ View in Short.io</a>' +
+        '<a href="https://app.short.io" target="_blank" rel="noopener" style="background:#111111;color:#FFFFFF;border:none;border-radius:7px;padding:8px 14px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;font-family:inherit;display:inline-block;">↗ View in Short.io</a>' +
         '<a href="/admin/onboard.html?client=' + _e(_editClientId) + '" style="background:#FFFFFF;color:#111111;border:1px solid #000000;border-radius:7px;padding:8px 14px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;font-family:inherit;display:inline-block;">✏ Edit SMS message</a>' +
       '</div>' +
     '</div>';
