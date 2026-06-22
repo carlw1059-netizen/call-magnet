@@ -980,7 +980,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const res = await fetch(
         SUPABASE_URL + '/rest/v1/clients' +
         '?id=eq.' + encodeURIComponent(editId) +
-        '&select=business_name,owner_name,email,owner_phone,twilio_number,vertical,pricing_package,sms_included,free_period_days,middle_man_enabled,customer_sms_template,abn,avg_job_value,rebrandly_url' +
+        '&select=business_name,owner_name,email,owner_phone,twilio_number,vertical,pricing_package,sms_included,free_period_days,middle_man_enabled,customer_sms_template,abn,avg_job_value,booking_url' +
         '&limit=1',
         { headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + session.access_token } }
       );
@@ -999,7 +999,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (c.free_period_days != null) document.getElementById('freePeriodDaysInput').value = String(c.free_period_days);
         if (c.abn)                 document.getElementById('abnInput').value              = c.abn;
         if (c.avg_job_value != null) document.getElementById('avgJobValueInput').value   = String(c.avg_job_value);
-        if (c.rebrandly_url)       document.getElementById('rebrandlyUrlInput').value     = c.rebrandly_url;
+        if (c.booking_url)         document.getElementById('rebrandlyUrlInput').value     = c.booking_url;
         if (c.customer_sms_template) {
           document.getElementById('smsTemplateInput').value = c.customer_sms_template;
           smsDirty = true;
