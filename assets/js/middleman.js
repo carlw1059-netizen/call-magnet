@@ -9,13 +9,15 @@
 
   function lockViewportOnKeyboard() {
     if (!window.visualViewport) return;
-    var lastScrollY = 0;
-    window.visualViewport.addEventListener('resize', function() {
-      lastScrollY = window.scrollY || window.pageYOffset;
-      document.documentElement.style.setProperty('--vvh', window.visualViewport.height + 'px');
-    });
-    window.visualViewport.addEventListener('scroll', function() {
-      window.scrollTo(0, lastScrollY);
+    function nudge() {
+      if (window.visualViewport.offsetTop > 0) {
+        window.scrollBy(0, -1);
+        window.scrollBy(0, 1);
+      }
+    }
+    window.visualViewport.addEventListener('resize', nudge);
+    document.addEventListener('focusout', function() {
+      setTimeout(nudge, 100);
     });
   }
 
