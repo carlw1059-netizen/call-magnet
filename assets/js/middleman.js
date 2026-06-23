@@ -745,19 +745,12 @@
         formWrap.querySelectorAll('.field-input, .field-textarea, .field-select').forEach(function(el) {
           el.addEventListener('focus', function() {
             var focused = el;
-            if (window.visualViewport) {
-              setTimeout(function() {
-                var rect = focused.getBoundingClientRect();
-                var vvHeight = window.visualViewport.height;
-                if (rect.bottom > vvHeight - 20) {
-                  window.scrollBy({ top: rect.bottom - vvHeight + 80, behavior: 'smooth' });
-                }
-              }, 400);
-            } else {
-              setTimeout(function() {
-                focused.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              }, 400);
-            }
+            setTimeout(function() {
+              var rect = focused.getBoundingClientRect();
+              var absoluteTop = rect.top + window.pageYOffset;
+              var centeredY = absoluteTop - (window.innerHeight / 2) + (rect.height / 2);
+              window.scrollTo({ top: centeredY, behavior: 'smooth' });
+            }, 450);
           });
         });
       }
