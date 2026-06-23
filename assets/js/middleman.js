@@ -482,6 +482,7 @@
     // Return #app to fixed 100svh
     var appEl = document.getElementById('app');
     if (appEl) appEl.classList.remove('form-active');
+    document.body.classList.remove('form-active');
     // Hide tap-outside catcher
     var tapCatcher = document.getElementById('tapCatcher');
     if (tapCatcher) tapCatcher.style.display = 'none';
@@ -530,6 +531,7 @@
       if (tappedUnit) tappedUnit.classList.add('form-open');
       var appEl = document.getElementById('app');
       if (appEl) appEl.classList.add('form-active');
+      document.body.classList.add('form-active');
 
       // Show tap-outside catcher (z-index 5, below the form-open unit at z-index 10)
       var tapCatcher = document.getElementById('tapCatcher');

@@ -419,6 +419,10 @@
     position: relative;
     height: auto;
     min-height: 100svh;
+    overflow-y: visible;
+  }
+  body.form-active {
+    height: auto;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
