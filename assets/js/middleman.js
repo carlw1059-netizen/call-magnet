@@ -740,9 +740,20 @@
 
         formWrap.querySelectorAll('.field-input, .field-textarea, .field-select').forEach(function(el) {
           el.addEventListener('focus', function() {
-            setTimeout(function() {
-              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 300);
+            var focused = el;
+            if (window.visualViewport) {
+              setTimeout(function() {
+                var rect = focused.getBoundingClientRect();
+                var vvHeight = window.visualViewport.height;
+                if (rect.bottom > vvHeight - 20) {
+                  window.scrollBy({ top: rect.bottom - vvHeight + 80, behavior: 'smooth' });
+                }
+              }, 400);
+            } else {
+              setTimeout(function() {
+                focused.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }, 400);
+            }
           });
         });
       }
