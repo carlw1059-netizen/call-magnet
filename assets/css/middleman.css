@@ -416,8 +416,11 @@
 
   /* When a form is open, #app grows with content so the page can scroll */
   #app.form-active {
+    position: relative;
     height: auto;
     min-height: 100svh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* ── Form close button (X) ───────────────────────────────────────────────── */
