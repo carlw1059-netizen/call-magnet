@@ -17,10 +17,11 @@
   // ── Helpers ───────────────────────────────────────────────────────────────
   function extractSlug() {
     var parts = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/');
-    if (window.location.hostname.indexOf('cm1.au') !== -1) {
-      return parts[0] || '';
+    var isCallMagnet = window.location.hostname.indexOf('callmagnet.com.au') !== -1;
+    if (isCallMagnet) {
+      return (parts.length >= 2 && parts[0] === 'b') ? (parts[1] || '') : '';
     }
-    return (parts.length >= 2 && parts[0] === 'b') ? (parts[1] || '') : '';
+    return parts[0] || '';
   }
 
   function showMain() {
