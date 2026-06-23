@@ -5,6 +5,7 @@
   var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
   var FORM_FUNC_URL = SUPABASE_URL + '/functions/v1/submit-middle-man-form';
   var LOG_FUNC_URL  = SUPABASE_URL + '/functions/v1/log-middle-man-tap';
+  var CLICK_LOG_URL = SUPABASE_URL + '/functions/v1/log-click';
 
   // ── Neon colour palette — position 1-6 (index 0-5) ───────────────────────
   var NEON = ['#00D4FF','#FF0000','#39FF14','#FF10F0','#FFE600','#BF00FF'];
@@ -16,6 +17,9 @@
   // ── Helpers ───────────────────────────────────────────────────────────────
   function extractSlug() {
     var parts = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/');
+    if (window.location.hostname.indexOf('cm1.au') !== -1) {
+      return parts[0] || '';
+    }
     return (parts.length >= 2 && parts[0] === 'b') ? (parts[1] || '') : '';
   }
 
@@ -24,6 +28,20 @@
     document.getElementById('stateNotFound').style.display = 'none';
     document.getElementById('mainPage').classList.add('visible');
   }
+  function logClick(slug) {
+    try {
+      fetch(CLICK_LOG_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slug: slug,
+          user_agent: navigator.userAgent || '',
+          referrer: document.referrer || ''
+        })
+      });
+    } catch (e) {}
+  }
+
   function showNotFound() {
     document.getElementById('skeleton').style.display      = 'none';
     document.getElementById('mainPage').classList.remove('visible');
@@ -806,6 +824,7 @@
   async function boot() {
     var slug = extractSlug();
     if (!slug) { showNotFound(); return; }
+    logClick(slug);
 
     // ── Unsubscribe token (JOB 3) ──────────────────────────────────────────
     // If the caller arrived via an SMS link with ?u=<token>, persist it so
