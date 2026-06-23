@@ -140,8 +140,9 @@ Deno.serve(async (req) => {
           const contentRange = countRes.headers.get('content-range') || '*/0';
           const slash        = contentRange.lastIndexOf('/');
           const smsCount     = parseInt(slash >= 0 ? contentRange.slice(slash + 1) : '0', 10);
-          if (Number.isFinite(smsCount) && smsCount >= 20) {
-            const smsIncluded = typeof client.sms_included === 'number' ? client.sms_included : 50;
+          const smsIncluded  = typeof client.sms_included === 'number' ? client.sms_included : 50;
+          const smsThreshold = Math.floor(smsIncluded * 0.8);
+          if (Number.isFinite(smsCount) && smsCount >= smsThreshold) {
             const alertHtml   = buildSmsAlertEmail(client.business_name, smsCount, smsIncluded);
             await sendEmail(
               RESEND_API_KEY,
