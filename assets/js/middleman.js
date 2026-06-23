@@ -26,6 +26,7 @@
 
   // ── Globals ───────────────────────────────────────────────────────────────
   var gSlug        = '';
+  var gBusinessName = '';
   var gOpenFormKey = null;
   var gSavedScrollY = 0;
 
@@ -568,6 +569,7 @@
     var bgType      = client.middle_man_background_type || 'image';
     if (bgUrl && bgType === 'image') bgUrl = bgUrl + '?v=' + Date.now();
     var businessName = client.business_name || '';
+    gBusinessName = businessName;
     var promoText   = client.middle_man_promo_text || '';
     var buttons     = [];
 
