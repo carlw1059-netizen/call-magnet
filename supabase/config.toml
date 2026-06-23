@@ -532,6 +532,11 @@ verify_jwt = false
 [functions.notify-expiry]
 verify_jwt = false
 
+# log-click is called by the customer's browser on the Middle Man landing page —
+# no Supabase JWT. Always returns 200 so logging never blocks the page load.
+[functions.log-click]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
