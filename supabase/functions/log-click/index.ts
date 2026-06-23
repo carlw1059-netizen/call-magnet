@@ -84,9 +84,15 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const device_type = /Mobile|Android/i.test(userAgent) ? 'mobile' : 'desktop';
 
   // ── Insert into link_clicks ─────────────────────────────────────────────────
-  const { error: insertErr } = await supa
-    .from('link_clicks')
-    .insert({
+  const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/link_clicks`, {
+    method:  'POST',
+    headers: {
+      apikey:         SUPABASE_SERVICE_ROLE_KEY,
+      Authorization:  `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      'Content-Type': 'application/json',
+      Prefer:         'return=minimal',
+    },
+    body: JSON.stringify({
       client_id:   clientRow.id,
       clicked_at:  new Date().toISOString(),
       rebrand_id:  'cm1.au/' + slug,
@@ -96,10 +102,14 @@ Deno.serve(async (req: Request): Promise<Response> => {
       country:     null,
       city:        null,
       raw_payload: body,
-    });
+    }),
+  });
 
-  if (insertErr) {
-    console.error(`log-click: link_clicks insert failed for client ${clientRow.id}:`, insertErr.message);
+  if (!insertRes.ok) {
+    const detail = await insertRes.text();
+    console.error('log-click: insert failed ' + insertRes.status + ': ' + detail);
+  } else {
+    console.log('log-click: click recorded slug=' + slug);
   }
 
   return OK;

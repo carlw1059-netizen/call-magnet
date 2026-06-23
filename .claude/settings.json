@@ -1,9 +1,0 @@
-{
-  "skills": {
-    "directories": [
-      ".agents/skills"
-    ]
-  },
-  "model": "sonnet",
-  "skipDangerousModePermissionPrompt": true
-}
