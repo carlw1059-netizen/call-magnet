@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
     const owner_email   = String(body.owner_email   ?? '').trim().toLowerCase();
     const abn_raw       = String(body.abn           ?? '').trim();
     const abn           = abn_raw.length > 0 ? abn_raw : null;
-    const rebrandly_url = String(body.rebrandly_url ?? '').trim();
+    const booking_url = String(body.booking_url ?? '').trim();
     const avg_input     = body.avg_job_value;
     const customer_sms_template_input = typeof body.customer_sms_template === 'string'
       ? body.customer_sms_template.trim()
@@ -132,7 +132,7 @@ Deno.serve(async (req) => {
     if (!twilio_number) return json(400, { error: 'missing_field', field: 'twilio_number' });
     if (!owner_phone)   return json(400, { error: 'missing_field', field: 'owner_phone' });
     if (!owner_email)   return json(400, { error: 'missing_field', field: 'owner_email' });
-    if (!middle_man_enabled && !rebrandly_url) return json(400, { error: 'missing_field', field: 'rebrandly_url' });
+    if (!middle_man_enabled && !booking_url) return json(400, { error: 'missing_field', field: 'booking_url' });
 
     if (!/^\+614\d{8}$/.test(twilio_number)) {
       return json(400, { error: 'invalid_phone', field: 'twilio_number', detail: 'must be E.164 +614XXXXXXXX' });
@@ -146,8 +146,8 @@ Deno.serve(async (req) => {
     if (abn && !/^\d{11}$/.test(abn)) {
       return json(400, { error: 'invalid_abn', detail: 'ABN must be 11 digits' });
     }
-    if (!middle_man_enabled && !/^https?:\/\//.test(rebrandly_url)) {
-      return json(400, { error: 'invalid_url', field: 'rebrandly_url', detail: 'must start with http:// or https://' });
+    if (!middle_man_enabled && !/^https?:\/\//.test(booking_url)) {
+      return json(400, { error: 'invalid_url', field: 'booking_url', detail: 'must start with http:// or https://' });
     }
     if (slug && !/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/.test(slug)) {
       return json(400, { error: 'invalid_slug', detail: 'Generated slug must be lowercase letters, digits, and hyphens only (no leading/trailing hyphens). Check the business name.' });

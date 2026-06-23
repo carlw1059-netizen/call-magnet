@@ -93,13 +93,12 @@ Deno.serve(async (req) => {
     // 1. Look up client by twilio_number (= from).
     // 2. If the caller's phone is in opt_outs for this client → suppress SMS.
     // 3. Otherwise, if Middle Man is enabled: generate a UUID unsubscribe token,
-    //    insert into unsubscribe_tokens, and PATCH the client's Rebrandly link
-    //    destination to callmagnet.com.au/b/<slug>?u=<token> so the caller lands
-    //    on the Middle Man page with their opt-out token embedded in the URL.
+    //    insert into unsubscribe_tokens, and append ?u=<token> to the booking URL
+    //    so the caller lands on the Middle Man page with their opt-out token embedded in the URL.
     //
-    // TODO: per-caller Rebrandly link strategy needed before client #5 to prevent
+    // TODO: per-caller booking URL strategy needed before client #5 to prevent
     //   token cross-wiring on concurrent calls. (Two simultaneous missed calls to
-    //   the same client update the same Rebrandly destination — last write wins.
+    //   the same client update the same booking URL destination — last write wins.
     //   Negligible risk at current scale of ≤4 clients.)
     //
     // All wrapped in try/catch — any failure here falls through and the SMS sends.
@@ -109,7 +108,7 @@ Deno.serve(async (req) => {
         `${SUPABASE_URL}/rest/v1/clients` +
         `?twilio_number=eq.${encodeURIComponent(from)}` +
         `&is_test_account=eq.false&account_status=eq.active` +
-        `&select=id,middle_man_enabled,middle_man_slug,rebrandly_link_id,sms_included&limit=1`,
+        `&select=id,middle_man_enabled,middle_man_slug,rebrandly_link_id,sms_included&limit=1`, // TODO rename rebrandly_link_id to booking_link_id once DB column is renamed
         {
           headers: {
             apikey:        SUPABASE_SERVICE_ROLE_KEY,

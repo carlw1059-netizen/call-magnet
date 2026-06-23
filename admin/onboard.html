@@ -368,7 +368,7 @@
     <div id="bookingUrlRow">
     <div class="field">
       <label>Booking URL</label>
-      <input type="url" id="rebrandlyUrlInput" placeholder="https://www.opentable.com/… or Fresha / SevenRooms link" />
+      <input type="url" id="bookingUrlInput" placeholder="https://www.opentable.com/… or Fresha / SevenRooms link" />
       <div class="hint">Where should "Book a table" send callers? Paste their OpenTable / SevenRooms / Fresha link</div>
     </div>
     </div>
@@ -523,12 +523,12 @@ function prefillAvgFromVertical() {
 }
 
 // "Dirty" flag — once the owner types into the textarea, stop auto-replacing
-// content on vertical-change or rebrandly-URL-change. Reset when an example
+// content on vertical-change or booking-url-change. Reset when an example
 // is clicked or a vertical change auto-fills.
 let smsDirty = false;
 
 function substituteLink(template) {
-  const url = (document.getElementById('rebrandlyUrlInput').value || '').trim();
+  const url = (document.getElementById('bookingUrlInput').value || '').trim();
   if (!url) return template; // leave [LINK] literal until URL entered
   return template.replace(/\[LINK\]/g, url);
 }
@@ -586,7 +586,7 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 }
 
-function onRebrandlyUrlChanged() {
+function onBookingUrlChanged() {
   if (smsDirty) return;
   const cfg = currentVerticalConfig();
   if (!cfg) return;
@@ -602,7 +602,7 @@ function toggleSms() {
 
 function syncBookingUrlRow() {
   var row = document.getElementById('bookingUrlRow');
-  var inp = document.getElementById('rebrandlyUrlInput');
+  var inp = document.getElementById('bookingUrlInput');
   if (mmEnabledOn) {
     row.style.display = 'none';
     inp.removeAttribute('required');
@@ -667,7 +667,7 @@ async function submitForm() {
   const abn           = document.getElementById('abnInput').value.replace(/\D/g, '');
   const avg_raw       = document.getElementById('avgJobValueInput').value.trim();
   const avg_job_value = avg_raw ? Number(avg_raw) : null;
-  const rebrandly_url = document.getElementById('rebrandlyUrlInput').value.trim();
+  const booking_url = document.getElementById('bookingUrlInput').value.trim();
   const customer_sms_template = (document.getElementById('smsTemplateInput').value || '').trim();
   const free_period_days = Math.max(0, parseInt(document.getElementById('freePeriodDaysInput').value || '0', 10) || 0);
   const sms_included = parseInt(document.getElementById('smsIncludedSelect').value, 10);
@@ -680,7 +680,7 @@ async function submitForm() {
   if (!owner_phone || !/^\+61\d{8,11}$/.test(owner_phone)) return showError('Owner phone must be an Australian mobile (04xx or +614xx).');
   if (!twilio_number || !/^\+614\d{8}$/.test(twilio_number)) return showError('Twilio number must be a valid AU mobile (+614XXXXXXXX).');
   if (abn && abn.length !== 11) return showError('ABN must be 11 digits.');
-  if (!mmEnabledOn && (!rebrandly_url || !/^https?:\/\//.test(rebrandly_url))) return showError('Booking URL must start with https://');
+  if (!mmEnabledOn && (!booking_url || !/^https?:\/\//.test(booking_url))) return showError('Booking URL must start with https://');
   if (!customer_sms_template) return showError('Customer SMS message is required.');
   if (/callmagnet\.com\.au/i.test(customer_sms_template)) return showError('Customer SMS must not mention callmagnet.com.au (customer-facing — brand stays invisible).');
   if (mmEnabledOn) {
@@ -719,7 +719,7 @@ async function submitForm() {
             customer_sms_template,
             abn:                abn || null,
             avg_job_value,
-            booking_url:        rebrandly_url || null,
+            booking_url:        booking_url || null,
           }),
         }
       );
@@ -767,7 +767,7 @@ async function submitForm() {
         twilio_number,
         abn: abn || null,
         avg_job_value,
-        rebrandly_url,
+        booking_url,
         customer_sms_template,
         send_sms:           sendSmsOn,
         middle_man_enabled: mmEnabledOn,
@@ -873,7 +873,7 @@ function resetForm() {
   document.getElementById('ownerPhoneInput').value = '';
   document.getElementById('twilioNumberInput').value = '';
   document.getElementById('abnInput').value = '';
-  document.getElementById('rebrandlyUrlInput').value = '';
+  document.getElementById('bookingUrlInput').value = '';
   smsDirty = false;
   mmEnabledOn = true;
   document.getElementById('mmEnabledToggle').classList.add('on');
@@ -999,7 +999,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (c.free_period_days != null) document.getElementById('freePeriodDaysInput').value = String(c.free_period_days);
         if (c.abn)                 document.getElementById('abnInput').value              = c.abn;
         if (c.avg_job_value != null) document.getElementById('avgJobValueInput').value   = String(c.avg_job_value);
-        if (c.booking_url)         document.getElementById('rebrandlyUrlInput').value     = c.booking_url;
+        if (c.booking_url)         document.getElementById('bookingUrlInput').value     = c.booking_url;
         if (c.customer_sms_template) {
           document.getElementById('smsTemplateInput').value = c.customer_sms_template;
           smsDirty = true;
@@ -1032,7 +1032,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // Booking URL blur: re-substitute [LINK] in SMS if owner hasn't edited yet
-  document.getElementById('rebrandlyUrlInput').addEventListener('blur', onRebrandlyUrlChanged);
+  document.getElementById('bookingUrlInput').addEventListener('blur', onBookingUrlChanged);
 
   // Auto-format phone fields on blur
   const phoneFields = ['ownerPhoneInput', 'twilioNumberInput'];
