@@ -287,23 +287,16 @@ Deno.serve(async (req) => {
         else if (intentStr.includes('LOST & FOUND'))          ltTitle = '★ Lost & Found';
         else                                                   ltTitle = '★ New Enquiry';
         ltBody = intentStr;
-      } else if (ltVertical === 'restaurant') {
-        ltTitle = '🍽️ Booking link tapped';
-        ltBody  = 'A caller is heading to your booking system — check now for new bookings, changes, or cancellations.';
-      } else if (ltVertical === 'barber') {
-        ltTitle = '✂️ Booking link tapped';
-        ltBody  = 'A caller is heading to your booking system — check now for new bookings.';
-      } else if (ltVertical === 'tradie') {
-        ltTitle = '🔧 Call-back link tapped';
-        ltBody  = 'A caller tapped your call-back link — they may want a quote.';
       } else {
-        ltTitle = '📱 Booking link tapped';
-        ltBody  = 'A caller is heading to your booking system — check now for any new activity.';
+        // Button-tap path: only notify if the admin has set a custom push_title and push_message
+        // on the button in Middle Man Manager. No override = no notification.
+        if (!ctxPushTitle || !ctxPushMessage) {
+          console.log(`link_tapped: no admin override set for client ${clientId} — skipping push`);
+          return json(200, { sent: false, reason: 'no_override', event, client_id: clientId });
+        }
+        ltTitle = ctxPushTitle;
+        ltBody  = ctxPushMessage;
       }
-
-      // Apply per-button overrides after all derived logic — highest priority
-      if (ctxPushTitle)   ltTitle = ctxPushTitle;
-      if (ctxPushMessage) ltBody  = ctxPushMessage;
 
       if (!PROGRESSIER_API_KEY) {
         console.warn('link_tapped: PROGRESSIER_API_KEY missing — skipping push');
