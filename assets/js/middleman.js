@@ -528,6 +528,8 @@
 
       var tappedUnit = btnEl.closest('.btn-unit');
       if (tappedUnit) tappedUnit.classList.add('form-open');
+      var appEl = document.getElementById('app');
+      if (appEl) appEl.classList.add('form-active');
 
       // Show tap-outside catcher (z-index 5, below the form-open unit at z-index 10)
       var tapCatcher = document.getElementById('tapCatcher');
