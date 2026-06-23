@@ -12,6 +12,7 @@
     -webkit-font-smoothing: antialiased;
     /* Prevent rubber-band pull from moving the video background */
     overscroll-behavior: none;
+    overflow: hidden;
   }
 
   /* ── Full-screen background layer (behind everything) ───────────────────── */
@@ -59,19 +60,13 @@
 
   /* ── App shell ──────────────────────────────────────────────────────────── */
   #app {
-    position: fixed;
-    top: 0;
-    left: 0;
+    position: relative;
     width: 100%;
-    /* 100svh = small viewport height: the visible area AFTER Safari toolbar.
-       Clips #app to exactly what the user sees, preventing content from hiding
-       behind the address bar. Falls back to 100% on browsers without svh. */
-    height: 100svh;
+    min-height: 100svh;
     z-index: 10;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
-    scroll-snap-type: none;
     display: flex;
     flex-direction: column;
     animation: fadeIn 0.4s ease both;
@@ -416,7 +411,6 @@
 
   /* When a form is open, #app grows with content so the page can scroll */
   #app.form-active {
-    position: relative;
     height: auto;
     min-height: 100svh;
   }
