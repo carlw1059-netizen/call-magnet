@@ -7,6 +7,18 @@
   var LOG_FUNC_URL  = SUPABASE_URL + '/functions/v1/log-middle-man-tap';
   var CLICK_LOG_URL = SUPABASE_URL + '/functions/v1/log-click';
 
+  function lockViewportOnKeyboard() {
+    if (!window.visualViewport) return;
+    var lastScrollY = 0;
+    window.visualViewport.addEventListener('resize', function() {
+      lastScrollY = window.scrollY || window.pageYOffset;
+      document.documentElement.style.setProperty('--vvh', window.visualViewport.height + 'px');
+    });
+    window.visualViewport.addEventListener('scroll', function() {
+      window.scrollTo(0, lastScrollY);
+    });
+  }
+
   // ── Neon colour palette — position 1-6 (index 0-5) ───────────────────────
   var NEON = ['#00D4FF','#FF0000','#39FF14','#FF10F0','#FFE600','#BF00FF'];
 
@@ -482,7 +494,6 @@
     // Return #app to fixed 100svh
     var appEl = document.getElementById('app');
     if (appEl) appEl.classList.remove('form-active');
-    document.body.classList.remove('form-active');
     // Hide tap-outside catcher
     var tapCatcher = document.getElementById('tapCatcher');
     if (tapCatcher) tapCatcher.style.display = 'none';
@@ -531,7 +542,6 @@
       if (tappedUnit) tappedUnit.classList.add('form-open');
       var appEl = document.getElementById('app');
       if (appEl) appEl.classList.add('form-active');
-      document.body.classList.add('form-active');
 
       // Show tap-outside catcher (z-index 5, below the form-open unit at z-index 10)
       var tapCatcher = document.getElementById('tapCatcher');
@@ -742,17 +752,6 @@
         unit.appendChild(formWrap);
         attachFormListeners(formWrap, formType, businessName, display, btnDestUrl);
 
-        formWrap.querySelectorAll('.field-input, .field-textarea, .field-select').forEach(function(el) {
-          el.addEventListener('focus', function() {
-            var focused = el;
-            setTimeout(function() {
-              var rect = focused.getBoundingClientRect();
-              var absoluteTop = rect.top + window.pageYOffset;
-              var centeredY = absoluteTop - (window.innerHeight / 2) + (rect.height / 2);
-              window.scrollTo({ top: centeredY, behavior: 'smooth' });
-            }, 450);
-          });
-        });
       }
 
       wrap.appendChild(unit);
@@ -867,6 +866,7 @@
     // poster image stick instead of the video frames showing through.
 
     render(client, slug);
+    lockViewportOnKeyboard();
   }
 
   if (document.readyState === 'loading') {
