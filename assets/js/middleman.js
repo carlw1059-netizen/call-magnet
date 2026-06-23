@@ -737,6 +737,14 @@
         formWrap.innerHTML = buildFormHtml(formType, businessName);
         unit.appendChild(formWrap);
         attachFormListeners(formWrap, formType, businessName, display, btnDestUrl);
+
+        formWrap.querySelectorAll('.field-input, .field-textarea, .field-select').forEach(function(el) {
+          el.addEventListener('focus', function() {
+            setTimeout(function() {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300);
+          });
+        });
       }
 
       wrap.appendChild(unit);
