@@ -358,10 +358,16 @@ async function loadDashboard(user, opts = {}) {
     const start = new Date(currentClient.subscription_start);
     const today = new Date();
     const dayOfMonth = start.getDate();
-    let renewal = new Date(today.getFullYear(), today.getMonth(), dayOfMonth);
-    if (renewal <= today) renewal.setMonth(renewal.getMonth() + 1);
-    const days = Math.ceil((renewal - today) / 86400000);
-    document.getElementById('renewalValue').textContent = days === 1 ? 'Tomorrow' : days + ' days';
+    let days;
+    if (currentClient.free_period_ends_at) {
+      const trialEnd = new Date(currentClient.free_period_ends_at);
+      days = Math.ceil((trialEnd - today) / 86400000);
+    } else {
+      let renewal = new Date(today.getFullYear(), today.getMonth(), dayOfMonth);
+      if (renewal <= today) renewal.setMonth(renewal.getMonth() + 1);
+      days = Math.ceil((renewal - today) / 86400000);
+    }
+    document.getElementById('renewalValue').textContent = days <= 0 ? 'Today' : days === 1 ? 'Tomorrow' : days + ' days';
   }
 
   setTimeout(maybeShowInstallBanner, 1500);
