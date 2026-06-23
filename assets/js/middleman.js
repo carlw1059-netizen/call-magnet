@@ -27,6 +27,7 @@
   // ── Globals ───────────────────────────────────────────────────────────────
   var gSlug        = '';
   var gOpenFormKey = null;
+  var gSavedScrollY = 0;
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   function extractSlug() {
@@ -496,6 +497,7 @@
     // Return #app to fixed 100svh
     var appEl = document.getElementById('app');
     if (appEl) appEl.classList.remove('form-active');
+    window.scrollTo(0, gSavedScrollY);
     // Hide tap-outside catcher
     var tapCatcher = document.getElementById('tapCatcher');
     if (tapCatcher) tapCatcher.style.display = 'none';
@@ -542,6 +544,7 @@
 
       var tappedUnit = btnEl.closest('.btn-unit');
       if (tappedUnit) tappedUnit.classList.add('form-open');
+      gSavedScrollY = window.scrollY || window.pageYOffset;
       var appEl = document.getElementById('app');
       if (appEl) appEl.classList.add('form-active');
 
