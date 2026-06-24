@@ -614,12 +614,9 @@
       });
 
       bgFixed.appendChild(vid);
-      console.log('[video] element appended to #bgFixed — calling load()');
-      vid.load();
-      console.log('[video] load() called — calling play()');
-      // Do NOT call vid.play() — iOS throws NotAllowedError from JS play() even
-      // for muted+playsinline videos in some contexts. The autoplay attribute
-      // drives playback through the browser's own pipeline which is not blocked.
+      // No explicit load() or play() — let the autoplay attribute + browser
+      // resource selection handle it. Calling load() resets the media pipeline
+      // and can prevent autoplay from firing on iOS.
       bgFixed.classList.add('loaded');
       document.getElementById('contentSpacer').classList.add('expanded');
 
