@@ -29,15 +29,20 @@
 - **Fix**: Bump CACHE_VERSION in service-worker.js AND bump version strings on dashboard.css and dashboard.js in index.html
 - **What NOT to do**: Do not tell the user it's an iPhone problem — it is a service worker cache problem
 
-### iOS video background not showing on Middle Man page
-- **Bug**: Video background missing on iOS Safari — dark background only, no video
-- **Root cause**: `vid.load()` followed immediately by `vid.play()` always causes an `AbortError` on iOS — `load()` resets the media pipeline before `play()` can fire. The `.catch()` was calling `vid.style.display = 'none'`, hiding the video permanently.
-- **Fix**: Call `play()` inside the `canplay` event listener, NOT immediately after `load()`. The `canplay` event fires when iOS has buffered enough to start — `play()` succeeds at that point. Commit: `59299e4`.
+### iOS video background not showing / requiring tap on Middle Man page
+- **Bug**: Video background missing on iOS Safari, or video present but requires tap to start — autoplay not firing
+- **Root cause**: The video MP4 file has its `moov` atom (metadata) at the END of the file (non-faststart encoding). iOS must do a byte-range HTTP request to fetch `moov` before it can play. Any `vid.play()` call that fires BEFORE `canplay` will be rejected with `NotAllowedError` because iOS doesn't have the metadata yet. `canplay` fires only after iOS has successfully fetched `moov` and buffered enough to begin — at that point `play()` always succeeds.
+- **The regression pattern**: Every time this was "fixed" by moving `play()` somewhere other than inside the `canplay` listener (`loadedmetadata`, immediately after `load()`, `DOMContentLoaded`, etc.) it broke on iOS. The ONLY safe place to call `play()` is inside `canplay`.
+- **What broke it in June 2026**: The service worker was caching an old JS version that had no `logClick`. When SW cache was bumped, the device fetched the current JS which had `logClick` firing a concurrent fetch before `fetchClient`. Even after `logClick` was moved, `play()` was placed inside `loadedmetadata` which never fires reliably on iOS for non-faststart MP4. The fix was restoring `play()` to `canplay`.
+- **Fix**: Call `play()` ONLY inside the `canplay` event listener with `{ once: true }`, wired BEFORE `bgFixed.appendChild(vid)` and BEFORE `vid.load()`. Confirmed working: commits `59299e4` and `8de0596`.
 - **What NEVER to do**:
+  - NEVER call `vid.play()` immediately after `vid.load()` — always fails on iOS non-faststart MP4
+  - NEVER call `vid.play()` inside `loadedmetadata` — fires before iOS has buffered enough, still fails
+  - NEVER call `vid.play()` at the top level of the video setup block — same problem
   - NEVER call `vid.style.display = 'none'` anywhere in video error/catch handlers — video must always stay visible
-  - NEVER call `vid.play()` immediately after `vid.load()` — this always AbortErrors on iOS
   - NEVER set `bgFixed.style.backgroundColor` to hide the video on error
-- **Working code shape** (in `render()` inside the `bgType === 'video'` block):
+  - NEVER move `play()` out of `canplay` for any reason — if autoplay seems broken, the answer is always to restore `play()` to `canplay`, not to try a different event
+- **Working code shape** — this exact pattern must never be changed (in `render()` inside the `bgType === 'video'` block):
   ```js
   vid.addEventListener('canplay', function() {
     vid.play().catch(function(err) {
