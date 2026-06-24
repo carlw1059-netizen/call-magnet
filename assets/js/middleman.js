@@ -851,7 +851,6 @@
 
     render(client, slug);
     logClick(slug);
-    lockViewportOnKeyboard();
   }
 
   if (document.readyState === 'loading') {
