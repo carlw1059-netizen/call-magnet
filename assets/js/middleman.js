@@ -593,6 +593,14 @@
       // ── Diagnostic event listeners (wired BEFORE load/play) ─────────────
       vid.addEventListener('loadedmetadata', function() {
         console.log('[video] loadedmetadata — dimensions:', vid.videoWidth, 'x', vid.videoHeight, '| readyState:', vid.readyState);
+        // moov atom now parsed — play() is safe on iOS non-faststart MP4
+        vid.play().catch(function(err) {
+          console.warn('[video] play() after loadedmetadata blocked:', err.name);
+          document.addEventListener('touchstart', function retry() {
+            vid.play().catch(function() {});
+            document.removeEventListener('touchstart', retry);
+          }, { once: true });
+        });
       });
       vid.addEventListener('canplay', function() {
         console.log('[video] canplay — browser can start playing');
@@ -610,18 +618,10 @@
         var code = vid.error ? vid.error.code : '?';
         var msg  = vid.error ? vid.error.message : 'unknown';
         console.log('[video] ERROR event — code:', code, '| message:', msg);
-        // code 1=ABORTED 2=NETWORK 3=DECODE 4=SRC_NOT_SUPPORTED
       });
 
       bgFixed.appendChild(vid);
       vid.load();
-      vid.play().catch(function() {
-        // play() blocked — video stays visible (poster frame), retry on first touch
-        document.addEventListener('touchstart', function retry() {
-          vid.play().catch(function() {});
-          document.removeEventListener('touchstart', retry);
-        }, { once: true });
-      });
       bgFixed.classList.add('loaded');
       document.getElementById('contentSpacer').classList.add('expanded');
 
