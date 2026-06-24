@@ -29,6 +29,31 @@
 - **Fix**: Bump CACHE_VERSION in service-worker.js AND bump version strings on dashboard.css and dashboard.js in index.html
 - **What NOT to do**: Do not tell the user it's an iPhone problem — it is a service worker cache problem
 
+### iOS video background not showing on Middle Man page
+- **Bug**: Video background missing on iOS Safari — dark background only, no video
+- **Root cause**: `vid.play()` returns a Promise on iOS that rejects when autoplay is blocked. The `.catch()` was calling `vid.style.display = 'none'` immediately, permanently hiding the video before the user had a chance to interact.
+- **Fix**: On the first `.catch()`, do NOT hide the video. Instead register a `touchstart` listener (`tryPlay`) that retries `vid.play()` on first user touch. Only hide the video if that second attempt also fails. Commit: `92ef0cb`.
+- **What NOT to do**: Never call `vid.style.display = 'none'` in the first `.catch()`. Never remove the `tryPlay` touchstart retry. Removing it causes iOS video to permanently disappear.
+- **Working code shape** (in `render()` inside the `bgType === 'video'` block):
+  ```js
+  var playPromise = vid.play();
+  if (playPromise !== undefined) {
+    playPromise.catch(function(err) {
+      var tryPlay = function() {
+        vid.play().then(function() {
+          document.removeEventListener('touchstart', tryPlay);
+          document.removeEventListener('click', tryPlay);
+        }).catch(function(e) {
+          vid.style.display = 'none';          // only hide after interaction also fails
+          bgFixed.style.backgroundColor = '#0E1419';
+        });
+      };
+      document.addEventListener('touchstart', tryPlay, { once: true });
+      document.addEventListener('click', tryPlay, { once: true });
+    });
+  }
+  ```
+
 ### clients-admin.js back button
 - **Bug**: Back button on clients page navigated to /admin/ (404)
 - **Root cause**: window.location.href = '/admin/' hardcoded in clients-admin.js
