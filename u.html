@@ -242,8 +242,13 @@ html, body {
         vsrc.type = 'video/mp4';
         vid.appendChild(vsrc);
         vid.style.cssText = 'position:absolute;top:50%;left:50%;min-width:100%;min-height:100%;transform:translate(-50%,-50%);object-fit:cover;';
+        vid.addEventListener('canplay', function() {
+          vid.play().catch(function(err) {
+            console.warn('[u.html video] play() blocked after canplay:', err.name);
+          });
+        }, { once: true });
         bgFixed.appendChild(vid);
-        vid.play().catch(function() { vid.style.display = 'none'; });
+        vid.load();
       } else if (bgFixed && bgUrl) {
         bgFixed.style.backgroundImage   = 'url(' + JSON.stringify(bgUrl + '?v=' + Date.now()) + ')';
         bgFixed.style.backgroundSize    = 'cover';

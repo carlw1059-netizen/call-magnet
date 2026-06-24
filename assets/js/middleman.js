@@ -790,22 +790,10 @@
       closeForm();
     });
 
-    // ── Wire unsubscribe token to "Stop these texts" link ────────────────────
-    // If the SMS link contained ?u=<token>, middleman.js reads it here and
-    // points the footer link to /u/<token> so the caller can opt out.
-    var urlParams = new URLSearchParams(window.location.search);
-    var unsubToken = urlParams.get('u');
-    var stopLink = document.getElementById('stopTextsLink');
-    if (unsubToken && stopLink) {
-      stopLink.href = '/u/' + unsubToken;
-    }
-
     showMain();
 
-    // ── Wire "Stop these texts" to the opt-out page (JOB 3) ─────────────────
-    // If the caller arrived via an SMS link with ?u=<token>, boot() stored the
-    // token in sessionStorage. Re-read it here (in case render() is ever called
-    // independently) and update the footer link href.
+    // ── Wire "Stop these texts" to the opt-out page ──────────────────────────
+    // boot() saves ?u=<token> to sessionStorage before render() runs.
     var storedToken = sessionStorage.getItem('cm_unsub_token') || '';
     if (storedToken) {
       var stopLink = document.getElementById('stopTextsLink');
