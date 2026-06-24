@@ -574,24 +574,24 @@
       vid.setAttribute('playsinline', '');
       vid.setAttribute('webkit-playsinline', '');
       vid.setAttribute('loop', '');
-      // muted + playsInline must also be set as properties — iOS ignores attrs alone
+      vid.setAttribute('preload', 'auto');
       vid.muted      = true;
       vid.playsInline = true;
       var posterUrl = client.middle_man_background_poster_url ||
         'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
       vid.setAttribute('poster', posterUrl);
-
-      // Append to DOM before setting src — iOS requires the element to be
-      // in the document before media is assigned for autoplay to work.
+      var vsrc = document.createElement('source');
+      vsrc.src  = bgUrl;
+      vsrc.type = 'video/mp4';
+      vid.appendChild(vsrc);
       bgFixed.appendChild(vid);
-      vid.src = bgUrl;
-      // Do NOT call vid.play() — the autoplay attribute handles it at the
-      // browser level. An explicit play() call can interfere with the
-      // attribute-driven autoplay pipeline on iOS and cause it to reject.
-      vid.onerror = function() {
-        vid.style.display = 'none';
-        bgFixed.style.backgroundColor = '#0E1419';
-      };
+      vid.load();
+      vid.play()
+        .then(function() {})
+        .catch(function() {
+          vid.style.display = 'none';
+          bgFixed.style.backgroundColor = '#0E1419';
+        });
       bgFixed.classList.add('loaded');
       document.getElementById('contentSpacer').classList.add('expanded');
 
