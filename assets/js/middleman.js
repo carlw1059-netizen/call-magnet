@@ -580,12 +580,8 @@
       var posterUrl = client.middle_man_background_poster_url ||
         'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
       vid.setAttribute('poster', posterUrl);
-      var vsrc = document.createElement('source');
-      vsrc.src  = bgUrl;
-      vsrc.type = 'video/mp4';
-      vid.appendChild(vsrc);
+      vid.src = bgUrl;
       bgFixed.appendChild(vid);
-      vid.load();
       vid.play().catch(function() {});
       bgFixed.classList.add('loaded');
       document.getElementById('contentSpacer').classList.add('expanded');
