@@ -586,12 +586,7 @@
       vid.appendChild(vsrc);
       bgFixed.appendChild(vid);
       vid.load();
-      vid.play()
-        .then(function() {})
-        .catch(function() {
-          vid.style.display = 'none';
-          bgFixed.style.backgroundColor = '#0E1419';
-        });
+      vid.play().catch(function() {});
       bgFixed.classList.add('loaded');
       document.getElementById('contentSpacer').classList.add('expanded');
 
