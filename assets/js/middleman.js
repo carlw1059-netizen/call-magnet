@@ -585,15 +585,13 @@
         'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
       vid.setAttribute('poster', posterUrl);
       console.log('[video] poster attr:', client.middle_man_background_poster_url ? posterUrl : '(1×1 gif fallback)');
-      var vsrc = document.createElement('source');
-      vsrc.src  = bgUrl;
-      vsrc.type = 'video/mp4';
-      vid.appendChild(vsrc);
+      // vid.src set directly — NOT via <source> element, no explicit load().
+      // iOS Safari: <source> + load() + play() causes AbortError because load()
+      // resets the media pipeline and play() fires before iOS accepts the src.
+      // Setting vid.src directly lets the browser manage loading internally.
+      vid.src = bgUrl;
 
       bgFixed.appendChild(vid);
-      console.log('[video] element appended to #bgFixed — calling load()');
-      vid.load();
-      console.log('[video] load() called — calling play()');
       var playPromise = vid.play();
       if (playPromise !== undefined) {
         playPromise.catch(function(err) {
