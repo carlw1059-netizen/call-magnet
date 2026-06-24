@@ -585,45 +585,19 @@
         'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
       vid.setAttribute('poster', posterUrl);
       console.log('[video] poster attr:', client.middle_man_background_poster_url ? posterUrl : '(1×1 gif fallback)');
-      var vsrc = document.createElement('source');
-      vsrc.src  = bgUrl;
-      vsrc.type = 'video/mp4';
-      vid.appendChild(vsrc);
-
-      // ── Diagnostic event listeners (wired BEFORE load/play) ─────────────
-      vid.addEventListener('loadedmetadata', function() {
-        console.log('[video] loadedmetadata — dimensions:', vid.videoWidth, 'x', vid.videoHeight, '| readyState:', vid.readyState);
-      });
-      vid.addEventListener('canplay', function() {
-        console.log('[video] canplay — browser can start playing');
-      });
-      vid.addEventListener('playing', function() {
-        console.log('[video] playing — video is actively rendering frames');
-      });
-      vid.addEventListener('stalled', function() {
-        console.log('[video] stalled — browser stopped fetching media data');
-      });
-      vid.addEventListener('suspend', function() {
-        console.log('[video] suspend — browser suspended fetching (may be intentional)');
-      });
-      vid.addEventListener('error', function() {
-        var code = vid.error ? vid.error.code : '?';
-        var msg  = vid.error ? vid.error.message : 'unknown';
-        console.log('[video] ERROR event — code:', code, '| message:', msg);
-        // code 1=ABORTED 2=NETWORK 3=DECODE 4=SRC_NOT_SUPPORTED
-      });
+      // Set src directly — more reliable than <source> on iOS Safari.
+      // Explicit vid.load() is intentionally omitted: calling load() then
+      // play() back-to-back resets the load pipeline on iOS and causes play()
+      // to fire before the browser has accepted the src, rejecting the Promise.
+      vid.src = bgUrl;
 
       bgFixed.appendChild(vid);
-      console.log('[video] element appended to #bgFixed — calling load()');
-      vid.load();
-      console.log('[video] load() called — calling play()');
       vid.play()
         .then(function() {
           console.log('[video] play() resolved — video IS playing');
         })
         .catch(function(err) {
           console.log('[video] play() FAILED:', (err && err.name) || 'unknown', '|', (err && err.message) || String(err));
-          // Autoplay blocked (e.g. low-power mode) — hide video, keep dark bg
           vid.style.display = 'none';
           bgFixed.style.backgroundColor = '#0E1419';
         });
