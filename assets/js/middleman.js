@@ -614,9 +614,14 @@
       });
 
       bgFixed.appendChild(vid);
-      // No explicit load() or play() — let the autoplay attribute + browser
-      // resource selection handle it. Calling load() resets the media pipeline
-      // and can prevent autoplay from firing on iOS.
+      vid.load();
+      vid.play().catch(function() {
+        // play() blocked — video stays visible (poster frame), retry on first touch
+        document.addEventListener('touchstart', function retry() {
+          vid.play().catch(function() {});
+          document.removeEventListener('touchstart', retry);
+        }, { once: true });
+      });
       bgFixed.classList.add('loaded');
       document.getElementById('contentSpacer').classList.add('expanded');
 
