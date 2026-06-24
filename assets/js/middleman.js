@@ -568,6 +568,8 @@
     bgFixed.style.backgroundColor = '#0E1419';
 
     if (bgUrl && bgType === 'video') {
+      // ── Video background (iOS Safari requires all 6 attributes) ──────────
+      console.log('[video] type=video detected | src (no cache-bust):', bgUrl);
       var vid = document.createElement('video');
       vid.setAttribute('autoplay', '');
       vid.setAttribute('muted', '');
@@ -575,18 +577,53 @@
       vid.setAttribute('webkit-playsinline', '');
       vid.setAttribute('loop', '');
       vid.setAttribute('preload', 'auto');
-      vid.muted      = true;
-      vid.playsInline = true;
+      vid.muted      = true;   // belt-and-suspenders: iOS ignores attr alone
+      vid.playsInline = true;  // belt-and-suspenders
+      // poster: shows the first frame while the video buffers — zero blank screen.
+      // 1×1 black pixel GIF as ultimate fallback so the browser never shows white.
       var posterUrl = client.middle_man_background_poster_url ||
         'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
       vid.setAttribute('poster', posterUrl);
+      console.log('[video] poster attr:', client.middle_man_background_poster_url ? posterUrl : '(1×1 gif fallback)');
       var vsrc = document.createElement('source');
       vsrc.src  = bgUrl;
       vsrc.type = 'video/mp4';
       vid.appendChild(vsrc);
+
+      // ── Diagnostic event listeners (wired BEFORE load/play) ─────────────
+      vid.addEventListener('loadedmetadata', function() {
+        console.log('[video] loadedmetadata — dimensions:', vid.videoWidth, 'x', vid.videoHeight, '| readyState:', vid.readyState);
+      });
+      vid.addEventListener('canplay', function() {
+        console.log('[video] canplay — browser can start playing');
+      });
+      vid.addEventListener('playing', function() {
+        console.log('[video] playing — video is actively rendering frames');
+      });
+      vid.addEventListener('stalled', function() {
+        console.log('[video] stalled — browser stopped fetching media data');
+      });
+      vid.addEventListener('suspend', function() {
+        console.log('[video] suspend — browser suspended fetching (may be intentional)');
+      });
+      vid.addEventListener('error', function() {
+        var code = vid.error ? vid.error.code : '?';
+        var msg  = vid.error ? vid.error.message : 'unknown';
+        console.log('[video] ERROR event — code:', code, '| message:', msg);
+        // code 1=ABORTED 2=NETWORK 3=DECODE 4=SRC_NOT_SUPPORTED
+      });
+
       bgFixed.appendChild(vid);
+      console.log('[video] element appended to #bgFixed — calling load()');
       vid.load();
-      vid.play().catch(function() {});
+      console.log('[video] load() called — calling play()');
+      vid.play()
+        .then(function() { console.log('[video] play() resolved'); })
+        .catch(function(err) {
+          console.warn('[video] autoplay blocked:', err.name, '— hiding video');
+          vid.style.display = 'none';
+          bgFixed.style.backgroundColor = '#0E1419';
+        });
       bgFixed.classList.add('loaded');
       document.getElementById('contentSpacer').classList.add('expanded');
 
@@ -762,18 +799,23 @@
     // If the SMS link contained ?u=<token>, middleman.js reads it here and
     // points the footer link to /u/<token> so the caller can opt out.
     var urlParams = new URLSearchParams(window.location.search);
-    var unsubToken = urlParams.get('u') || sessionStorage.getItem('cm_unsub_token') || '';
+    var unsubToken = urlParams.get('u');
     var stopLink = document.getElementById('stopTextsLink');
-    if (stopLink) {
-      if (unsubToken) {
-        stopLink.href = 'https://callmagnet.com.au/u/' + encodeURIComponent(unsubToken);
-        stopLink.style.display = '';
-      } else {
-        stopLink.style.display = 'none';
-      }
+    if (unsubToken && stopLink) {
+      stopLink.href = '/u/' + unsubToken;
     }
 
     showMain();
+
+    // ── Wire "Stop these texts" to the opt-out page (JOB 3) ─────────────────
+    // If the caller arrived via an SMS link with ?u=<token>, boot() stored the
+    // token in sessionStorage. Re-read it here (in case render() is ever called
+    // independently) and update the footer link href.
+    var storedToken = sessionStorage.getItem('cm_unsub_token') || '';
+    if (storedToken) {
+      var stopLink = document.getElementById('stopTextsLink');
+      if (stopLink) stopLink.href = 'https://callmagnet.com.au/u/' + encodeURIComponent(storedToken);
+    }
   }
 
   // ── Boot ──────────────────────────────────────────────────────────────────
