@@ -312,6 +312,22 @@
   // intentLabel: the display label of the button (with emoji) — logged on submit
   // bookingUrl:  redirect destination after successful submit (2 second delay)
   function attachFormListeners(formWrap, formType, businessName, intentLabel, bookingUrl) {
+    var diagEl = document.getElementById('cm-diag');
+    if (!diagEl) {
+      diagEl = document.createElement('div');
+      diagEl.id = 'cm-diag';
+      diagEl.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#000;color:#0f0;font-size:11px;padding:4px;z-index:99999;font-family:monospace;';
+      document.body.appendChild(diagEl);
+    }
+    formWrap.querySelectorAll('.field-input,.field-textarea,.field-select').forEach(function(el) {
+      el.addEventListener('focus', function() {
+        var cs = window.getComputedStyle(el);
+        var appCs = window.getComputedStyle(document.getElementById('app'));
+        var vv = window.visualViewport;
+        diagEl.textContent = 'fs:' + cs.fontSize + ' pos:' + cs.position + ' app-pos:' + appCs.position + ' vvh:' + (vv ? Math.round(vv.height) : 'na') + ' wy:' + Math.round(window.scrollY) + ' scale:' + (vv ? vv.scale.toFixed(2) : 'na');
+      });
+    });
+
     var form = formWrap.querySelector('.inline-form');
     if (!form) return;
 
