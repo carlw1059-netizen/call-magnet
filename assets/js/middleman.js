@@ -617,18 +617,9 @@
       console.log('[video] element appended to #bgFixed — calling load()');
       vid.load();
       console.log('[video] load() called — calling play()');
-      vid.play()
-        .then(function() { console.log('[video] play() resolved'); })
-        .catch(function(err) {
-          var name = (err && err.name) || 'unknown';
-          var msg  = (err && err.message) || '';
-          console.warn('[video] play() FAILED:', name, msg);
-          // Show error on screen so we can diagnose the iOS issue
-          var dbg = document.createElement('div');
-          dbg.style.cssText = 'position:fixed;bottom:60px;left:10px;right:10px;background:rgba(0,0,0,0.85);color:#FFE600;padding:10px;font-size:13px;z-index:9999;border-radius:6px;word-break:break-word';
-          dbg.textContent = 'VIDEO ERR: ' + name + ' — ' + msg;
-          document.body.appendChild(dbg);
-        });
+      // Do NOT call vid.play() — iOS throws NotAllowedError from JS play() even
+      // for muted+playsinline videos in some contexts. The autoplay attribute
+      // drives playback through the browser's own pipeline which is not blocked.
       bgFixed.classList.add('loaded');
       document.getElementById('contentSpacer').classList.add('expanded');
 
