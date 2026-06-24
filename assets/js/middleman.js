@@ -580,9 +580,14 @@
       var posterUrl = client.middle_man_background_poster_url ||
         'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
       vid.setAttribute('poster', posterUrl);
+      // Call play() only after iOS signals the video is ready — calling it
+      // immediately after setting src causes an AbortError because the browser
+      // hasn't accepted the media source yet.
+      vid.addEventListener('canplay', function() {
+        vid.play().catch(function() {});
+      }, { once: true });
       vid.src = bgUrl;
       bgFixed.appendChild(vid);
-      vid.play().catch(function() {});
       bgFixed.classList.add('loaded');
       document.getElementById('contentSpacer').classList.add('expanded');
 
