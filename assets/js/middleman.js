@@ -498,6 +498,12 @@
     // Return #app to fixed 100svh
     var appEl = document.getElementById('app');
     if (appEl) appEl.classList.remove('form-active');
+    var modal = document.getElementById('formModal');
+    if (modal) {
+      modal.classList.remove('open');
+      var modalInner = document.getElementById('formModalInner');
+      if (modalInner) modalInner.innerHTML = '';
+    }
     window.scrollTo(0, gSavedScrollY);
     // Hide tap-outside catcher
     var tapCatcher = document.getElementById('tapCatcher');
@@ -540,18 +546,25 @@
       // Close any other open form first
       if (gOpenFormKey !== null) closeForm();
 
-      formWrap.classList.add('open');
       gOpenFormKey = btnKey;
-
-      var tappedUnit = btnEl.closest('.btn-unit');
-      if (tappedUnit) tappedUnit.classList.add('form-open');
       gSavedScrollY = window.scrollY || window.pageYOffset;
-      var appEl = document.getElementById('app');
-      if (appEl) appEl.classList.add('form-active');
 
-      // Show tap-outside catcher (z-index 5, below the form-open unit at z-index 10)
-      var tapCatcher = document.getElementById('tapCatcher');
-      if (tapCatcher) tapCatcher.style.display = 'block';
+      var modal = document.getElementById('formModal');
+      var modalInner = document.getElementById('formModalInner');
+      if (modal && modalInner) {
+        var modalFormWrap = document.createElement('div');
+        modalFormWrap.className = 'form-wrap open';
+        modalFormWrap.id = 'modal-form-wrap';
+        modalFormWrap.innerHTML = buildFormHtml(formType, gBusinessName);
+        modalInner.innerHTML = '';
+        modalInner.appendChild(modalFormWrap);
+        attachFormListeners(modalFormWrap, formType, gBusinessName, intentLabel, bookingUrl);
+        modal.classList.add('open');
+        var modalClose = document.getElementById('modalCloseBtn');
+        if (modalClose) {
+          modalClose.onclick = closeForm;
+        }
+      }
     }
   }
 
