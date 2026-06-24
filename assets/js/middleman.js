@@ -620,8 +620,14 @@
       vid.play()
         .then(function() { console.log('[video] play() resolved'); })
         .catch(function(err) {
-          console.warn('[video] autoplay blocked:', err.name);
-          // NEVER hide the video — poster frame keeps background visible
+          var name = (err && err.name) || 'unknown';
+          var msg  = (err && err.message) || '';
+          console.warn('[video] play() FAILED:', name, msg);
+          // Show error on screen so we can diagnose the iOS issue
+          var dbg = document.createElement('div');
+          dbg.style.cssText = 'position:fixed;bottom:60px;left:10px;right:10px;background:rgba(0,0,0,0.85);color:#FFE600;padding:10px;font-size:13px;z-index:9999;border-radius:6px;word-break:break-word';
+          dbg.textContent = 'VIDEO ERR: ' + name + ' — ' + msg;
+          document.body.appendChild(dbg);
         });
       bgFixed.classList.add('loaded');
       document.getElementById('contentSpacer').classList.add('expanded');
