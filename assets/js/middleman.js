@@ -613,19 +613,16 @@
         // code 1=ABORTED 2=NETWORK 3=DECODE 4=SRC_NOT_SUPPORTED
       });
 
-      // canplay fires when iOS has buffered enough to start — play() at this
-      // point succeeds. Never call play() immediately after load() — that
-      // races on iOS and produces an AbortError.
-      // NEVER hide the video on failure — poster frame stays visible instead.
-      vid.addEventListener('canplay', function() {
-        vid.play().catch(function(err) {
-          console.warn('[video] play() blocked after canplay:', err.name);
-          // do NOT hide — poster frame keeps the background visible
-        });
-      }, { once: true });
-
       bgFixed.appendChild(vid);
+      console.log('[video] element appended to #bgFixed — calling load()');
       vid.load();
+      console.log('[video] load() called — calling play()');
+      vid.play()
+        .then(function() { console.log('[video] play() resolved'); })
+        .catch(function(err) {
+          console.warn('[video] autoplay blocked:', err.name);
+          // NEVER hide the video — poster frame keeps background visible
+        });
       bgFixed.classList.add('loaded');
       document.getElementById('contentSpacer').classList.add('expanded');
 
