@@ -31,27 +31,22 @@
 
 ### iOS video background not showing on Middle Man page
 - **Bug**: Video background missing on iOS Safari — dark background only, no video
-- **Root cause**: `vid.play()` returns a Promise on iOS that rejects when autoplay is blocked. The `.catch()` was calling `vid.style.display = 'none'` immediately, permanently hiding the video before the user had a chance to interact.
-- **Fix**: On the first `.catch()`, do NOT hide the video. Instead register a `touchstart` listener (`tryPlay`) that retries `vid.play()` on first user touch. Only hide the video if that second attempt also fails. Commit: `92ef0cb`.
-- **What NOT to do**: Never call `vid.style.display = 'none'` in the first `.catch()`. Never remove the `tryPlay` touchstart retry. Removing it causes iOS video to permanently disappear.
+- **Root cause**: `vid.load()` followed immediately by `vid.play()` always causes an `AbortError` on iOS — `load()` resets the media pipeline before `play()` can fire. The `.catch()` was calling `vid.style.display = 'none'`, hiding the video permanently.
+- **Fix**: Call `play()` inside the `canplay` event listener, NOT immediately after `load()`. The `canplay` event fires when iOS has buffered enough to start — `play()` succeeds at that point. Commit: `59299e4`.
+- **What NEVER to do**:
+  - NEVER call `vid.style.display = 'none'` anywhere in video error/catch handlers — video must always stay visible
+  - NEVER call `vid.play()` immediately after `vid.load()` — this always AbortErrors on iOS
+  - NEVER set `bgFixed.style.backgroundColor` to hide the video on error
 - **Working code shape** (in `render()` inside the `bgType === 'video'` block):
   ```js
-  var playPromise = vid.play();
-  if (playPromise !== undefined) {
-    playPromise.catch(function(err) {
-      var tryPlay = function() {
-        vid.play().then(function() {
-          document.removeEventListener('touchstart', tryPlay);
-          document.removeEventListener('click', tryPlay);
-        }).catch(function(e) {
-          vid.style.display = 'none';          // only hide after interaction also fails
-          bgFixed.style.backgroundColor = '#0E1419';
-        });
-      };
-      document.addEventListener('touchstart', tryPlay, { once: true });
-      document.addEventListener('click', tryPlay, { once: true });
+  vid.addEventListener('canplay', function() {
+    vid.play().catch(function(err) {
+      console.warn('[video] play() blocked after canplay:', err.name);
+      // do NOT hide — poster frame keeps the background visible
     });
-  }
+  }, { once: true });
+  bgFixed.appendChild(vid);
+  vid.load();
   ```
 
 ### clients-admin.js back button
