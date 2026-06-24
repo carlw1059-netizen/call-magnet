@@ -593,14 +593,6 @@
       // ── Diagnostic event listeners (wired BEFORE load/play) ─────────────
       vid.addEventListener('loadedmetadata', function() {
         console.log('[video] loadedmetadata — dimensions:', vid.videoWidth, 'x', vid.videoHeight, '| readyState:', vid.readyState);
-        // moov atom now parsed — play() is safe on iOS non-faststart MP4
-        vid.play().catch(function(err) {
-          console.warn('[video] play() after loadedmetadata blocked:', err.name);
-          document.addEventListener('touchstart', function retry() {
-            vid.play().catch(function() {});
-            document.removeEventListener('touchstart', retry);
-          }, { once: true });
-        });
       });
       vid.addEventListener('canplay', function() {
         console.log('[video] canplay — browser can start playing');
@@ -620,6 +612,11 @@
         console.log('[video] ERROR event — code:', code, '| message:', msg);
       });
 
+      vid.addEventListener('canplay', function() {
+        vid.play().catch(function(err) {
+          console.warn('[video] play() blocked after canplay:', err.name);
+        });
+      }, { once: true });
       bgFixed.appendChild(vid);
       vid.load();
       bgFixed.classList.add('loaded');
