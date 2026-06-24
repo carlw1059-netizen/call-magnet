@@ -581,30 +581,17 @@
         'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
       vid.setAttribute('poster', posterUrl);
 
-      // iOS autoplay pattern: append to DOM BEFORE setting src.
-      // iOS tracks the element through the DOM tree before media is assigned;
-      // setting src before appendChild causes play() to reject with NotAllowedError.
+      // Append to DOM before setting src — iOS requires the element to be
+      // in the document before media is assigned for autoplay to work.
       bgFixed.appendChild(vid);
       vid.src = bgUrl;
-
-      var playPromise = vid.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(function(err) {
-          console.log('[video] initial play blocked:', err.name);
-          var tryPlay = function() {
-            vid.play().then(function() {
-              console.log('[video] play succeeded after user interaction');
-              document.removeEventListener('touchstart', tryPlay);
-              document.removeEventListener('click', tryPlay);
-            }).catch(function(e) {
-              vid.style.display = 'none';
-              bgFixed.style.backgroundColor = '#0E1419';
-            });
-          };
-          document.addEventListener('touchstart', tryPlay, { once: true });
-          document.addEventListener('click', tryPlay, { once: true });
-        });
-      }
+      // Do NOT call vid.play() — the autoplay attribute handles it at the
+      // browser level. An explicit play() call can interfere with the
+      // attribute-driven autoplay pipeline on iOS and cause it to reject.
+      vid.onerror = function() {
+        vid.style.display = 'none';
+        bgFixed.style.backgroundColor = '#0E1419';
+      };
       bgFixed.classList.add('loaded');
       document.getElementById('contentSpacer').classList.add('expanded');
 
