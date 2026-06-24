@@ -820,7 +820,6 @@
   async function boot() {
     var slug = extractSlug();
     if (!slug) { showNotFound(); return; }
-    logClick(slug);
 
     // ── Unsubscribe token (JOB 3) ──────────────────────────────────────────
     // If the caller arrived via an SMS link with ?u=<token>, persist it so
@@ -839,13 +838,11 @@
 
     if (!client) { showNotFound(); return; }
 
-    // NOTE: <link rel="preload" as="video"> was removed.
-    // Chrome doesn't honour as="video" for preloading, and the URL mismatch
-    // (preload: bare URL, <source>: URL+?v=timestamp) caused the browser to
-    // download the MP4 twice — which stalled the GPU compositor and made the
-    // poster image stick instead of the video frames showing through.
-
     render(client, slug);
+
+    // Fire logClick AFTER render — no concurrent fetch when iOS evaluates
+    // the video autoplay decision.
+    logClick(slug);
   }
 
   if (document.readyState === 'loading') {
