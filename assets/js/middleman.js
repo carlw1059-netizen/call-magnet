@@ -568,30 +568,25 @@
     bgFixed.style.backgroundColor = '#0E1419';
 
     if (bgUrl && bgType === 'video') {
-      // ── Video background (iOS Safari requires all 6 attributes) ──────────
-      console.log('[video] type=video detected | src (no cache-bust):', bgUrl);
       var vid = document.createElement('video');
       vid.setAttribute('autoplay', '');
       vid.setAttribute('muted', '');
       vid.setAttribute('playsinline', '');
       vid.setAttribute('webkit-playsinline', '');
       vid.setAttribute('loop', '');
-      vid.setAttribute('preload', 'auto');
-      vid.muted      = true;   // belt-and-suspenders: iOS ignores attr alone
-      vid.playsInline = true;  // belt-and-suspenders
-      // poster: shows the first frame while the video buffers — zero blank screen.
-      // 1×1 black pixel GIF as ultimate fallback so the browser never shows white.
+      // muted + playsInline must also be set as properties — iOS ignores attrs alone
+      vid.muted      = true;
+      vid.playsInline = true;
       var posterUrl = client.middle_man_background_poster_url ||
         'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
       vid.setAttribute('poster', posterUrl);
-      console.log('[video] poster attr:', client.middle_man_background_poster_url ? posterUrl : '(1×1 gif fallback)');
-      // vid.src set directly — NOT via <source> element, no explicit load().
-      // iOS Safari: <source> + load() + play() causes AbortError because load()
-      // resets the media pipeline and play() fires before iOS accepts the src.
-      // Setting vid.src directly lets the browser manage loading internally.
+
+      // iOS autoplay pattern: append to DOM BEFORE setting src.
+      // iOS tracks the element through the DOM tree before media is assigned;
+      // setting src before appendChild causes play() to reject with NotAllowedError.
+      bgFixed.appendChild(vid);
       vid.src = bgUrl;
 
-      bgFixed.appendChild(vid);
       var playPromise = vid.play();
       if (playPromise !== undefined) {
         playPromise.catch(function(err) {
