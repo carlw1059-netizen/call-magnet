@@ -585,13 +585,13 @@
         'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
       vid.setAttribute('poster', posterUrl);
       console.log('[video] poster attr:', client.middle_man_background_poster_url ? posterUrl : '(1×1 gif fallback)');
-      // Set src directly — more reliable than <source> on iOS Safari.
-      // Explicit vid.load() is intentionally omitted: calling load() then
-      // play() back-to-back resets the load pipeline on iOS and causes play()
-      // to fire before the browser has accepted the src, rejecting the Promise.
-      vid.src = bgUrl;
+      var vsrc = document.createElement('source');
+      vsrc.src  = bgUrl;
+      vsrc.type = 'video/mp4';
+      vid.appendChild(vsrc);
 
       bgFixed.appendChild(vid);
+      vid.load();
       vid.play()
         .then(function() {
           console.log('[video] play() resolved — video IS playing');
