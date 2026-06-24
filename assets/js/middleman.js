@@ -825,6 +825,7 @@
   async function boot() {
     var slug = extractSlug();
     if (!slug) { showNotFound(); return; }
+    logClick(slug);
 
     // ── Unsubscribe token (JOB 3) ──────────────────────────────────────────
     // If the caller arrived via an SMS link with ?u=<token>, persist it so
@@ -850,7 +851,6 @@
     // poster image stick instead of the video frames showing through.
 
     render(client, slug);
-    logClick(slug);
   }
 
   if (document.readyState === 'loading') {
