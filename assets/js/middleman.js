@@ -617,13 +617,24 @@
       console.log('[video] element appended to #bgFixed — calling load()');
       vid.load();
       console.log('[video] load() called — calling play()');
-      vid.play()
-        .then(function() { console.log('[video] play() resolved'); })
-        .catch(function(err) {
-          console.warn('[video] autoplay blocked:', err.name, '— hiding video');
-          vid.style.display = 'none';
-          bgFixed.style.backgroundColor = '#0E1419';
+      var playPromise = vid.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(function(err) {
+          console.log('[video] initial play blocked:', err.name);
+          var tryPlay = function() {
+            vid.play().then(function() {
+              console.log('[video] play succeeded after user interaction');
+              document.removeEventListener('touchstart', tryPlay);
+              document.removeEventListener('click', tryPlay);
+            }).catch(function(e) {
+              vid.style.display = 'none';
+              bgFixed.style.backgroundColor = '#0E1419';
+            });
+          };
+          document.addEventListener('touchstart', tryPlay, { once: true });
+          document.addEventListener('click', tryPlay, { once: true });
         });
+      }
       bgFixed.classList.add('loaded');
       document.getElementById('contentSpacer').classList.add('expanded');
 
