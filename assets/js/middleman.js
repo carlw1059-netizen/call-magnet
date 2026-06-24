@@ -7,28 +7,12 @@
   var LOG_FUNC_URL  = SUPABASE_URL + '/functions/v1/log-middle-man-tap';
   var CLICK_LOG_URL = SUPABASE_URL + '/functions/v1/log-click';
 
-  function lockViewportOnKeyboard() {
-    if (!window.visualViewport) return;
-    function nudge() {
-      if (window.visualViewport.offsetTop > 0) {
-        window.scrollBy(0, -1);
-        window.scrollBy(0, 1);
-      }
-    }
-    window.visualViewport.addEventListener('resize', nudge);
-    document.addEventListener('focusout', function() {
-      setTimeout(nudge, 100);
-    });
-  }
-
   // ── Neon colour palette — position 1-6 (index 0-5) ───────────────────────
   var NEON = ['#00D4FF','#FF0000','#39FF14','#FF10F0','#FFE600','#BF00FF'];
 
   // ── Globals ───────────────────────────────────────────────────────────────
   var gSlug        = '';
-  var gBusinessName = '';
   var gOpenFormKey = null;
-  var gSavedScrollY = 0;
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   function extractSlug() {
@@ -498,13 +482,6 @@
     // Return #app to fixed 100svh
     var appEl = document.getElementById('app');
     if (appEl) appEl.classList.remove('form-active');
-    var modal = document.getElementById('formModal');
-    if (modal) {
-      modal.classList.remove('open');
-      var modalInner = document.getElementById('formModalInner');
-      if (modalInner) modalInner.innerHTML = '';
-    }
-    window.scrollTo(0, gSavedScrollY);
     // Hide tap-outside catcher
     var tapCatcher = document.getElementById('tapCatcher');
     if (tapCatcher) tapCatcher.style.display = 'none';
@@ -546,25 +523,15 @@
       // Close any other open form first
       if (gOpenFormKey !== null) closeForm();
 
+      formWrap.classList.add('open');
       gOpenFormKey = btnKey;
-      gSavedScrollY = window.scrollY || window.pageYOffset;
 
-      var modal = document.getElementById('formModal');
-      var modalInner = document.getElementById('formModalInner');
-      if (modal && modalInner) {
-        var modalFormWrap = document.createElement('div');
-        modalFormWrap.className = 'form-wrap open';
-        modalFormWrap.id = 'modal-form-wrap';
-        modalFormWrap.innerHTML = buildFormHtml(formType, gBusinessName);
-        modalInner.innerHTML = '';
-        modalInner.appendChild(modalFormWrap);
-        attachFormListeners(modalFormWrap, formType, gBusinessName, intentLabel, bookingUrl);
-        modal.classList.add('open');
-        var modalClose = document.getElementById('modalCloseBtn');
-        if (modalClose) {
-          modalClose.onclick = closeForm;
-        }
-      }
+      var tappedUnit = btnEl.closest('.btn-unit');
+      if (tappedUnit) tappedUnit.classList.add('form-open');
+
+      // Show tap-outside catcher (z-index 5, below the form-open unit at z-index 10)
+      var tapCatcher = document.getElementById('tapCatcher');
+      if (tapCatcher) tapCatcher.style.display = 'block';
     }
   }
 
@@ -582,7 +549,6 @@
     var bgType      = client.middle_man_background_type || 'image';
     if (bgUrl && bgType === 'image') bgUrl = bgUrl + '?v=' + Date.now();
     var businessName = client.business_name || '';
-    gBusinessName = businessName;
     var promoText   = client.middle_man_promo_text || '';
     var buttons     = [];
 
@@ -651,26 +617,16 @@
       console.log('[video] element appended to #bgFixed — calling load()');
       vid.load();
       console.log('[video] load() called — calling play()');
-      var playPromise = vid.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(function(err) {
-          console.log('[video] initial play blocked:', err.name);
-          // On iOS, try playing on first user interaction
-          var tryPlay = function() {
-            vid.play().then(function() {
-              console.log('[video] play succeeded after user interaction');
-              document.removeEventListener('touchstart', tryPlay);
-              document.removeEventListener('click', tryPlay);
-            }).catch(function(e) {
-              console.log('[video] play failed after interaction:', e.name);
-              vid.style.display = 'none';
-              bgFixed.style.backgroundColor = '#0E1419';
-            });
-          };
-          document.addEventListener('touchstart', tryPlay, { once: true });
-          document.addEventListener('click', tryPlay, { once: true });
+      vid.play()
+        .then(function() {
+          console.log('[video] play() resolved — video IS playing');
+        })
+        .catch(function(err) {
+          console.log('[video] play() FAILED:', (err && err.name) || 'unknown', '|', (err && err.message) || String(err));
+          // Autoplay blocked (e.g. low-power mode) — hide video, keep dark bg
+          vid.style.display = 'none';
+          bgFixed.style.backgroundColor = '#0E1419';
         });
-      }
       bgFixed.classList.add('loaded');
       document.getElementById('contentSpacer').classList.add('expanded');
 
@@ -781,7 +737,6 @@
         formWrap.innerHTML = buildFormHtml(formType, businessName);
         unit.appendChild(formWrap);
         attachFormListeners(formWrap, formType, businessName, display, btnDestUrl);
-
       }
 
       wrap.appendChild(unit);
@@ -896,7 +851,6 @@
     // poster image stick instead of the video frames showing through.
 
     render(client, slug);
-    lockViewportOnKeyboard();
   }
 
   if (document.readyState === 'loading') {

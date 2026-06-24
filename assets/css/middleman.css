@@ -63,6 +63,9 @@
     top: 0;
     left: 0;
     width: 100%;
+    /* 100svh = small viewport height: the visible area AFTER Safari toolbar.
+       Clips #app to exactly what the user sees, preventing content from hiding
+       behind the address bar. Falls back to 100% on browsers without svh. */
     height: 100svh;
     z-index: 10;
     overflow-y: auto;
@@ -411,44 +414,8 @@
     border: none;
   }
 
-  #formModal {
-    display: none;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1000;
-    background: rgba(14,20,25,0.97);
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 60px 20px 40px;
-    box-sizing: border-box;
-  }
-  #formModal.open {
-    display: block;
-  }
-  #formModal .form-close-btn {
-    display: flex;
-    position: absolute;
-    top: 16px;
-    right: 16px;
-  }
-  #formModal .inline-form {
-    border: none;
-    padding: 0;
-    margin: 0;
-  }
-  #formModal .form-title {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 16px;
-    color: #fff;
-  }
-
   /* When a form is open, #app grows with content so the page can scroll */
   #app.form-active {
-    position: relative;
     height: auto;
     min-height: 100svh;
   }
