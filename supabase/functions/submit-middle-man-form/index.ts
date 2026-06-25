@@ -238,12 +238,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   // ── Fire-and-forget: send-client-notification ───────────────────────────────
-  const pushMessage = buildPushMessage(
-    businessName, formType, callerName, callerPhone,
-    originalBookingTime, requestedChange, note, companyName,
-  );
-
-  if (INTERNAL_SECRET) {
+  if (!INTERNAL_SECRET) {
+    console.warn('submit-middle-man-form: INTERNAL_SECRET not configured — skipping notifications');
+  } else if (!customPushTitle || !customPushMessage) {
+    console.log('submit-middle-man-form: no custom push wording set for this button — skipping notification');
+  } else {
     fetch(`${SUPABASE_URL}/functions/v1/send-client-notification`, {
       method:  'POST',
       headers: {
@@ -255,21 +254,14 @@ Deno.serve(async (req: Request): Promise<Response> => {
         client_id: clientId,
         event:     'link_tapped',
         context:   {
-          intent:          pushMessage.slice(0, 250),
-          // Per-button custom push title/message (set in Middle Man admin).
-          // send-client-notification uses these when present; falls back to
-          // the intent-derived title/body when they're null.
-          push_title:      customPushTitle   ?? undefined,
-          push_message:    customPushMessage ?? undefined,
+          push_title:      customPushTitle,
+          push_message:    customPushMessage,
           customer_number: toE164(callerPhone),
         },
       }),
     }).catch((e) => {
       console.warn(`submit-middle-man-form: send-client-notification failed: ${e?.message ?? e}`);
     });
-
-  } else {
-    console.warn('submit-middle-man-form: INTERNAL_SECRET not configured — skipping notifications');
   }
 
   return OK;
