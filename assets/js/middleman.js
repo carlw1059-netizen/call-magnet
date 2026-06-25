@@ -793,11 +793,15 @@
     showMain();
 
     // ── Wire "Stop these texts" to the opt-out page ──────────────────────────
-    // boot() saves ?u=<token> to sessionStorage before render() runs.
+    // Token visitors (/b/<slug>?u=<token>) go to /u/<token> — one-tap opt-out.
+    // Non-token visitors (QR, direct link) go to /u/<slug> — phone entry form.
     var storedToken = sessionStorage.getItem('cm_unsub_token') || '';
     var stopLink = document.getElementById('stopTextsLink');
-    if (stopLink && storedToken) {
-      stopLink.href = 'https://callmagnet.com.au/u/' + encodeURIComponent(storedToken);
+    if (stopLink) {
+      var unsub = storedToken
+        ? 'https://callmagnet.com.au/u/' + encodeURIComponent(storedToken)
+        : 'https://callmagnet.com.au/u/' + encodeURIComponent(slug);
+      stopLink.href = unsub;
     }
   }
 

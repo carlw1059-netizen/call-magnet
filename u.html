@@ -129,6 +129,37 @@ html, body {
   line-height: 1.6;
 }
 
+/* ── Phone entry state ─────────────────────────────────────────────────── */
+#statePhone { display: none; width: 100%; }
+
+.u-phone-input {
+  display: block;
+  width: 100%;
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  background: #ffffff;
+  border: none;
+  border-radius: 12px;
+  color: #10b981;
+  font-size: 17px;
+  font-weight: 700;
+  font-family: inherit;
+  text-align: center;
+  outline: 2px solid #10b981;
+  outline-offset: -6px;
+  box-shadow: 0 0 28px rgba(16,185,129,0.45), 0 0 10px rgba(16,185,129,0.25), 0 0 60px rgba(16,185,129,0.12);
+  -webkit-appearance: none;
+}
+.u-phone-input::placeholder { color: rgba(16,185,129,0.4); }
+.u-phone-input:focus { outline-color: #10b981; }
+
+.u-phone-error {
+  font-size: 13px;
+  color: #ff6b6b;
+  margin-bottom: 12px;
+  min-height: 18px;
+}
+
 /* ── Powered-by footer ─────────────────────────────────────────────────── */
 .u-powered {
   margin-top: 44px;
@@ -159,6 +190,14 @@ html, body {
     <div class="u-success-msg" id="uSuccessMsg">You won't receive any more texts from this business.</div>
   </div>
 
+  <!-- Phone entry: shown when no token in URL -->
+  <div id="statePhone">
+    <div class="u-heading">Stop texts from<br><span class="u-biz-name" id="uPhoneBizName">this business</span></div>
+    <input class="u-phone-input" id="uPhoneInput" type="tel" inputmode="numeric" placeholder="0412 345 678" autocomplete="tel">
+    <div class="u-phone-error" id="uPhoneError"></div>
+    <button class="u-opt-btn" id="uPhoneBtn" type="button">Stop texts</button>
+  </div>
+
   <!-- Error: shown for invalid / expired / already-used token -->
   <div id="stateError">
     <div class="u-error-mark">⚠</div>
@@ -174,30 +213,39 @@ html, body {
 (function () {
   'use strict';
 
-  var SUPABASE_URL = 'https://iskvvnhacqdxybpmwuni.supabase.co';
-  var CONTEXT_URL  = SUPABASE_URL + '/functions/v1/get-unsubscribe-context';
-  var UNSUB_URL    = SUPABASE_URL + '/functions/v1/process-unsubscribe';
+  var SUPABASE_URL   = 'https://iskvvnhacqdxybpmwuni.supabase.co';
+  var CONTEXT_URL    = SUPABASE_URL + '/functions/v1/get-unsubscribe-context';
+  var UNSUB_URL      = SUPABASE_URL + '/functions/v1/process-unsubscribe';
+  var OPT_BY_PHONE   = SUPABASE_URL + '/functions/v1/opt-out-by-phone';
 
-  // ── Extract token from /u/<token> ─────────────────────────────────────────
-  // Netlify rewrites /u/* → /u.html with status 200, so pathname is still
-  // /u/<token>. Split and take the last non-empty segment.
+  // ── Extract token or slug from /u/<token|slug> ────────────────────────────
+  // Netlify rewrites /u/* → /u.html. Pathname is still /u/<segment>.
+  // UUID → it's a token. Anything else → it's a slug (no-token flow).
   var pathParts = window.location.pathname.replace(/\/+$/, '').split('/');
-  var token     = pathParts[pathParts.length - 1] || '';
+  var pathSeg   = pathParts[pathParts.length - 1] || '';
+  var isUuid    = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(pathSeg);
+  var token     = isUuid ? pathSeg : '';
+  var slug      = isUuid ? '' : pathSeg;
 
   // ── DOM references ────────────────────────────────────────────────────────
-  var stateLoading = document.getElementById('stateLoading');
-  var stateMain    = document.getElementById('stateMain');
-  var stateSuccess = document.getElementById('stateSuccess');
-  var stateError   = document.getElementById('stateError');
-  var bizNameEl    = document.getElementById('uBizName');
-  var successMsgEl = document.getElementById('uSuccessMsg');
-  var optBtn       = document.getElementById('uOptBtn');
+  var stateLoading  = document.getElementById('stateLoading');
+  var stateMain     = document.getElementById('stateMain');
+  var statePhone    = document.getElementById('statePhone');
+  var stateSuccess  = document.getElementById('stateSuccess');
+  var stateError    = document.getElementById('stateError');
+  var bizNameEl     = document.getElementById('uBizName');
+  var phoneBizNameEl = document.getElementById('uPhoneBizName');
+  var successMsgEl  = document.getElementById('uSuccessMsg');
+  var optBtn        = document.getElementById('uOptBtn');
+  var phoneInput    = document.getElementById('uPhoneInput');
+  var phoneBtn      = document.getElementById('uPhoneBtn');
+  var phoneErrorEl  = document.getElementById('uPhoneError');
 
   var businessName = '';
   var pageLoadTime = Date.now();
 
   function showState(el) {
-    var all = [stateLoading, stateMain, stateSuccess, stateError];
+    var all = [stateLoading, stateMain, statePhone, stateSuccess, stateError];
     for (var i = 0; i < all.length; i++) {
       if (all[i]) all[i].style.display = 'none';
     }
@@ -205,8 +253,11 @@ html, body {
   }
 
   // ── Validate token on load ────────────────────────────────────────────────
-  if (!token) {
+  if (!token && !slug) {
     showState(stateError);
+  } else if (!token && slug) {
+    // No token — show phone entry form so they can opt out by number
+    showState(statePhone);
   } else {
     fetch(CONTEXT_URL, {
       method:  'POST',
@@ -306,6 +357,42 @@ html, body {
     });
   }
 
+  // ── Phone entry button ────────────────────────────────────────────────────
+  if (phoneBtn) {
+    phoneBtn.addEventListener('click', function() {
+      if (phoneBtn.disabled) return;
+      var phone = phoneInput ? phoneInput.value.trim() : '';
+      if (!phone) {
+        if (phoneErrorEl) phoneErrorEl.textContent = 'Please enter your mobile number.';
+        return;
+      }
+      if (phoneErrorEl) phoneErrorEl.textContent = '';
+      phoneBtn.disabled    = true;
+      phoneBtn.textContent = 'Processing…';
+
+      fetch(OPT_BY_PHONE, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ slug: slug, phone_number: phone }),
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data && data.ok) {
+          showState(stateSuccess);
+        } else if (data && data.error === 'invalid_phone') {
+          if (phoneErrorEl) phoneErrorEl.textContent = 'Please enter a valid Australian mobile number.';
+          phoneBtn.disabled    = false;
+          phoneBtn.textContent = 'Stop texts';
+        } else {
+          showState(stateError);
+        }
+      })
+      .catch(function() {
+        phoneBtn.disabled    = false;
+        phoneBtn.textContent = 'Stop texts';
+      });
+    });
+  }
 
 })();
 </script>
