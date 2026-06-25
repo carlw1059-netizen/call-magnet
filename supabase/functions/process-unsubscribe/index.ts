@@ -98,7 +98,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     const { data: tokenRow, error: tokenErr } = await supa
       .from('unsubscribe_tokens')
-      .select('id, client_id, phone_number, expires_at, used_at')
+      .select('id, client_id, phone_number, used_at')
       .eq('token', token)
       .maybeSingle();
 
@@ -108,11 +108,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     }
 
     // Unified 'invalid_token' for all failure modes — do not leak which check failed.
-    if (
-      !tokenRow ||                                          // doesn't exist
-      tokenRow.used_at !== null ||                          // already consumed
-      new Date(tokenRow.expires_at) < now                  // expired
-    ) {
+    if (!tokenRow || tokenRow.used_at !== null) {
       return json(400, { ok: false, error: 'invalid_token' });
     }
 

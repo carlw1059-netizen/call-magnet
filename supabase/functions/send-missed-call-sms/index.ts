@@ -185,7 +185,6 @@ Deno.serve(async (req) => {
           if (client.middle_man_enabled && client.middle_man_slug) {
             try {
               const unsubToken = crypto.randomUUID();
-              const expiresAt  = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(); // 72 h
 
               // Insert into unsubscribe_tokens (best-effort — non-fatal)
               await fetch(`${SUPABASE_URL}/rest/v1/unsubscribe_tokens?on_conflict=client_id,phone_number`, {
@@ -200,7 +199,6 @@ Deno.serve(async (req) => {
                   token:        unsubToken,
                   client_id:    clientId,
                   phone_number: to,
-                  expires_at:   expiresAt,
                 }),
               });
 

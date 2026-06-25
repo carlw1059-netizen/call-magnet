@@ -60,12 +60,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    const now = new Date();
-
     // Look up token with JOIN to clients for business_name, slug, and background fields
     const { data: tokenRow, error: tokenErr } = await supa
       .from('unsubscribe_tokens')
-      .select('id, expires_at, used_at, clients(business_name, middle_man_slug, middle_man_background_url, middle_man_background_type, middle_man_background_poster_url)')
+      .select('id, used_at, clients(business_name, middle_man_slug, middle_man_background_url, middle_man_background_type, middle_man_background_poster_url)')
       .eq('token', token)
       .maybeSingle();
 
@@ -75,11 +73,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     }
 
     // Unified error — do not leak which validation check failed
-    if (
-      !tokenRow ||
-      tokenRow.used_at !== null ||
-      new Date(tokenRow.expires_at) < now
-    ) {
+    if (!tokenRow || tokenRow.used_at !== null) {
       return json(400, { ok: false, error: 'invalid_token' });
     }
 
