@@ -815,8 +815,8 @@ async function saveButtons() {
 
 // ─── Notification Messages panel ─────────────────────────────────────────────
 
-var MMA_DEFAULT_PUSH_TITLE = '⭐ Customer activity from CallMagnet';
-var MMA_DEFAULT_PUSH_MSG   = 'Someone tapped your link — check your dashboard';
+var MMA_DEFAULT_PUSH_TITLE = '';
+var MMA_DEFAULT_PUSH_MSG   = '';
 
 var MMA_EMOJI_LIST = [
   '🍽️','🍕','🍔','🍣','🥂','🍷','🍸','🎂',
