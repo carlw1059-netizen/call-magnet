@@ -794,15 +794,10 @@
 
     // ── Wire "Stop these texts" to the opt-out page ──────────────────────────
     // boot() saves ?u=<token> to sessionStorage before render() runs.
-    // Hide the link entirely when no token — only SMS recipients have one.
     var storedToken = sessionStorage.getItem('cm_unsub_token') || '';
     var stopLink = document.getElementById('stopTextsLink');
-    if (stopLink) {
-      if (storedToken) {
-        stopLink.href = 'https://callmagnet.com.au/u/' + encodeURIComponent(storedToken);
-      } else {
-        stopLink.style.display = 'none';
-      }
+    if (stopLink && storedToken) {
+      stopLink.href = 'https://callmagnet.com.au/u/' + encodeURIComponent(storedToken);
     }
   }
 

@@ -204,9 +204,9 @@ Deno.serve(async (req) => {
                 }),
               });
 
-              // Append ?u=<token> to the callmagnet.com.au/b/ or callmagnet.s.gy/ link in the message
+              // Append ?u=<token> to any Middle Man link in the message
               finalMessage = message.replace(
-                /(https?:\/\/(?:callmagnet\.com\.au\/b\/|callmagnet\.s\.gy\/)[^\s?]*)/,
+                /(https?:\/\/(?:callmagnet\.com\.au\/b\/|callmagnet\.s\.gy\/|cm1\.au\/)[^\s?]*)/,
                 (match: string) => match + '?u=' + unsubToken
               );
               console.log(`send-missed-call-sms: unsubscribe token generated for to=${to} token=${unsubToken.slice(0, 8)}…`);
