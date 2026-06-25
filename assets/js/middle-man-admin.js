@@ -790,6 +790,10 @@ async function saveButtons() {
     var notifRow     = notifRows[idx];
     var titleEl      = notifRow ? notifRow.querySelector('.mma-notif-title') : null;
     var msgEl        = notifRow ? notifRow.querySelector('.mma-notif-msg')   : null;
+    var existingBtns = Array.isArray(_editClientData && _editClientData.middle_man_buttons) ? _editClientData.middle_man_buttons : [];
+    var existing     = existingBtns[idx] || {};
+    var uiTitle      = titleEl ? titleEl.value.trim() : '';
+    var uiMsg        = msgEl   ? msgEl.value.trim()   : '';
     buttons.push({
       label:        label,
       sort_order:   parseInt(row.querySelector('.mma-btn-order').value, 10) || 1,
@@ -798,8 +802,8 @@ async function saveButtons() {
       animate:      animate,
       sparkles:     sparklesBtn ? sparklesBtn.classList.contains('mma-btn-sparkles-on') : false,
       url:          (function(v) { return v && !/^https?:\/\//i.test(v) ? 'https://' + v : v; })((row.querySelector('.mma-btn-url') || { value: '' }).value.trim()),
-      push_title:   titleEl ? titleEl.value.trim() : '',
-      push_message: msgEl   ? msgEl.value.trim()   : '',
+      push_title:   uiTitle || (typeof existing.push_title   === 'string' ? existing.push_title   : ''),
+      push_message: uiMsg   || (typeof existing.push_message === 'string' ? existing.push_message : ''),
     });
   });
   try {
