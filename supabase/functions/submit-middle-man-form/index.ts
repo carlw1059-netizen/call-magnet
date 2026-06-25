@@ -170,7 +170,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       if (typeof match.push_title   === 'string' && (match.push_title   as string).trim()) customPushTitle   = (match.push_title   as string).trim();
       if (typeof match.push_message === 'string' && (match.push_message as string).trim()) customPushMessage = (match.push_message as string).trim();
     }
-  } catch (_) { /* non-fatal — fall back to buildPushMessage */ }
+  } catch (_) { /* non-fatal — notification skipped if button lookup fails */ }
 
   // ── Hash caller IP ──────────────────────────────────────────────────────────
   const ipRaw  = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown';
