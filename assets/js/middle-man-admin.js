@@ -776,9 +776,8 @@ async function savePromo() {
 // ─── Save buttons ─────────────────────────────────────────────────────────────
 async function saveButtons() {
   if (!_editClientId) return;
-  var rows        = document.querySelectorAll('#mmaBtnBuilder .mma-btn-row');
-  var existingBtns = Array.isArray(_editClientData && _editClientData.middle_man_buttons)
-    ? _editClientData.middle_man_buttons : [];
+  var rows      = document.querySelectorAll('#mmaBtnBuilder .mma-btn-row');
+  var notifRows = document.querySelectorAll('#mmaNotifBuilder .mma-notif-row');
   var buttons = [];
   rows.forEach(function(row, idx) {
     var label = row.querySelector('.mma-btn-label').value.trim();
@@ -788,7 +787,9 @@ async function saveButtons() {
     var pulseBtn     = row.querySelector('.mma-btn-pulse');
     var animate      = pulseBtn ? pulseBtn.classList.contains('mma-btn-pulse-on') : false;
     var sparklesBtn  = row.querySelector('.mma-btn-sparkles');
-    var existing     = existingBtns[idx] || {};
+    var notifRow     = notifRows[idx];
+    var titleEl      = notifRow ? notifRow.querySelector('.mma-notif-title') : null;
+    var msgEl        = notifRow ? notifRow.querySelector('.mma-notif-msg')   : null;
     buttons.push({
       label:        label,
       sort_order:   parseInt(row.querySelector('.mma-btn-order').value, 10) || 1,
@@ -797,8 +798,8 @@ async function saveButtons() {
       animate:      animate,
       sparkles:     sparklesBtn ? sparklesBtn.classList.contains('mma-btn-sparkles-on') : false,
       url:          (function(v) { return v && !/^https?:\/\//i.test(v) ? 'https://' + v : v; })((row.querySelector('.mma-btn-url') || { value: '' }).value.trim()),
-      push_title:   existing.push_title   || '',
-      push_message: existing.push_message || '',
+      push_title:   titleEl ? titleEl.value.trim() : '',
+      push_message: msgEl   ? msgEl.value.trim()   : '',
     });
   });
   try {
