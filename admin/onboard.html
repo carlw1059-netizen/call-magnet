@@ -949,9 +949,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   const isAdmin = session.user?.app_metadata?.is_admin === true;
-  if (!isAdmin) {
+  const email   = (session.user?.email || '').toLowerCase();
+  if (!isAdmin || email !== 'car312@hotmail.com') {
     showState('gateForbidden');
-    // signout button removed from this page
     return;
   }
   window.refreshAdminFab(session);
