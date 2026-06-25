@@ -62,10 +62,10 @@ html, body {
   display: block;
   width: 100%;
   padding: 18px 24px;
-  background: #CC0000;
+  background: #ffffff;
   border: none;
   border-radius: 12px;
-  color: #FFFFFF;
+  color: #CC0000;
   font-size: 17px;
   font-weight: 700;
   font-family: inherit;
@@ -73,12 +73,14 @@ html, body {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   text-align: center;
-  transition: background 0.12s, transform 0.08s;
+  transition: box-shadow 0.12s, transform 0.08s;
   -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 0 20px rgba(204,0,0,0.4);
+  outline: 2px solid #CC0000;
+  outline-offset: -6px;
+  box-shadow: 0 0 28px rgba(204,0,0,0.55), 0 0 10px rgba(204,0,0,0.3), 0 0 60px rgba(204,0,0,0.15);
   margin-bottom: 20px;
 }
-.u-opt-btn:active { transform: scale(0.97); background: #AA0000; }
+.u-opt-btn:active { transform: scale(0.97); }
 .u-opt-btn:disabled { opacity: 0.45; cursor: wait; transform: none; }
 
 /* ── Success state ─────────────────────────────────────────────────────── */
