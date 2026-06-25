@@ -776,9 +776,11 @@ async function savePromo() {
 // ─── Save buttons ─────────────────────────────────────────────────────────────
 async function saveButtons() {
   if (!_editClientId) return;
-  var rows    = document.querySelectorAll('#mmaBtnBuilder .mma-btn-row');
+  var rows        = document.querySelectorAll('#mmaBtnBuilder .mma-btn-row');
+  var existingBtns = Array.isArray(_editClientData && _editClientData.middle_man_buttons)
+    ? _editClientData.middle_man_buttons : [];
   var buttons = [];
-  rows.forEach(function(row) {
+  rows.forEach(function(row, idx) {
     var label = row.querySelector('.mma-btn-label').value.trim();
     if (!label) return;
     var colorInput   = row.querySelector('.mma-btn-color');
@@ -786,14 +788,17 @@ async function saveButtons() {
     var pulseBtn     = row.querySelector('.mma-btn-pulse');
     var animate      = pulseBtn ? pulseBtn.classList.contains('mma-btn-pulse-on') : false;
     var sparklesBtn  = row.querySelector('.mma-btn-sparkles');
+    var existing     = existingBtns[idx] || {};
     buttons.push({
-      label:      label,
-      sort_order: parseInt(row.querySelector('.mma-btn-order').value, 10) || 1,
-      enabled:    row.querySelector('.mma-btn-enabled-cb').checked,
-      color:      color,
-      animate:    animate,
-      sparkles:   sparklesBtn ? sparklesBtn.classList.contains('mma-btn-sparkles-on') : false,
-      url:        (function(v) { return v && !/^https?:\/\//i.test(v) ? 'https://' + v : v; })((row.querySelector('.mma-btn-url') || { value: '' }).value.trim()),
+      label:        label,
+      sort_order:   parseInt(row.querySelector('.mma-btn-order').value, 10) || 1,
+      enabled:      row.querySelector('.mma-btn-enabled-cb').checked,
+      color:        color,
+      animate:      animate,
+      sparkles:     sparklesBtn ? sparklesBtn.classList.contains('mma-btn-sparkles-on') : false,
+      url:          (function(v) { return v && !/^https?:\/\//i.test(v) ? 'https://' + v : v; })((row.querySelector('.mma-btn-url') || { value: '' }).value.trim()),
+      push_title:   existing.push_title   || '',
+      push_message: existing.push_message || '',
     });
   });
   try {
@@ -886,15 +891,15 @@ function mmaShowEmojiPicker(targetField, triggerBtn) {
 }
 
 function buildNotifRowHtml(idx, sortOrder, label, pushTitle, pushMsg) {
-  pushTitle = pushTitle || MMA_DEFAULT_PUSH_TITLE;
-  pushMsg   = pushMsg   || MMA_DEFAULT_PUSH_MSG;
+  var titleVal = pushTitle || '';
+  var msgVal   = pushMsg   || '';
   return '<div class="mma-notif-row" style="background:#F8F8F8;border:1px solid #E0E0E0;border-radius:8px;padding:12px;margin-bottom:10px;">' +
     '<div style="font-size:14px;font-weight:700;color:#111111;margin-bottom:10px;">' + _e(sortOrder) + ' — ' + _e(label) + '</div>' +
 
     '<div style="margin-bottom:8px;">' +
       '<div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#06D6A0;margin-bottom:4px;">Title</div>' +
       '<div style="display:flex;gap:6px;align-items:center;">' +
-        '<input type="text" class="mma-notif-title mma-field-input" value="' + _e(pushTitle) + '" style="flex:1;font-size:14px;" />' +
+        '<input type="text" class="mma-notif-title mma-field-input" value="' + _e(titleVal) + '" placeholder="' + _e(MMA_DEFAULT_PUSH_TITLE) + '" style="flex:1;font-size:14px;" />' +
         '<button type="button" class="mma-emoji-trigger" data-picker-id="nt-' + idx + '" data-target="title" data-idx="' + idx + '" title="Insert emoji" style="width:34px;height:34px;border:1px solid #D0D0D0;border-radius:6px;background:#fff;cursor:pointer;font-size:17px;flex-shrink:0;">😊</button>' +
       '</div>' +
     '</div>' +
@@ -902,7 +907,7 @@ function buildNotifRowHtml(idx, sortOrder, label, pushTitle, pushMsg) {
     '<div style="margin-bottom:8px;">' +
       '<div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#06D6A0;margin-bottom:4px;">Message</div>' +
       '<div style="display:flex;gap:6px;align-items:flex-start;">' +
-        '<textarea class="mma-notif-msg mma-field-input" rows="2" style="flex:1;font-size:14px;resize:vertical;">' + _e(pushMsg) + '</textarea>' +
+        '<textarea class="mma-notif-msg mma-field-input" rows="2" placeholder="' + _e(MMA_DEFAULT_PUSH_MSG) + '" style="flex:1;font-size:14px;resize:vertical;">' + _e(msgVal) + '</textarea>' +
         '<button type="button" class="mma-emoji-trigger" data-picker-id="nm-' + idx + '" data-target="msg" data-idx="' + idx + '" title="Insert emoji" style="width:34px;height:34px;border:1px solid #D0D0D0;border-radius:6px;background:#fff;cursor:pointer;font-size:17px;flex-shrink:0;margin-top:2px;">😊</button>' +
       '</div>' +
     '</div>' +
@@ -936,8 +941,8 @@ function syncNotifRows() {
     var t = row.querySelector('.mma-notif-title');
     var m = row.querySelector('.mma-notif-msg');
     saved[i] = {
-      title: t ? t.value : MMA_DEFAULT_PUSH_TITLE,
-      msg:   m ? m.value : MMA_DEFAULT_PUSH_MSG,
+      title: t ? t.value : '',
+      msg:   m ? m.value : '',
     };
   });
 
@@ -950,7 +955,7 @@ function syncNotifRows() {
       var label     = (row.querySelector('.mma-btn-label') || {}).value || '';
       var sortOrder = (row.querySelector('.mma-btn-order') || {}).value || (i + 1);
       var vals      = saved[i] || {};
-      html += buildNotifRowHtml(i, sortOrder, label, vals.title || MMA_DEFAULT_PUSH_TITLE, vals.msg || MMA_DEFAULT_PUSH_MSG);
+      html += buildNotifRowHtml(i, sortOrder, label, vals.title || '', vals.msg || '');
     });
   }
 
@@ -1007,8 +1012,8 @@ async function saveNotifications() {
       animate:      animate,
       sparkles:     sparklesBtn ? sparklesBtn.classList.contains('mma-btn-sparkles-on') : false,
       url:          (function(v) { return v && !/^https?:\/\//i.test(v) ? 'https://' + v : v; })((row.querySelector('.mma-btn-url') || { value: '' }).value.trim()),
-      push_title:   (titleEl && titleEl.value.trim()) || MMA_DEFAULT_PUSH_TITLE,
-      push_message: (msgEl   && msgEl.value.trim())   || MMA_DEFAULT_PUSH_MSG,
+      push_title:   titleEl ? titleEl.value.trim() : '',
+      push_message: msgEl   ? msgEl.value.trim()   : '',
     });
   });
   try {
