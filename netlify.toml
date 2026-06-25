@@ -19,6 +19,15 @@
   to     = "/u.html"
   status = 200
 
+# cm1.au short-link redirect — cm1.au/<slug> → callmagnet.com.au/b/<slug>
+# Requires cm1.au to be a domain alias on this Netlify site.
+# Query strings (?u=<token>) are preserved automatically.
+[[redirects]]
+  from   = "https://cm1.au/*"
+  to     = "https://callmagnet.com.au/b/:splat"
+  status = 301
+  force  = true
+
 # ── Cache-Control headers ─────────────────────────────────────────────────────
 # The caller page (/b/*) and its dedicated assets must never be served from
 # any cache — the page is live/per-client and changes whenever a client updates
