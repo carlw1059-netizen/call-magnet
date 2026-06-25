@@ -263,40 +263,18 @@ Deno.serve(async (req) => {
       const ltVertical = ltClientArr[0].vertical;
       const ltBusinessName = ltClientArr[0].business_name ?? '';
 
-      // submit-middle-man-form populates context.intent with buildPushMessage() output,
-      // always prefixed with ★ (e.g. "★ The Chophouse — CHANGE/CANCEL REQUEST — …").
-      // log-middle-man-tap uses short button labels with no ★ prefix.
-      // When ★ is present we use the full intent string as the push body and derive
-      // a short title from the formType keyword embedded in the string.
-      // When ★ is absent (button-tap path) we fall back to the generic vertical message.
-      const intentStr  = typeof context.intent === 'string' ? context.intent.trim() : '';
-      const isFormSubmit = intentStr.startsWith('★');
-
-      // Per-button custom push title/message — set in Middle Man admin and
-      // passed through from submit-middle-man-form. Override all derived logic.
+      // Notification title and body come only from the admin-set push_title and
+      // push_message on each Middle Man button. If either is missing, skip.
       const ctxPushTitle   = typeof context.push_title   === 'string' ? (context.push_title   as string).trim() : '';
       const ctxPushMessage = typeof context.push_message === 'string' ? (context.push_message as string).trim() : '';
 
-      let ltTitle: string;
-      let ltBody:  string;
-
-      if (isFormSubmit) {
-        if      (intentStr.includes('CHANGE/CANCEL REQUEST')) ltTitle = '★ Change/Cancel Request';
-        else if (intentStr.includes('FUNCTION ENQUIRY'))      ltTitle = '★ ' + ltBusinessName + ' — Function Enquiry';
-        else if (intentStr.includes('LATE ARRIVAL'))          ltTitle = '★ Late Arrival Alert';
-        else if (intentStr.includes('LOST & FOUND'))          ltTitle = '★ Lost & Found';
-        else                                                   ltTitle = '★ New Enquiry';
-        ltBody = intentStr;
-      } else {
-        // Button-tap path: only notify if the admin has set a custom push_title and push_message
-        // on the button in Middle Man Manager. No override = no notification.
-        if (!ctxPushTitle || !ctxPushMessage) {
-          console.log(`link_tapped: no admin override set for client ${clientId} — skipping push`);
-          return json(200, { sent: false, reason: 'no_override', event, client_id: clientId });
-        }
-        ltTitle = ctxPushTitle;
-        ltBody  = ctxPushMessage;
+      if (!ctxPushTitle || !ctxPushMessage) {
+        console.log(`link_tapped: no push wording set for client ${clientId} — skipping push`);
+        return json(200, { sent: false, reason: 'no_override', event, client_id: clientId });
       }
+
+      const ltTitle = ctxPushTitle;
+      const ltBody  = ctxPushMessage;
 
       if (!PROGRESSIER_API_KEY) {
         console.warn('link_tapped: PROGRESSIER_API_KEY missing — skipping push');

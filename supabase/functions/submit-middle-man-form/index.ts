@@ -73,36 +73,6 @@ async function sha256hex(input: string): Promise<string> {
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// ── Build the push notification message for the business owner ─────────────────
-function buildPushMessage(
-  businessName: string,
-  formType: string,
-  callerName: string,
-  callerPhone: string,
-  originalBookingTime: string,
-  requestedChange: string,
-  note: string,
-  companyName: string,
-): string {
-  const bn = businessName;
-  const cn = callerName;
-  const ph = callerPhone;
-  switch (formType) {
-    case 'change_cancel':
-      return `★ ${bn} — CHANGE/CANCEL REQUEST — ${cn} — ${ph} — ${originalBookingTime} — ${requestedChange}`;
-    case 'function': {
-      const co = companyName ? ` (${companyName})` : '';
-      return `★ ${bn} — FUNCTION ENQUIRY — ${cn}${co} — ${ph} — ${note}`;
-    }
-    case 'late_arrival':
-      return `★ ${bn} — LATE ARRIVAL — ${cn} — ${ph} — booked ${originalBookingTime} — running ${note}`;
-    case 'lost_found':
-      return `★ ${bn} — LOST & FOUND — ${cn} — ${ph} — ${note}`;
-    case 'something_else':
-    default:
-      return `★ ${bn} — ENQUIRY — ${cn} — ${ph} — ${note}`;
-  }
-}
 
 
 Deno.serve(async (req: Request): Promise<Response> => {
