@@ -1,4 +1,4 @@
-// ═══ Middle Man Admin — full page editor ════════════════════════════════════
+// ═══ Middle Man Admin — full page editor ══════════════════ BUILD-20260625 ══
 // White business-tool page. Two views: manager (client list) + edit (single).
 // Auth: is_admin === true AND email === REAL_ADMIN_EMAIL dual gate.
 
