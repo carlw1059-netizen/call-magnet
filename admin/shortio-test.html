@@ -79,8 +79,6 @@
         if (res.ok && data.shortURL) {
           shortOut.value = data.shortURL;
           shortRow.classList.add('visible');
-          rawResult.className = 'ok';
-          rawResult.textContent = JSON.stringify(data, null, 2);
         } else {
           rawResult.className = 'err';
           rawResult.textContent = 'ERROR (HTTP ' + res.status + ')\n\n' + JSON.stringify(data, null, 2);
