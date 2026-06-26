@@ -75,6 +75,7 @@
     display: flex;
     flex-direction: column;
     animation: fadeIn 0.4s ease both;
+    background-color: #0E1419;
   }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
