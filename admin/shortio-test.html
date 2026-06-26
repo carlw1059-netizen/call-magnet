@@ -12,15 +12,18 @@
     .card { background: #ffffff; border-radius: 10px; border: 1px solid #000000; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 0 rgba(6,214,160,0.4); padding: 28px; max-width: 520px; }
     h1 { color: #10b981; font-size: 20px; margin-bottom: 6px; }
     p.note { color: #555; font-size: 13px; margin-bottom: 24px; }
-    label { display: block; color: #10b981; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 5px; }
+    label { display: block; color: #10b981; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 5px; margin-top: 16px; }
     input { width: 100%; border: 1px solid #ccc; border-radius: 6px; padding: 9px 11px; font-size: 15px; color: #000; background: #fff; }
     input:focus { outline: 2px solid #10b981; border-color: #10b981; }
+    input[readonly] { background: #f0fdf4; color: #065f46; font-weight: 600; cursor: text; }
     button { margin-top: 20px; width: 100%; background: #10b981; color: #fff; border: none; border-radius: 6px; padding: 11px; font-size: 15px; font-weight: 700; cursor: pointer; }
     button:hover { background: #059669; }
     button:disabled { background: #aaa; cursor: not-allowed; }
-    #result { margin-top: 20px; font-size: 13px; font-family: monospace; white-space: pre-wrap; word-break: break-all; padding: 14px; border-radius: 6px; display: none; }
-    #result.ok  { background: #ecfdf5; color: #065f46; border: 1px solid #6ee7b7; display: block; }
-    #result.err { background: #fff1f2; color: #9f1239; border: 1px solid #fca5a5; display: block; }
+    .result-row { margin-top: 16px; display: none; }
+    .result-row.visible { display: block; }
+    #rawResult { margin-top: 16px; font-size: 12px; font-family: monospace; white-space: pre-wrap; word-break: break-all; padding: 12px; border-radius: 6px; display: none; }
+    #rawResult.ok  { background: #ecfdf5; color: #065f46; border: 1px solid #6ee7b7; display: block; }
+    #rawResult.err { background: #fff1f2; color: #9f1239; border: 1px solid #fca5a5; display: block; }
   </style>
 </head>
 <body>
@@ -28,23 +31,39 @@
   <div class="card">
     <h1>Short.io Link Test</h1>
     <p class="note">Creates cm1.au/&lt;slug&gt; → callmagnet.com.au/b/&lt;slug&gt; via Short.io API. Delete this page after testing.</p>
+
     <label for="slugInput">Slug</label>
-    <input id="slugInput" type="text" placeholder="e.g. arcane-fairies" autocomplete="off">
+    <input id="slugInput" type="text" placeholder="e.g. catsburgers" autocomplete="off">
+
     <button id="btn" onclick="createLink()">Create Short Link</button>
-    <div id="result"></div>
+
+    <div class="result-row" id="shortLinkRow">
+      <label>Short Link Created</label>
+      <input id="shortLinkOutput" type="text" readonly placeholder="—">
+    </div>
+
+    <div id="rawResult"></div>
   </div>
 
   <script>
     const SUPABASE_FN = 'https://iskvvnhacqdxybpmwuni.supabase.co/functions/v1/create-shortio-link-test';
 
     async function createLink() {
-      const slug   = document.getElementById('slugInput').value.trim();
-      const result = document.getElementById('result');
-      const btn    = document.getElementById('btn');
+      const slug      = document.getElementById('slugInput').value.trim();
+      const rawResult = document.getElementById('rawResult');
+      const shortRow  = document.getElementById('shortLinkRow');
+      const shortOut  = document.getElementById('shortLinkOutput');
+      const btn       = document.getElementById('btn');
 
-      result.className = '';
-      result.style.display = 'none';
-      if (!slug) { result.className = 'err'; result.textContent = 'Slug is required.'; return; }
+      rawResult.className = '';
+      shortRow.classList.remove('visible');
+      shortOut.value = '';
+
+      if (!slug) {
+        rawResult.className = 'err';
+        rawResult.textContent = 'Slug is required.';
+        return;
+      }
 
       btn.disabled = true;
       btn.textContent = 'Creating…';
@@ -56,16 +75,19 @@
           body:    JSON.stringify({ slug }),
         });
         const data = await res.json();
+
         if (res.ok && data.shortURL) {
-          result.className = 'ok';
-          result.textContent = 'SUCCESS\nshortURL: ' + data.shortURL + '\n\n' + JSON.stringify(data, null, 2);
+          shortOut.value = data.shortURL;
+          shortRow.classList.add('visible');
+          rawResult.className = 'ok';
+          rawResult.textContent = JSON.stringify(data, null, 2);
         } else {
-          result.className = 'err';
-          result.textContent = 'ERROR (HTTP ' + res.status + ')\n\n' + JSON.stringify(data, null, 2);
+          rawResult.className = 'err';
+          rawResult.textContent = 'ERROR (HTTP ' + res.status + ')\n\n' + JSON.stringify(data, null, 2);
         }
       } catch (err) {
-        result.className = 'err';
-        result.textContent = 'Network error: ' + err.message;
+        rawResult.className = 'err';
+        rawResult.textContent = 'Network error: ' + err.message;
       } finally {
         btn.disabled = false;
         btn.textContent = 'Create Short Link';
