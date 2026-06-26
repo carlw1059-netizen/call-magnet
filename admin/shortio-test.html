@@ -5,70 +5,79 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Short.io Link Test</title>
   <style>
-    body { background: #F5F5F5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; color: #000; margin: 0; padding: 24px; }
-    h1 { color: #10b981; font-size: 20px; margin: 0 0 20px; }
-    .card { background: #fff; border-radius: 10px; border: 1px solid #000; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 0 rgba(6,214,160,0.4); padding: 24px; max-width: 480px; }
-    label { display: block; color: #10b981; font-weight: 600; font-size: 13px; margin-bottom: 6px; }
-    input { width: 100%; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; padding: 8px 10px; font-size: 15px; color: #000; margin-bottom: 16px; }
-    button { background: #10b981; color: #fff; border: none; border-radius: 6px; padding: 10px 20px; font-size: 15px; font-weight: 600; cursor: pointer; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #F5F5F5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; color: #000000; padding: 24px; }
+    a.back { display: inline-block; margin-bottom: 20px; background: #CC0000; color: #fff; border-radius: 6px; padding: 8px 16px; font-size: 14px; font-weight: 600; text-decoration: none; }
+    a.back:hover { background: #AA0000; }
+    .card { background: #ffffff; border-radius: 10px; border: 1px solid #000000; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 0 rgba(6,214,160,0.4); padding: 28px; max-width: 520px; }
+    h1 { color: #10b981; font-size: 20px; margin-bottom: 6px; }
+    p.note { color: #555; font-size: 13px; margin-bottom: 24px; }
+    label { display: block; color: #10b981; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 5px; margin-top: 16px; }
+    label:first-of-type { margin-top: 0; }
+    input { width: 100%; border: 1px solid #ccc; border-radius: 6px; padding: 9px 11px; font-size: 15px; color: #000; background: #fff; }
+    input:focus { outline: 2px solid #10b981; border-color: #10b981; }
+    button { margin-top: 20px; width: 100%; background: #10b981; color: #fff; border: none; border-radius: 6px; padding: 11px; font-size: 15px; font-weight: 700; cursor: pointer; }
     button:hover { background: #059669; }
     button:disabled { background: #aaa; cursor: not-allowed; }
-    #result { margin-top: 20px; font-size: 14px; white-space: pre-wrap; word-break: break-all; }
-    #result.ok { color: #10b981; font-weight: 600; }
-    #result.err { color: #CC0000; font-weight: 600; }
-    .back { display: inline-block; margin-bottom: 20px; background: #CC0000; color: #fff; border-radius: 6px; padding: 8px 16px; font-size: 14px; font-weight: 600; text-decoration: none; }
-    .back:hover { background: #AA0000; }
-    p.note { color: #666; font-size: 12px; margin: 0 0 20px; }
+    #result { margin-top: 20px; font-size: 13px; font-family: monospace; white-space: pre-wrap; word-break: break-all; padding: 14px; border-radius: 6px; display: none; }
+    #result.ok  { background: #ecfdf5; color: #065f46; border: 1px solid #6ee7b7; display: block; }
+    #result.err { background: #fff1f2; color: #9f1239; border: 1px solid #fca5a5; display: block; }
   </style>
 </head>
 <body>
   <a class="back" href="/">← Dashboard</a>
   <div class="card">
     <h1>Short.io Link Test</h1>
-    <p class="note">Creates a cm1.au/&lt;slug&gt; → callmagnet.com.au/b/&lt;slug&gt; link via the Short.io API. Delete this page after testing.</p>
+    <p class="note">Creates cm1.au/&lt;slug&gt; → callmagnet.com.au/b/&lt;slug&gt; via Short.io API. Delete this page after testing.</p>
+
+    <label for="secretInput">Internal Secret</label>
+    <input id="secretInput" type="password" placeholder="Paste the INTERNAL_SECRET value" autocomplete="off">
+
     <label for="slugInput">Slug</label>
     <input id="slugInput" type="text" placeholder="e.g. arcane-fairies" autocomplete="off">
-    <button id="createBtn" onclick="createLink()">Create Short Link</button>
+
+    <button id="btn" onclick="createLink()">Create Short Link</button>
     <div id="result"></div>
   </div>
 
   <script>
-    const SUPABASE_URL    = 'https://iskvvnhacqdxybpmwuni.supabase.co';
-    const INTERNAL_SECRET = prompt('Enter Internal Secret:');
+    const SUPABASE_FN = 'https://iskvvnhacqdxybpmwuni.supabase.co/functions/v1/create-shortio-link-test';
 
     async function createLink() {
-      const slug = document.getElementById('slugInput').value.trim();
-      const resultEl = document.getElementById('result');
-      const btn = document.getElementById('createBtn');
-      if (!slug) { resultEl.className = 'err'; resultEl.textContent = 'Slug is required.'; return; }
-      if (!INTERNAL_SECRET) { resultEl.className = 'err'; resultEl.textContent = 'No internal secret — reload the page.'; return; }
+      const secret = document.getElementById('secretInput').value.trim();
+      const slug   = document.getElementById('slugInput').value.trim();
+      const result = document.getElementById('result');
+      const btn    = document.getElementById('btn');
+
+      result.className = '';
+      result.style.display = 'none';
+
+      if (!secret) { result.className = 'err'; result.textContent = 'Internal Secret is required.'; return; }
+      if (!slug)   { result.className = 'err'; result.textContent = 'Slug is required.'; return; }
 
       btn.disabled = true;
-      resultEl.className = '';
-      resultEl.textContent = 'Creating…';
+      btn.textContent = 'Creating…';
 
       try {
-        const res = await fetch(`${SUPABASE_URL}/functions/v1/create-shortio-link-test`, {
-          method: 'POST',
-          headers: {
-            'Content-Type':     'application/json',
-            'X-Internal-Secret': INTERNAL_SECRET,
-          },
-          body: JSON.stringify({ slug }),
+        const res  = await fetch(SUPABASE_FN, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Internal-Secret': secret },
+          body:    JSON.stringify({ slug }),
         });
         const data = await res.json();
         if (res.ok && data.shortURL) {
-          resultEl.className = 'ok';
-          resultEl.textContent = 'Created: ' + data.shortURL + '\n\nFull response:\n' + JSON.stringify(data.raw, null, 2);
+          result.className = 'ok';
+          result.textContent = 'SUCCESS\nshortURL: ' + data.shortURL + '\n\n' + JSON.stringify(data, null, 2);
         } else {
-          resultEl.className = 'err';
-          resultEl.textContent = 'Error: ' + (data.error || JSON.stringify(data)) + '\n\nFull response:\n' + JSON.stringify(data.raw || data, null, 2);
+          result.className = 'err';
+          result.textContent = 'ERROR (HTTP ' + res.status + ')\n\n' + JSON.stringify(data, null, 2);
         }
       } catch (err) {
-        resultEl.className = 'err';
-        resultEl.textContent = 'Network error: ' + err.message;
+        result.className = 'err';
+        result.textContent = 'Network error: ' + err.message;
       } finally {
         btn.disabled = false;
+        btn.textContent = 'Create Short Link';
       }
     }
   </script>
