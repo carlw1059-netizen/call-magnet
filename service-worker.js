@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
 // Last bumped: 26 Jun 2026 — bust cache to deliver #app background-color fix
-const CACHE_VERSION = 'callmagnet-v59-20260626';
+const CACHE_VERSION = 'callmagnet-v60-20260626';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
