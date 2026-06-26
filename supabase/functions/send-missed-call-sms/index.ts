@@ -184,8 +184,6 @@ Deno.serve(async (req) => {
           // which has the "Stop these texts" link wired to /u/<token>.
           if (client.middle_man_enabled && client.middle_man_slug) {
             try {
-              const unsubToken = crypto.randomUUID();
-
               // Insert into unsubscribe_tokens (best-effort — non-fatal)
               await fetch(`${SUPABASE_URL}/rest/v1/unsubscribe_tokens?on_conflict=client_id,phone_number`, {
                 method:  'POST',
@@ -196,21 +194,13 @@ Deno.serve(async (req) => {
                   Prefer:         'resolution=merge-duplicates,return=minimal',
                 },
                 body: JSON.stringify({
-                  token:        unsubToken,
+                  token:        crypto.randomUUID(),
                   client_id:    clientId,
                   phone_number: to,
                 }),
               });
-
-              // Append ?u=<token> to any Middle Man link in the message
-              finalMessage = message.replace(
-                /(https?:\/\/(?:callmagnet\.com\.au\/b\/|callmagnet\.s\.gy\/|cm1\.au\/)[^\s?]*)/,
-                (match: string) => match + '?u=' + unsubToken
-              );
-              console.log(`send-missed-call-sms: unsubscribe token generated for to=${to} token=${unsubToken.slice(0, 8)}…`);
             } catch (tokenErr) {
               console.warn(`send-missed-call-sms: token generation failed (non-fatal): ${tokenErr instanceof Error ? tokenErr.message : String(tokenErr)}`);
-              // finalMessage stays as message — SMS sends without token
             }
           } else if (!client.middle_man_enabled) {
             // MM OFF: no opt-out link in the message — append the tail directly.
