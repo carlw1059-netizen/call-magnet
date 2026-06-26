@@ -442,6 +442,9 @@ verify_jwt = false
 [functions.shortio-webhook]
 verify_jwt = false
 
+[functions.create-shortio-link-test]
+verify_jwt = false
+
 [functions.send-twilio-sms]
 verify_jwt = false
 
