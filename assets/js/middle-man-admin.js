@@ -75,7 +75,7 @@ async function loadManager() {
     var activeDemoId    = isAnyDemoActive ? clients.find(function(c) { return c.is_demo_account && c.demo_active; }).id : null;
     listEl.innerHTML = clients.map(function(c) { return buildClientCard(c, isAnyDemoActive, activeDemoId); }).join('');
 
-    // Wire edit buttons via delegation
+    // Wire edit/delete buttons via delegation
     listEl.addEventListener('click', function(ev) {
       var btn = ev.target.closest('.mma-edit-btn');
       if (btn) showEditView(btn.dataset.id);
@@ -83,6 +83,11 @@ async function loadManager() {
       if (lockBtn) lockUnlockClient(lockBtn);
       var demoToggle = ev.target.closest('.mma-demo-toggle');
       if (demoToggle && !demoToggle.disabled) toggleDemoActive(demoToggle);
+      var delBtn = ev.target.closest('.mma-delete-btn');
+      if (delBtn) {
+        var card = delBtn.closest('.mma-client-card');
+        _showDeleteOverlay(card, delBtn.dataset.id, delBtn.dataset.name);
+      }
     });
   } catch (err) {
     listEl.innerHTML = '<div class="mma-error">Failed to load: ' + _e(err.message) + '</div>';
@@ -126,7 +131,7 @@ function buildClientCard(c, isAnyDemoActive, activeDemoId) {
       '</div>';
   }
 
-  return '<div class="mma-client-card">' +
+  return '<div class="mma-client-card" style="position:relative;">' +
     '<div class="mma-client-header">' +
       '<div class="mma-client-left">' +
         '<span class="mma-client-name">' + _e(c.business_name) + '</span>' +
@@ -139,7 +144,53 @@ function buildClientCard(c, isAnyDemoActive, activeDemoId) {
       '</div>' +
     '</div>' +
     slugHtml +
+    '<div style="margin-top:10px;text-align:right;">' +
+      '<button class="mma-delete-btn" data-id="' + _e(c.id) + '" data-name="' + _e(c.business_name) + '" style="background:#dc2626;color:#fff;border:none;padding:6px 14px;border-radius:4px;font-size:13px;cursor:pointer;">Delete Client</button>' +
+    '</div>' +
   '</div>';
+}
+
+function _showDeleteOverlay(card, clientId, clientName) {
+  var overlay = document.createElement('div');
+  overlay.className = 'mma-delete-overlay';
+  overlay.style.cssText = 'position:absolute;inset:0;background:rgba(0,0,0,0.6);border-radius:inherit;z-index:50;display:flex;align-items:center;justify-content:center;';
+
+  var box = document.createElement('div');
+  box.style.cssText = 'background:#fff;border-radius:8px;padding:20px;width:260px;position:relative;font-family:inherit;box-shadow:0 4px 24px rgba(0,0,0,0.3);';
+
+  var closeBtn = document.createElement('button');
+  closeBtn.textContent = '✕';
+  closeBtn.style.cssText = 'position:absolute;top:8px;right:10px;background:none;border:none;font-size:16px;cursor:pointer;color:#555;line-height:1;';
+  closeBtn.addEventListener('click', function() { overlay.remove(); });
+
+  var msg = document.createElement('p');
+  msg.style.cssText = 'font-size:14px;font-weight:600;color:#111;margin:0 0 16px;';
+  msg.textContent = 'Delete ' + clientName + '? This cannot be undone.';
+
+  var btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:8px;justify-content:flex-end;';
+
+  var cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.style.cssText = 'background:#e5e7eb;color:#111;border:none;padding:7px 14px;border-radius:4px;font-size:13px;cursor:pointer;font-family:inherit;';
+  cancelBtn.addEventListener('click', function() { overlay.remove(); });
+
+  var confirmBtn = document.createElement('button');
+  confirmBtn.textContent = 'Confirm Delete';
+  confirmBtn.className = 'confirm-delete-btn';
+  confirmBtn.style.cssText = 'background:#dc2626;color:#fff;border:none;padding:7px 14px;border-radius:4px;font-size:13px;cursor:pointer;font-family:inherit;';
+  confirmBtn.addEventListener('click', function() {
+    console.log('[delete] client id:', clientId);
+    overlay.remove();
+  });
+
+  btnRow.appendChild(cancelBtn);
+  btnRow.appendChild(confirmBtn);
+  box.appendChild(closeBtn);
+  box.appendChild(msg);
+  box.appendChild(btnRow);
+  overlay.appendChild(box);
+  card.appendChild(overlay);
 }
 
 function mmaPasswordModal(actionText) {
