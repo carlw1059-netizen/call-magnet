@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const SHORTIO_API_KEY           = Deno.env.get('SHORTIO_API_KEY');
 
 const CORS = {
   'Access-Control-Allow-Origin':  'https://callmagnet.com.au',
@@ -31,7 +32,34 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // delete_client_cascade sets app.allow_client_delete and deletes all child
+    // Step 1: fetch shortio_link_id for this client
+    const clientRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/clients?id=eq.${client_id}&select=shortio_link_id`,
+      {
+        headers: {
+          apikey:        SUPABASE_SERVICE_ROLE_KEY,
+          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+      }
+    );
+    const clientRows = clientRes.ok ? await clientRes.json() : [];
+    const shortioLinkId: string | null = clientRows?.[0]?.shortio_link_id ?? null;
+
+    // Step 2: delete from Short.io if we have a link ID
+    if (shortioLinkId && SHORTIO_API_KEY) {
+      const shortioRes = await fetch(`https://api.short.io/links/${shortioLinkId}`, {
+        method: 'DELETE',
+        headers: { authorization: SHORTIO_API_KEY },
+      });
+      if (!shortioRes.ok) {
+        const detail = await shortioRes.text().catch(() => String(shortioRes.status));
+        console.error(`delete-client: Short.io delete failed (${shortioRes.status}): ${detail}`);
+      } else {
+        console.log(`delete-client: deleted Short.io link ${shortioLinkId} for client_id=${client_id}`);
+      }
+    }
+
+    // Step 3: delete_client_cascade sets app.allow_client_delete and deletes all child
     // rows + the client row in a single DB session, so the GUC persists across
     // all deletes and the prevent_client_delete trigger is satisfied.
     const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/delete_client_cascade`, {
