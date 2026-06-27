@@ -179,9 +179,38 @@ function _showDeleteOverlay(card, clientId, clientName) {
   confirmBtn.textContent = 'Confirm Delete';
   confirmBtn.className = 'confirm-delete-btn';
   confirmBtn.style.cssText = 'background:#dc2626;color:#fff;border:none;padding:7px 14px;border-radius:4px;font-size:13px;cursor:pointer;font-family:inherit;';
-  confirmBtn.addEventListener('click', function() {
-    console.log('[delete] client id:', clientId);
-    overlay.remove();
+  var errMsg = document.createElement('div');
+  errMsg.style.cssText = 'font-size:13px;color:#dc2626;margin-top:10px;display:none;';
+
+  confirmBtn.addEventListener('click', async function() {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Deleting…';
+    errMsg.style.display = 'none';
+
+    try {
+      var res = await fetch('https://iskvvnhacqdxybpmwuni.supabase.co/functions/v1/delete-client', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client_id: clientId }),
+      });
+      var data = await res.json().catch(function() { return {}; });
+
+      if (res.ok && data.success === true) {
+        var parentCard = overlay.closest('.mma-client-card');
+        if (parentCard) {
+          parentCard.remove();
+        } else {
+          overlay.remove();
+        }
+      } else {
+        throw new Error(data.error || ('Server error ' + res.status));
+      }
+    } catch (err) {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Confirm Delete';
+      errMsg.textContent = err instanceof Error ? err.message : String(err);
+      errMsg.style.display = 'block';
+    }
   });
 
   btnRow.appendChild(cancelBtn);
@@ -189,6 +218,7 @@ function _showDeleteOverlay(card, clientId, clientName) {
   box.appendChild(closeBtn);
   box.appendChild(msg);
   box.appendChild(btnRow);
+  box.appendChild(errMsg);
   overlay.appendChild(box);
   card.appendChild(overlay);
 }
