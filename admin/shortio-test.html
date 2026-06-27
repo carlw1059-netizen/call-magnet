@@ -6,32 +6,32 @@
   <title>Short.io + SMS Test</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #F5F5F5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; color: #000000; padding: 16px; }
-    a.back { display: inline-block; margin-bottom: 14px; background: #CC0000; color: #fff; border-radius: 6px; padding: 6px 14px; font-size: 13px; font-weight: 600; text-decoration: none; }
+    body { background: #F5F5F5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; color: #000000; padding: 20px; }
+    a.back { display: inline-block; margin-bottom: 16px; background: #CC0000; color: #fff; border-radius: 6px; padding: 7px 15px; font-size: 14px; font-weight: 600; text-decoration: none; }
     a.back:hover { background: #AA0000; }
-    .card { background: #ffffff; border-radius: 10px; border: 1px solid #000000; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 0 rgba(6,214,160,0.4); padding: 18px; max-width: 540px; }
-    .section { padding: 0 0 16px; }
-    .section + .section { border-top: 1px solid #e5e7eb; padding-top: 16px; }
-    h2 { color: #10b981; font-size: 13px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 10px; }
-    label { display: block; color: #10b981; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 4px; margin-top: 10px; }
+    .card { background: #ffffff; border-radius: 10px; border: 1px solid #000000; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 0 rgba(6,214,160,0.4); padding: 22px; max-width: 540px; }
+    .section { padding: 0 0 20px; }
+    .section + .section { border-top: 1px solid #e5e7eb; padding-top: 20px; }
+    h2 { color: #10b981; font-size: 13px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 12px; }
+    label { display: block; color: #10b981; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 4px; margin-top: 12px; }
     label:first-of-type { margin-top: 0; }
-    input[type=text], textarea { width: 100%; border: 1px solid #ccc; border-radius: 6px; padding: 7px 10px; font-size: 13px; color: #000; background: #fff; font-family: inherit; }
+    input[type=text], textarea { width: 100%; border: 1px solid #ccc; border-radius: 6px; padding: 8px 10px; font-size: 14px; color: #000; background: #fff; font-family: inherit; }
     input[readonly], textarea[readonly] { background: #f9fafb; color: #374151; }
     input:focus, textarea:focus { outline: 2px solid #10b981; border-color: #10b981; }
-    textarea { resize: vertical; min-height: 68px; line-height: 1.5; }
-    button.primary { margin-top: 10px; width: 100%; background: #10b981; color: #fff; border: none; border-radius: 6px; padding: 8px; font-size: 13px; font-weight: 700; cursor: pointer; }
+    textarea { resize: vertical; min-height: 74px; line-height: 1.5; }
+    button.primary { margin-top: 12px; width: 100%; background: #10b981; color: #fff; border: none; border-radius: 6px; padding: 9px; font-size: 14px; font-weight: 700; cursor: pointer; }
     button.primary:hover { background: #059669; }
     button.primary:disabled { background: #aaa; cursor: not-allowed; }
-    .tag { display: inline-block; margin-top: 7px; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .tag { display: inline-block; margin-top: 8px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
     .tag.success { background: #d1fae5; color: #065f46; }
     .tag.error   { background: #fee2e2; color: #991b1b; }
-    .char-count { text-align: right; font-size: 11px; color: #10b981; font-weight: 600; margin-top: 4px; }
+    .char-count { text-align: right; font-size: 12px; color: #10b981; font-weight: 600; margin-top: 4px; }
     .char-count.over { color: #CC0000; }
-    .starters { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
-    .starter-btn { background: #f0fdf4; border: 1px solid #6ee7b7; border-radius: 6px; padding: 6px 9px; font-size: 12px; color: #065f46; cursor: pointer; text-align: left; line-height: 1.4; }
+    .starters { display: flex; flex-direction: column; gap: 6px; margin-top: 9px; }
+    .starter-btn { background: #f0fdf4; border: 1px solid #6ee7b7; border-radius: 6px; padding: 7px 10px; font-size: 12px; color: #065f46; cursor: pointer; text-align: left; line-height: 1.4; }
     .starter-btn:hover { background: #d1fae5; }
-    .preview-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 11px; margin-top: 6px; font-size: 13px; line-height: 1.6; color: #000; word-break: break-word; min-height: 50px; }
-    .preview-meta { margin-top: 6px; font-size: 11px; color: #6b7280; }
+    .preview-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-top: 7px; font-size: 14px; line-height: 1.6; color: #000; word-break: break-word; min-height: 54px; }
+    .preview-meta { margin-top: 7px; font-size: 12px; color: #6b7280; }
     .preview-meta span { color: #10b981; font-weight: 600; }
   </style>
 </head>
