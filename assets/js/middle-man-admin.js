@@ -144,7 +144,7 @@ function buildClientCard(c, isAnyDemoActive, activeDemoId) {
       '</div>' +
     '</div>' +
     slugHtml +
-    '<div style="margin-top:4px;text-align:right;">' +
+    '<div style="margin-top:2px;text-align:right;">' +
       '<button class="mma-delete-btn" data-id="' + _e(c.id) + '" data-name="' + _e(c.business_name) + '" style="background:#dc2626;color:#fff;border:none;padding:8px 14px;line-height:1.4;border-radius:4px;font-size:13px;cursor:pointer;">Delete Client</button>' +
     '</div>' +
   '</div>';
@@ -178,7 +178,7 @@ function _showDeleteOverlay(card, clientId, clientName) {
   var confirmBtn = document.createElement('button');
   confirmBtn.textContent = 'Confirm Delete';
   confirmBtn.className = 'confirm-delete-btn';
-  confirmBtn.style.cssText = 'background:#8b0000;color:#fff;border:none;padding:7px 14px;border-radius:4px;font-size:13px;cursor:pointer;font-family:inherit;';
+  confirmBtn.style.cssText = 'background:#AD1515;color:#fff;border:none;padding:7px 14px;border-radius:4px;font-size:13px;cursor:pointer;font-family:inherit;';
   var errMsg = document.createElement('div');
   errMsg.style.cssText = 'font-size:13px;color:#dc2626;margin-top:10px;display:none;';
 
