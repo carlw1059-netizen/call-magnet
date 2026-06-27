@@ -523,6 +523,7 @@ function prefillSmsFromVertical() {
   const cfg = currentVerticalConfig();
   if (!cfg) return;
   const ta = document.getElementById('smsTemplateInput');
+  if (!ta) return;
   ta.value = substituteLink(cfg.default_customer_sms || '');
   renderExampleButtons(cfg);
   updateSmsCounter();
@@ -539,6 +540,7 @@ function renderExampleButtons(cfg) {
     btn.addEventListener('click', () => {
       const idx = Number(btn.getAttribute('data-idx'));
       const ta = document.getElementById('smsTemplateInput');
+      if (!ta) return;
       ta.value = substituteLink(examples[idx] || '');
       smsDirty = false;
       updateSmsCounter();
@@ -548,6 +550,7 @@ function renderExampleButtons(cfg) {
 
 function updateSmsCounter() {
   const ta = document.getElementById('smsTemplateInput');
+  if (!ta) return;
   const body = ta.value || '';
   const len = body.length;
   const el = document.getElementById('smsCounter');
@@ -576,7 +579,9 @@ function onBookingUrlChanged() {
   const cfg = currentVerticalConfig();
   if (!cfg) return;
   // Re-apply the default with the new URL substituted
-  document.getElementById('smsTemplateInput').value = substituteLink(cfg.default_customer_sms || '');
+  const smsTaUrl = document.getElementById('smsTemplateInput');
+  if (!smsTaUrl) return;
+  smsTaUrl.value = substituteLink(cfg.default_customer_sms || '');
   updateSmsCounter();
 }
 
@@ -653,7 +658,7 @@ async function submitForm() {
   const avg_raw       = document.getElementById('avgJobValueInput').value.trim();
   const avg_job_value = avg_raw ? Number(avg_raw) : null;
   const booking_url = document.getElementById('bookingUrlInput').value.trim();
-  const customer_sms_template = (document.getElementById('smsTemplateInput').value || '').trim();
+  const customer_sms_template = (document.getElementById('smsTemplateInput')?.value || '').trim();
   const free_period_days = Math.max(0, parseInt(document.getElementById('freePeriodDaysInput').value || '0', 10) || 0);
   const sms_included = parseInt(document.getElementById('smsIncludedSelect').value, 10);
 
@@ -986,8 +991,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (c.avg_job_value != null) document.getElementById('avgJobValueInput').value   = String(c.avg_job_value);
         if (c.booking_url)         document.getElementById('bookingUrlInput').value     = c.booking_url;
         if (c.customer_sms_template) {
-          document.getElementById('smsTemplateInput').value = c.customer_sms_template;
-          smsDirty = true;
+          const smsTaLoad = document.getElementById('smsTemplateInput');
+          if (smsTaLoad) { smsTaLoad.value = c.customer_sms_template; smsDirty = true; }
         }
         mmEnabledOn = c.middle_man_enabled !== false;
         document.getElementById('mmEnabledToggle').classList.toggle('on', mmEnabledOn);
@@ -1007,13 +1012,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     prefillAvgFromVertical();
     smsDirty = false;
     prefillSmsFromVertical();
-  });
-
-  // SMS textarea: track manual edits + live char counter
-  const smsTa = document.getElementById('smsTemplateInput');
-  smsTa.addEventListener('input', () => {
-    smsDirty = true;
-    updateSmsCounter();
   });
 
   // Booking URL blur: re-substitute [LINK] in SMS if owner hasn't edited yet
