@@ -145,7 +145,7 @@ function buildClientCard(c, isAnyDemoActive, activeDemoId) {
     '</div>' +
     slugHtml +
     '<div style="margin-top:2px;text-align:right;">' +
-      '<button class="mma-delete-btn" data-id="' + _e(c.id) + '" data-name="' + _e(c.business_name) + '" style="background:#dc2626;color:#fff;border:none;padding:8px 14px;line-height:1.4;border-radius:4px;font-size:13px;cursor:pointer;">Delete Client</button>' +
+      '<button class="mma-delete-btn" data-id="' + _e(c.id) + '" data-name="' + _e(c.business_name) + '" style="background:#AD1515;color:#fff;border:none;padding:8px 14px;line-height:1.4;border-radius:4px;font-size:13px;cursor:pointer;">Delete Client</button>' +
     '</div>' +
   '</div>';
 }
