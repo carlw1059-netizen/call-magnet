@@ -547,6 +547,10 @@ verify_jwt = false
 [functions.log-click]
 verify_jwt = false
 
+# delete-client is called from the admin page which carries no Supabase JWT.
+[functions.delete-client]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
