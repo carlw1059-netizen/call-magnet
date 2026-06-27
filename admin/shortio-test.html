@@ -76,7 +76,7 @@
     <div class="section">
       <h2>Step 4: Send &amp; Save</h2>
       <label for="toNumber">Send to Number</label>
-      <input type="text" id="toNumber" placeholder="e.g. 0412 345 678" autocomplete="off">
+      <input type="text" id="toNumber" placeholder="e.g. 0412 345 678" autocomplete="off" oninput="this.value=this.value.replace(/\s+/g,'').replace(/^0/,'+61')">
       <button class="primary" id="sendBtn" onclick="sendTestSms()">Send Test SMS</button>
       <div id="sendTag"></div>
       <button class="primary" style="background:#aaa;cursor:not-allowed;margin-top:8px;" onclick="alert('Coming soon')">Save to System</button>
