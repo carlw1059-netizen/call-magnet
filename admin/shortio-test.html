@@ -156,6 +156,7 @@
       tag.innerHTML = '';
       if (!to)      { tag.innerHTML = '<span class="tag error">✗ Phone number is required.</span>'; return; }
       if (!slug)    { tag.innerHTML = '<span class="tag error">✗ Slug is required (Step 1).</span>'; return; }
+      if (!shortLink) { tag.innerHTML = '<span class="tag error">✗ Complete Step 1 first — short link not created yet.</span>'; return; }
       if (!message || message === '—') { tag.innerHTML = '<span class="tag error">✗ SMS message is empty.</span>'; return; }
 
       btn.disabled = true;
