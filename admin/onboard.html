@@ -296,118 +296,135 @@
 
     <div class="error" id="errorBox"></div>
 
-    <div class="field">
-      <label>Vertical</label>
-      <select id="verticalSelect"><option value="">Loading…</option></select>
-      <div class="hint">Determines tile template + default customer-spend</div>
-    </div>
+    <div class="form-grid">
 
-    <div class="field">
-      <label>Pricing Package</label>
-      <select id="pricingPackageSelect" required>
-        <option value="">Select a package…</option>
-        <option value="restaurant">Restaurant — $499 setup + $249/month + 75 SMS free</option>
-        <option value="hairdresser">Hairdresser/Barber — $249 setup + $99/month + 50 SMS free</option>
-        <option value="free_trial">Free trial only — 25 SMS free</option>
-      </select>
-    </div>
+      <!-- Left column -->
+      <div class="form-col">
 
-    <div class="field">
-      <label>SMS included <span class="opt">(overrides package default)</span></label>
-      <select id="smsIncludedSelect">
-        <option value="25">25</option>
-        <option value="50">50</option>
-        <option value="75">75</option>
-        <option value="100">100</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label>Business name</label>
-      <input type="text" id="businessNameInput" placeholder="e.g. Brunswick Barbershop" autocomplete="organization" />
-    </div>
-
-    <div class="field">
-      <label>Contact person's name</label>
-      <input type="text" id="ownerNameInput" placeholder="e.g. Jane Smith" autocomplete="name" />
-      <div class="hint">Full name of the owner or primary contact</div>
-    </div>
-
-    <div class="field">
-      <label>Owner email</label>
-      <input type="email" id="ownerEmailInput" placeholder="owner@example.com" autocomplete="email" />
-    </div>
-
-    <div class="field">
-      <label>Initial password</label>
-      <div style="position:relative;">
-        <input type="password" id="initialPasswordInput" placeholder="Set client's login password" minlength="8" autocomplete="new-password" style="padding-right:48px;" />
-        <button type="button" id="togglePasswordBtn" onclick="togglePasswordVisibility()" style="position:absolute;top:50%;right:10px;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:13px;color:#06D6A0;padding:4px;line-height:1;font-family:inherit;font-weight:600;">Show</button>
-      </div>
-      <div class="hint">Minimum 8 characters — shown in welcome email. Client can change on first login.</div>
-    </div>
-
-    <div class="field">
-      <label>Owner mobile</label>
-      <input type="tel" id="ownerPhoneInput" placeholder="04xx xxx xxx" autocomplete="tel" />
-      <div class="hint">Auto-converts to +614XXXXXXXX</div>
-    </div>
-
-    <div class="field">
-      <label>Twilio number</label>
-      <input type="tel" id="twilioNumberInput" placeholder="04xx xxx xxx" />
-      <div class="hint">The Twilio AU number bought for this client</div>
-    </div>
-
-    <div class="field">
-      <label>ABN <span class="opt">(optional)</span></label>
-      <input type="text" id="abnInput" placeholder="11 digits" inputmode="numeric" maxlength="11" />
-    </div>
-
-    <div class="field">
-      <label>Average customer spend ($AUD)</label>
-      <input type="number" id="avgJobValueInput" min="1" step="1" placeholder="80" />
-      <div class="hint">Pre-filled from vertical default — adjust if needed</div>
-    </div>
-
-    <div id="bookingUrlRow">
-    <div class="field">
-      <label>Booking URL</label>
-      <input type="url" id="bookingUrlInput" placeholder="https://www.opentable.com/… or Fresha / SevenRooms link" />
-      <div class="hint">Where should "Book a table" send callers? Paste their OpenTable / SevenRooms / Fresha link</div>
-    </div>
-    </div>
-
-    <!-- ── Middle Man section ─────────────────────────────────────────── -->
-    <div class="mm-section">
-
-      <!-- Live Middle Man URL preview — updates on every business name keypress -->
-      <div id="mmPreviewWrap" style="margin-bottom:0.75rem;padding:10px 12px;background:rgba(6,214,160,0.08);border:1px solid rgba(6,214,160,0.35);border-radius:8px;display:none">
-        <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent);margin-bottom:4px">Middle Man page will be</div>
-        <div id="mmPreviewUrl" style="font-size:13px;color:#06A07A;font-family:'SF Mono',Menlo,monospace;word-break:break-all">callmagnet.com.au/b/…</div>
-      </div>
-
-      <!-- Middle Man toggle -->
-      <div class="toggle-row" style="border-top:none;padding-top:0;margin-top:0;margin-bottom:0.75rem">
-        <div>
-          <div class="toggle-label">Middle Man page</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">ON → callers get the smart page &amp; SMS link goes to it. OFF → SMS goes straight to booking URL.</div>
+        <div class="field">
+          <label>Vertical</label>
+          <select id="verticalSelect"><option value="">Loading…</option></select>
+          <div class="hint">Determines tile template + default customer-spend</div>
         </div>
-        <div class="toggle-switch on" id="mmEnabledToggle" onclick="toggleMmEnabled()"></div>
-      </div>
 
-    </div>
+        <div class="field">
+          <label>Pricing Package</label>
+          <select id="pricingPackageSelect" required>
+            <option value="">Select a package…</option>
+            <option value="restaurant">Restaurant — $499 setup + $249/month + 75 SMS free</option>
+            <option value="hairdresser">Hairdresser/Barber — $249 setup + $99/month + 50 SMS free</option>
+            <option value="free_trial">Free trial only — 25 SMS free</option>
+          </select>
+        </div>
 
-    <div class="field">
-      <label>Free period (days)</label>
-      <input type="number" id="freePeriodDaysInput" min="0" value="0" placeholder="0 = billing starts immediately" />
-      <div class="hint">Number of free days before billing starts. 0 = charge immediately.</div>
-    </div>
+        <div class="field">
+          <label>SMS included <span class="opt">(overrides package default)</span></label>
+          <select id="smsIncludedSelect">
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="75">75</option>
+            <option value="100">100</option>
+          </select>
+        </div>
 
-    <div class="toggle-row">
-      <div class="toggle-label">Send login SMS to client</div>
-      <div class="toggle-switch on" id="sendSmsToggle" onclick="toggleSms()"></div>
-    </div>
+        <div class="field">
+          <label>Business name</label>
+          <input type="text" id="businessNameInput" placeholder="e.g. Brunswick Barbershop" autocomplete="organization" />
+        </div>
+
+        <div class="field">
+          <label>Contact person's name</label>
+          <input type="text" id="ownerNameInput" placeholder="e.g. Jane Smith" autocomplete="name" />
+          <div class="hint">Full name of the owner or primary contact</div>
+        </div>
+
+        <div class="field">
+          <label>Owner email</label>
+          <input type="email" id="ownerEmailInput" placeholder="owner@example.com" autocomplete="email" />
+        </div>
+
+        <div class="field">
+          <label>Initial password</label>
+          <div style="position:relative;">
+            <input type="password" id="initialPasswordInput" placeholder="Set client's login password" minlength="8" autocomplete="new-password" style="padding-right:48px;" />
+            <button type="button" id="togglePasswordBtn" onclick="togglePasswordVisibility()" style="position:absolute;top:50%;right:10px;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:13px;color:#06D6A0;padding:4px;line-height:1;font-family:inherit;font-weight:600;">Show</button>
+          </div>
+          <div class="hint">Minimum 8 characters — shown in welcome email. Client can change on first login.</div>
+        </div>
+
+      </div><!-- /form-col left -->
+
+      <!-- Centre divider -->
+      <div class="form-col-divider"></div>
+
+      <!-- Right column -->
+      <div class="form-col">
+
+        <div class="field">
+          <label>Owner mobile</label>
+          <input type="tel" id="ownerPhoneInput" placeholder="04xx xxx xxx" autocomplete="tel" />
+          <div class="hint">Auto-converts to +614XXXXXXXX</div>
+        </div>
+
+        <div class="field">
+          <label>Twilio number</label>
+          <input type="tel" id="twilioNumberInput" placeholder="04xx xxx xxx" />
+          <div class="hint">The Twilio AU number bought for this client</div>
+        </div>
+
+        <div class="field">
+          <label>ABN <span class="opt">(optional)</span></label>
+          <input type="text" id="abnInput" placeholder="11 digits" inputmode="numeric" maxlength="11" />
+        </div>
+
+        <div class="field">
+          <label>Average customer spend ($AUD)</label>
+          <input type="number" id="avgJobValueInput" min="1" step="1" placeholder="80" />
+          <div class="hint">Pre-filled from vertical default — adjust if needed</div>
+        </div>
+
+        <div id="bookingUrlRow">
+        <div class="field">
+          <label>Booking URL</label>
+          <input type="url" id="bookingUrlInput" placeholder="https://www.opentable.com/… or Fresha / SevenRooms link" />
+          <div class="hint">Where should "Book a table" send callers? Paste their OpenTable / SevenRooms / Fresha link</div>
+        </div>
+        </div>
+
+        <!-- ── Middle Man section ─────────────────────────────────────────── -->
+        <div class="mm-section">
+
+          <!-- Live Middle Man URL preview — updates on every business name keypress -->
+          <div id="mmPreviewWrap" style="margin-bottom:0.75rem;padding:10px 12px;background:rgba(6,214,160,0.08);border:1px solid rgba(6,214,160,0.35);border-radius:8px;display:none">
+            <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent);margin-bottom:4px">Middle Man page will be</div>
+            <div id="mmPreviewUrl" style="font-size:13px;color:#06A07A;font-family:'SF Mono',Menlo,monospace;word-break:break-all">callmagnet.com.au/b/…</div>
+          </div>
+
+          <!-- Middle Man toggle -->
+          <div class="toggle-row" style="border-top:none;padding-top:0;margin-top:0;margin-bottom:0.75rem">
+            <div>
+              <div class="toggle-label">Middle Man page</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px">ON → callers get the smart page &amp; SMS link goes to it. OFF → SMS goes straight to booking URL.</div>
+            </div>
+            <div class="toggle-switch on" id="mmEnabledToggle" onclick="toggleMmEnabled()"></div>
+          </div>
+
+        </div>
+
+        <div class="field">
+          <label>Free period (days)</label>
+          <input type="number" id="freePeriodDaysInput" min="0" value="0" placeholder="0 = billing starts immediately" />
+          <div class="hint">Number of free days before billing starts. 0 = charge immediately.</div>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-label">Send login SMS to client</div>
+          <div class="toggle-switch on" id="sendSmsToggle" onclick="toggleSms()"></div>
+        </div>
+
+      </div><!-- /form-col right -->
+
+    </div><!-- /form-grid -->
 
     <button class="submit" id="submitBtn" onclick="submitForm()">Create Client</button>
   </div>
