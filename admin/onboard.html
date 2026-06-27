@@ -26,7 +26,12 @@
     --muted: #111111;
     --glass: #FFFFFF;
   }
-  .wrap { max-width: 520px; margin: 0 auto; }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1px 1fr; gap: 0; }
+  .form-col { padding: 0 20px; }
+  .form-col:first-child { padding-left: 0; }
+  .form-col:last-child { padding-right: 0; }
+  .form-col-divider { background: #000000; width: 1px; align-self: stretch; }
   .topbar {
     display: flex; justify-content: space-between; align-items: center;
     padding: 0.5rem 0 1.5rem;
@@ -76,7 +81,7 @@
     margin-bottom: 18px;
   }
   h1 {
-    font-size: 20px; font-weight: 700; color: #10b981;
+    font-size: 13px; font-weight: 700; color: #000000;
     letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.4rem;
   }
   .subtitle {
@@ -84,7 +89,7 @@
   }
   .field { margin-bottom: 1rem; }
   .field label {
-    display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+    display: block; font-size: 13px; font-weight: 700; letter-spacing: 0.06em;
     text-transform: uppercase; color: #10b981; margin-bottom: 6px;
   }
   .field label .opt { color: var(--muted); font-weight: 500; text-transform: none; letter-spacing: 0; }
@@ -166,7 +171,7 @@
   .toggle-switch.on::after { left: 21px; }
   .submit {
     width: 100%; padding: 12px; font-size: 15px; font-weight: 700;
-    background: #111111; color: #FFFFFF; border: none; border-radius: 8px;
+    background: #10b981; color: #000000; border: none; border-radius: 8px;
     cursor: pointer; font-family: inherit; letter-spacing: 0.02em;
     margin-top: 0.5rem;
     transition: background 0.12s, transform 0.08s;
