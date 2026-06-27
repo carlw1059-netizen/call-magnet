@@ -693,7 +693,6 @@ async function submitForm() {
   if (!twilio_number || !/^\+614\d{8}$/.test(twilio_number)) return showError('Twilio number must be a valid AU mobile (+614XXXXXXXX).');
   if (abn && abn.length !== 11) return showError('ABN must be 11 digits.');
   if (!mmEnabledOn && (!booking_url || !/^https?:\/\//.test(booking_url))) return showError('Booking URL must start with https://');
-  if (!customer_sms_template) return showError('Customer SMS message is required.');
   if (/callmagnet\.com\.au/i.test(customer_sms_template)) return showError('Customer SMS must not mention callmagnet.com.au (customer-facing — brand stays invisible).');
   if (mmEnabledOn) {
     if (customer_sms_template.length > 160) return showError('SMS body too long — must be 160 chars or fewer (Middle Man ON: no tail appended).');
@@ -797,7 +796,7 @@ async function submitForm() {
       btn.textContent = 'Create Client';
       return;
     }
-    showSuccess(data, owner_phone);
+    window.location.href = 'https://callmagnet.com.au/admin/middle-man.html';
   } catch (e) {
     showError('Network error: ' + (e?.message || e));
     btn.disabled = false;
