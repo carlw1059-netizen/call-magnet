@@ -451,7 +451,9 @@ function renderEditBody(client) {
       '<div id="mmaSmsSectionBody" style="display:none;margin-top:14px;">' +
 
         // SHORT LINK
-        '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:6px;">Short Link</div>' +
+        '<div style="font-size:13px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#000;margin-bottom:12px;">Step 1: Create Short Link</div>' +
+        '<div style="font-size:13px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:4px;">Client Slug</div>' +
+        '<input type="text" value="' + _e(client.middle_man_slug || '') + '" readonly style="width:100%;border:1px solid #ccc;border-radius:6px;padding:8px 10px;font-size:14px;color:#000;background:#f9fafb;font-family:inherit;font-weight:600;box-sizing:border-box;" />' +
         (_smsShortLink
           ? '<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">' +
               '<input type="text" value="' + _e(_smsShortLink) + '" readonly style="flex:1;border:1px solid #ccc;border-radius:6px;padding:8px 10px;font-size:14px;background:#f9fafb;color:#000;font-family:inherit;" />' +
