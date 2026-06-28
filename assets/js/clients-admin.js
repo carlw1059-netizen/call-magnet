@@ -22,7 +22,7 @@ function _e(s) {
 // ─── Update header count ──────────────────────────────────────────────────────
 function caSetCount(n) {
   var el = document.getElementById('caCount');
-  if (el) el.textContent = '· ' + n;
+  if (el) el.textContent = '';
 }
 
 // ─── Load clients + SMS counts ────────────────────────────────────────────────
