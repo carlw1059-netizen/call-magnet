@@ -485,7 +485,7 @@ function renderEditBody(client) {
         '<div id="mmaSmsTestTag" style="margin-top:8px;font-size:12px;font-weight:700;"></div>' +
         '<button id="mmaSmsSaveBtn" disabled style="margin-top:8px;width:100%;background:#aaa;color:#fff;border:none;border-radius:6px;padding:9px;font-size:14px;font-weight:700;cursor:not-allowed;">Save to System</button>' +
         '<div id="mmaSmsSaveMsg" style="font-size:13px;font-weight:600;margin-top:8px;display:none;"></div>' +
-
+        '</div>' +
       '</div>' +
     '</div>';
 
