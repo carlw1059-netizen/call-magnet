@@ -532,25 +532,6 @@ function renderEditBody(client) {
       '</div>' +
     '</div>';
 
-  // ── 7. SMS Preview
-  var smsTemplate  = _editClientData.customer_sms_template || '';
-  var shortioLink  = _editClientData.shortio_link || '';
-  var twilioNum    = _editClientData.twilio_number || '';
-  var smsBody      = smsTemplate
-    .replace(/\{link\}/gi, shortioLink || '[LINK]')
-    .replace(/\[LINK\]/g,  shortioLink || '[LINK]');
-  var smsLen       = smsBody.length;
-  var smsCountCol  = smsLen > 160 ? '#CC0000' : '#06D6A0';
-  var smsSection   =
-    '<div class="mma-section">' +
-      '<div class="mma-section-label">SMS Preview</div>' +
-      '<div style="background:#F8F8F8;border:1px solid #000000;border-radius:7px;padding:14px 16px;margin-bottom:12px;">' +
-        '<div style="font-size:12px;font-weight:700;color:#06D6A0;margin-bottom:10px;">' + _e(twilioNum) + ' · ' + _e(client.business_name || '') + '</div>' +
-        '<div style="background:#E8E8E8;border-radius:14px 14px 14px 4px;padding:10px 14px;font-size:14px;color:#111111;line-height:1.5;word-break:break-word;max-width:85%;">' + _e(smsBody) + '</div>' +
-        '<div style="font-size:12px;font-weight:600;color:' + smsCountCol + ';margin-top:8px;">' + smsLen + ' / 160 characters</div>' +
-      '</div>' +
-    '</div>';
-
   // ── 8. Notification Messages
   var notifSection = buildNotifSection(buttons);
 
@@ -567,7 +548,7 @@ function renderEditBody(client) {
     : '';
   var formWrapStart = lockedDemo ? '<div style="opacity:0.6;pointer-events:none;">' : '';
   var formWrapEnd   = lockedDemo ? '</div>' : '';
-  content.innerHTML = heading + lockedBanner + formWrapStart + toggleSection + slugSection + smsSection + clientLoginSection + promoSection + logoSection + mediaSection + btnsSection + notifSection + previewHtml + formWrapEnd;
+  content.innerHTML = heading + lockedBanner + formWrapStart + toggleSection + slugSection + clientLoginSection + promoSection + logoSection + mediaSection + btnsSection + notifSection + previewHtml + formWrapEnd;
 
   // ── Wire event listeners ─────────────────────────────────────────────────────
   document.getElementById('mmaLogoUploadBtn').addEventListener('click', uploadLogo);
