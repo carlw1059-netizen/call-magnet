@@ -1668,6 +1668,13 @@ async function createShortioLink() {
   var slug = (_editClientData.middle_man_slug || '').trim();
   if (!slug) { alert('Set and save a slug first.'); return; }
 
+  var slugInput = document.getElementById('mmaSlugInput');
+  if (slugInput && slugInput.value.trim() !== slug) {
+    var tag = document.getElementById('mmaSmsTestTag');
+    if (tag) { tag.textContent = '✗ Save your slug first'; tag.style.color = '#CC0000'; }
+    return;
+  }
+
   var btn = document.getElementById('mmaCreateShortLinkBtn');
   if (btn) { btn.disabled = true; btn.textContent = 'Creating…'; }
 
