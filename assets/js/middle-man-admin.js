@@ -471,26 +471,19 @@ function renderEditBody(client) {
           '<button class="mma-sms-starter" style="background:#f0fdf4;border:1px solid #6ee7b7;border-radius:6px;padding:7px 10px;font-size:12px;color:#065f46;cursor:pointer;text-align:left;line-height:1.4;font-family:inherit;">Hi — couldn\'t reach the phone. Reserve here: [LINK]</button>' +
           '<button class="mma-sms-starter" style="background:#f0fdf4;border:1px solid #6ee7b7;border-radius:6px;padding:7px 10px;font-size:12px;color:#065f46;cursor:pointer;text-align:left;line-height:1.4;font-family:inherit;">Hi! Sorry I missed your call. Tap to book: [LINK]</button>' +
         '</div>' +
-        '<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;" />' +
-
         '</div>' +
         '<div style="border-top:1px solid #e5e7eb;padding-top:20px;margin-top:20px;">' +
         '<div style="font-size:13px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#000;margin-bottom:12px;">Step 3: SMS Preview</div>' +
         '<div id="mmaSmsPreview" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px;font-size:14px;line-height:1.6;color:#000;word-break:break-word;min-height:54px;font-weight:600;">—</div>' +
-        '<div id="mmaSmsPreviewCount" style="font-size:12px;color:#6b7280;margin-top:7px;"></div>' +
-        '<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;" />' +
-
-        // SEND TEST SMS
-        '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:6px;">Send Test SMS</div>' +
-        '<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">' +
-          '<input type="text" id="mmaSmsTestTo" placeholder="+61412345678" style="flex:1;border:1px solid #ccc;border-radius:6px;padding:8px 10px;font-size:14px;color:#000;background:#fff;font-family:inherit;" />' +
-          '<button id="mmaSmsTestBtn" style="background:#111;color:#fff;border:none;border-radius:6px;padding:9px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">Send test</button>' +
+        '<div style="margin-top:7px;font-size:12px;color:#6b7280;">Characters: <span id="mmaSmsPreviewCount" style="color:#10b981;font-weight:600;">0</span></div>' +
         '</div>' +
-        '<div id="mmaSmsTestTag" style="font-size:13px;margin-bottom:4px;"></div>' +
-        '<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;" />' +
-
-        // SAVE
-        '<button id="mmaSmsSaveBtn" style="width:100%;background:#10b981;color:#000;border:none;border-radius:6px;padding:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Save to system</button>' +
+        '<div style="border-top:1px solid #e5e7eb;padding-top:20px;margin-top:20px;">' +
+        '<div style="font-size:13px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#000;margin-bottom:12px;">Step 4: Send &amp; Save</div>' +
+        '<div style="font-size:13px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:4px;">Send to Number</div>' +
+        '<input type="text" id="mmaSmsTestTo" placeholder="+61412345678" style="width:100%;border:1px solid #ccc;border-radius:6px;padding:8px 10px;font-size:14px;color:#000;background:#fff;font-family:inherit;font-weight:600;box-sizing:border-box;" />' +
+        '<button id="mmaSmsTestBtn" style="margin-top:12px;width:100%;background:#10b981;color:#fff;border:none;border-radius:6px;padding:9px;font-size:14px;font-weight:700;cursor:pointer;">Send Test SMS</button>' +
+        '<div id="mmaSmsTestTag" style="margin-top:8px;font-size:12px;font-weight:700;"></div>' +
+        '<button id="mmaSmsSaveBtn" disabled style="margin-top:8px;width:100%;background:#aaa;color:#fff;border:none;border-radius:6px;padding:9px;font-size:14px;font-weight:700;cursor:not-allowed;">Save to System</button>' +
         '<div id="mmaSmsSaveMsg" style="font-size:13px;font-weight:600;margin-top:8px;display:none;"></div>' +
 
       '</div>' +
