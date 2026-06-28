@@ -68,6 +68,26 @@ Deno.serve(async (req) => {
       } else {
         console.log(`create-shortio-link-test: saved shortio_link_id=${data.id} for slug=${slug}`);
       }
+
+      const urlRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/clients?middle_man_slug=eq.${encodeURIComponent(slug)}`,
+        {
+          method: 'PATCH',
+          headers: {
+            apikey:          SUPABASE_SERVICE_ROLE_KEY,
+            Authorization:   `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+            'Content-Type':  'application/json',
+            Prefer:          'return=minimal',
+          },
+          body: JSON.stringify({ shortio_link: data.shortURL }),
+        }
+      );
+      if (!urlRes.ok) {
+        const detail = await urlRes.text().catch(() => String(urlRes.status));
+        console.error(`create-shortio-link-test: failed to save shortio_link: ${detail}`);
+      } else {
+        console.log(`create-shortio-link-test: saved shortio_link=${data.shortURL} for slug=${slug}`);
+      }
     }
 
     return json(res.status, data);
