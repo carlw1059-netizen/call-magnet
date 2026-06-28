@@ -828,10 +828,8 @@
     if (!client) { showNotFound(); return; }
 
     render(client, slug);
-
-    // Fire logClick AFTER render — no concurrent fetch when iOS evaluates
-    // the video autoplay decision.
-    logClick(slug);
+    // Delay logClick 2s — give video autoplay decision time to complete first
+    setTimeout(function() { logClick(slug); }, 2000);
   }
 
   if (document.readyState === 'loading') {
