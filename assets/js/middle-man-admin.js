@@ -356,7 +356,7 @@ async function loadClientForEdit(clientId) {
   try {
     var result = await mmaSb
       .from('clients')
-      .select('id,business_name,email,vertical,middle_man_enabled,middle_man_slug,booking_url,middle_man_logo_url,middle_man_promo_text,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_buttons,middle_man_updated_at,is_demo_account,is_locked,shortio_link,customer_sms_template,twilio_number')
+      .select('id,business_name,email,vertical,middle_man_enabled,middle_man_slug,booking_url,middle_man_logo_url,middle_man_promo_text,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_buttons,middle_man_updated_at,is_demo_account,is_locked,shortio_link,shortio_link_id,customer_sms_template,twilio_number')
       .eq('id', clientId)
       .single();
     if (result.error) throw result.error;
@@ -436,6 +436,61 @@ function renderEditBody(client) {
         '<button id="mmaSlugSaveBtn" class="mma-save-btn">Save</button>' +
       '</div>' +
       '<div id="mmaSlugMsg" class="mma-saved-msg" style="margin-left:0;margin-top:6px;"></div>' +
+    '</div>';
+
+  // ── 3c. Short Link & SMS Setup
+  var _smsShortLink = client.shortio_link || '';
+  var _smsTmplVal   = client.customer_sms_template || '';
+  var shortioSmsSection =
+    '<div class="mma-section">' +
+      '<div id="mmaSmsSectionLabel" style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#06D6A0;cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center;">' +
+        'SHORT LINK &amp; SMS SETUP' +
+        '<span id="mmaSmsSectionArrow" style="font-size:12px;color:#06D6A0;">&#9658; Show</span>' +
+      '</div>' +
+      '<div id="mmaSmsSectionBody" style="display:none;margin-top:14px;">' +
+
+        // SHORT LINK
+        '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:6px;">Short Link</div>' +
+        (_smsShortLink
+          ? '<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">' +
+              '<input type="text" value="' + _e(_smsShortLink) + '" readonly style="flex:1;border:1px solid #ccc;border-radius:6px;padding:8px 10px;font-size:14px;background:#f9fafb;color:#000;font-family:inherit;" />' +
+              '<span style="background:#d1fae5;color:#065f46;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;">Live</span>' +
+            '</div>'
+          : '<div style="margin-bottom:12px;">' +
+              '<button id="mmaCreateShortLinkBtn" style="background:#10b981;color:#000;border:none;border-radius:6px;padding:9px 18px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Create Short Link</button>' +
+            '</div>') +
+        '<hr style="border:none;border-top:1px solid #e5e7eb;margin:0 0 14px;" />' +
+
+        // SMS TEMPLATE
+        '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:6px;">SMS Template</div>' +
+        '<textarea id="mmaSmsTmpl" rows="3" style="width:100%;border:1px solid #ccc;border-radius:6px;padding:8px 10px;font-size:14px;color:#000;background:#fff;font-family:inherit;resize:vertical;line-height:1.5;box-sizing:border-box;">' + _e(_smsTmplVal) + '</textarea>' +
+        '<div id="mmaSmsCount" style="text-align:right;font-size:12px;font-weight:600;color:#10b981;margin-top:4px;">0/160</div>' +
+        '<div style="display:flex;flex-direction:column;gap:6px;margin-top:9px;">' +
+          '<button class="mma-sms-starter" style="background:#f0fdf4;border:1px solid #6ee7b7;border-radius:6px;padding:7px 10px;font-size:12px;color:#065f46;cursor:pointer;text-align:left;line-height:1.4;font-family:inherit;">Hi! Sorry we missed you. Book a table: [LINK] Reply STOP to opt out</button>' +
+          '<button class="mma-sms-starter" style="background:#f0fdf4;border:1px solid #6ee7b7;border-radius:6px;padding:7px 10px;font-size:12px;color:#065f46;cursor:pointer;text-align:left;line-height:1.4;font-family:inherit;">Hi — couldn\'t reach the phone. Reserve here: [LINK] Reply STOP to opt out</button>' +
+          '<button class="mma-sms-starter" style="background:#f0fdf4;border:1px solid #6ee7b7;border-radius:6px;padding:7px 10px;font-size:12px;color:#065f46;cursor:pointer;text-align:left;line-height:1.4;font-family:inherit;">Hi! Sorry I missed your call. Tap to book: [LINK] Reply STOP to opt out</button>' +
+        '</div>' +
+        '<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;" />' +
+
+        // SMS PREVIEW
+        '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:6px;">Preview</div>' +
+        '<div id="mmaSmsPreview" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px;font-size:14px;line-height:1.6;color:#000;word-break:break-word;min-height:54px;font-weight:600;">—</div>' +
+        '<div id="mmaSmsPreviewCount" style="font-size:12px;color:#6b7280;margin-top:7px;"></div>' +
+        '<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;" />' +
+
+        // SEND TEST SMS
+        '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:6px;">Send Test SMS</div>' +
+        '<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">' +
+          '<input type="text" id="mmaSmsTestTo" placeholder="+61412345678" style="flex:1;border:1px solid #ccc;border-radius:6px;padding:8px 10px;font-size:14px;color:#000;background:#fff;font-family:inherit;" />' +
+          '<button id="mmaSmsTestBtn" style="background:#111;color:#fff;border:none;border-radius:6px;padding:9px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">Send test</button>' +
+        '</div>' +
+        '<div id="mmaSmsTestTag" style="font-size:13px;margin-bottom:4px;"></div>' +
+        '<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;" />' +
+
+        // SAVE
+        '<button id="mmaSmsSaveBtn" style="width:100%;background:#10b981;color:#000;border:none;border-radius:6px;padding:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Save to system</button>' +
+
+      '</div>' +
     '</div>';
 
   // ── 3b. Client Login (email display + password reset)
@@ -548,7 +603,7 @@ function renderEditBody(client) {
     : '';
   var formWrapStart = lockedDemo ? '<div style="opacity:0.6;pointer-events:none;">' : '';
   var formWrapEnd   = lockedDemo ? '</div>' : '';
-  content.innerHTML = heading + lockedBanner + formWrapStart + toggleSection + slugSection + clientLoginSection + promoSection + logoSection + mediaSection + btnsSection + notifSection + previewHtml + formWrapEnd;
+  content.innerHTML = heading + lockedBanner + formWrapStart + toggleSection + slugSection + shortioSmsSection + clientLoginSection + promoSection + logoSection + mediaSection + btnsSection + notifSection + previewHtml + formWrapEnd;
 
   // ── Wire event listeners ─────────────────────────────────────────────────────
   document.getElementById('mmaLogoUploadBtn').addEventListener('click', uploadLogo);
@@ -632,6 +687,57 @@ function renderEditBody(client) {
   document.getElementById('mmaSaveBtnsBtn').addEventListener('click', saveButtons);
   document.getElementById('mmaSaveNotifsBtn').addEventListener('click', saveNotifications);
   wireNotifBuilder();
+
+  // ── Short Link & SMS section wiring ──────────────────────────────────────────
+  (function() {
+    var label  = document.getElementById('mmaSmsSectionLabel');
+    var body   = document.getElementById('mmaSmsSectionBody');
+    var arrow  = document.getElementById('mmaSmsSectionArrow');
+    if (label && body) {
+      label.addEventListener('click', function() {
+        var hidden = body.style.display === 'none';
+        body.style.display = hidden ? 'block' : 'none';
+        if (arrow) arrow.innerHTML = hidden ? '&#9660; Hide' : '&#9658; Show';
+      });
+    }
+
+    function updateSmsPreview() {
+      var tmplEl   = document.getElementById('mmaSmsTmpl');
+      var tmpl     = tmplEl ? tmplEl.value : '';
+      var link     = _smsShortLink || '[LINK]';
+      var preview  = tmpl.replace(/\[LINK\]/gi, link);
+      var prevEl   = document.getElementById('mmaSmsPreview');
+      var countEl  = document.getElementById('mmaSmsCount');
+      var pcountEl = document.getElementById('mmaSmsPreviewCount');
+      if (prevEl)   prevEl.textContent   = preview || '—';
+      if (countEl) {
+        countEl.textContent = tmpl.length + '/160';
+        countEl.style.color = tmpl.length > 160 ? '#CC0000' : '#10b981';
+      }
+      if (pcountEl) pcountEl.textContent = 'Characters: ' + preview.length;
+    }
+
+    var tmplEl = document.getElementById('mmaSmsTmpl');
+    if (tmplEl) tmplEl.addEventListener('input', updateSmsPreview);
+
+    document.querySelectorAll('.mma-sms-starter').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var t = document.getElementById('mmaSmsTmpl');
+        if (t) { t.value = btn.textContent; updateSmsPreview(); }
+      });
+    });
+
+    updateSmsPreview();
+
+    var createBtn = document.getElementById('mmaCreateShortLinkBtn');
+    if (createBtn) createBtn.addEventListener('click', function() { createShortioLink(); });
+
+    var testBtn = document.getElementById('mmaSmsTestBtn');
+    if (testBtn) testBtn.addEventListener('click', function() { sendTestSmsFromEdit(); });
+
+    var saveBtn = document.getElementById('mmaSmsSaveBtn');
+    if (saveBtn) saveBtn.addEventListener('click', function() { saveSmsToSystem(); });
+  })();
 
   // Pulse toggle buttons — toggle on/off state when clicked
   document.querySelectorAll('.mma-btn-pulse').forEach(function(btn) {
@@ -1553,6 +1659,11 @@ function wirePreview() {
     el.addEventListener('click', function() { setTimeout(renderPreview, 10); });
   });
 }
+
+// ─── Short Link & SMS stubs (wired in a later step) ──────────────────────────
+function createShortioLink() { /* stub */ }
+function sendTestSmsFromEdit() { /* stub */ }
+function saveSmsToSystem() { /* stub */ }
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async function() {
