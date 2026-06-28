@@ -57,3 +57,8 @@
   for = "/admin/*"
   [headers.values]
     Cache-Control = "no-store, no-cache, must-revalidate"
+
+[[headers]]
+  for = "/assets/css/middle-man-admin.css"
+  [headers.values]
+    Cache-Control = "no-store, no-cache, must-revalidate"
