@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 26 Jun 2026 — bust cache to deliver #app background-color fix
-const CACHE_VERSION = 'callmagnet-v63-20260626';
+// Last bumped: 28 Jun 2026 — force cache bust to fix iOS video autoplay after refresh
+const CACHE_VERSION = 'callmagnet-v65-20260628-video';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
