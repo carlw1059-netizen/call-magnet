@@ -473,8 +473,9 @@ function renderEditBody(client) {
         '</div>' +
         '<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;" />' +
 
-        // SMS PREVIEW
-        '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:6px;">Preview</div>' +
+        '</div>' +
+        '<div style="border-top:1px solid #e5e7eb;padding-top:20px;margin-top:20px;">' +
+        '<div style="font-size:13px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#000;margin-bottom:12px;">Step 3: SMS Preview</div>' +
         '<div id="mmaSmsPreview" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px;font-size:14px;line-height:1.6;color:#000;word-break:break-word;min-height:54px;font-weight:600;">—</div>' +
         '<div id="mmaSmsPreviewCount" style="font-size:12px;color:#6b7280;margin-top:7px;"></div>' +
         '<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;" />' +
