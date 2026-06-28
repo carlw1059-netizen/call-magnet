@@ -467,9 +467,9 @@ function renderEditBody(client) {
         '<textarea id="mmaSmsTmpl" rows="3" style="width:100%;border:1px solid #ccc;border-radius:6px;padding:8px 10px;font-size:14px;color:#000;background:#fff;font-family:inherit;resize:vertical;line-height:1.5;box-sizing:border-box;">' + _e(_smsTmplVal) + '</textarea>' +
         '<div id="mmaSmsCount" style="text-align:right;font-size:12px;font-weight:600;color:#10b981;margin-top:4px;">0/160</div>' +
         '<div style="display:flex;flex-direction:column;gap:6px;margin-top:9px;">' +
-          '<button class="mma-sms-starter" style="background:#f0fdf4;border:1px solid #6ee7b7;border-radius:6px;padding:7px 10px;font-size:12px;color:#065f46;cursor:pointer;text-align:left;line-height:1.4;font-family:inherit;">Hi! Sorry we missed you. Book a table: [LINK] Reply STOP to opt out</button>' +
-          '<button class="mma-sms-starter" style="background:#f0fdf4;border:1px solid #6ee7b7;border-radius:6px;padding:7px 10px;font-size:12px;color:#065f46;cursor:pointer;text-align:left;line-height:1.4;font-family:inherit;">Hi — couldn\'t reach the phone. Reserve here: [LINK] Reply STOP to opt out</button>' +
-          '<button class="mma-sms-starter" style="background:#f0fdf4;border:1px solid #6ee7b7;border-radius:6px;padding:7px 10px;font-size:12px;color:#065f46;cursor:pointer;text-align:left;line-height:1.4;font-family:inherit;">Hi! Sorry I missed your call. Tap to book: [LINK] Reply STOP to opt out</button>' +
+          '<button class="mma-sms-starter" style="background:#f0fdf4;border:1px solid #6ee7b7;border-radius:6px;padding:7px 10px;font-size:12px;color:#065f46;cursor:pointer;text-align:left;line-height:1.4;font-family:inherit;">Hi! Sorry we missed you. Book a table: [LINK]</button>' +
+          '<button class="mma-sms-starter" style="background:#f0fdf4;border:1px solid #6ee7b7;border-radius:6px;padding:7px 10px;font-size:12px;color:#065f46;cursor:pointer;text-align:left;line-height:1.4;font-family:inherit;">Hi — couldn\'t reach the phone. Reserve here: [LINK]</button>' +
+          '<button class="mma-sms-starter" style="background:#f0fdf4;border:1px solid #6ee7b7;border-radius:6px;padding:7px 10px;font-size:12px;color:#065f46;cursor:pointer;text-align:left;line-height:1.4;font-family:inherit;">Hi! Sorry I missed your call. Tap to book: [LINK]</button>' +
         '</div>' +
         '<hr style="border:none;border-top:1px solid #e5e7eb;margin:14px 0;" />' +
 
