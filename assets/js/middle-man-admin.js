@@ -9,6 +9,7 @@ const MMA_REAL_ADMIN_EMAIL  = 'car312@hotmail.com';
 let mmaSb              = null;
 let _editClientId      = null;
 let _editClientData    = null;
+let _smsShortLink      = '';
 
 // ─── Escape helper ────────────────────────────────────────────────────────────
 function _e(s) {
@@ -439,7 +440,7 @@ function renderEditBody(client) {
     '</div>';
 
   // ── 3c. Short Link & SMS Setup
-  var _smsShortLink = client.shortio_link || '';
+  _smsShortLink     = client.shortio_link || '';
   var _smsTmplVal   = client.customer_sms_template || '';
   var shortioSmsSection =
     '<div class="mma-section">' +
@@ -489,6 +490,7 @@ function renderEditBody(client) {
 
         // SAVE
         '<button id="mmaSmsSaveBtn" style="width:100%;background:#10b981;color:#000;border:none;border-radius:6px;padding:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Save to system</button>' +
+        '<div id="mmaSmsSaveMsg" style="font-size:13px;font-weight:600;margin-top:8px;display:none;"></div>' +
 
       '</div>' +
     '</div>';
@@ -1660,10 +1662,124 @@ function wirePreview() {
   });
 }
 
-// ─── Short Link & SMS stubs (wired in a later step) ──────────────────────────
-function createShortioLink() { /* stub */ }
-function sendTestSmsFromEdit() { /* stub */ }
-function saveSmsToSystem() { /* stub */ }
+// ─── Short Link & SMS ────────────────────────────────────────────────────────
+async function createShortioLink() {
+  if (!_editClientData) return;
+  var slug = (_editClientData.middle_man_slug || '').trim();
+  if (!slug) { alert('Set and save a slug first.'); return; }
+
+  var btn = document.getElementById('mmaCreateShortLinkBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Creating…'; }
+
+  try {
+    var res  = await fetch(MMA_SUPABASE_URL + '/functions/v1/create-shortio-link-test', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ slug: slug }),
+    });
+    var data = await res.json().catch(function() { return {}; });
+
+    if (res.ok && data.shortURL) {
+      _editClientData.shortio_link    = data.shortURL;
+      _editClientData.shortio_link_id = data.id ? String(data.id) : null;
+      _smsShortLink = data.shortURL;
+
+      // Replace the button container with readonly input + Live badge
+      var btnParent = btn ? btn.parentNode : null;
+      if (btnParent) {
+        var row = document.createElement('div');
+        row.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:12px;';
+        var inp = document.createElement('input');
+        inp.type     = 'text';
+        inp.value    = data.shortURL;
+        inp.readOnly = true;
+        inp.style.cssText = 'flex:1;border:1px solid #ccc;border-radius:6px;padding:8px 10px;font-size:14px;background:#f9fafb;color:#000;font-family:inherit;';
+        var badge = document.createElement('span');
+        badge.textContent = 'Live';
+        badge.style.cssText = 'background:#d1fae5;color:#065f46;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;';
+        row.appendChild(inp);
+        row.appendChild(badge);
+        btnParent.parentNode.replaceChild(row, btnParent);
+      }
+
+      // Trigger preview update (listener on #mmaSmsTmpl dispatches to updateSmsPreview)
+      var tmplEl = document.getElementById('mmaSmsTmpl');
+      if (tmplEl) tmplEl.dispatchEvent(new Event('input'));
+    } else {
+      if (btn) { btn.disabled = false; btn.textContent = 'Create Short Link'; }
+      var tag = document.getElementById('mmaSmsTestTag');
+      if (tag) { tag.textContent = '✗ ' + (data.error || data.message || 'Error — see console'); tag.style.color = '#CC0000'; }
+    }
+  } catch (err) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Create Short Link'; }
+    var tag = document.getElementById('mmaSmsTestTag');
+    if (tag) { tag.textContent = '✗ ' + err.message; tag.style.color = '#CC0000'; }
+  }
+}
+
+async function sendTestSmsFromEdit() {
+  var toEl   = document.getElementById('mmaSmsTestTo');
+  var tag    = document.getElementById('mmaSmsTestTag');
+  var btn    = document.getElementById('mmaSmsTestBtn');
+  var prevEl = document.getElementById('mmaSmsPreview');
+
+  var to      = toEl   ? toEl.value.trim()        : '';
+  var message = prevEl ? prevEl.textContent.trim() : '';
+  var slug    = _editClientData ? (_editClientData.middle_man_slug || '') : '';
+
+  if (tag) { tag.textContent = ''; }
+  if (!to)                         { if (tag) { tag.textContent = '✗ Phone number is required.';         tag.style.color = '#CC0000'; } return; }
+  if (!_smsShortLink)              { if (tag) { tag.textContent = '✗ Create a short link first.';        tag.style.color = '#CC0000'; } return; }
+  if (!message || message === '—') { if (tag) { tag.textContent = '✗ SMS message is empty.';             tag.style.color = '#CC0000'; } return; }
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+
+  try {
+    var res  = await fetch(MMA_SUPABASE_URL + '/functions/v1/send-test-sms', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ to: to, message: message, slug: slug }),
+    });
+    var data = await res.json().catch(function() { return {}; });
+    if (data.ok && data.sid) {
+      if (tag) { tag.textContent = '✓ Sent — SID: ' + data.sid; tag.style.color = '#06D6A0'; }
+    } else {
+      if (tag) { tag.textContent = '✗ ' + (data.error || 'Unknown error'); tag.style.color = '#CC0000'; }
+    }
+  } catch (err) {
+    if (tag) { tag.textContent = '✗ Network error: ' + err.message; tag.style.color = '#CC0000'; }
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Send test'; }
+  }
+}
+
+async function saveSmsToSystem() {
+  var tmplEl  = document.getElementById('mmaSmsTmpl');
+  var saveBtn = document.getElementById('mmaSmsSaveBtn');
+  var msgEl   = document.getElementById('mmaSmsSaveMsg');
+
+  var template = tmplEl ? tmplEl.value.trim() : '';
+  if (msgEl) { msgEl.style.display = 'none'; }
+
+  if (!template || !/\[LINK\]/i.test(template)) {
+    if (msgEl) { msgEl.textContent = '✗ Template must contain [LINK]'; msgEl.style.color = '#CC0000'; msgEl.style.display = 'block'; }
+    return;
+  }
+
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving…'; }
+
+  try {
+    var result = await mmaSb.from('clients').update({ customer_sms_template: template }).eq('id', _editClientData.id);
+    if (result.error) throw result.error;
+    _editClientData.customer_sms_template = template;
+    if (msgEl) { msgEl.textContent = '✓ Saved'; msgEl.style.color = '#06D6A0'; msgEl.style.display = 'block'; }
+    setTimeout(function() { if (msgEl) msgEl.style.display = 'none'; }, 2500);
+  } catch (err) {
+    if (msgEl) { msgEl.textContent = '✗ ' + err.message; msgEl.style.color = '#CC0000'; msgEl.style.display = 'block'; }
+  } finally {
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save to system'; }
+  }
+}
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async function() {
