@@ -54,6 +54,19 @@
   vid.load();
   ```
 
+### Video upload — faststart encoding required
+- **Rule**: Every MP4 video uploaded to any client's Middle Man page MUST be pre-encoded with faststart (moov atom at start of file) before upload. Non-faststart MP4 will not autoplay on iOS Safari regardless of any code changes.
+- **Why**: iOS Safari requires the moov atom at the START of the file to autoplay without user gesture. Non-faststart files have moov at the END — iOS must download the entire file before it can play, which blocks autoplay.
+- **ffmpeg path on Carl's machine**: C:\Users\car31\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.2-full_build\bin\ffmpeg.exe
+- **Command to re-encode any video before upload** (run in Claude Code PowerShell):
+  ```powershell
+  $ffmpeg = "C:\Users\car31\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.2-full_build\bin\ffmpeg.exe"
+  & $ffmpeg -ss 00:00:00.5 -i "input.mp4" -movflags faststart -acodec copy -vcodec copy "output_faststart.mp4" -y
+  ```
+- **After re-encoding**: Upload output_faststart.mp4 via the admin edit view → Background Media → Upload video
+- **Never upload a raw MP4** from a client without running this command first
+- **What NOT to do**: Never attempt to fix iOS autoplay by changing middleman.js, b.html, cm1site/b.html, or service-worker.js — the code is correct. The file is always the problem.
+
 ### clients-admin.js back button
 - **Bug**: Back button on clients page navigated to /admin/ (404)
 - **Root cause**: window.location.href = '/admin/' hardcoded in clients-admin.js
