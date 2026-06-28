@@ -454,15 +454,12 @@ function renderEditBody(client) {
         '<div style="font-size:13px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#000;margin-bottom:12px;">Step 1: Create Short Link</div>' +
         '<div style="font-size:13px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:4px;">Client Slug</div>' +
         '<input type="text" value="' + _e(client.middle_man_slug || '') + '" readonly style="width:100%;border:1px solid #ccc;border-radius:6px;padding:8px 10px;font-size:14px;color:#000;background:#f9fafb;font-family:inherit;font-weight:600;box-sizing:border-box;" />' +
-        (_smsShortLink
-          ? '<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">' +
-              '<input type="text" value="' + _e(_smsShortLink) + '" readonly style="flex:1;border:1px solid #ccc;border-radius:6px;padding:8px 10px;font-size:14px;background:#f9fafb;color:#000;font-family:inherit;" />' +
-              '<span style="background:#d1fae5;color:#065f46;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;">Live</span>' +
-            '</div>'
-          : '<div style="margin-bottom:12px;">' +
-              '<button id="mmaCreateShortLinkBtn" style="background:#10b981;color:#000;border:none;border-radius:6px;padding:9px 18px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Create Short Link</button>' +
-            '</div>') +
-        '<hr style="border:none;border-top:1px solid #e5e7eb;margin:0 0 14px;" />' +
+        '<button id="mmaCreateShortLinkBtn"' + (_smsShortLink ? ' disabled' : '') + ' style="margin-top:12px;width:100%;background:#10b981;color:#fff;border:none;border-radius:6px;padding:9px;font-size:14px;font-weight:700;cursor:pointer;">Create Short Link in Short.io</button>' +
+        '<div id="mmaCreateTag" style="margin-top:8px;">' + (_smsShortLink ? '<span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;background:#d1fae5;color:#065f46;">&#10003; Connected</span>' : '') + '</div>' +
+        '<div id="mmaShortLinkRow" style="' + (_smsShortLink ? '' : 'display:none;') + '">' +
+          '<div style="font-size:13px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:4px;margin-top:12px;">Short Link Created</div>' +
+          '<input type="text" id="mmaShortLinkOutput" readonly value="' + _e(_smsShortLink) + '" style="width:100%;border:1px solid #ccc;border-radius:6px;padding:8px 10px;font-size:14px;color:#000;background:#f9fafb;font-family:inherit;font-weight:600;box-sizing:border-box;" />' +
+        '</div>' +
 
         // SMS TEMPLATE
         '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:6px;">SMS Template</div>' +
