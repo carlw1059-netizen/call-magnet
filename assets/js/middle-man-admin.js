@@ -1685,25 +1685,20 @@ async function createShortioLink() {
       _editClientData.shortio_link_id = data.id ? String(data.id) : null;
       _smsShortLink = data.shortURL;
 
-      // Replace the button container with readonly input + Live badge
-      var btnParent = btn ? btn.parentNode : null;
-      if (btnParent) {
-        var row = document.createElement('div');
-        row.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:12px;';
-        var inp = document.createElement('input');
-        inp.type     = 'text';
-        inp.value    = data.shortURL;
-        inp.readOnly = true;
-        inp.style.cssText = 'flex:1;border:1px solid #ccc;border-radius:6px;padding:8px 10px;font-size:14px;background:#f9fafb;color:#000;font-family:inherit;';
-        var badge = document.createElement('span');
-        badge.textContent = 'Live';
-        badge.style.cssText = 'background:#d1fae5;color:#065f46;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;';
-        row.appendChild(inp);
-        row.appendChild(badge);
-        btnParent.parentNode.replaceChild(row, btnParent);
-      }
+      // Update button state
+      if (btn) { btn.disabled = true; btn.textContent = '✓ Created'; }
 
-      // Trigger preview update (listener on #mmaSmsTmpl dispatches to updateSmsPreview)
+      // Show Connected badge in #mmaCreateTag
+      var createTag = document.getElementById('mmaCreateTag');
+      if (createTag) createTag.innerHTML = '<span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;background:#d1fae5;color:#065f46;">&#10003; Connected</span>';
+
+      // Show short link row and populate output
+      var shortLinkRow = document.getElementById('mmaShortLinkRow');
+      if (shortLinkRow) shortLinkRow.style.display = '';
+      var shortLinkOutput = document.getElementById('mmaShortLinkOutput');
+      if (shortLinkOutput) shortLinkOutput.value = data.shortURL;
+
+      // Trigger preview update
       var tmplEl = document.getElementById('mmaSmsTmpl');
       if (tmplEl) tmplEl.dispatchEvent(new Event('input'));
     } else {
