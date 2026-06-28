@@ -203,13 +203,8 @@ Deno.serve(async (req) => {
                 }),
               });
 
-              // Append ?u=<token> to any Middle Man link in the message
               const linkToUse = client.shortio_link || ('https://cm1.au/' + client.middle_man_slug);
-              const messageWithLink = message.replace(/\[LINK\]/gi, linkToUse);
-              finalMessage = messageWithLink.replace(
-                /(https?:\/\/(?:callmagnet\.com\.au\/b\/|callmagnet\.s\.gy\/|cm1\.au\/)[^\s?]*)/,
-                (match: string) => match + '?u=' + unsubToken
-              );
+              finalMessage = message.replace(/\[LINK\]/gi, linkToUse);
               console.log(`send-missed-call-sms: unsubscribe token generated for to=${to} token=${unsubToken.slice(0, 8)}…`);
             } catch (tokenErr) {
               console.warn(`send-missed-call-sms: token generation failed (non-fatal): ${tokenErr instanceof Error ? tokenErr.message : String(tokenErr)}`);
