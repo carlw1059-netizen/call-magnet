@@ -1744,6 +1744,12 @@ async function sendTestSmsFromEdit() {
     var data = await res.json().catch(function() { return {}; });
     if (data.ok && data.sid) {
       if (tag) { tag.textContent = '✓ Sent — SID: ' + data.sid; tag.style.color = '#06D6A0'; }
+      var saveBtn = document.getElementById('mmaSmsSaveBtn');
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.style.background = '#10b981';
+        saveBtn.style.cursor = 'pointer';
+      }
     } else {
       if (tag) { tag.textContent = '✗ ' + (data.error || 'Unknown error'); tag.style.color = '#CC0000'; }
     }
