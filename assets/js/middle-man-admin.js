@@ -461,8 +461,9 @@ function renderEditBody(client) {
           '<input type="text" id="mmaShortLinkOutput" readonly value="' + _e(_smsShortLink) + '" style="width:100%;border:1px solid #ccc;border-radius:6px;padding:8px 10px;font-size:14px;color:#000;background:#f9fafb;font-family:inherit;font-weight:600;box-sizing:border-box;" />' +
         '</div>' +
 
-        // SMS TEMPLATE
-        '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:6px;">SMS Template</div>' +
+        '<div style="border-top:1px solid #e5e7eb;padding-top:20px;margin-top:20px;">' +
+        '<div style="font-size:13px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#000;margin-bottom:12px;">Step 2: SMS Message</div>' +
+        '<div style="font-size:13px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:4px;">Customer SMS Template</div>' +
         '<textarea id="mmaSmsTmpl" rows="3" style="width:100%;border:1px solid #ccc;border-radius:6px;padding:8px 10px;font-size:14px;color:#000;background:#fff;font-family:inherit;resize:vertical;line-height:1.5;box-sizing:border-box;">' + _e(_smsTmplVal) + '</textarea>' +
         '<div id="mmaSmsCount" style="text-align:right;font-size:12px;font-weight:600;color:#10b981;margin-top:4px;">0/160</div>' +
         '<div style="display:flex;flex-direction:column;gap:6px;margin-top:9px;">' +
