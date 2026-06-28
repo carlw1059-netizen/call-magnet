@@ -710,7 +710,7 @@ function renderEditBody(client) {
         countEl.textContent = tmpl.length + '/160';
         countEl.style.color = tmpl.length > 160 ? '#CC0000' : '#10b981';
       }
-      if (pcountEl) pcountEl.textContent = 'Characters: ' + preview.length;
+      if (pcountEl) pcountEl.textContent = preview.length;
     }
 
     var tmplEl = document.getElementById('mmaSmsTmpl');
