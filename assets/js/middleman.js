@@ -666,7 +666,7 @@
     var enabled = buttons
       .filter(function(b) { return b && b.enabled !== false; })
       .sort(function(a, b) { return (a.sort_order || 0) - (b.sort_order || 0); })
-      .slice(0, 6);
+      .slice(0, 9);
 
     var wrap = document.getElementById('buttonsWrap');
 

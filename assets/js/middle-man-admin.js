@@ -574,7 +574,7 @@ function renderEditBody(client) {
   var btnsSection =
     '<div class="mma-section">' +
       '<div class="mma-section-label">Customer Buttons</div>' +
-      '<p class="mma-btn-hint">Order = position on caller\'s page (1 = top, 6 = bottom). Tick = button is live for customers. Untick to hide without deleting. X = delete permanently.</p>' +
+      '<p class="mma-btn-hint">Order = position on caller\'s page (1 = top, 9 = bottom). Tick = button is live for customers. Untick to hide without deleting. X = delete permanently.</p>' +
       '<div id="mmaBtnBuilder">' + btnRows + '</div>' +
       '<div style="display:flex;align-items:center;gap:10px;margin-top:8px;">' +
         '<button id="mmaAddBtnBtn" class="mma-add-btn-link">+ Add button</button>' +
@@ -757,7 +757,7 @@ function renderEditBody(client) {
 // ─── Button row HTML builder ──────────────────────────────────────────────────
 function buildBtnRowHtml(btn, idx) {
   return '<div class="mma-btn-row">' +
-    '<input type="number" min="1" max="6" value="' + _e(btn.sort_order || idx + 1) + '" class="mma-btn-order" />' +
+    '<input type="number" min="1" max="9" value="' + _e(btn.sort_order || idx + 1) + '" class="mma-btn-order" />' +
     '<input type="checkbox"' + (btn.enabled !== false ? ' checked' : '') + ' class="mma-btn-enabled mma-btn-enabled-cb" />' +
     '<input type="text" value="' + _e(btn.label || '') + '" maxlength="40" placeholder="Button label…" class="mma-btn-label" />' +
     '<input type="url" value="' + _e(btn.url || '') + '" placeholder="Button URL (optional)…" class="mma-btn-url" />' +
@@ -772,7 +772,7 @@ function buildBtnRowHtml(btn, idx) {
 function addBtnRow() {
   var builder = document.getElementById('mmaBtnBuilder');
   if (!builder) return;
-  if (builder.children.length >= 6) { alert('Maximum 6 buttons allowed.'); return; }
+  if (builder.children.length >= 9) { alert('Maximum 9 buttons allowed.'); return; }
   var idx = builder.children.length;
   builder.insertAdjacentHTML('beforeend', buildBtnRowHtml({ label: '', sort_order: idx + 1, enabled: true }, idx));
 }
