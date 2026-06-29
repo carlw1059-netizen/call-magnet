@@ -1566,9 +1566,6 @@ async function removeBg() {
   var typeLabel = isVideo ? 'video' : 'photo';
   if (!confirm('Remove ' + typeLabel + ' background for ' + bizName + '?')) return;
 
-  var btn = document.getElementById(isVideo ? 'mmaVideoRemoveBtn' : 'mmaPhotoRemoveBtn');
-  if (btn) { btn.disabled = true; btn.textContent = 'Removing…'; }
-
   try {
     var result = await mmaSb.from('clients')
       .update({ middle_man_background_url: null, middle_man_background_type: null, middle_man_background_poster_url: null })
@@ -1584,8 +1581,12 @@ async function removeBg() {
     } else {
       _setPhotoThumb(null);
     }
+    _setVideoPreview(null);
+
+    var btn = document.getElementById(isVideo ? 'mmaVideoRemoveBtn' : 'mmaPhotoRemoveBtn');
     if (btn) btn.style.display = 'none';
   } catch (err) {
+    var btn = document.getElementById(isVideo ? 'mmaVideoRemoveBtn' : 'mmaPhotoRemoveBtn');
     if (btn) { btn.disabled = false; btn.textContent = 'Remove ' + typeLabel; }
     alert('Remove failed: ' + err.message);
   }
