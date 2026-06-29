@@ -107,11 +107,30 @@ Deno.serve(async (req) => {
   if (req.headers.get('X-Internal-Secret') !== INTERNAL_SECRET) return json(401, { error: 'unauthorized' });
   if (!RESEND_API_KEY) return json(500, { error: 'config_error' });
   try {
+    const { weekStart } = getPreviousWeekRange();
     const [result] = await Promise.all([
       sendWeeklySummaries(),
       sendCarlSummary(),
     ]);
     console.log(`weekly-summary complete: ${JSON.stringify(result)}`);
+    try {
+      const periodWeek = new Date(weekStart).toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' });
+      const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/weekly_summaries`, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_SERVICE_ROLE_KEY,
+          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer: 'resolution=merge-duplicates',
+        },
+        body: JSON.stringify({ period_week: periodWeek, status: 'sent' }),
+      });
+      if (!insertRes.ok) {
+        console.warn(`weekly-summary: weekly_summaries upsert failed: ${insertRes.status} ${await insertRes.text()}`);
+      }
+    } catch (insertErr) {
+      console.warn(`weekly-summary: weekly_summaries upsert threw: ${insertErr instanceof Error ? insertErr.message : String(insertErr)}`);
+    }
     return json(200, { ok: true, ...result });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
