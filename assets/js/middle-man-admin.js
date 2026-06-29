@@ -1566,6 +1566,9 @@ async function removeBg() {
   var typeLabel = isVideo ? 'video' : 'photo';
   if (!confirm('Remove ' + typeLabel + ' background for ' + bizName + '?')) return;
 
+  var btnEarly = document.getElementById(isVideo ? 'mmaVideoRemoveBtn' : 'mmaPhotoRemoveBtn');
+  if (btnEarly) { btnEarly.disabled = true; btnEarly.textContent = 'Removing…'; }
+
   try {
     var result = await mmaSb.from('clients')
       .update({ middle_man_background_url: null, middle_man_background_type: null, middle_man_background_poster_url: null })
