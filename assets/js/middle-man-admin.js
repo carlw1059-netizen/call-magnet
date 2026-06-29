@@ -644,6 +644,25 @@ function renderEditBody(client) {
       return;
     }
 
+    var emojiPickBtn = ev.target.closest('.mma-btn-emoji-pick');
+    if (emojiPickBtn) {
+      ev.stopPropagation();
+      var rows = document.querySelectorAll('#mmaBtnBuilder .mma-btn-row');
+      var rowIdx = Array.prototype.indexOf.call(rows, emojiPickBtn.closest('.mma-btn-row'));
+      emojiPickBtn.dataset.pickerId = 'btn-emoji-' + rowIdx;
+      var proxy = document.createElement('input');
+      proxy.type = 'hidden';
+      proxy.value = '';
+      proxy.addEventListener('input', function() {
+        var em = proxy.value;
+        if (em) { emojiPickBtn.textContent = em; emojiPickBtn.dataset.emoji = em; }
+        if (proxy.parentNode) proxy.parentNode.removeChild(proxy);
+      });
+      document.body.appendChild(proxy);
+      mmaShowEmojiPicker(proxy, emojiPickBtn);
+      return;
+    }
+
   });
   // Hex input ↔ colour picker sync (input delegation covers all rows incl. newly added)
   document.getElementById('mmaBtnBuilder').addEventListener('input', function(ev) {
@@ -758,6 +777,7 @@ function renderEditBody(client) {
 function buildBtnRowHtml(btn, idx) {
   return '<div class="mma-btn-row">' +
     '<input type="number" min="1" max="9" value="' + _e(btn.sort_order || idx + 1) + '" class="mma-btn-order" />' +
+    '<button type="button" class="mma-btn-emoji-pick" data-emoji="' + _e(btn.emoji || '') + '" title="Pick emoji" style="width:36px;height:32px;border:none;border-radius:6px;cursor:pointer;font-size:16px;background:rgba(255,255,255,0.1);">' + _e(btn.emoji || '😊') + '</button>' +
     '<input type="checkbox"' + (btn.enabled !== false ? ' checked' : '') + ' class="mma-btn-enabled mma-btn-enabled-cb" />' +
     '<input type="text" value="' + _e(btn.label || '') + '" maxlength="40" placeholder="Button label…" class="mma-btn-label" />' +
     '<input type="url" value="' + _e(btn.url || '') + '" placeholder="Button URL (optional)…" class="mma-btn-url" />' +
@@ -962,6 +982,7 @@ async function saveButtons() {
       animate:      animate,
       sparkles:     sparklesBtn ? sparklesBtn.classList.contains('mma-btn-sparkles-on') : false,
       url:          (function(v) { return v && !/^https?:\/\//i.test(v) ? 'https://' + v : v; })((row.querySelector('.mma-btn-url') || { value: '' }).value.trim()),
+      emoji:        (row.querySelector('.mma-btn-emoji-pick') || {}).dataset && row.querySelector('.mma-btn-emoji-pick').dataset.emoji || '',
       push_title:   uiTitle || (typeof existing.push_title   === 'string' ? existing.push_title   : ''),
       push_message: uiMsg   || (typeof existing.push_message === 'string' ? existing.push_message : ''),
     });
