@@ -67,6 +67,25 @@
 - **Never upload a raw MP4** from a client without running this command first
 - **What NOT to do**: Never attempt to fix iOS autoplay by changing middleman.js, b.html, cm1site/b.html, or service-worker.js — the code is correct. The file is always the problem.
 
+### VIDEO UPLOAD — CLIENT ONBOARDING PROCESS
+
+Rule: Any MP4 video for any client MUST be faststart-encoded before upload. No exceptions. The upload-middle-man-background edge function will reject non-faststart files.
+
+Step 1 — Place the client's raw video file in C:\Users\car31\call-magnet
+
+Step 2 — Run this prompt in Claude Code:
+
+Read CLAUDE.md first. Run the following ffmpeg command to faststart-encode the video. Replace input.mp4 with the actual filename of the client video. Run in PowerShell:
+
+$ffmpeg = "C:\Users\car31\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.2-full_build\bin\ffmpeg.exe"
+& $ffmpeg -ss 00:00:00.5 -i "input.mp4" -movflags faststart -acodec copy -vcodec copy "output_faststart.mp4" -y
+
+Then confirm output_faststart.mp4 exists in C:\Users\car31\call-magnet and that the file size is within 10% of the input file size. Report both file sizes. Do not upload anything.
+
+Step 3 — Upload output_faststart.mp4 via the admin panel Background Media section for the client.
+
+Step 4 — Delete both input.mp4 and output_faststart.mp4 from C:\Users\car31\call-magnet after confirming the video plays correctly on the live Middle Man page.
+
 ### clients-admin.js back button
 - **Bug**: Back button on clients page navigated to /admin/ (404)
 - **Root cause**: window.location.href = '/admin/' hardcoded in clients-admin.js
