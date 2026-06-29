@@ -1,7 +1,7 @@
 // notify-expiry: daily cron (23:00 UTC = 9am AEST) that sends two types of alerts:
 //   1. Clients whose free_period_ends_at is ~3 days away → warning email to
 //      the client AND hello@callmagnet.com.au.
-//   2. Clients whose SMS count this month has reached 20 → alert email to
+//   2. Clients whose SMS count this month has reached 80% of their sms_included allowance → alert email to
 //      hello@callmagnet.com.au only.
 //
 // Auth: X-Internal-Secret header (same pattern as send-daily-summary).
