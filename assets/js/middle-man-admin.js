@@ -981,7 +981,7 @@ async function saveButtons() {
       color:        color,
       animate:      animate,
       sparkles:     sparklesBtn ? sparklesBtn.classList.contains('mma-btn-sparkles-on') : false,
-      url:          (function(v) { return v && !/^https?:\/\//i.test(v) ? 'https://' + v : v; })((row.querySelector('.mma-btn-url') || { value: '' }).value.trim()),
+      url:          (function(v) { return v && !/^(https?:|mailto:|tel:)/i.test(v) ? 'https://' + v : v; })((row.querySelector('.mma-btn-url') || { value: '' }).value.trim()),
       emoji:        (row.querySelector('.mma-btn-emoji-pick') || {}).dataset && row.querySelector('.mma-btn-emoji-pick').dataset.emoji || '',
       push_title:   uiTitle || (typeof existing.push_title   === 'string' ? existing.push_title   : ''),
       push_message: uiMsg   || (typeof existing.push_message === 'string' ? existing.push_message : ''),
@@ -1202,7 +1202,7 @@ async function saveNotifications() {
       color:        color,
       animate:      animate,
       sparkles:     sparklesBtn ? sparklesBtn.classList.contains('mma-btn-sparkles-on') : false,
-      url:          (function(v) { return v && !/^https?:\/\//i.test(v) ? 'https://' + v : v; })((row.querySelector('.mma-btn-url') || { value: '' }).value.trim()),
+      url:          (function(v) { return v && !/^(https?:|mailto:|tel:)/i.test(v) ? 'https://' + v : v; })((row.querySelector('.mma-btn-url') || { value: '' }).value.trim()),
       push_title:   titleEl ? titleEl.value.trim() : '',
       push_message: msgEl   ? msgEl.value.trim()   : '',
     });
