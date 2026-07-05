@@ -220,54 +220,8 @@ Deno.serve(async (req) => {
         return json(200, GENERIC_OK);
       }
 
-      // Try to shorten the magic-link URL via Rebrandly before SMSing. The
-      // raw Supabase verify URL is ~180 chars — pushes the SMS to 2 segments
-      // and looks unprofessional. Rebrandly shortens to ~25 chars.
-      // Retries up to 3 times with exponential backoff before falling back to
-      // the long URL. Rebrandly free tier: 5 links/min — backoff helps avoid
-      // hitting that wall on rapid successive logins.
-      // NOTE: admin.generateLink({ type: 'magiclink' }) triggers Supabase's
-      // built-in email mailer (GoTrue behaviour). To prevent double-delivery
-      // on the phone path, disable the Supabase SMTP provider in Dashboard:
-      // Authentication → Email → disable "Enable Email" or configure no SMTP.
-      // Our edge function controls all delivery explicitly via Resend/Twilio.
-      let sms_url = login_url;
-      const rebrandlyAttempt = async (): Promise<string | null> => {
-        const rebRes = await fetch(`${SUPABASE_URL}/functions/v1/create-rebrandly-link`, {
-          method:  'POST',
-          headers: {
-            'Content-Type':      'application/json',
-            'X-Internal-Secret': INTERNAL_SECRET,
-            Authorization:       `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-          },
-          body: JSON.stringify({
-            destination: login_url,
-            title:       `Magic link for ${email} ${new Date().toISOString().slice(0, 10)}`,
-          }),
-        });
-        const rebData = await rebRes.json().catch(() => ({}));
-        if (rebRes.ok && rebData?.ok && typeof rebData.short_url === 'string') {
-          return rebData.short_url;
-        }
-        console.warn(`request-login-link: rebrandly attempt failed — status=${rebRes.status} detail=${JSON.stringify(rebData).slice(0, 200)}`);
-        return null;
-      };
-      const REBRANDLY_DELAYS_MS = [0, 600, 1800]; // 3 attempts: immediate, 600ms, 1800ms
-      let shortened = false;
-      for (let attempt = 0; attempt < REBRANDLY_DELAYS_MS.length; attempt++) {
-        if (REBRANDLY_DELAYS_MS[attempt] > 0) {
-          await new Promise((r) => setTimeout(r, REBRANDLY_DELAYS_MS[attempt]));
-        }
-        try {
-          const short = await rebrandlyAttempt();
-          if (short) { sms_url = short; shortened = true; break; }
-        } catch (e) {
-          console.warn(`request-login-link: rebrandly exception attempt=${attempt}: ${(e as Error)?.message ?? e}`);
-        }
-      }
-      if (!shortened) {
-        console.warn(`request-login-link: rebrandly all ${REBRANDLY_DELAYS_MS.length} attempts failed — using long URL (${login_url.length} chars)`);
-      }
+      // Login URL sent directly — Rebrandly removed (endpoint deprecated, replaced by Short.io).
+      const sms_url = login_url;
 
       // Vary SMS body slightly on each send. Identical content repeated to the
       // same number is flagged as spam by AU carriers (Telstra/Optus). A short
