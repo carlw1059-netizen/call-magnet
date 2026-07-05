@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
     // is_test_account=eq.false: prevent test accounts from processing real
     // missed calls and generating sms_events rows in production pipelines.
     const lookupRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/clients?twilio_number=eq.${encodeURIComponent(to)}&is_test_account=eq.false&account_status=eq.active&select=id,business_name`,
+      `${SUPABASE_URL}/rest/v1/clients?or=(twilio_number.eq.${encodeURIComponent(to)},twilio_number_2.eq.${encodeURIComponent(to)})&is_test_account=eq.false&account_status=eq.active&select=id,business_name,schedule_enabled,active_hours_start,active_hours_end,twilio_number`,
       {
         headers: {
           apikey: SUPABASE_SERVICE_ROLE_KEY,
@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
     if (!lookupRes.ok) {
       throw new Error(`client_lookup_failed: ${lookupRes.status} ${await lookupRes.text()}`);
     }
-    const clients = await lookupRes.json() as { id: string; business_name: string }[];
+    const clients = await lookupRes.json() as { id: string; business_name: string; schedule_enabled: boolean; active_hours_start: string | null; active_hours_end: string | null; twilio_number: string | null }[];
 
     // ── orphaned call: no client owns this Twilio number ──────────────────
     if (clients.length === 0) {
@@ -81,6 +81,29 @@ Deno.serve(async (req) => {
     }
     const clientId      = clients[0].id;
     const businessName  = clients[0].business_name;
+
+    // ── schedule gate-check ───────────────────────────────────────────────
+    // Only fires when schedule_enabled is true AND both time columns are set.
+    // SMS always fires regardless — no customer is ever missed.
+    // This block only logs whether the call arrived on the expected number.
+    const scheduleEnabled   = clients[0].schedule_enabled;
+    const hoursStart        = clients[0].active_hours_start;
+    const hoursEnd          = clients[0].active_hours_end;
+    const primaryNumber     = clients[0].twilio_number;
+
+    if (scheduleEnabled && hoursStart && hoursEnd) {
+      const nowMelbourne = new Date().toLocaleString('en-AU', { timeZone: 'Australia/Melbourne', hour: '2-digit', minute: '2-digit', hour12: false });
+      const [nowH, nowM] = nowMelbourne.split(':').map(Number);
+      const nowMins = nowH * 60 + nowM;
+      const [startH, startM] = hoursStart.substring(0, 5).split(':').map(Number);
+      const [endH, endM]     = hoursEnd.substring(0, 5).split(':').map(Number);
+      const startMins = startH * 60 + startM;
+      const endMins   = endH * 60 + endM;
+      const inWindow  = nowMins >= startMins && nowMins < endMins;
+      const onPrimary = to === primaryNumber;
+      const expected  = inWindow ? onPrimary : !onPrimary;
+      console.log(`schedule_check: client=${clientId} to=${to} time=${nowMelbourne} inWindow=${inWindow} onPrimary=${onPrimary} expected=${expected}`);
+    }
 
     // ── insert sms_events row ─────────────────────────────────────────────
     const insertRes = await fetch(
