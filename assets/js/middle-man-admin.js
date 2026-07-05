@@ -586,6 +586,34 @@ function renderEditBody(client) {
   // ── 8. Notification Messages
   var notifSection = buildNotifSection(buttons);
 
+  var scheduleSection =
+    '<div class="mma-section">' +
+      '<div class="mma-section-label">Call Schedule</div>' +
+      '<p class="mma-btn-hint" style="margin-bottom:14px;">Set the hours when the primary number is active. Outside these hours the secondary number is expected. SMS always fires — this is for tracking only.</p>' +
+      '<div style="margin-bottom:12px;">' +
+        '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:4px;">Secondary Twilio Number</div>' +
+        '<input id="mmaTwilioNumber2" type="text" class="mma-field-input" placeholder="+61489000000" value="' + _e(client.twilio_number_2 || '') + '" />' +
+      '</div>' +
+      '<div style="display:flex;gap:12px;margin-bottom:12px;">' +
+        '<div style="flex:1;">' +
+          '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:4px;">Active From</div>' +
+          '<input id="mmaActiveHoursStart" type="time" class="mma-field-input" value="' + _e((client.active_hours_start || '').substring(0,5)) + '" />' +
+        '</div>' +
+        '<div style="flex:1;">' +
+          '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:4px;">Active Until</div>' +
+          '<input id="mmaActiveHoursEnd" type="time" class="mma-field-input" value="' + _e((client.active_hours_end || '').substring(0,5)) + '" />' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">' +
+        '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;">Enable Schedule</div>' +
+        '<input id="mmaScheduleEnabled" type="checkbox"' + (client.schedule_enabled ? ' checked' : '') + ' style="width:18px;height:18px;cursor:pointer;" />' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:10px;">' +
+        '<button id="mmaScheduleSaveBtn" class="mma-save-btn">Save schedule</button>' +
+        '<span id="mmaScheduleMsg" class="mma-saved-msg">✓ Saved</span>' +
+      '</div>' +
+    '</div>';
+
   // ── 8. Preview link
   var previewHtml = slug
     ? '<div style="text-align:center;padding:8px 0 4px;">' +
@@ -599,7 +627,7 @@ function renderEditBody(client) {
     : '';
   var formWrapStart = lockedDemo ? '<div style="opacity:0.6;pointer-events:none;">' : '';
   var formWrapEnd   = lockedDemo ? '</div>' : '';
-  content.innerHTML = heading + lockedBanner + formWrapStart + toggleSection + slugSection + shortioSmsSection + clientLoginSection + promoSection + logoSection + mediaSection + btnsSection + notifSection + previewHtml + formWrapEnd;
+  content.innerHTML = heading + lockedBanner + formWrapStart + toggleSection + slugSection + shortioSmsSection + clientLoginSection + promoSection + logoSection + mediaSection + btnsSection + notifSection + scheduleSection + previewHtml + formWrapEnd;
 
   // ── Wire event listeners ─────────────────────────────────────────────────────
   document.getElementById('mmaLogoUploadBtn').addEventListener('click', uploadLogo);
@@ -761,6 +789,41 @@ function renderEditBody(client) {
       btn.title = isOn ? 'Glow ON — click to turn off' : 'Glow OFF — click to turn on';
       btn.style.background = isOn ? 'rgba(0,200,100,0.2)' : 'rgba(255,255,255,0.1)';
     });
+  });
+
+  document.getElementById('mmaScheduleSaveBtn').addEventListener('click', async function() {
+    var btn = document.getElementById('mmaScheduleSaveBtn');
+    var msg = document.getElementById('mmaScheduleMsg');
+    var twilio2 = document.getElementById('mmaTwilioNumber2').value.trim();
+    var start   = document.getElementById('mmaActiveHoursStart').value.trim();
+    var end     = document.getElementById('mmaActiveHoursEnd').value.trim();
+    var enabled = document.getElementById('mmaScheduleEnabled').checked;
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+    msg.style.display = 'none';
+    var result = await mmaSb.from('clients').update({
+      twilio_number_2:    twilio2 || null,
+      active_hours_start: start   || null,
+      active_hours_end:   end     || null,
+      schedule_enabled:   enabled
+    }).eq('id', _editClientId);
+    btn.disabled = false;
+    btn.textContent = 'Save schedule';
+    if (result.error) {
+      msg.textContent = 'Error: ' + result.error.message;
+      msg.style.color = '#CC0000';
+    } else {
+      msg.textContent = '✓ Saved';
+      msg.style.color = '#10b981';
+      if (_editClientData) {
+        _editClientData.twilio_number_2    = twilio2 || null;
+        _editClientData.active_hours_start = start   || null;
+        _editClientData.active_hours_end   = end     || null;
+        _editClientData.schedule_enabled   = enabled;
+      }
+    }
+    msg.style.display = 'inline';
+    setTimeout(function() { msg.style.display = 'none'; }, 3000);
   });
 
   // FIX 6: Autoplay the video preview if one is already set
