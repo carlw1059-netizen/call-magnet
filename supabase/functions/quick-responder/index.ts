@@ -40,7 +40,16 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
+    const vaultRes = await fetch(`${supabaseUrl}/rest/v1/rpc/get_vault_secret`, {
+      method:  'POST',
+      headers: {
+        apikey:         supabaseKey,
+        Authorization:  `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ secret_name: 'stripe_secret_key' }),
+    });
+    const stripeKey = vaultRes.ok ? await vaultRes.json() as string : null;
     const today = new Date().toISOString().split('T')[0];
     const now = new Date();
 
