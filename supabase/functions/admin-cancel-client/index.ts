@@ -20,7 +20,6 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const STRIPE_SECRET_KEY         = Deno.env.get('STRIPE_SECRET_KEY');
 const INTERNAL_SECRET           = Deno.env.get('INTERNAL_SECRET');
 
 const VALID_REASONS = new Set([
@@ -139,13 +138,26 @@ Deno.serve(async (req) => {
 
     // ── Call Stripe: cancel subscription at period end ────────────────────────
     let cancelAt: string | null = null;
-    if (client.stripe_subscription_id && STRIPE_SECRET_KEY) {
+    let stripeSecretKey: string | null = null;
+    if (client.stripe_subscription_id) {
+      const vaultRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_vault_secret`, {
+        method:  'POST',
+        headers: {
+          apikey:         SUPABASE_SERVICE_ROLE_KEY,
+          Authorization:  `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ secret_name: 'stripe_secret_key' }),
+      });
+      stripeSecretKey = vaultRes.ok ? await vaultRes.json() as string : null;
+    }
+    if (client.stripe_subscription_id && stripeSecretKey) {
       const stripeRes = await fetch(
         `https://api.stripe.com/v1/subscriptions/${client.stripe_subscription_id}`,
         {
           method:  'POST',
           headers: {
-            Authorization:  `Bearer ${STRIPE_SECRET_KEY}`,
+            Authorization:  `Bearer ${stripeSecretKey}`,
             'Content-Type': 'application/x-www-form-urlencoded',
           },
           body: new URLSearchParams({ cancel_at_period_end: 'true' }),
