@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Schedule Test — CallMagnet Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #F5F5F5; color: #000; padding: 24px 16px; }
+h1 { font-size: 20px; font-weight: 700; color: #10b981; margin-bottom: 24px; }
+h2 { font-size: 14px; font-weight: 700; color: #10b981; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 12px; }
+.card { background: #fff; border: 1px solid #000; border-radius: 10px; padding: 20px; margin-bottom: 20px; max-width: 760px; }
+label { display: block; font-size: 12px; font-weight: 700; color: #10b981; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; margin-top: 12px; }
+input, select { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; font-family: inherit; }
+button { margin-top: 16px; background: #10b981; color: #000; border: none; border-radius: 6px; padding: 10px 20px; font-size: 14px; font-weight: 700; cursor: pointer; }
+button:disabled { background: #aaa; cursor: wait; }
+.result { margin-top: 16px; padding: 12px; border-radius: 6px; font-size: 13px; font-family: monospace; white-space: pre-wrap; word-break: break-all; }
+.pass { background: #d1fae5; border: 1px solid #10b981; color: #065f46; }
+.fail { background: #fee2e2; border: 1px solid #CC0000; color: #7f1d1d; }
+.info { background: #f3f4f6; border: 1px solid #d1d5db; color: #111; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+th { background: #f3f4f6; padding: 6px 10px; text-align: left; font-weight: 700; border: 1px solid #e5e7eb; }
+td { padding: 6px 10px; border: 1px solid #e5e7eb; }
+.tag-pass { display: inline-block; background: #d1fae5; color: #065f46; border-radius: 4px; padding: 2px 8px; font-weight: 700; font-size: 12px; }
+.tag-fail { display: inline-block; background: #fee2e2; color: #7f1d1d; border-radius: 4px; padding: 2px 8px; font-weight: 700; font-size: 12px; }
+.tag-warn { display: inline-block; background: #fef3c7; color: #92400e; border-radius: 4px; padding: 2px 8px; font-weight: 700; font-size: 12px; }
+</style>
+</head>
+<body>
+<h1>★ CallMagnet — Schedule Test</h1>
+
+<!-- SECTION 1: Current Melbourne time -->
+<div class="card">
+  <h2>1. Current Melbourne time</h2>
+  <div id="melbTime" class="result info">Loading...</div>
+  <button onclick="loadMelbTime()">Refresh</button>
+</div>
+
+<!-- SECTION 2: Client schedule viewer -->
+<div class="card">
+  <h2>2. Client schedule</h2>
+  <label>Client</label>
+  <select id="clientSelect" onchange="loadSchedule()">
+    <option value="">— select client —</option>
+  </select>
+  <div id="scheduleTable" style="margin-top:16px;"></div>
+</div>
+
+<!-- SECTION 3: Simulate webhook -->
+<div class="card">
+  <h2>3. Simulate missed call webhook</h2>
+  <label>From number (caller)</label>
+  <input type="text" id="simFrom" value="+61400000001" placeholder="+61400000001" />
+  <label>To number (Twilio number called)</label>
+  <input type="text" id="simTo" placeholder="+61489278544" />
+  <label>CallSid (unique — change between tests)</label>
+  <input type="text" id="simCallSid" value="TEST001" />
+  <button onclick="runSimulation()" id="simBtn">Run simulation</button>
+  <div id="simResult" style="margin-top:12px;"></div>
+</div>
+
+<!-- SECTION 4: Expected result checker -->
+<div class="card">
+  <h2>4. Expected result checker</h2>
+  <p style="font-size:13px;color:#666;margin-bottom:12px;">Based on current Melbourne time and the selected client schedule, what line should be active right now?</p>
+  <button onclick="checkExpected()" id="checkBtn">Check now</button>
+  <div id="checkResult" style="margin-top:12px;"></div>
+</div>
+
+<!-- SECTION 5: Cleanup -->
+<div class="card">
+  <h2>5. Cleanup test rows</h2>
+  <p style="font-size:13px;color:#666;margin-bottom:12px;">Delete all sms_events rows created by this test session.</p>
+  <button onclick="cleanupTests()" id="cleanBtn">Delete test rows</button>
+  <div id="cleanResult" style="margin-top:12px;"></div>
+</div>
+
+<script>
+const SUPABASE_URL  = 'https://iskvvnhacqdxybpmwuni.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+const DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
+const TEST_SID_PREFIX = 'SCHEDTEST_';
+var _testSids = [];
+var _currentSchedule = [];
+var _currentClient = null;
+
+async function init() {
+  await loadMelbTime();
+  await loadClients();
+  document.getElementById('simCallSid').value = TEST_SID_PREFIX + Date.now();
+}
+
+async function loadMelbTime() {
+  try {
+    const { data, error } = await sb.rpc('get_melbourne_day_and_time');
+    if (error) throw error;
+    const h = Math.floor(data.time_mins / 60).toString().padStart(2,'0');
+    const m = (data.time_mins % 60).toString().padStart(2,'0');
+    document.getElementById('melbTime').textContent =
+      'Day: ' + data.day_name + '\nTime: ' + h + ':' + m + ' Melbourne\nMinutes since midnight: ' + data.time_mins;
+  } catch(e) {
+    document.getElementById('melbTime').textContent = 'Error: ' + e.message;
+  }
+}
+
+async function loadClients() {
+  const { data } = await sb.from('clients')
+    .select('id,business_name,twilio_number,twilio_number_2,schedule_enabled')
+    .eq('is_demo_account', false)
+    .eq('is_test_account', false)
+    .eq('account_status', 'active')
+    .order('business_name');
+  const sel = document.getElementById('clientSelect');
+  (data || []).forEach(function(c) {
+    var opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.business_name;
+    opt.dataset.client = JSON.stringify(c);
+    sel.appendChild(opt);
+  });
+}
+
+async function loadSchedule() {
+  var sel = document.getElementById('clientSelect');
+  var opt = sel.options[sel.selectedIndex];
+  if (!opt || !opt.dataset.client) { _currentClient = null; _currentSchedule = []; return; }
+  _currentClient = JSON.parse(opt.dataset.client);
+  document.getElementById('simTo').value = _currentClient.twilio_number || '';
+
+  const { data } = await sb.from('client_schedules')
+    .select('*')
+    .eq('client_id', _currentClient.id)
+    .order('day_of_week');
+  _currentSchedule = data || [];
+
+  var html = '<table><tr><th>Day</th><th>Active</th><th>Line 1</th><th>Line 2</th></tr>';
+  DAYS.forEach(function(day) {
+    var row = (_currentSchedule || []).find(function(r) { return r.day_of_week === day; }) || {};
+    var active = row.is_active !== false && (row.line1_start || row.line2_start);
+    var l1 = row.line1_start ? (row.line1_start.substring(0,5) + ' – ' + (row.line1_end || '?').substring(0,5)) : '—';
+    var l2 = row.line2_start ? (row.line2_start.substring(0,5) + ' – ' + (row.line2_end || '?').substring(0,5)) : '—';
+    html += '<tr>' +
+      '<td style="font-weight:700;text-transform:capitalize;">' + day + '</td>' +
+      '<td>' + (active ? '<span class="tag-pass">ON</span>' : '<span class="tag-warn">OFF</span>') + '</td>' +
+      '<td>' + l1 + '</td>' +
+      '<td>' + l2 + '</td>' +
+      '</tr>';
+  });
+  html += '</table>';
+
+  if (_currentClient.schedule_enabled) {
+    html = '<div style="margin-bottom:8px;"><span class="tag-pass">Schedule enabled</span> &nbsp; Line 2: ' + (_currentClient.twilio_number_2 || 'not set') + '</div>' + html;
+  } else {
+    html = '<div style="margin-bottom:8px;"><span class="tag-warn">Schedule disabled — single number mode</span></div>' + html;
+  }
+  document.getElementById('scheduleTable').innerHTML = html;
+}
+
+function timeToMins(t) {
+  if (!t) return null;
+  var parts = t.substring(0,5).split(':').map(Number);
+  return parts[0] * 60 + parts[1];
+}
+
+function inWindow(nowMins, startMins, endMins) {
+  if (endMins > startMins) return nowMins >= startMins && nowMins < endMins;
+  return nowMins >= startMins || nowMins < endMins;
+}
+
+async function checkExpected() {
+  var el = document.getElementById('checkResult');
+  if (!_currentClient) { el.innerHTML = '<div class="result fail">Select a client first.</div>'; return; }
+
+  try {
+    const { data: melb } = await sb.rpc('get_melbourne_day_and_time');
+    const dayName = melb.day_name;
+    const nowMins = melb.time_mins;
+    const h = Math.floor(nowMins/60).toString().padStart(2,'0');
+    const m = (nowMins%60).toString().padStart(2,'0');
+
+    if (!_currentClient.schedule_enabled) {
+      el.innerHTML = '<div class="result info">Schedule disabled. Single number mode.\nOnly Line 1 (' + (_currentClient.twilio_number || 'not set') + ') is active.</div>';
+      return;
+    }
+
+    var row = _currentSchedule.find(function(r) { return r.day_of_week === dayName && r.is_active; });
+    var expectedLine = 1;
+    var reason = '';
+
+    if (!row) {
+      reason = 'No schedule for ' + dayName + ' — fallback to Line 1';
+    } else {
+      var l1s = timeToMins(row.line1_start);
+      var l1e = timeToMins(row.line1_end);
+      var l2s = timeToMins(row.line2_start);
+      var l2e = timeToMins(row.line2_end);
+
+      if (l1s !== null && l1e !== null && inWindow(nowMins, l1s, l1e)) {
+        expectedLine = 1;
+        reason = 'Inside Line 1 window (' + row.line1_start.substring(0,5) + '–' + row.line1_end.substring(0,5) + ')';
+      } else if (l2s !== null && l2e !== null && inWindow(nowMins, l2s, l2e)) {
+        expectedLine = 2;
+        reason = 'Inside Line 2 window (' + row.line2_start.substring(0,5) + '–' + row.line2_end.substring(0,5) + ')';
+      } else {
+        reason = 'Outside all windows — fallback to Line 1';
+      }
+    }
+
+    var expectedNumber = expectedLine === 1 ? _currentClient.twilio_number : _currentClient.twilio_number_2;
+    el.innerHTML = '<div class="result pass">' +
+      'Melbourne time: ' + dayName + ' ' + h + ':' + m + '\n' +
+      'Expected line: LINE ' + expectedLine + '\n' +
+      'Expected number: ' + (expectedNumber || 'not set') + '\n' +
+      'Reason: ' + reason +
+      '</div>';
+  } catch(e) {
+    el.innerHTML = '<div class="result fail">Error: ' + e.message + '</div>';
+  }
+}
+
+async function runSimulation() {
+  var btn = document.getElementById('simBtn');
+  var el  = document.getElementById('simResult');
+  var from    = document.getElementById('simFrom').value.trim();
+  var to      = document.getElementById('simTo').value.trim();
+  var callSid = document.getElementById('simCallSid').value.trim();
+
+  if (!from || !to || !callSid) {
+    el.innerHTML = '<div class="result fail">From, To and CallSid are all required.</div>';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Running...';
+  el.innerHTML = '<div class="result info">Sending webhook...</div>';
+
+  try {
+    var formBody = 'From=' + encodeURIComponent(from) +
+                  '&To='   + encodeURIComponent(to) +
+                  '&CallSid=' + encodeURIComponent(callSid);
+
+    var resp = await fetch(SUPABASE_URL + '/functions/v1/twilio-missed-call', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: formBody
+    });
+    var result = await resp.json();
+    _testSids.push(callSid);
+
+    var cls = result.ok ? 'pass' : (result.skipped ? 'info' : 'fail');
+    el.innerHTML = '<div class="result ' + cls + '">' +
+      'Status: ' + resp.status + '\n' +
+      JSON.stringify(result, null, 2) +
+      '</div>';
+
+    // Auto-rotate CallSid for next test
+    document.getElementById('simCallSid').value = TEST_SID_PREFIX + Date.now();
+  } catch(e) {
+    el.innerHTML = '<div class="result fail">Network error: ' + e.message + '</div>';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Run simulation';
+}
+
+async function cleanupTests() {
+  var btn = document.getElementById('cleanBtn');
+  var el  = document.getElementById('cleanResult');
+  if (_testSids.length === 0) {
+    el.innerHTML = '<div class="result info">No test rows to clean up this session.</div>';
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Cleaning...';
+  try {
+    var { error, count } = await sb.from('sms_events')
+      .delete()
+      .in('twilio_call_sid', _testSids);
+    if (error) throw error;
+    el.innerHTML = '<div class="result pass">Deleted ' + _testSids.length + ' test rows.</div>';
+    _testSids = [];
+  } catch(e) {
+    el.innerHTML = '<div class="result fail">Error: ' + e.message + '</div>';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Delete test rows';
+}
+
+init();
+</script>
+</body>
+</html>
