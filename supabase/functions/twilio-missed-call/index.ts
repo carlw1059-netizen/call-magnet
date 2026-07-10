@@ -7,21 +7,26 @@
 // violation (PostgREST 409), which we catch and return 200 OK so Twilio stops.
 //
 // Auth: deployed with --no-verify-jwt (Twilio doesn't send Bearer tokens).
-// The function URL itself is the secret — same posture as the prior Make.com
-// webhook. A future hardening pass could add Twilio signature verification.
+// The function URL itself is the secret. A future hardening pass can add
+// Twilio signature verification.
 //
 // Payload (Twilio standard, application/x-www-form-urlencoded):
 //   From      caller's E.164 number          → sms_events.customer_number
-//   To        the Twilio number called       → sms_events.client_number  (= clients.twilio_number)
+//   To        the Twilio number called       → sms_events.client_number
 //   CallSid   Twilio's 34-char unique ID     → sms_events.twilio_call_sid
-//   Body      optional SMS body              → sms_events.message_body (NULL on missed-call branches)
+//   Body      optional SMS body              → sms_events.message_body (NULL on missed-call)
 //
-// Orphaned calls (To number doesn't match any clients.twilio_number) are
-// skipped with a warning log + 200 OK — analytics views filter on client_id
-// anyway, so unattributable rows would be invisible junk.
+// Two-number schedule feature:
+//   schedule_enabled = false → single number mode. Only twilio_number is active.
+//                              twilio_number_2 is ignored entirely.
+//   schedule_enabled = true  → dual number mode. Both numbers are active.
+//                              client_schedules table is queried for today's
+//                              Melbourne day to determine which line is expected.
+//                              Fallback: Line 1 (twilio_number) if no schedule row
+//                              exists for today. SMS ALWAYS fires regardless.
 //
-// Email rebrand (Session 4 D2): the alert email block in the catch handler
-// now uses _shared/emailStyles.ts so it matches the login palette.
+// Day-of-week and time resolution is done entirely in Postgres using
+// AT TIME ZONE 'Australia/Melbourne' to avoid Deno runtime timezone drift.
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { BRAND, escapeHtml, renderEmailShell } from "../_shared/emailStyles.ts";
@@ -30,6 +35,24 @@ const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const RESEND_API_KEY            = Deno.env.get('RESEND_API_KEY');
 const ALERT_TO                  = 'car312@hotmail.com';
+
+// ── Helper: convert HH:MM:SS time string to minutes since midnight ────────────
+function timeToMins(t: string): number {
+  const [h, m] = t.substring(0, 5).split(':').map(Number);
+  return h * 60 + m;
+}
+
+// ── Helper: check if nowMins falls within a time window ──────────────────────
+// Handles midnight-spanning windows (e.g. 22:00 → 02:00)
+function inWindow(nowMins: number, startMins: number, endMins: number): boolean {
+  if (endMins > startMins) {
+    // Normal window (e.g. 09:00 → 17:00)
+    return nowMins >= startMins && nowMins < endMins;
+  } else {
+    // Midnight-spanning window (e.g. 22:00 → 02:00)
+    return nowMins >= startMins || nowMins < endMins;
+  }
+}
 
 Deno.serve(async (req) => {
   if (new URL(req.url).searchParams.get('warmup') === '1') {
@@ -44,8 +67,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // ── parse Twilio's form-encoded body ─────────────────────────────────
-    const form = await req.formData();
+    // ── Parse Twilio's form-encoded body ──────────────────────────────────
+    const form    = await req.formData();
     const callSid = (form.get('CallSid') ?? '').toString().trim();
     const from    = (form.get('From')    ?? '').toString().trim();
     const to      = (form.get('To')      ?? '').toString().trim();
@@ -53,18 +76,21 @@ Deno.serve(async (req) => {
     const body    = bodyRaw.length > 0 ? bodyRaw : null;
 
     if (!callSid || !from || !to) {
-      // 400 stops Twilio retrying — bad payloads stay broken regardless of retry count
       return json(400, { error: 'missing_required_field', detail: 'CallSid, From, and To are all required' });
     }
 
-    // ── look up client by their Twilio number ─────────────────────────────
-    // is_test_account=eq.false: prevent test accounts from processing real
-    // missed calls and generating sms_events rows in production pipelines.
+    // ── Look up client ────────────────────────────────────────────────────
+    // First fetch client by twilio_number only (works for all clients).
+    // If schedule_enabled, we also check twilio_number_2.
+    // We do a single broad fetch and filter in code to avoid two round trips.
     const lookupRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/clients?or=(twilio_number.eq.${encodeURIComponent(to)},twilio_number_2.eq.${encodeURIComponent(to)})&is_test_account=eq.false&account_status=eq.active&select=id,business_name,schedule_enabled,active_hours_start,active_hours_end,twilio_number`,
+      `${SUPABASE_URL}/rest/v1/clients` +
+      `?or=(twilio_number.eq.${encodeURIComponent(to)},twilio_number_2.eq.${encodeURIComponent(to)})` +
+      `&is_test_account=eq.false&account_status=eq.active` +
+      `&select=id,business_name,schedule_enabled,twilio_number,twilio_number_2`,
       {
         headers: {
-          apikey: SUPABASE_SERVICE_ROLE_KEY,
+          apikey:        SUPABASE_SERVICE_ROLE_KEY,
           Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
         },
       },
@@ -72,64 +98,136 @@ Deno.serve(async (req) => {
     if (!lookupRes.ok) {
       throw new Error(`client_lookup_failed: ${lookupRes.status} ${await lookupRes.text()}`);
     }
-    const clients = await lookupRes.json() as { id: string; business_name: string; schedule_enabled: boolean; active_hours_start: string | null; active_hours_end: string | null; twilio_number: string | null }[];
+    const allMatches = await lookupRes.json() as {
+      id:               string;
+      business_name:    string;
+      schedule_enabled: boolean;
+      twilio_number:    string | null;
+      twilio_number_2:  string | null;
+    }[];
 
-    // ── orphaned call: no client owns this Twilio number ──────────────────
+    // Filter: if schedule_enabled=false, only match on twilio_number (Line 1).
+    // If schedule_enabled=true, match on either number.
+    const clients = allMatches.filter(c =>
+      c.twilio_number === to ||
+      (c.schedule_enabled && c.twilio_number_2 === to)
+    );
+
+    // ── Orphaned call ─────────────────────────────────────────────────────
     if (clients.length === 0) {
-      console.warn(`orphaned_call: no client found for To=${to}, CallSid=${callSid}`);
+      console.warn(`orphaned_call: no client found for To=${to} CallSid=${callSid}`);
       return json(200, { ok: true, skipped: 'no_client_for_to_number' });
     }
-    const clientId      = clients[0].id;
-    const businessName  = clients[0].business_name;
 
-    // ── schedule gate-check ───────────────────────────────────────────────
-    // Only fires when schedule_enabled is true AND both time columns are set.
-    // SMS always fires regardless — no customer is ever missed.
-    // This block only logs whether the call arrived on the expected number.
-    const scheduleEnabled   = clients[0].schedule_enabled;
-    const hoursStart        = clients[0].active_hours_start;
-    const hoursEnd          = clients[0].active_hours_end;
-    const primaryNumber     = clients[0].twilio_number;
+    const client       = clients[0];
+    const clientId     = client.id;
+    const businessName = client.business_name;
 
-    if (scheduleEnabled && hoursStart && hoursEnd) {
-      const nowMelbourne = new Date().toLocaleString('en-AU', { timeZone: 'Australia/Melbourne', hour: '2-digit', minute: '2-digit', hour12: false });
-      const [nowH, nowM] = nowMelbourne.split(':').map(Number);
-      const nowMins = nowH * 60 + nowM;
-      const [startH, startM] = hoursStart.substring(0, 5).split(':').map(Number);
-      const [endH, endM]     = hoursEnd.substring(0, 5).split(':').map(Number);
-      const startMins = startH * 60 + startM;
-      const endMins   = endH * 60 + endM;
-      const inWindow  = nowMins >= startMins && nowMins < endMins;
-      const onPrimary = to === primaryNumber;
-      const expected  = inWindow ? onPrimary : !onPrimary;
-      console.log(`schedule_check: client=${clientId} to=${to} time=${nowMelbourne} inWindow=${inWindow} onPrimary=${onPrimary} expected=${expected}`);
+    // ── Schedule gate-check ───────────────────────────────────────────────
+    // Only runs when schedule_enabled=true.
+    // Uses Postgres for timezone resolution — zero Deno timezone risk.
+    // SMS ALWAYS fires regardless of schedule state.
+    if (client.schedule_enabled) {
+      try {
+        // ── Get Melbourne day + time via Postgres RPC ─────────────────────
+        const melbRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/rpc/get_melbourne_day_and_time`,
+          {
+            method:  'POST',
+            headers: {
+              apikey:         SUPABASE_SERVICE_ROLE_KEY,
+              Authorization:  `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({}),
+          },
+        );
+
+        if (melbRes.ok) {
+          const melb = await melbRes.json() as { day_name: string; time_mins: number };
+          const dayName = melb.day_name;   // e.g. 'tuesday'
+          const nowMins = melb.time_mins;  // minutes since midnight in Melbourne
+
+          // Fetch today's schedule row
+          const todayRes = await fetch(
+            `${SUPABASE_URL}/rest/v1/client_schedules` +
+            `?client_id=eq.${encodeURIComponent(clientId)}` +
+            `&day_of_week=eq.${encodeURIComponent(dayName)}` +
+            `&is_active=eq.true&select=*&limit=1`,
+            {
+              headers: {
+                apikey:        SUPABASE_SERVICE_ROLE_KEY,
+                Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+              },
+            },
+          );
+
+          if (todayRes.ok) {
+            const rows = await todayRes.json() as {
+              line1_start: string | null;
+              line1_end:   string | null;
+              line2_start: string | null;
+              line2_end:   string | null;
+            }[];
+
+            if (rows.length === 0) {
+              // No schedule for today — fallback to Line 1
+              const onLine1  = to === client.twilio_number;
+              console.log(`schedule_check: client=${clientId} to=${to} day=${dayName} no_schedule_fallback=line1 onLine1=${onLine1} expected=${onLine1}`);
+            } else {
+              const row = rows[0];
+              let expectedLine: 1 | 2 | null = null;
+
+              if (row.line1_start && row.line1_end) {
+                const l1Start = timeToMins(row.line1_start);
+                const l1End   = timeToMins(row.line1_end);
+                if (inWindow(nowMins, l1Start, l1End)) expectedLine = 1;
+              }
+
+              if (expectedLine === null && row.line2_start && row.line2_end) {
+                const l2Start = timeToMins(row.line2_start);
+                const l2End   = timeToMins(row.line2_end);
+                if (inWindow(nowMins, l2Start, l2End)) expectedLine = 2;
+              }
+
+              // Outside all windows — fallback to Line 1
+              if (expectedLine === null) expectedLine = 1;
+
+              const onLine1    = to === client.twilio_number;
+              const onLine2    = to === client.twilio_number_2;
+              const expected   = (expectedLine === 1 && onLine1) || (expectedLine === 2 && onLine2);
+
+              console.log(`schedule_check: client=${clientId} to=${to} day=${dayName} nowMins=${nowMins} expectedLine=${expectedLine} onLine1=${onLine1} onLine2=${onLine2} expected=${expected}`);
+            }
+          }
+        }
+      } catch (schedErr) {
+        // Schedule check is non-fatal — log and continue to SMS send
+        console.warn(`schedule_check_error: ${schedErr instanceof Error ? schedErr.message : String(schedErr)}`);
+      }
     }
 
-    // ── insert sms_events row ─────────────────────────────────────────────
+    // ── Insert sms_events row ─────────────────────────────────────────────
     const insertRes = await fetch(
       `${SUPABASE_URL}/rest/v1/sms_events`,
       {
         method: 'POST',
         headers: {
-          apikey: SUPABASE_SERVICE_ROLE_KEY,
-          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          apikey:         SUPABASE_SERVICE_ROLE_KEY,
+          Authorization:  `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
           'Content-Type': 'application/json',
-          Prefer: 'return=representation',
+          Prefer:         'return=representation',
         },
         body: JSON.stringify({
-          client_id:        clientId,
-          customer_number:  from,
-          client_number:    to,
-          twilio_call_sid:  callSid,
-          message_body:     body,
+          client_id:       clientId,
+          customer_number: from,
+          client_number:   to,
+          twilio_call_sid: callSid,
+          message_body:    body,
         }),
       },
     );
 
-    // ── duplicate-retry path: unique violation on twilio_call_sid ─────────
-    // sms_events has only one unique constraint (the new partial index on
-    // twilio_call_sid) plus the PK on id (auto-generated, can't collide), so
-    // any 409 here is unambiguously a CallSid retry.
     if (insertRes.status === 409) {
       console.log(`duplicate_call_sid: ${callSid} already logged for ${businessName}, returning 200`);
       return json(200, { ok: true, duplicate: true });
@@ -139,19 +237,14 @@ Deno.serve(async (req) => {
       throw new Error(`insert_failed: ${insertRes.status} ${await insertRes.text()}`);
     }
 
-    const inserted = await insertRes.json() as { id: string }[];
+    const inserted   = await insertRes.json() as { id: string }[];
     const smsEventId = inserted[0]?.id ?? null;
-    // sms_event_id is an explicit alias for id — Studio's send_sms widget
-    // references {{widgets.http_1.body.sms_event_id}} to link the Twilio
-    // MessageSid back to this row once the SMS is sent.
     return json(200, { ok: true, id: smsEventId, sms_event_id: smsEventId, client_id: clientId });
 
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : String(err);
     console.error(`twilio-missed-call fatal: ${errMsg}`);
 
-    // fire-and-forget alert email; suppressing alerting failure so a Resend
-    // outage can't cascade into the webhook itself failing
     if (RESEND_API_KEY) {
       const alertContent = `
         <h1 style="font-size:22px;font-weight:700;color:${BRAND.primaryText};margin:0 0 4px;letter-spacing:-0.01em;">⚠️ twilio-missed-call failed</h1>
@@ -162,13 +255,13 @@ Deno.serve(async (req) => {
         <p style="font-size:13px;color:${BRAND.secondaryText};margin:0;">Twilio will retry — investigate in Supabase logs.</p>
       `;
       fetch('https://api.resend.com/emails', {
-        method: 'POST',
+        method:  'POST',
         headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          from: 'CallMagnet Alerts <hello@callmagnet.com.au>',
-          to: ALERT_TO,
+          from:    'CallMagnet Alerts <hello@callmagnet.com.au>',
+          to:      ALERT_TO,
           subject: '⚠️ CallMagnet — twilio-missed-call failed',
-          html: renderEmailShell(alertContent, 'twilio-missed-call failed — Twilio will retry'),
+          html:    renderEmailShell(alertContent, 'twilio-missed-call failed — Twilio will retry'),
         }),
       }).catch(() => {});
     }
