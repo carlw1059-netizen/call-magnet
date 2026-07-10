@@ -9,6 +9,7 @@ const MMA_REAL_ADMIN_EMAIL  = 'car312@hotmail.com';
 let mmaSb              = null;
 let _editClientId      = null;
 let _editClientData    = null;
+let _editClientSchedules = [];
 let _smsShortLink      = '';
 
 // ─── Escape helper ────────────────────────────────────────────────────────────
@@ -357,11 +358,14 @@ async function loadClientForEdit(clientId) {
   try {
     var result = await mmaSb
       .from('clients')
-      .select('id,business_name,email,vertical,middle_man_enabled,middle_man_slug,booking_url,middle_man_logo_url,middle_man_promo_text,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_buttons,middle_man_updated_at,is_demo_account,is_locked,shortio_link,shortio_link_id,customer_sms_template,twilio_number')
+      .select('id,business_name,email,vertical,middle_man_enabled,middle_man_slug,booking_url,middle_man_logo_url,middle_man_promo_text,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_buttons,middle_man_updated_at,is_demo_account,is_locked,shortio_link,shortio_link_id,customer_sms_template,twilio_number,twilio_number_2,schedule_enabled')
       .eq('id', clientId)
       .single();
     if (result.error) throw result.error;
     _editClientData = result.data;
+  // Load client_schedules rows for this client
+  var schedResult = await mmaSb.from('client_schedules').select('*').eq('client_id', result.data.id).order('day_of_week');
+  _editClientSchedules = schedResult.data || [];
     renderEditBody(result.data);
   } catch (err) {
     console.error('[loadClientForEdit] ERROR:', err);
@@ -586,31 +590,61 @@ function renderEditBody(client) {
   // ── 8. Notification Messages
   var notifSection = buildNotifSection(buttons);
 
+  var DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
+  var DAY_LABELS = { monday:'Monday', tuesday:'Tuesday', wednesday:'Wednesday', thursday:'Thursday', friday:'Friday', saturday:'Saturday', sunday:'Sunday' };
+  var schedMap = {};
+  (_editClientSchedules || []).forEach(function(row) { schedMap[row.day_of_week] = row; });
+
+  var dayRows = DAYS.map(function(day) {
+    var row = schedMap[day] || {};
+    var active = row.is_active !== false;
+    var l1s = (row.line1_start || '').substring(0,5);
+    var l1e = (row.line1_end   || '').substring(0,5);
+    var l2s = (row.line2_start || '').substring(0,5);
+    var l2e = (row.line2_end   || '').substring(0,5);
+    return '<div class="mma-schedule-day" data-day="' + day + '" style="border:1px solid #e5e7eb;border-radius:8px;padding:12px;margin-bottom:8px;">' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">' +
+        '<input type="checkbox" class="mma-sched-active" ' + (active ? 'checked' : '') + ' style="width:16px;height:16px;cursor:pointer;" />' +
+        '<div style="font-size:13px;font-weight:700;color:#10b981;letter-spacing:0.04em;text-transform:uppercase;">' + DAY_LABELS[day] + '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+        '<div style="flex:1;min-width:120px;">' +
+          '<div style="font-size:11px;font-weight:700;color:#000;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;">Line 1 from</div>' +
+          '<input type="time" class="mma-sched-l1s mma-field-input" value="' + _e(l1s) + '" style="width:100%;" />' +
+        '</div>' +
+        '<div style="flex:1;min-width:120px;">' +
+          '<div style="font-size:11px;font-weight:700;color:#000;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;">Line 1 until</div>' +
+          '<input type="time" class="mma-sched-l1e mma-field-input" value="' + _e(l1e) + '" style="width:100%;" />' +
+        '</div>' +
+        '<div style="flex:1;min-width:120px;">' +
+          '<div style="font-size:11px;font-weight:700;color:#000;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;">Line 2 from</div>' +
+          '<input type="time" class="mma-sched-l2s mma-field-input" value="' + _e(l2s) + '" style="width:100%;" />' +
+        '</div>' +
+        '<div style="flex:1;min-width:120px;">' +
+          '<div style="font-size:11px;font-weight:700;color:#000;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;">Line 2 until</div>' +
+          '<input type="time" class="mma-sched-l2e mma-field-input" value="' + _e(l2e) + '" style="width:100%;" />' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
   var scheduleSection =
     '<div class="mma-section">' +
       '<div class="mma-section-label">Call Schedule</div>' +
-      '<p class="mma-btn-hint" style="margin-bottom:14px;">Set the hours when the primary number is active. Outside these hours the secondary number is expected. SMS always fires — this is for tracking only.</p>' +
-      '<div style="margin-bottom:12px;">' +
-        '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:4px;">Secondary Twilio Number</div>' +
+      '<p class="mma-btn-hint" style="margin-bottom:14px;">Two-number auto-schedule. Line 1 is your primary number. Line 2 is your secondary. Set the active hours for each per day. Blank days fall back to Line 1. SMS always fires regardless.</p>' +
+      '<div style="margin-bottom:14px;">' +
+        '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:4px;">Secondary Twilio Number (Line 2)</div>' +
         '<input id="mmaTwilioNumber2" type="text" class="mma-field-input" placeholder="+61489000000" value="' + _e(client.twilio_number_2 || '') + '" />' +
+        '<div id="mmaTwilioNumber2Err" style="font-size:12px;color:#CC0000;margin-top:4px;display:none;"></div>' +
       '</div>' +
-      '<div style="display:flex;gap:12px;margin-bottom:12px;">' +
-        '<div style="flex:1;">' +
-          '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:4px;">Active From</div>' +
-          '<input id="mmaActiveHoursStart" type="time" class="mma-field-input" value="' + _e((client.active_hours_start || '').substring(0,5)) + '" />' +
-        '</div>' +
-        '<div style="flex:1;">' +
-          '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:4px;">Active Until</div>' +
-          '<input id="mmaActiveHoursEnd" type="time" class="mma-field-input" value="' + _e((client.active_hours_end || '').substring(0,5)) + '" />' +
-        '</div>' +
-      '</div>' +
-      '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">' +
         '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;">Enable Schedule</div>' +
         '<input id="mmaScheduleEnabled" type="checkbox"' + (client.schedule_enabled ? ' checked' : '') + ' style="width:18px;height:18px;cursor:pointer;" />' +
       '</div>' +
-      '<div style="display:flex;align-items:center;gap:10px;">' +
+      '<div id="mmaScheduleDays">' + dayRows + '</div>' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-top:12px;">' +
         '<button id="mmaScheduleSaveBtn" class="mma-save-btn">Save schedule</button>' +
-        '<span id="mmaScheduleMsg" class="mma-saved-msg">✓ Saved</span>' +
+        '<span id="mmaScheduleMsg" class="mma-saved-msg">&#10003; Saved</span>' +
       '</div>' +
     '</div>';
 
@@ -794,34 +828,90 @@ function renderEditBody(client) {
   document.getElementById('mmaScheduleSaveBtn').addEventListener('click', async function() {
     var btn = document.getElementById('mmaScheduleSaveBtn');
     var msg = document.getElementById('mmaScheduleMsg');
+    var errEl = document.getElementById('mmaTwilioNumber2Err');
     var twilio2 = document.getElementById('mmaTwilioNumber2').value.trim();
-    var start   = document.getElementById('mmaActiveHoursStart').value.trim();
-    var end     = document.getElementById('mmaActiveHoursEnd').value.trim();
     var enabled = document.getElementById('mmaScheduleEnabled').checked;
+
+    // Validate E.164 format if number entered
+    if (twilio2 && !/^\+[1-9]\d{7,14}$/.test(twilio2)) {
+      if (errEl) { errEl.textContent = 'Number must be in E.164 format e.g. +61489000000'; errEl.style.display = 'block'; }
+      return;
+    }
+    if (errEl) errEl.style.display = 'none';
+
     btn.disabled = true;
     btn.textContent = 'Saving...';
     msg.style.display = 'none';
-    var result = await mmaSb.from('clients').update({
-      twilio_number_2:    twilio2 || null,
-      active_hours_start: start   || null,
-      active_hours_end:   end     || null,
-      schedule_enabled:   enabled
-    }).eq('id', _editClientId);
+
+    // Validate time ranges per day
+    var days = document.querySelectorAll('#mmaScheduleDays .mma-schedule-day');
+    var valid = true;
+    days.forEach(function(dayEl) {
+      var l1s = dayEl.querySelector('.mma-sched-l1s').value;
+      var l1e = dayEl.querySelector('.mma-sched-l1e').value;
+      var l2s = dayEl.querySelector('.mma-sched-l2s').value;
+      var l2e = dayEl.querySelector('.mma-sched-l2e').value;
+      if (l1s && l1e && l1e <= l1s) { valid = false; }
+      if (l2s && l2e && l2e <= l2s) { valid = false; }
+    });
+
+    if (!valid) {
+      btn.disabled = false;
+      btn.textContent = 'Save schedule';
+      msg.textContent = 'Error: end time must be after start time on each day';
+      msg.style.color = '#CC0000';
+      msg.style.display = 'inline';
+      setTimeout(function() { msg.style.display = 'none'; }, 4000);
+      return;
+    }
+
+    try {
+      // Save twilio_number_2 and schedule_enabled to clients table
+      var clientResult = await mmaSb.from('clients').update({
+        twilio_number_2:  twilio2 || null,
+        schedule_enabled: enabled
+      }).eq('id', _editClientId);
+      if (clientResult.error) throw clientResult.error;
+
+      // Save per-day schedule rows to client_schedules table
+      var upsertRows = [];
+      days.forEach(function(dayEl) {
+        var day     = dayEl.dataset.day;
+        var active  = dayEl.querySelector('.mma-sched-active').checked;
+        var l1s     = dayEl.querySelector('.mma-sched-l1s').value || null;
+        var l1e     = dayEl.querySelector('.mma-sched-l1e').value || null;
+        var l2s     = dayEl.querySelector('.mma-sched-l2s').value || null;
+        var l2e     = dayEl.querySelector('.mma-sched-l2e').value || null;
+        upsertRows.push({
+          client_id:   _editClientId,
+          day_of_week: day,
+          is_active:   active,
+          line1_start: l1s,
+          line1_end:   l1e,
+          line2_start: l2s,
+          line2_end:   l2e
+        });
+      });
+
+      var schedResult = await mmaSb.from('client_schedules').upsert(upsertRows, { onConflict: 'client_id,day_of_week' });
+      if (schedResult.error) throw schedResult.error;
+
+      // Update local state
+      if (_editClientData) {
+        _editClientData.twilio_number_2  = twilio2 || null;
+        _editClientData.schedule_enabled = enabled;
+      }
+      _editClientSchedules = upsertRows;
+
+      msg.textContent = '&#10003; Saved';
+      msg.style.color = '#10b981';
+    } catch (err) {
+      msg.textContent = 'Error: ' + (err.message || 'Save failed');
+      msg.style.color = '#CC0000';
+    }
+
     btn.disabled = false;
     btn.textContent = 'Save schedule';
-    if (result.error) {
-      msg.textContent = 'Error: ' + result.error.message;
-      msg.style.color = '#CC0000';
-    } else {
-      msg.textContent = '✓ Saved';
-      msg.style.color = '#10b981';
-      if (_editClientData) {
-        _editClientData.twilio_number_2    = twilio2 || null;
-        _editClientData.active_hours_start = start   || null;
-        _editClientData.active_hours_end   = end     || null;
-        _editClientData.schedule_enabled   = enabled;
-      }
-    }
     msg.style.display = 'inline';
     setTimeout(function() { msg.style.display = 'none'; }, 3000);
   });
