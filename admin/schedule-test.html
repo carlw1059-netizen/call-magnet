@@ -253,7 +253,10 @@ async function runSimulation() {
 
     var resp = await fetch(SUPABASE_URL + '/functions/v1/twilio-missed-call', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': 'Bearer ' + SUPABASE_ANON
+      },
       body: formBody
     });
     var result = await resp.json();
