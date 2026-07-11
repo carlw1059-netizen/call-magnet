@@ -54,16 +54,26 @@ function inWindow(nowMins: number, startMins: number, endMins: number): boolean 
   }
 }
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': 'https://callmagnet.com.au',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
 Deno.serve(async (req) => {
   if (new URL(req.url).searchParams.get('warmup') === '1') {
     return new Response(JSON.stringify({ warmup: 'ok' }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
     });
   }
 
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
   if (req.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 });
+    return new Response('Method Not Allowed', { status: 405, headers: corsHeaders });
   }
 
   try {
@@ -273,6 +283,6 @@ Deno.serve(async (req) => {
 function json(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...corsHeaders },
   });
 }
