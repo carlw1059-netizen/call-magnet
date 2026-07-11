@@ -358,7 +358,7 @@ async function loadClientForEdit(clientId) {
   try {
     var result = await mmaSb
       .from('clients')
-      .select('id,business_name,email,vertical,middle_man_enabled,middle_man_slug,booking_url,middle_man_logo_url,middle_man_promo_text,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_buttons,middle_man_updated_at,is_demo_account,is_locked,shortio_link,shortio_link_id,customer_sms_template,twilio_number,twilio_number_2,schedule_enabled')
+      .select('id,business_name,email,vertical,middle_man_enabled,middle_man_slug,booking_url,middle_man_logo_url,middle_man_promo_text,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_buttons,middle_man_updated_at,is_demo_account,is_locked,shortio_link,shortio_link_id,customer_sms_template,twilio_number,twilio_number_2,schedule_enabled,manual_line_override')
       .eq('id', clientId)
       .single();
     if (result.error) throw result.error;
@@ -641,6 +641,15 @@ function renderEditBody(client) {
         '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;">Enable Schedule</div>' +
         '<input id="mmaScheduleEnabled" type="checkbox"' + (client.schedule_enabled ? ' checked' : '') + ' style="width:18px;height:18px;cursor:pointer;" />' +
       '</div>' +
+      '<div style="margin-bottom:14px;">' +
+        '<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:4px;">Manual Line Override</div>' +
+        '<div style="font-size:12px;color:#888;margin-bottom:6px;">Override the schedule and force a specific line. Set to Auto to use the schedule.</div>' +
+        '<select id="mmaManualOverride" class="mma-field-input">' +
+          '<option value=""' + (!client.manual_line_override ? ' selected' : '') + '>Auto (use schedule)</option>' +
+          '<option value="1"' + (client.manual_line_override === 1 ? ' selected' : '') + '>Force Line 1</option>' +
+          '<option value="2"' + (client.manual_line_override === 2 ? ' selected' : '') + '>Force Line 2</option>' +
+        '</select>' +
+      '</div>' +
       '<div id="mmaScheduleDays">' + dayRows + '</div>' +
       '<div style="display:flex;align-items:center;gap:10px;margin-top:12px;">' +
         '<button id="mmaScheduleSaveBtn" class="mma-save-btn">Save schedule</button>' +
@@ -830,7 +839,8 @@ function renderEditBody(client) {
     var msg = document.getElementById('mmaScheduleMsg');
     var errEl = document.getElementById('mmaTwilioNumber2Err');
     var twilio2 = document.getElementById('mmaTwilioNumber2').value.trim();
-    var enabled = document.getElementById('mmaScheduleEnabled').checked;
+    var enabled     = document.getElementById('mmaScheduleEnabled').checked;
+    var overrideVal = document.getElementById('mmaManualOverride').value;
 
     // Validate E.164 format if number entered
     if (twilio2 && !/^\+[1-9]\d{7,14}$/.test(twilio2)) {
@@ -872,8 +882,9 @@ function renderEditBody(client) {
     try {
       // Save twilio_number_2 and schedule_enabled to clients table
       var clientResult = await mmaSb.from('clients').update({
-        twilio_number_2:  twilio2 || null,
-        schedule_enabled: enabled
+        twilio_number_2:      twilio2 || null,
+        schedule_enabled:     enabled,
+        manual_line_override: overrideVal === '' ? null : parseInt(overrideVal, 10)
       }).eq('id', _editClientId);
       if (clientResult.error) throw clientResult.error;
 
@@ -902,8 +913,9 @@ function renderEditBody(client) {
 
       // Update local state
       if (_editClientData) {
-        _editClientData.twilio_number_2  = twilio2 || null;
-        _editClientData.schedule_enabled = enabled;
+        _editClientData.twilio_number_2      = twilio2 || null;
+        _editClientData.schedule_enabled     = enabled;
+        _editClientData.manual_line_override = overrideVal === '' ? null : parseInt(overrideVal, 10);
       }
       _editClientSchedules = upsertRows;
 
