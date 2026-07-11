@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
       `${SUPABASE_URL}/rest/v1/clients` +
       `?or=(twilio_number.eq.${encodeURIComponent(to)},twilio_number_2.eq.${encodeURIComponent(to)})` +
       `&is_test_account=eq.false&account_status=eq.active` +
-      `&select=id,business_name,schedule_enabled,twilio_number,twilio_number_2`,
+      `&select=id,business_name,schedule_enabled,twilio_number,twilio_number_2,manual_line_override`,
       {
         headers: {
           apikey:        SUPABASE_SERVICE_ROLE_KEY,
@@ -112,11 +112,12 @@ Deno.serve(async (req) => {
       throw new Error(`client_lookup_failed: ${lookupRes.status} ${await lookupRes.text()}`);
     }
     const allMatches = await lookupRes.json() as {
-      id:               string;
-      business_name:    string;
-      schedule_enabled: boolean;
-      twilio_number:    string | null;
-      twilio_number_2:  string | null;
+      id:                   string;
+      business_name:        string;
+      schedule_enabled:     boolean;
+      twilio_number:        string | null;
+      twilio_number_2:      string | null;
+      manual_line_override: number | null;
     }[];
 
     // Filter: if schedule_enabled=false, only match on twilio_number (Line 1).
@@ -135,6 +136,15 @@ Deno.serve(async (req) => {
     const client       = clients[0];
     const clientId     = client.id;
     const businessName = client.business_name;
+
+    // ── Manual line override log ──────────────────────────────────────────
+    // Observation only — does not block SMS or change behaviour.
+    if (client.manual_line_override !== null && client.manual_line_override !== undefined) {
+      const onLine1  = to === client.twilio_number;
+      const onLine2  = to === client.twilio_number_2;
+      const expected = (client.manual_line_override === 1 && onLine1) || (client.manual_line_override === 2 && onLine2);
+      console.log(`manual_override: client=${clientId} to=${to} override=Line${client.manual_line_override} onLine1=${onLine1} onLine2=${onLine2} expected=${expected}`);
+    }
 
     // ── Schedule gate-check ───────────────────────────────────────────────
     // Only runs when schedule_enabled=true.
