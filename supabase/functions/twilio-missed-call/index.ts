@@ -85,6 +85,9 @@ Deno.serve(async (req) => {
     const bodyRaw = (form.get('Body')    ?? '').toString().trim();
     const body    = bodyRaw.length > 0 ? bodyRaw : null;
 
+    const testTimeMins = req.headers.get('X-Test-Time-Mins');
+    const testDayName  = req.headers.get('X-Test-Day-Name');
+
     if (!callSid || !from || !to) {
       return json(400, { error: 'missing_required_field', detail: 'CallSid, From, and To are all required' });
     }
@@ -139,76 +142,83 @@ Deno.serve(async (req) => {
     // SMS ALWAYS fires regardless of schedule state.
     if (client.schedule_enabled) {
       try {
-        // ── Get Melbourne day + time via Postgres RPC ─────────────────────
-        const melbRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/rpc/get_melbourne_day_and_time`,
-          {
-            method:  'POST',
-            headers: {
-              apikey:         SUPABASE_SERVICE_ROLE_KEY,
-              Authorization:  `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-              'Content-Type': 'application/json',
+        let dayName: string;
+        let nowMins: number;
+
+        if (testTimeMins !== null && testDayName !== null) {
+          dayName = testDayName.toLowerCase().trim();
+          nowMins = parseInt(testTimeMins, 10);
+        } else {
+          const melbRes = await fetch(
+            `${SUPABASE_URL}/rest/v1/rpc/get_melbourne_day_and_time`,
+            {
+              method:  'POST',
+              headers: {
+                apikey:         SUPABASE_SERVICE_ROLE_KEY,
+                Authorization:  `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({}),
             },
-            body: JSON.stringify({}),
+          );
+          if (!melbRes.ok) {
+            return json(500, { ok: false, error: 'Failed to get Melbourne time' });
+          }
+          const melb = await melbRes.json() as { day_name: string; time_mins: number };
+          dayName = melb.day_name;
+          nowMins = melb.time_mins;
+        }
+
+        // Fetch today's schedule row
+        const todayRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/client_schedules` +
+          `?client_id=eq.${encodeURIComponent(clientId)}` +
+          `&day_of_week=eq.${encodeURIComponent(dayName)}` +
+          `&is_active=eq.true&select=*&limit=1`,
+          {
+            headers: {
+              apikey:        SUPABASE_SERVICE_ROLE_KEY,
+              Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+            },
           },
         );
 
-        if (melbRes.ok) {
-          const melb = await melbRes.json() as { day_name: string; time_mins: number };
-          const dayName = melb.day_name;   // e.g. 'tuesday'
-          const nowMins = melb.time_mins;  // minutes since midnight in Melbourne
+        if (todayRes.ok) {
+          const rows = await todayRes.json() as {
+            line1_start: string | null;
+            line1_end:   string | null;
+            line2_start: string | null;
+            line2_end:   string | null;
+          }[];
 
-          // Fetch today's schedule row
-          const todayRes = await fetch(
-            `${SUPABASE_URL}/rest/v1/client_schedules` +
-            `?client_id=eq.${encodeURIComponent(clientId)}` +
-            `&day_of_week=eq.${encodeURIComponent(dayName)}` +
-            `&is_active=eq.true&select=*&limit=1`,
-            {
-              headers: {
-                apikey:        SUPABASE_SERVICE_ROLE_KEY,
-                Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-              },
-            },
-          );
+          if (rows.length === 0) {
+            // No schedule for today — fallback to Line 1
+            const onLine1  = to === client.twilio_number;
+            console.log(`schedule_check: client=${clientId} to=${to} day=${dayName} no_schedule_fallback=line1 onLine1=${onLine1} expected=${onLine1}`);
+          } else {
+            const row = rows[0];
+            let expectedLine: 1 | 2 | null = null;
 
-          if (todayRes.ok) {
-            const rows = await todayRes.json() as {
-              line1_start: string | null;
-              line1_end:   string | null;
-              line2_start: string | null;
-              line2_end:   string | null;
-            }[];
-
-            if (rows.length === 0) {
-              // No schedule for today — fallback to Line 1
-              const onLine1  = to === client.twilio_number;
-              console.log(`schedule_check: client=${clientId} to=${to} day=${dayName} no_schedule_fallback=line1 onLine1=${onLine1} expected=${onLine1}`);
-            } else {
-              const row = rows[0];
-              let expectedLine: 1 | 2 | null = null;
-
-              if (row.line1_start && row.line1_end) {
-                const l1Start = timeToMins(row.line1_start);
-                const l1End   = timeToMins(row.line1_end);
-                if (inWindow(nowMins, l1Start, l1End)) expectedLine = 1;
-              }
-
-              if (expectedLine === null && row.line2_start && row.line2_end) {
-                const l2Start = timeToMins(row.line2_start);
-                const l2End   = timeToMins(row.line2_end);
-                if (inWindow(nowMins, l2Start, l2End)) expectedLine = 2;
-              }
-
-              // Outside all windows — fallback to Line 1
-              if (expectedLine === null) expectedLine = 1;
-
-              const onLine1    = to === client.twilio_number;
-              const onLine2    = to === client.twilio_number_2;
-              const expected   = (expectedLine === 1 && onLine1) || (expectedLine === 2 && onLine2);
-
-              console.log(`schedule_check: client=${clientId} to=${to} day=${dayName} nowMins=${nowMins} expectedLine=${expectedLine} onLine1=${onLine1} onLine2=${onLine2} expected=${expected}`);
+            if (row.line1_start && row.line1_end) {
+              const l1Start = timeToMins(row.line1_start);
+              const l1End   = timeToMins(row.line1_end);
+              if (inWindow(nowMins, l1Start, l1End)) expectedLine = 1;
             }
+
+            if (expectedLine === null && row.line2_start && row.line2_end) {
+              const l2Start = timeToMins(row.line2_start);
+              const l2End   = timeToMins(row.line2_end);
+              if (inWindow(nowMins, l2Start, l2End)) expectedLine = 2;
+            }
+
+            // Outside all windows — fallback to Line 1
+            if (expectedLine === null) expectedLine = 1;
+
+            const onLine1    = to === client.twilio_number;
+            const onLine2    = to === client.twilio_number_2;
+            const expected   = (expectedLine === 1 && onLine1) || (expectedLine === 2 && onLine2);
+
+            console.log(`schedule_check: client=${clientId} to=${to} day=${dayName} nowMins=${nowMins} expectedLine=${expectedLine} onLine1=${onLine1} onLine2=${onLine2} expected=${expected}`);
           }
         }
       } catch (schedErr) {
