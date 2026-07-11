@@ -1,0 +1,8 @@
+C:\Users\car31\call-magnet\splash_screens\iPhone_11__iPhone_XR_landscape.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_11__iPhone_XR_portrait.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_13_mini__iPhone_12_mini__iPhone_11_Pro__iPhone_XS__iPhone_X_landscape.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_13_mini__iPhone_12_mini__iPhone_11_Pro__iPhone_XS__iPhone_X_portrait.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_14_Plus__iPhone_13_Pro_Max__iPhone_12_Pro_Max_landscape.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_14_Plus__iPhone_13_Pro_Max__iPhone_12_Pro_Max_portrait.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_16_Plus__iPhone_15_Pro_Max__iPhone_15_Plus__iPhone_14_Pro_Max_landscape.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_16_Plus__iPhone_15_Pro_Max__iPhone_15_Plus__iPhone_14_Pro_Max_portrait.png

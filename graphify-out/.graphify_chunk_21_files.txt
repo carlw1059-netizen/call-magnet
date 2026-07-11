@@ -1,0 +1,8 @@
+C:\Users\car31\call-magnet\splash_screens\4__iPhone_SE__iPod_touch_5th_generation_and_later_landscape.png
+C:\Users\car31\call-magnet\splash_screens\4__iPhone_SE__iPod_touch_5th_generation_and_later_portrait.png
+C:\Users\car31\call-magnet\splash_screens\8.3__iPad_Mini_landscape.png
+C:\Users\car31\call-magnet\splash_screens\8.3__iPad_Mini_portrait.png
+C:\Users\car31\call-magnet\splash_screens\9.7__iPad_Pro__7.9__iPad_mini__9.7__iPad_Air__9.7__iPad_landscape.png
+C:\Users\car31\call-magnet\splash_screens\9.7__iPad_Pro__7.9__iPad_mini__9.7__iPad_Air__9.7__iPad_portrait.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_11_Pro_Max__iPhone_XS_Max_landscape.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_11_Pro_Max__iPhone_XS_Max_portrait.png

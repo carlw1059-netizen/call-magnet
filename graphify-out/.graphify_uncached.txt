@@ -1,0 +1,496 @@
+C:\Users\car31\call-magnet\CLAUDE.md
+C:\Users\car31\call-magnet\README.md
+C:\Users\car31\call-magnet\admin\clients.html
+C:\Users\car31\call-magnet\admin\middle-man.html
+C:\Users\car31\call-magnet\admin\onboard.html
+C:\Users\car31\call-magnet\admin\shortio-test.html
+C:\Users\car31\call-magnet\admin\unsubscribes.html
+C:\Users\car31\call-magnet\b.html
+C:\Users\car31\call-magnet\cancel.html
+C:\Users\car31\call-magnet\cm1site\b.html
+C:\Users\car31\call-magnet\docs\client-onboarding.md
+C:\Users\car31\call-magnet\docs\color-comparison.html
+C:\Users\car31\call-magnet\docs\failure-modes.md
+C:\Users\car31\call-magnet\docs\onboarding-runbook.md
+C:\Users\car31\call-magnet\docs\recovery-procedures.md
+C:\Users\car31\call-magnet\docs\system-audit.md
+C:\Users\car31\call-magnet\docs\twilio-restaurant-template.md
+C:\Users\car31\call-magnet\docs\visual-mockup.html
+C:\Users\car31\call-magnet\docs\weekly-summary-build-notes.md
+C:\Users\car31\call-magnet\go.html
+C:\Users\car31\call-magnet\handoff-session.md
+C:\Users\car31\call-magnet\handoff.md
+C:\Users\car31\call-magnet\index.html
+C:\Users\car31\call-magnet\legal.html
+C:\Users\car31\call-magnet\payment-success.html
+C:\Users\car31\call-magnet\skills CM REQUIRED\ab-test-setup\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ab-test-setup\references\sample-size-guide.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ab-test-setup\references\test-templates.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ad-creative\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ad-creative\references\generative-tools.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ad-creative\references\platform-specs.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ai-seo\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ai-seo\references\content-patterns.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ai-seo\references\platform-ranking-factors.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\analytics-tracking\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\analytics-tracking\references\event-library.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\analytics-tracking\references\ga4-implementation.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\analytics-tracking\references\gtm-implementation.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\aso-audit\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\aso-audit\references\apple-specs.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\aso-audit\references\benchmarks.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\aso-audit\references\google-play-specs.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\aso-audit\references\report-template.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\aso-audit\references\scoring-criteria.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\churn-prevention\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\churn-prevention\references\cancel-flow-patterns.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\churn-prevention\references\dunning-playbook.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-banner-design\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-banner-design\references\banner-sizes-and-styles.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-brand\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-brand\references\approval-checklist.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-brand\references\asset-organization.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-brand\references\brand-guideline-template.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-brand\references\color-palette-management.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-brand\references\consistency-checklist.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-brand\references\logo-usage-rules.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-brand\references\messaging-framework.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-brand\references\typography-specifications.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-brand\references\update.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-brand\references\visual-identity.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-brand\references\voice-framework.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-brand\templates\brand-guidelines-starter.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-design-system\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-design-system\references\component-specs.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-design-system\references\states-and-variants.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-design-system\references\tailwind-integration.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-design\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-design\references\banner-sizes-and-styles.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-design\references\cip-deliverable-guide.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-design\references\cip-design.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-design\references\cip-prompt-engineering.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-design\references\cip-style-guide.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-design\references\design-routing.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-design\references\icon-design.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-design\references\logo-color-psychology.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-design\references\logo-design.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-design\references\logo-prompt-engineering.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-design\references\logo-style-guide.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-design\references\slides-copywriting-formulas.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-design\references\slides-create.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-design\references\slides-html-template.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-design\references\slides-layout-patterns.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-design\references\slides-strategies.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-design\references\slides.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-design\references\social-photos-design.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-slides\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-slides\references\copywriting-formulas.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-slides\references\create.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-slides\references\html-template.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-slides\references\layout-patterns.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-slides\references\slide-strategies.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\LICENSE.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\ArsenalSC-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\BigShoulders-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\Boldonse-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\BricolageGrotesque-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\CrimsonPro-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\DMMono-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\EricaOne-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\GeistMono-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\Gloock-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\IBMPlexMono-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\InstrumentSans-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\Italiana-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\JetBrainsMono-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\Jura-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\LibreBaskerville-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\Lora-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\NationalPark-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\NothingYouCouldDo-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\Outfit-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\PixelifySans-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\PoiretOne-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\RedHatMono-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\Silkscreen-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\SmoochSans-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\Tektur-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\WorkSans-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\canvas-fonts\YoungSerif-OFL.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\references\canvas-design-system.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\references\shadcn-accessibility.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\references\shadcn-components.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\references\shadcn-theming.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\references\tailwind-customization.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\references\tailwind-responsive.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\references\tailwind-utilities.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\scripts\requirements.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\ckm-ui-styling\scripts\tests\requirements.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\co-marketing\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\code-simplifier\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\cold-email\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\cold-email\references\benchmarks.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\cold-email\references\follow-up-sequences.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\cold-email\references\frameworks.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\cold-email\references\personalization.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\cold-email\references\subject-lines.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\community-marketing\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\competitor-alternatives\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\competitor-alternatives\references\content-architecture.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\competitor-alternatives\references\templates.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\competitor-profiling\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\competitor-profiling\references\templates.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\competitor-profiling\references\tool-reference.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\content-strategy\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\content-strategy\references\headless-cms.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\CLAUDE.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\CONTRIBUTING.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\README.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\docs\agentskills.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\docs\blogs.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\docs\claude_research.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\docs\compression.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\docs\gemini_research.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\docs\hncapsule.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\docs\netflix_context.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\docs\skills-improvement-analysis.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\docs\vercel_tool.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\book-sft-pipeline\README.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\book-sft-pipeline\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\book-sft-pipeline\examples\gertrude-stein\README.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\book-sft-pipeline\examples\gertrude-stein\sample_outputs.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\book-sft-pipeline\references\segmentation-strategies.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\book-sft-pipeline\references\tinker-format.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\book-sft-pipeline\references\tinker.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\AGENT.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\HOW-SKILLS-BUILT-THIS.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\README.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\SKILLS-MAPPING.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\agents\AGENTS.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\content\CONTENT.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\content\calendar.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\content\templates\linkedin-post.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\content\templates\newsletter.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\content\templates\thread.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\examples\content-workflow.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\examples\meeting-prep.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\identity\IDENTITY.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\identity\bio-variants.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\identity\brand.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\identity\values.yaml
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\identity\voice.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\knowledge\KNOWLEDGE.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\knowledge\competitors.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\knowledge\learning.yaml
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\knowledge\research\_template.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\network\NETWORK.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\network\circles.yaml
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\network\intros.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\operations\OPERATIONS.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\operations\goals.yaml
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\operations\reviews\_weekly_template.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\operations\todos.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\digital-brain-skill\references\file-formats.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\README.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\docs\agentthinking.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\docs\interleavedthinking.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\docs\m2-1.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\generated_skills\comprehensive-research-agent\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\generated_skills\comprehensive-research-agent\references\optimized_prompt.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\final_prompt.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_10\analysis.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_10\trace.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_1\analysis.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_1\optimization.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_1\optimized_prompt.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_1\trace.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_2\analysis.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_2\optimization.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_2\optimized_prompt.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_2\trace.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_3\analysis.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_3\optimization.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_3\optimized_prompt.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_3\trace.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_4\analysis.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_4\optimization.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_4\optimized_prompt.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_4\trace.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_5\analysis.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_5\optimization.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_5\optimized_prompt.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_5\trace.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_6\analysis.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_6\optimization.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_6\optimized_prompt.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_6\trace.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_7\analysis.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_7\optimization.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_7\optimized_prompt.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_7\trace.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_8\analysis.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_8\optimization.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_8\optimized_prompt.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_8\trace.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_9\analysis.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_9\optimization.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_9\optimized_prompt.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\interleaved-thinking\optimization_artifacts\iteration_9\trace.txt
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\llm-as-judge-skills\CONTRIBUTING.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\llm-as-judge-skills\README.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\llm-as-judge-skills\agents\evaluator-agent\evaluator-agent.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\llm-as-judge-skills\agents\index.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\llm-as-judge-skills\agents\orchestrator-agent\orchestrator-agent.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\llm-as-judge-skills\agents\research-agent\research-agent.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\llm-as-judge-skills\prompts\agent-system\orchestrator-prompt.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\llm-as-judge-skills\prompts\evaluation\direct-scoring-prompt.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\llm-as-judge-skills\prompts\evaluation\pairwise-comparison-prompt.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\llm-as-judge-skills\prompts\index.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\llm-as-judge-skills\prompts\research\research-synthesis-prompt.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\llm-as-judge-skills\skills\context-fundamentals\context-fundamentals.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\llm-as-judge-skills\skills\index.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\llm-as-judge-skills\skills\llm-evaluator\llm-evaluator.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\llm-as-judge-skills\skills\tool-design\tool-design.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\llm-as-judge-skills\tools\evaluation\direct-score.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\llm-as-judge-skills\tools\evaluation\generate-rubric.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\llm-as-judge-skills\tools\evaluation\pairwise-compare.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\llm-as-judge-skills\tools\index.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\llm-as-judge-skills\tools\orchestration\delegate-to-agent.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\llm-as-judge-skills\tools\research\read-url.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\llm-as-judge-skills\tools\research\web-search.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\x-to-book-system\PRD.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\x-to-book-system\README.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\x-to-book-system\SKILLS-MAPPING.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\researcher\example_output.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\researcher\llm-as-a-judge.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\advanced-evaluation\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\advanced-evaluation\references\bias-mitigation.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\advanced-evaluation\references\evaluation-pipeline.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\advanced-evaluation\references\implementation-patterns.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\advanced-evaluation\references\metrics-guide.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\bdi-mental-states\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\bdi-mental-states\references\bdi-ontology-core.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\bdi-mental-states\references\framework-integration.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\bdi-mental-states\references\rdf-examples.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\bdi-mental-states\references\sparql-competency.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\context-compression\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\context-compression\references\evaluation-framework.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\context-degradation\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\context-degradation\references\patterns.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\context-fundamentals\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\context-fundamentals\references\context-components.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\context-optimization\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\context-optimization\references\optimization_techniques.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\evaluation\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\evaluation\references\metrics.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\filesystem-context\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\filesystem-context\references\implementation-patterns.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\hosted-agents\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\hosted-agents\references\infrastructure-patterns.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\latent-briefing\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\latent-briefing\references\attention-matching-formulation.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\memory-systems\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\memory-systems\references\implementation.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\multi-agent-patterns\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\multi-agent-patterns\references\frameworks.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\project-development\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\project-development\references\case-studies.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\project-development\references\pipeline-patterns.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\tool-design\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\tool-design\references\architectural_reduction.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\skills\tool-design\references\best_practices.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\template\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\copy-editing\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\copy-editing\references\content-refresh.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\copy-editing\references\plain-english-alternatives.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\copywriting\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\copywriting\references\copy-frameworks.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\copywriting\references\natural-transitions.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\customer-research\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\customer-research\references\source-guides.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\design-patterns\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\directory-submissions\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\directory-submissions\references\directory-list.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\directory-submissions\references\positioning-variations.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\email-sequence\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\email-sequence\references\copy-guidelines.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\email-sequence\references\email-types.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\email-sequence\references\sequence-templates.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\form-cro\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\free-tool-strategy\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\free-tool-strategy\references\tool-types.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\image\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\image\references\ai-image-prompting.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\adapt.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\animate.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\audit.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\bolder.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\brand.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\clarify.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\cognitive-load.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\color-and-contrast.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\colorize.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\craft.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\critique.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\delight.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\distill.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\document.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\extract.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\harden.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\heuristics-scoring.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\interaction-design.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\layout.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\live.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\motion-design.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\onboard.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\optimize.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\overdrive.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\personas.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\polish.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\product.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\quieter.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\responsive-design.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\shape.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\spatial-design.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\teach.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\typeset.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\typography.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\impeccable\reference\ux-writing.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\issue-triage\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\issue-triage\templates\issue-comment.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\launch-strategy\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\lead-magnets\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\lead-magnets\references\benchmarks.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\lead-magnets\references\format-guide.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\marketing-ideas\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\marketing-ideas\references\ideas-by-category.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\marketing-psychology\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\onboarding-cro\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\onboarding-cro\references\experiments.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\page-cro\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\page-cro\references\experiments.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\paid-ads\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\paid-ads\references\ad-copy-templates.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\paid-ads\references\audience-targeting.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\paid-ads\references\conversion-tracking.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\paid-ads\references\platform-setup-checklists.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\paywall-upgrade-cro\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\paywall-upgrade-cro\references\experiments.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\popup-cro\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\pr-triage\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\pr-triage\templates\review-comment.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\pricing-strategy\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\pricing-strategy\references\research-methods.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\pricing-strategy\references\tier-structure.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\product-marketing-context\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\programmatic-seo\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\programmatic-seo\references\playbooks.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\referral-program\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\referral-program\references\affiliate-programs.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\referral-program\references\program-examples.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\revops\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\revops\references\automation-playbooks.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\revops\references\lifecycle-definitions.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\revops\references\routing-rules.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\revops\references\scoring-models.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\rtk-tdd\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\rtk-tdd\references\testing-patterns.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\rtk-triage\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\sales-enablement\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\sales-enablement\references\deck-frameworks.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\sales-enablement\references\demo-scripts.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\sales-enablement\references\objection-library.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\sales-enablement\references\one-pager-templates.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\schema-markup\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\schema-markup\references\schema-examples.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\seo-audit\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\seo-audit\references\ai-writing-detection.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\seo-audit\references\international-seo.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\signup-flow-cro\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\site-architecture\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\site-architecture\references\mermaid-templates.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\site-architecture\references\navigation-patterns.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\site-architecture\references\site-type-templates.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\social-content\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\social-content\references\platform-limits.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\social-content\references\platforms.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\social-content\references\post-templates.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\social-content\references\reverse-engineering.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\social-content\references\short-form-video.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\stop-slop\CHANGELOG.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\stop-slop\README.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\stop-slop\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\stop-slop\references\examples.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\stop-slop\references\phrases.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\stop-slop\references\structures.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\tdd-rust\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\ui-ux-pro-max\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\video\SKILL.md
+C:\Users\car31\call-magnet\skills CM REQUIRED\video\references\ai-video-prompting.md
+C:\Users\car31\call-magnet\supabase\templates\confirmation.html
+C:\Users\car31\call-magnet\supabase\templates\email_change.html
+C:\Users\car31\call-magnet\supabase\templates\magic_link.html
+C:\Users\car31\call-magnet\supabase\templates\recovery.html
+C:\Users\car31\call-magnet\twilio-functions\README.md
+C:\Users\car31\call-magnet\u.html
+C:\Users\car31\call-magnet\callmagnet_overview.pdf
+C:\Users\car31\call-magnet\android-chrome-192x192.png
+C:\Users\car31\call-magnet\android-chrome-512x512.png
+C:\Users\car31\call-magnet\apple-touch-icon.png
+C:\Users\car31\call-magnet\favicon-16x16.png
+C:\Users\car31\call-magnet\favicon-32x32.png
+C:\Users\car31\call-magnet\icon.svg
+C:\Users\car31\call-magnet\poster_new.jpg
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\book-sft-pipeline\examples\gertrude-stein\pangram\Screenshot 2025-12-27 at 3.05.04 AM.png
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\book-sft-pipeline\examples\gertrude-stein\pangram\Screenshot 2025-12-27 at 3.05.36 AM.png
+C:\Users\car31\call-magnet\skills CM REQUIRED\context-engineering-collection\examples\book-sft-pipeline\examples\gertrude-stein\pangram\Screenshot 2025-12-27 at 3.07.18 AM.png
+C:\Users\car31\call-magnet\splash_screens\10.2__iPad_landscape.png
+C:\Users\car31\call-magnet\splash_screens\10.2__iPad_portrait.png
+C:\Users\car31\call-magnet\splash_screens\10.5__iPad_Air_landscape.png
+C:\Users\car31\call-magnet\splash_screens\10.5__iPad_Air_portrait.png
+C:\Users\car31\call-magnet\splash_screens\10.9__iPad_Air_landscape.png
+C:\Users\car31\call-magnet\splash_screens\10.9__iPad_Air_portrait.png
+C:\Users\car31\call-magnet\splash_screens\11__iPad_Pro_M4_landscape.png
+C:\Users\car31\call-magnet\splash_screens\11__iPad_Pro_M4_portrait.png
+C:\Users\car31\call-magnet\splash_screens\11__iPad_Pro__10.5__iPad_Pro_landscape.png
+C:\Users\car31\call-magnet\splash_screens\11__iPad_Pro__10.5__iPad_Pro_portrait.png
+C:\Users\car31\call-magnet\splash_screens\12.9__iPad_Pro_landscape.png
+C:\Users\car31\call-magnet\splash_screens\12.9__iPad_Pro_portrait.png
+C:\Users\car31\call-magnet\splash_screens\13__iPad_Pro_M4_landscape.png
+C:\Users\car31\call-magnet\splash_screens\13__iPad_Pro_M4_portrait.png
+C:\Users\car31\call-magnet\splash_screens\4__iPhone_SE__iPod_touch_5th_generation_and_later_landscape.png
+C:\Users\car31\call-magnet\splash_screens\4__iPhone_SE__iPod_touch_5th_generation_and_later_portrait.png
+C:\Users\car31\call-magnet\splash_screens\8.3__iPad_Mini_landscape.png
+C:\Users\car31\call-magnet\splash_screens\8.3__iPad_Mini_portrait.png
+C:\Users\car31\call-magnet\splash_screens\9.7__iPad_Pro__7.9__iPad_mini__9.7__iPad_Air__9.7__iPad_landscape.png
+C:\Users\car31\call-magnet\splash_screens\9.7__iPad_Pro__7.9__iPad_mini__9.7__iPad_Air__9.7__iPad_portrait.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_11_Pro_Max__iPhone_XS_Max_landscape.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_11_Pro_Max__iPhone_XS_Max_portrait.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_11__iPhone_XR_landscape.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_11__iPhone_XR_portrait.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_13_mini__iPhone_12_mini__iPhone_11_Pro__iPhone_XS__iPhone_X_landscape.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_13_mini__iPhone_12_mini__iPhone_11_Pro__iPhone_XS__iPhone_X_portrait.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_14_Plus__iPhone_13_Pro_Max__iPhone_12_Pro_Max_landscape.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_14_Plus__iPhone_13_Pro_Max__iPhone_12_Pro_Max_portrait.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_16_Plus__iPhone_15_Pro_Max__iPhone_15_Plus__iPhone_14_Pro_Max_landscape.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_16_Plus__iPhone_15_Pro_Max__iPhone_15_Plus__iPhone_14_Pro_Max_portrait.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_16__iPhone_15_Pro__iPhone_15__iPhone_14_Pro_landscape.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_16__iPhone_15_Pro__iPhone_15__iPhone_14_Pro_portrait.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_17_Pro_Max__iPhone_16_Pro_Max_landscape.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_17_Pro_Max__iPhone_16_Pro_Max_portrait.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_17_Pro__iPhone_17__iPhone_16_Pro_landscape.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_17_Pro__iPhone_17__iPhone_16_Pro_portrait.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_17e__iPhone_16e__iPhone_14__iPhone_13_Pro__iPhone_13__iPhone_12_Pro__iPhone_12_landscape.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_17e__iPhone_16e__iPhone_14__iPhone_13_Pro__iPhone_13__iPhone_12_Pro__iPhone_12_portrait.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_8_Plus__iPhone_7_Plus__iPhone_6s_Plus__iPhone_6_Plus_landscape.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_8_Plus__iPhone_7_Plus__iPhone_6s_Plus__iPhone_6_Plus_portrait.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_8__iPhone_7__iPhone_6s__iPhone_6__4.7__iPhone_SE_landscape.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_8__iPhone_7__iPhone_6s__iPhone_6__4.7__iPhone_SE_portrait.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_Air_landscape.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_Air_portrait.png
+C:\Users\car31\call-magnet\splash_screens\icon.png

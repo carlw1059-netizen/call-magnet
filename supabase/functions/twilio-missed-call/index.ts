@@ -57,7 +57,7 @@ function inWindow(nowMins: number, startMins: number, endMins: number): boolean 
 const corsHeaders = {
   'Access-Control-Allow-Origin': 'https://callmagnet.com.au',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Test-Time-Mins, X-Test-Day-Name',
 };
 
 Deno.serve(async (req) => {

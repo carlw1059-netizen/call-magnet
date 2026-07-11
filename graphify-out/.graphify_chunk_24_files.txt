@@ -1,0 +1,7 @@
+C:\Users\car31\call-magnet\splash_screens\iPhone_8_Plus__iPhone_7_Plus__iPhone_6s_Plus__iPhone_6_Plus_landscape.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_8_Plus__iPhone_7_Plus__iPhone_6s_Plus__iPhone_6_Plus_portrait.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_8__iPhone_7__iPhone_6s__iPhone_6__4.7__iPhone_SE_landscape.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_8__iPhone_7__iPhone_6s__iPhone_6__4.7__iPhone_SE_portrait.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_Air_landscape.png
+C:\Users\car31\call-magnet\splash_screens\iPhone_Air_portrait.png
+C:\Users\car31\call-magnet\splash_screens\icon.png
