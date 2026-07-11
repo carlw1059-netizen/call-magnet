@@ -857,8 +857,6 @@ function renderEditBody(client) {
       if (!l1s && l1e) { valid = false; validationError = day + ': Line 1 has an end time but no start time'; }
       if (l2s && !l2e) { valid = false; validationError = day + ': Line 2 has a start time but no end time'; }
       if (!l2s && l2e) { valid = false; validationError = day + ': Line 2 has an end time but no start time'; }
-      if (l1s && l1e && l1e <= l1s) { valid = false; validationError = day + ': Line 1 end time must be after start time'; }
-      if (l2s && l2e && l2e <= l2s) { valid = false; validationError = day + ': Line 2 end time must be after start time'; }
     });
 
     if (!valid) {
