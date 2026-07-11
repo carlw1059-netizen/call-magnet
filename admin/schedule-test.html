@@ -80,7 +80,15 @@ td { padding: 6px 10px; border: 1px solid #e5e7eb; }
 <script>
 const SUPABASE_URL  = 'https://iskvvnhacqdxybpmwuni.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+  auth: {
+    persistSession: true,
+    storage: window.localStorage,
+    storageKey: 'callmagnet-auth-token',
+    autoRefreshToken: true,
+    detectSessionInUrl: false,
+  }
+});
 
 const DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
 const TEST_SID_PREFIX = 'SCHEDTEST_';
