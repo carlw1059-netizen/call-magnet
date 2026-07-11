@@ -846,22 +846,28 @@ function renderEditBody(client) {
     // Validate time ranges per day
     var days = document.querySelectorAll('#mmaScheduleDays .mma-schedule-day');
     var valid = true;
+    var validationError = '';
     days.forEach(function(dayEl) {
+      var day = dayEl.dataset.day;
       var l1s = dayEl.querySelector('.mma-sched-l1s').value;
       var l1e = dayEl.querySelector('.mma-sched-l1e').value;
       var l2s = dayEl.querySelector('.mma-sched-l2s').value;
       var l2e = dayEl.querySelector('.mma-sched-l2e').value;
-      if (l1s && l1e && l1e <= l1s) { valid = false; }
-      if (l2s && l2e && l2e <= l2s) { valid = false; }
+      if (l1s && !l1e) { valid = false; validationError = day + ': Line 1 has a start time but no end time'; }
+      if (!l1s && l1e) { valid = false; validationError = day + ': Line 1 has an end time but no start time'; }
+      if (l2s && !l2e) { valid = false; validationError = day + ': Line 2 has a start time but no end time'; }
+      if (!l2s && l2e) { valid = false; validationError = day + ': Line 2 has an end time but no start time'; }
+      if (l1s && l1e && l1e <= l1s) { valid = false; validationError = day + ': Line 1 end time must be after start time'; }
+      if (l2s && l2e && l2e <= l2s) { valid = false; validationError = day + ': Line 2 end time must be after start time'; }
     });
 
     if (!valid) {
       btn.disabled = false;
       btn.textContent = 'Save schedule';
-      msg.textContent = 'Error: end time must be after start time on each day';
+      msg.textContent = 'Error: ' + validationError;
       msg.style.color = '#CC0000';
       msg.style.display = 'inline';
-      setTimeout(function() { msg.style.display = 'none'; }, 4000);
+      setTimeout(function() { msg.style.display = 'none'; }, 5000);
       return;
     }
 
