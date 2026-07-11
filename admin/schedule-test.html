@@ -57,6 +57,11 @@ td { padding: 6px 10px; border: 1px solid #e5e7eb; }
   <input type="text" id="simTo" placeholder="+61489278544" />
   <label>CallSid (unique — change between tests)</label>
   <input type="text" id="simCallSid" value="TEST001" />
+  <label>Test day override</label>
+  <input type="text" id="testDay" placeholder="e.g. saturday" />
+  <label>Test time override (mins since midnight)</label>
+  <input type="text" id="testTimeMins" placeholder="e.g. 1020 = 5:00pm, 630 = 10:30am" />
+  <p style="font-size:12px;color:#666;margin-top:6px;">Both overrides optional — if empty, real Melbourne time is used.</p>
   <button onclick="runSimulation()" id="simBtn">Run simulation</button>
   <div id="simResult" style="margin-top:12px;"></div>
 </div>
@@ -75,6 +80,14 @@ td { padding: 6px 10px; border: 1px solid #e5e7eb; }
   <p style="font-size:13px;color:#666;margin-bottom:12px;">Delete all sms_events rows created by this test session.</p>
   <button onclick="cleanupTests()" id="cleanBtn">Delete test rows</button>
   <div id="cleanResult" style="margin-top:12px;"></div>
+</div>
+
+<!-- SECTION 6: Schedule log viewer -->
+<div class="card">
+  <h2>6. Schedule log viewer</h2>
+  <p style="font-size:13px;color:#666;margin-bottom:12px;">10 most recent sms_events rows for the selected client.</p>
+  <button onclick="loadLogs()" id="logBtn">Load logs</button>
+  <div id="logResult" style="margin-top:12px;"></div>
 </div>
 
 <script>
@@ -233,9 +246,11 @@ async function checkExpected() {
 async function runSimulation() {
   var btn = document.getElementById('simBtn');
   var el  = document.getElementById('simResult');
-  var from    = document.getElementById('simFrom').value.trim();
-  var to      = document.getElementById('simTo').value.trim();
-  var callSid = document.getElementById('simCallSid').value.trim();
+  var from        = document.getElementById('simFrom').value.trim();
+  var to          = document.getElementById('simTo').value.trim();
+  var callSid     = document.getElementById('simCallSid').value.trim();
+  var testDay     = document.getElementById('testDay').value.trim();
+  var testTime    = document.getElementById('testTimeMins').value.trim();
 
   if (!from || !to || !callSid) {
     el.innerHTML = '<div class="result fail">From, To and CallSid are all required.</div>';
@@ -251,12 +266,18 @@ async function runSimulation() {
                   '&To='   + encodeURIComponent(to) +
                   '&CallSid=' + encodeURIComponent(callSid);
 
+    var simHeaders = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': 'Bearer ' + SUPABASE_ANON
+    };
+    if (testDay && testTime) {
+      simHeaders['X-Test-Day-Name']  = testDay;
+      simHeaders['X-Test-Time-Mins'] = testTime;
+    }
+
     var resp = await fetch(SUPABASE_URL + '/functions/v1/twilio-missed-call', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': 'Bearer ' + SUPABASE_ANON
-      },
+      headers: simHeaders,
       body: formBody
     });
     var result = await resp.json();
@@ -299,6 +320,41 @@ async function cleanupTests() {
   }
   btn.disabled = false;
   btn.textContent = 'Delete test rows';
+}
+
+async function loadLogs() {
+  var btn = document.getElementById('logBtn');
+  var el  = document.getElementById('logResult');
+  if (!_currentClient) { el.innerHTML = '<div class="result fail">Select a client first.</div>'; return; }
+  btn.disabled = true;
+  btn.textContent = 'Loading...';
+  try {
+    var { data, error } = await sb.from('sms_events')
+      .select('received_at,twilio_call_sid,client_number,customer_number')
+      .eq('client_id', _currentClient.id)
+      .order('received_at', { ascending: false })
+      .limit(10);
+    if (error) throw error;
+    if (!data || data.length === 0) {
+      el.innerHTML = '<div class="result info">No sms_events rows for this client.</div>';
+    } else {
+      var html = '<table><tr><th>Received at</th><th>CallSid</th><th>Client number</th><th>Customer number</th></tr>';
+      data.forEach(function(r) {
+        html += '<tr>' +
+          '<td>' + (r.received_at || '—') + '</td>' +
+          '<td style="font-size:11px;word-break:break-all;">' + (r.twilio_call_sid || '—') + '</td>' +
+          '<td>' + (r.client_number || '—') + '</td>' +
+          '<td>' + (r.customer_number || '—') + '</td>' +
+          '</tr>';
+      });
+      html += '</table>';
+      el.innerHTML = html;
+    }
+  } catch(e) {
+    el.innerHTML = '<div class="result fail">Error: ' + e.message + '</div>';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Load logs';
 }
 
 init();
