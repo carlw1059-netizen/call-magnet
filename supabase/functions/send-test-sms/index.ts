@@ -9,8 +9,6 @@ const TWILIO_AUTH_TOKEN        = Deno.env.get('TWILIO_AUTH_TOKEN')!;
 const SUPABASE_URL             = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-const FROM_NUMBER = '+61468083169';
-
 const cors = {
   'Access-Control-Allow-Origin':  '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -32,17 +30,34 @@ Deno.serve(async (req) => {
     return json(500, { ok: false, error: 'Twilio credentials not configured' });
   }
 
-  let to: string, message: string, slug: string;
+  let to: string, message: string, slug: string, from: string;
   try {
-    const body = await req.json() as { to?: string; message?: string; slug?: string };
+    const body = await req.json() as { to?: string; message?: string; slug?: string; from?: string };
     to      = (body.to      || '').trim();
     message = (body.message || '').trim();
     slug    = (body.slug    || '').trim();
+    from    = (body.from    || '').trim();
     if (!to)      return json(400, { ok: false, error: 'to is required' });
     if (!message) return json(400, { ok: false, error: 'message is required' });
     if (!slug)    return json(400, { ok: false, error: 'slug is required' });
   } catch {
     return json(400, { ok: false, error: 'invalid JSON body' });
+  }
+
+  // If 'from' not supplied by caller, look it up from the clients table by slug
+  if (!from) {
+    const lookupRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/clients?middle_man_slug=eq.${encodeURIComponent(slug)}&select=twilio_number&limit=1`,
+      {
+        headers: {
+          apikey:        SUPABASE_SERVICE_ROLE_KEY,
+          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+      }
+    );
+    const rows = await lookupRes.json() as Array<{ twilio_number?: string }>;
+    from = rows?.[0]?.twilio_number?.trim() || '';
+    if (!from) return json(400, { ok: false, error: 'could not resolve from number for slug' });
   }
 
   // Normalise AU mobile: 04xx → +614xx
@@ -51,7 +66,7 @@ Deno.serve(async (req) => {
 
   // Send via Twilio REST API
   const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
-  const params = new URLSearchParams({ To: toNormalised, From: FROM_NUMBER, Body: message });
+  const params = new URLSearchParams({ To: toNormalised, From: from, Body: message });
   const twilioRes = await fetch(twilioUrl, {
     method:  'POST',
     headers: {

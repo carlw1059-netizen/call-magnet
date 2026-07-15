@@ -1933,7 +1933,7 @@ async function sendTestSmsFromEdit() {
     var res  = await fetch(MMA_SUPABASE_URL + '/functions/v1/send-test-sms', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ to: to, message: message, slug: slug }),
+      body:    JSON.stringify({ to: to, message: message, slug: slug, from: (_editClientData && _editClientData.twilio_number) || '' }),
     });
     var data = await res.json().catch(function() { return {}; });
     if (data.ok && data.sid) {
