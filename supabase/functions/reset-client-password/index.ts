@@ -5,7 +5,7 @@ const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin':  '*',
+  'Access-Control-Allow-Origin':  'https://callmagnet.com.au',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
     if (!body) return json(400, { error: 'invalid_body', detail: 'JSON body required' });
 
     const client_id    = typeof body.client_id    === 'string' ? body.client_id.trim()    : '';
-    const new_password = typeof body.new_password === 'string' ? body.new_password        : '';
+    const new_password = typeof body.new_password === 'string' ? body.new_password.trim() : '';
 
     if (!client_id)    return json(400, { error: 'missing_field', field: 'client_id' });
     if (!new_password || new_password.length < 8) {
