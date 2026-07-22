@@ -61,14 +61,12 @@ Deno.serve(async (req) => {
       return json(404, { error: 'client_not_found', detail: clientErr?.message ?? 'no client with that id' });
     }
 
-    // ── 4. Find auth user by email ─────────────────────────────────────────
-    const { data: listData } = await supa.auth.admin.listUsers({ page: 1, perPage: 1000 });
-    const authUser = listData?.users?.find(
-      (u) => (u.email ?? '').toLowerCase() === (clientRow.email ?? '').toLowerCase()
-    );
-    if (!authUser) {
+    // ── 4. Find auth user by email (direct lookup — no full scan) ──────────
+    const { data: foundUser, error: userError } = await supa.auth.admin.getUserByEmail(clientRow.email);
+    if (userError || !foundUser?.user) {
       return json(404, { error: 'auth_user_not_found', detail: `no auth user found for email ${clientRow.email}` });
     }
+    const authUser = foundUser.user;
 
     // ── 5. Update password ─────────────────────────────────────────────────
     const { error: updateErr } = await supa.auth.admin.updateUserById(authUser.id, {
