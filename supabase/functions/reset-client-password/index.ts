@@ -38,6 +38,9 @@ Deno.serve(async (req) => {
     if (!isAdmin) {
       return json(403, { error: 'not_admin', detail: 'caller does not have is_admin flag in app_metadata' });
     }
+    if ((userData.user.email ?? '').toLowerCase() !== 'car312@hotmail.com') {
+      return json(403, { error: 'forbidden', detail: 'admin email mismatch' });
+    }
 
     // ── 2. Parse + validate body ───────────────────────────────────────────
     const body = await req.json().catch(() => null) as Record<string, unknown> | null;
@@ -75,6 +78,8 @@ Deno.serve(async (req) => {
     if (updateErr) {
       return json(500, { error: 'password_update_failed', detail: updateErr.message });
     }
+
+    await supa.from('clients').update({ must_change_password: true }).eq('email', clientRow.email);
 
     return json(200, { ok: true, email: clientRow.email });
 
