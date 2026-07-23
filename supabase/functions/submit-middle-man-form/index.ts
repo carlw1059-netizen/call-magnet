@@ -172,6 +172,16 @@ Deno.serve(async (req: Request): Promise<Response> => {
     }
   } catch (_) { /* non-fatal — notification skipped if button lookup fails */ }
 
+  // If this is a function enquiry and we have caller details, override the push message
+  if (formType === 'function') {
+    const callerLabel = callerName || toE164(callerPhone);
+    if (companyName) {
+      customPushMessage = `${callerLabel} from ${companyName} has a function enquiry`;
+    } else {
+      customPushMessage = `${callerLabel} has a function enquiry`;
+    }
+  }
+
   // ── Hash caller IP ──────────────────────────────────────────────────────────
   const ipRaw  = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown';
   const ipFirst = ipRaw.split(',')[0].trim();
