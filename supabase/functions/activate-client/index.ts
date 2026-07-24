@@ -115,6 +115,7 @@ Deno.serve(async (req) => {
       .update({
         account_status:         'active',
         stripe_subscription_id,
+        subscription_start:     new Date().toISOString(),
       })
       .eq('id', client_id);
 
