@@ -98,20 +98,18 @@ exports.handler = async function (context, event, callback) {
     return callback(null, FALLBACK);
   }
 
-  const { vertical, business_name, booking_url, customer_sms_template, shortio_link, middle_man_slug, middle_man_enabled } = rows[0];
+  const { vertical, business_name, booking_url, customer_sms_template, middle_man_slug, middle_man_enabled } = rows[0];
 
   // Build the SMS link:
-  //   If Middle Man is ON → prefer Short.io link, fall back to /b/<slug> URL.
+  //   If Middle Man is ON → use cm1.au/<slug> (Netlify catch-all serves b.html).
   //   If Middle Man is OFF → go straight to booking_url (Fresha/OpenTable/etc.)
   //   so the caller is never sent to a dark page.
   // Substituted into the stored [LINK] placeholder so Twilio Studio stays trivial:
   //   {{widgets.fetch_client.parsed.customer_sms_template}} Reply STOP to opt out
   const bookingUrl = booking_url || 'https://callmagnet.com.au';
-  const smsLink = shortio_link && middle_man_enabled
-    ? shortio_link
-    : (middle_man_enabled && middle_man_slug
-        ? `https://callmagnet.com.au/b/${middle_man_slug}`
-        : bookingUrl);
+  const smsLink = middle_man_enabled && middle_man_slug
+    ? `https://cm1.au/${middle_man_slug}`
+    : bookingUrl;
   const tmpl = (customer_sms_template || FALLBACK.customer_sms_template).replace(/\[LINK\]/g, smsLink);
 
   return callback(null, {
