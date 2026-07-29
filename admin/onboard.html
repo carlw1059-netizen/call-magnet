@@ -843,9 +843,7 @@ function showSuccess(data, owner_phone) {
     copyBtn.style.display = 'inline-block';
     copyBtn.dataset.url   = 'https://' + mmUrl;
 
-    // SMS link: Short.io if created, otherwise slug URL
-    // (shortio_link is not returned by create-client; use slug URL as conservative display)
-    smsLinkEl.textContent = 'callmagnet.com.au/b/' + slug + ' (Short.io link will be set if SHORTIO_API_KEY is configured)';
+    smsLinkEl.textContent = 'https://cm1.au/' + slug;
     noteEl.textContent    = 'Middle Man is ON — callers who miss this number will be sent to the smart page.';
   } else if (slug && !mmEnabled) {
     mmUrlEl.textContent   = 'callmagnet.com.au/b/' + slug + ' (configured but OFF)';

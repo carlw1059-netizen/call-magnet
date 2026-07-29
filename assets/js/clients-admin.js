@@ -482,7 +482,6 @@ async function caDeleteMM(btn) {
     middle_man_background_type:       null,
     middle_man_logo_url:              null,
     booking_url:                      null,
-    shortio_link:                     null,
   }).eq('id', id);
 
   if (result.error) {

@@ -436,12 +436,6 @@ verify_jwt = false
 [functions.monthly-report]
 verify_jwt = false
 
-[functions.shortio-webhook]
-verify_jwt = false
-
-[functions.create-shortio-link-test]
-verify_jwt = false
-
 [functions.send-test-sms]
 verify_jwt = false
 

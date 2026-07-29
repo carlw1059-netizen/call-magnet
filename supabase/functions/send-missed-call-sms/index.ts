@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
         `${SUPABASE_URL}/rest/v1/clients` +
         `?twilio_number=eq.${encodeURIComponent(from)}` +
         `&is_test_account=eq.false&account_status=eq.active` +
-        `&select=id,middle_man_enabled,middle_man_slug,rebrandly_link_id,shortio_link,sms_included&limit=1`, // TODO rename rebrandly_link_id to booking_link_id once DB column is renamed
+        `&select=id,middle_man_enabled,middle_man_slug,rebrandly_link_id,sms_included&limit=1`, // TODO rename rebrandly_link_id to booking_link_id once DB column is renamed
         {
           headers: {
             apikey:        SUPABASE_SERVICE_ROLE_KEY,
@@ -123,7 +123,6 @@ Deno.serve(async (req) => {
           middle_man_enabled: boolean;
           middle_man_slug: string | null;
           rebrandly_link_id: string | null;
-          shortio_link: string | null;
           sms_included: number;
         }[];
 
@@ -203,7 +202,7 @@ Deno.serve(async (req) => {
                 }),
               });
 
-              const linkToUse = client.shortio_link || ('https://cm1.au/' + client.middle_man_slug);
+              const linkToUse = 'https://cm1.au/' + client.middle_man_slug;
               finalMessage = message.replace(/\[LINK\]/gi, linkToUse);
               console.log(`send-missed-call-sms: unsubscribe token generated for to=${to} token=${unsubToken.slice(0, 8)}…`);
             } catch (tokenErr) {

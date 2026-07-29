@@ -10,7 +10,6 @@ let mmaSb              = null;
 let _editClientId      = null;
 let _editClientData    = null;
 let _editClientSchedules = [];
-let _smsShortLink      = '';
 
 // ─── Escape helper ────────────────────────────────────────────────────────────
 function _e(s) {
@@ -358,7 +357,7 @@ async function loadClientForEdit(clientId) {
   try {
     var result = await mmaSb
       .from('clients')
-      .select('id,business_name,email,vertical,middle_man_enabled,middle_man_slug,booking_url,middle_man_logo_url,middle_man_promo_text,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_buttons,middle_man_updated_at,is_demo_account,is_locked,shortio_link,shortio_link_id,customer_sms_template,twilio_number,twilio_number_2,schedule_enabled,manual_line_override')
+      .select('id,business_name,email,vertical,middle_man_enabled,middle_man_slug,booking_url,middle_man_logo_url,middle_man_promo_text,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_buttons,middle_man_updated_at,is_demo_account,is_locked,customer_sms_template,twilio_number,twilio_number_2,schedule_enabled,manual_line_override')
       .eq('id', clientId)
       .single();
     if (result.error) throw result.error;
@@ -443,30 +442,17 @@ function renderEditBody(client) {
       '<div id="mmaSlugMsg" class="mma-saved-msg" style="margin-left:0;margin-top:6px;"></div>' +
     '</div>';
 
-  // ── 3c. Short Link & SMS Setup
-  _smsShortLink     = client.shortio_link || '';
+  // ── 3c. SMS Setup
   var _smsTmplVal   = client.customer_sms_template || '';
-  var shortioSmsSection =
+  var smsSection =
     '<div class="mma-section">' +
       '<div id="mmaSmsSectionLabel" style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#06D6A0;cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center;">' +
-        'SHORT LINK &amp; SMS SETUP' +
+        'SMS SETUP' +
         '<span id="mmaSmsSectionArrow" style="font-size:12px;color:#06D6A0;">&#9658; Show</span>' +
       '</div>' +
       '<div id="mmaSmsSectionBody" style="display:none;margin-top:14px;">' +
 
-        // SHORT LINK
-        '<div style="font-size:13px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#000;margin-bottom:12px;">Step 1: Create Short Link</div>' +
-        '<div style="font-size:13px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:4px;">Client Slug</div>' +
-        '<input type="text" value="' + _e(client.middle_man_slug || '') + '" readonly style="width:100%;border:1px solid #ccc;border-radius:6px;padding:8px 10px;font-size:14px;color:#000;background:#f9fafb;font-family:inherit;font-weight:600;box-sizing:border-box;" />' +
-        '<button id="mmaCreateShortLinkBtn"' + (_smsShortLink ? ' disabled' : '') + ' style="margin-top:12px;width:100%;background:#10b981;color:#fff;border:none;border-radius:6px;padding:9px;font-size:14px;font-weight:700;cursor:pointer;">Create Short Link in Short.io</button>' +
-        '<div id="mmaCreateTag" style="margin-top:8px;">' + (_smsShortLink ? '<span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;background:#d1fae5;color:#065f46;">&#10003; Connected</span>' : '') + '</div>' +
-        '<div id="mmaShortLinkRow" style="' + (_smsShortLink ? '' : 'display:none;') + '">' +
-          '<div style="font-size:13px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:4px;margin-top:12px;">Short Link Created</div>' +
-          '<input type="text" id="mmaShortLinkOutput" readonly value="' + _e(_smsShortLink) + '" style="width:100%;border:1px solid #ccc;border-radius:6px;padding:8px 10px;font-size:14px;color:#000;background:#f9fafb;font-family:inherit;font-weight:600;box-sizing:border-box;" />' +
-        '</div>' +
-
-        '<div style="border-top:1px solid #e5e7eb;padding-top:20px;margin-top:20px;">' +
-        '<div style="font-size:13px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#000;margin-bottom:12px;">Step 2: SMS Message</div>' +
+        '<div style="font-size:13px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#000;margin-bottom:12px;">Step 1: SMS Message</div>' +
         '<div style="font-size:13px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:4px;">Customer SMS Template</div>' +
         '<textarea id="mmaSmsTmpl" rows="3" style="width:100%;border:1px solid #ccc;border-radius:6px;padding:8px 10px;font-size:14px;color:#000;background:#fff;font-family:inherit;resize:vertical;line-height:1.5;box-sizing:border-box;">' + _e(_smsTmplVal) + '</textarea>' +
         '<div id="mmaSmsCount" style="text-align:right;font-size:12px;font-weight:600;color:#10b981;margin-top:4px;">0/160</div>' +
@@ -477,12 +463,12 @@ function renderEditBody(client) {
         '</div>' +
         '</div>' +
         '<div style="border-top:1px solid #e5e7eb;padding-top:20px;margin-top:20px;">' +
-        '<div style="font-size:13px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#000;margin-bottom:12px;">Step 3: SMS Preview</div>' +
+        '<div style="font-size:13px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#000;margin-bottom:12px;">Step 2: SMS Preview</div>' +
         '<div id="mmaSmsPreview" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px;font-size:14px;line-height:1.6;color:#000;word-break:break-word;min-height:54px;font-weight:600;">—</div>' +
         '<div style="margin-top:7px;font-size:12px;color:#6b7280;">Characters: <span id="mmaSmsPreviewCount" style="color:#10b981;font-weight:600;">0</span></div>' +
         '</div>' +
         '<div style="border-top:1px solid #e5e7eb;padding-top:20px;margin-top:20px;">' +
-        '<div style="font-size:13px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#000;margin-bottom:12px;">Step 4: Send &amp; Save</div>' +
+        '<div style="font-size:13px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#000;margin-bottom:12px;">Step 3: Send &amp; Save</div>' +
         '<div style="font-size:13px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:4px;">Send to Number</div>' +
         '<input type="text" id="mmaSmsTestTo" placeholder="+61412345678" style="width:100%;border:1px solid #ccc;border-radius:6px;padding:8px 10px;font-size:14px;color:#000;background:#fff;font-family:inherit;font-weight:600;box-sizing:border-box;" />' +
         '<button id="mmaSmsTestBtn" style="margin-top:12px;width:100%;background:#10b981;color:#fff;border:none;border-radius:6px;padding:9px;font-size:14px;font-weight:700;cursor:pointer;">Send Test SMS</button>' +
@@ -670,7 +656,7 @@ function renderEditBody(client) {
     : '';
   var formWrapStart = lockedDemo ? '<div style="opacity:0.6;pointer-events:none;">' : '';
   var formWrapEnd   = lockedDemo ? '</div>' : '';
-  content.innerHTML = heading + lockedBanner + formWrapStart + toggleSection + slugSection + shortioSmsSection + clientLoginSection + promoSection + logoSection + mediaSection + btnsSection + notifSection + scheduleSection + previewHtml + formWrapEnd;
+  content.innerHTML = heading + lockedBanner + formWrapStart + toggleSection + slugSection + smsSection + clientLoginSection + promoSection + logoSection + mediaSection + btnsSection + notifSection + scheduleSection + previewHtml + formWrapEnd;
 
   // ── Wire event listeners ─────────────────────────────────────────────────────
   document.getElementById('mmaLogoUploadBtn').addEventListener('click', uploadLogo);
@@ -790,7 +776,7 @@ function renderEditBody(client) {
     function updateSmsPreview() {
       var tmplEl   = document.getElementById('mmaSmsTmpl');
       var tmpl     = tmplEl ? tmplEl.value : '';
-      var link     = _smsShortLink || '[LINK]';
+      var link     = (_editClientData && _editClientData.middle_man_slug) ? 'https://cm1.au/' + _editClientData.middle_man_slug : '[LINK]';
       var preview  = tmpl.replace(/\[LINK\]/gi, link);
       var prevEl   = document.getElementById('mmaSmsPreview');
       var countEl  = document.getElementById('mmaSmsCount');
@@ -814,9 +800,6 @@ function renderEditBody(client) {
     });
 
     updateSmsPreview();
-
-    var createBtn = document.getElementById('mmaCreateShortLinkBtn');
-    if (createBtn) createBtn.addEventListener('click', function() { createShortioLink(); });
 
     var testBtn = document.getElementById('mmaSmsTestBtn');
     if (testBtn) testBtn.addEventListener('click', function() { sendTestSmsFromEdit(); });
@@ -1855,62 +1838,6 @@ function wirePreview() {
   });
 }
 
-// ─── Short Link & SMS ────────────────────────────────────────────────────────
-async function createShortioLink() {
-  if (!_editClientData) return;
-  var slug = (_editClientData.middle_man_slug || '').trim();
-  if (!slug) { alert('Set and save a slug first.'); return; }
-
-  var slugInput = document.getElementById('mmaSlugInput');
-  if (slugInput && slugInput.value.trim() !== slug) {
-    var tag = document.getElementById('mmaSmsTestTag');
-    if (tag) { tag.textContent = '✗ Save your slug first'; tag.style.color = '#CC0000'; }
-    return;
-  }
-
-  var btn = document.getElementById('mmaCreateShortLinkBtn');
-  if (btn) { btn.disabled = true; btn.textContent = 'Creating…'; }
-
-  try {
-    var res  = await fetch(MMA_SUPABASE_URL + '/functions/v1/create-shortio-link-test', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ slug: slug }),
-    });
-    var data = await res.json().catch(function() { return {}; });
-
-    if (res.ok && data.shortURL) {
-      _editClientData.shortio_link    = data.shortURL;
-      _editClientData.shortio_link_id = data.id ? String(data.id) : null;
-      _smsShortLink = data.shortURL;
-
-      // Update button state
-      if (btn) { btn.disabled = true; btn.textContent = '✓ Created'; }
-
-      // Show Connected badge in #mmaCreateTag
-      var createTag = document.getElementById('mmaCreateTag');
-      if (createTag) createTag.innerHTML = '<span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;background:#d1fae5;color:#065f46;">&#10003; Connected</span>';
-
-      // Show short link row and populate output
-      var shortLinkRow = document.getElementById('mmaShortLinkRow');
-      if (shortLinkRow) shortLinkRow.style.display = '';
-      var shortLinkOutput = document.getElementById('mmaShortLinkOutput');
-      if (shortLinkOutput) shortLinkOutput.value = data.shortURL;
-
-      // Trigger preview update
-      var tmplEl = document.getElementById('mmaSmsTmpl');
-      if (tmplEl) tmplEl.dispatchEvent(new Event('input'));
-    } else {
-      if (btn) { btn.disabled = false; btn.textContent = 'Create Short Link'; }
-      var tag = document.getElementById('mmaSmsTestTag');
-      if (tag) { tag.textContent = '✗ ' + (data.error || data.message || 'Error — see console'); tag.style.color = '#CC0000'; }
-    }
-  } catch (err) {
-    if (btn) { btn.disabled = false; btn.textContent = 'Create Short Link'; }
-    var tag = document.getElementById('mmaSmsTestTag');
-    if (tag) { tag.textContent = '✗ ' + err.message; tag.style.color = '#CC0000'; }
-  }
-}
 
 async function sendTestSmsFromEdit() {
   var toEl   = document.getElementById('mmaSmsTestTo');
@@ -1924,7 +1851,6 @@ async function sendTestSmsFromEdit() {
 
   if (tag) { tag.textContent = ''; }
   if (!to)                         { if (tag) { tag.textContent = '✗ Phone number is required.';         tag.style.color = '#CC0000'; } return; }
-  if (!_smsShortLink)              { if (tag) { tag.textContent = '✗ Create a short link first.';        tag.style.color = '#CC0000'; } return; }
   if (!message || message === '—') { if (tag) { tag.textContent = '✗ SMS message is empty.';             tag.style.color = '#CC0000'; } return; }
 
   if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }

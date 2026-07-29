@@ -220,7 +220,7 @@ Deno.serve(async (req) => {
         return json(200, GENERIC_OK);
       }
 
-      // Login URL sent directly — Rebrandly removed (endpoint deprecated, replaced by Short.io).
+      // Login URL sent directly — no URL shortener.
       const sms_url = login_url;
 
       // Vary SMS body slightly on each send. Identical content repeated to the

@@ -196,18 +196,9 @@ Owners do not customise their SMS body. The vertical (`restaurant` / `barber` / 
 
 ---
 
-## Short.io Link Tier
+## SMS Link
 
-CallMagnet uses Short.io to shorten SMS links. Each client gets a unique short link (`cm1.au/<slug>`) pointing at their Middle Man landing page (`callmagnet.com.au/b/<slug>`).
-
-The short link is auto-created by the `create-client` edge function during onboarding whenever a `middle_man_slug` is supplied. It is stored in `clients.shortio_link` and substituted into the SMS template via the `[LINK]` placeholder.
-
-**Fallback chain in `fetch-client-vertical.js` (Twilio Function):**
-1. `shortio_link` — Short.io short URL (preferred)
-2. `callmagnet.com.au/b/<slug>` — built from `middle_man_slug` if no Short.io link yet
-3. `booking_url` — raw Fresha / OpenTable URL (legacy fallback)
-
-**Vault secret:** `SHORTIO_API_KEY` in the `create-client` edge function Secrets. Domain is hardcoded as `cm1.au`.
+The SMS sent to missed callers contains `https://cm1.au/<slug>` as the booking link. The slug is set at onboarding (`clients.middle_man_slug`) and resolved at send time by `send-missed-call-sms`. The `cm1.au` domain is a Netlify site that rewrites all paths to `b.html` (the Middle Man landing page).
 
 ---
 

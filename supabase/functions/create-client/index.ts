@@ -23,9 +23,6 @@ const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const INTERNAL_SECRET           = Deno.env.get('INTERNAL_SECRET');
 const RESEND_API_KEY            = Deno.env.get('RESEND_API_KEY');
-const SHORTIO_API_KEY           = Deno.env.get('SHORTIO_API_KEY');
-const SHORTIO_DOMAIN            = 'cm1.au';
-
 const corsHeaders = {
   'Access-Control-Allow-Origin':  '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -177,8 +174,7 @@ Deno.serve(async (req) => {
     // ── Validate + finalize customer SMS template ───────────────────────────
     // Use the input if supplied, else fall back to the vertical's default.
     // [LINK] is stored as a literal placeholder. fetch-client-vertical.js
-    // substitutes the correct Short.io link (or Middle Man URL) at call time.
-    // Baking the booking URL in here would bypass the Short.io fallback chain.
+    // [LINK] is substituted at send time by send-missed-call-sms.
     //
     // Length limits depend on Middle Man:
     //   MM ON  → send-missed-call-sms sends the body as-is (no tail) → up to 160 chars.
@@ -365,50 +361,6 @@ Deno.serve(async (req) => {
       }
     } else {
       console.log(`create-client: pricing_package=free_trial — Stripe skipped`);
-    }
-
-    // ── 5d. Create Short.io link (best-effort — never blocks onboarding) ───
-    // slug is always set (auto-generated if not supplied). On any failure: log and continue.
-    if (SHORTIO_API_KEY) {
-      try {
-        console.log(`create-client: Short.io request — domain: ${SHORTIO_DOMAIN}, path: ${slug}, url: https://callmagnet.com.au/b/${slug}, key present: ${!!SHORTIO_API_KEY}, key prefix: ${SHORTIO_API_KEY?.slice(0,8)}`);
-        const shortioRes = await fetch('https://api.short.io/links', {
-          method:  'POST',
-          headers: {
-            'authorization': SHORTIO_API_KEY,
-            'content-type':  'application/json',
-          },
-          body: JSON.stringify({
-            domain:       SHORTIO_DOMAIN,
-            originalURL:  `https://callmagnet.com.au/b/${slug}`,
-            path:         slug,
-          }),
-        });
-        if (shortioRes.ok) {
-          const shortioData = await shortioRes.json() as Record<string, unknown>;
-          const shortUrl = typeof shortioData.shortURL === 'string' ? shortioData.shortURL : null;
-          if (shortUrl) {
-            const { error: shortioUpdateErr } = await supa
-              .from('clients')
-              .update({ shortio_link: shortUrl })
-              .eq('id', client_id);
-            if (shortioUpdateErr) {
-              console.warn(`create-client: shortio_link UPDATE failed for client ${client_id}: ${shortioUpdateErr.message}`);
-            } else {
-              console.log(`create-client: Short.io link created — ${shortUrl}`);
-            }
-          } else {
-            console.warn(`create-client: Short.io response OK but shortURL missing — ${JSON.stringify(shortioData)}`);
-          }
-        } else {
-          const errText = await shortioRes.text();
-          console.warn(`create-client: Short.io API returned ${shortioRes.status} — ${errText}`);
-        }
-      } catch (e) {
-        console.warn(`create-client: Short.io exception — ${(e as Error)?.message ?? e}`);
-      }
-    } else {
-      console.warn('create-client: SHORTIO_API_KEY not configured — Short.io link skipped');
     }
 
     // ── 6. Send onboarding SMS (brief notice — no login URL needed) ────────
