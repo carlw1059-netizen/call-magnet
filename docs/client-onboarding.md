@@ -198,7 +198,7 @@ Owners do not customise their SMS body. The vertical (`restaurant` / `barber` / 
 
 ## Short.io Link Tier
 
-CallMagnet uses Short.io to shorten SMS links. Each client gets a unique short link (`callmagnet.s.gy/<slug>`) pointing at their Middle Man landing page (`callmagnet.com.au/b/<slug>`).
+CallMagnet uses Short.io to shorten SMS links. Each client gets a unique short link (`cm1.au/<slug>`) pointing at their Middle Man landing page (`callmagnet.com.au/b/<slug>`).
 
 The short link is auto-created by the `create-client` edge function during onboarding whenever a `middle_man_slug` is supplied. It is stored in `clients.shortio_link` and substituted into the SMS template via the `[LINK]` placeholder.
 
@@ -207,7 +207,7 @@ The short link is auto-created by the `create-client` edge function during onboa
 2. `callmagnet.com.au/b/<slug>` — built from `middle_man_slug` if no Short.io link yet
 3. `booking_url` — raw Fresha / OpenTable URL (legacy fallback)
 
-**Vault secret:** `SHORTIO_API_KEY` in the `create-client` edge function Secrets. Domain is hardcoded as `callmagnet.s.gy`.
+**Vault secret:** `SHORTIO_API_KEY` in the `create-client` edge function Secrets. Domain is hardcoded as `cm1.au`.
 
 ---
 

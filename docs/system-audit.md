@@ -263,7 +263,7 @@ Core table. One row per business subscribed to CallMagnet.
 | abn | text | Australian Business Number, 11 digits, nullable |
 | stripe_customer_id | text | Stripe customer ID for webhook matching |
 | booking_url | text | URL sent in missed-call SMS |
-| shortio_link | text | Short.io short URL (`callmagnet.s.gy/<slug>`) generated at onboarding |
+| shortio_link | text | Short.io short URL (`cm1.au/<slug>`) generated at onboarding |
 | sms_included | int | SMS quota per billing period (default 50) |
 | last_overage_reported | date | Prevents duplicate overage billing |
 | emails_sent | text[] | Tracks which sequence emails have been sent |
@@ -461,7 +461,7 @@ All emails use the shared `_shared/emailStyles.ts` brand tokens. Sender: `CallMa
 |---------|-------------|------------|
 | **Resend** | Transactional email delivery | `RESEND_API_KEY` in Vault. Sender domain: callmagnet.com.au |
 | **Pushover** | Push alerts to Carl's phone | `PUSHOVER_USER_KEY`, `PUSHOVER_APP_TOKEN` in Vault |
-| **Short.io** | Short link generation for SMS (`callmagnet.s.gy`) | `SHORTIO_API_KEY` in `create-client` edge function Secrets |
+| **Short.io** | Short link generation for SMS (`cm1.au`) | `SHORTIO_API_KEY` in `create-client` edge function Secrets |
 | **Stripe** | Subscription billing | Multiple webhook secrets in Vault |
 | **Twilio** | Phone numbers, Studio flows, SMS | Account managed in Twilio Console |
 
