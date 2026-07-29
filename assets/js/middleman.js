@@ -410,13 +410,6 @@
         if (note) payload.note = note;
       }
 
-      // ── FIX 2: fire log-middle-man-tap on SUBMIT (not on button tap) ───────
-      fetch(LOG_FUNC_URL, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug: gSlug, intent: intentLabel }),
-      }).catch(function() {});
-
       // ── Submit form ────────────────────────────────────────────────────────
       submitBtn.disabled = true;
       submitBtn.textContent = 'Sending…';
@@ -488,20 +481,18 @@
   }
 
   // ── Handle button tap ─────────────────────────────────────────────────────
-  // FIX 2: log-middle-man-tap fires here ONLY for booking buttons.
-  //        For form buttons, the log fires on submit instead.
   function handleTap(btnEl, btnKey, formType, bookingUrl, intentLabel) {
     btnEl.classList.add('pressed');
     setTimeout(function() { btnEl.classList.remove('pressed'); }, 180);
 
-    // bookingUrl here is the per-button effectiveUrl passed from the click handler.
+    fetch(LOG_FUNC_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug: gSlug, intent: intentLabel }),
+    }).catch(function() {});
+
     // Navigate if a URL is set — formType does not matter.
     if (bookingUrl) {
-      fetch(LOG_FUNC_URL, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug: gSlug, intent: intentLabel }),
-      }).catch(function() {});
       setTimeout(function() { window.location.href = bookingUrl; }, 220);
       return;
     }
