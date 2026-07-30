@@ -1291,7 +1291,7 @@ async function loadMiddleManSection() {
   const enabledBtns = buttons
     .filter(b => b && b.enabled !== false)
     .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
-    .slice(0, 6);
+    .slice(0, 9);
 
   if (enabledBtns.length === 0) {
     sectionEl.classList.remove('visible');
