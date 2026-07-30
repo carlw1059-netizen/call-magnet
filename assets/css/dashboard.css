@@ -837,12 +837,18 @@ body.panel-open .main { pointer-events: none; }
 .mm-section { display: none; margin-top: 0.75rem; }
 .mm-section.visible { display: block; }
 
-/* ── Tile grid: always 2 equal columns — uniform size across all tiles ── */
+/* ── Tile grid: 3 columns (up to 9 tiles); 2 columns on narrow screens ── */
 .mm-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 12px;
   margin-bottom: 0;
+}
+
+@media (max-width: 400px) {
+  .mm-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 /* ── Tile — neon colour via --mm-neon (hex) and --mm-neon-rgb (r,g,b) set per-tile by JS ── */
