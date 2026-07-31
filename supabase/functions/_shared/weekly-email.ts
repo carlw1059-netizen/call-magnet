@@ -40,6 +40,22 @@ async function fetchButtonClicks(clientId: string, weekStart: string, weekEnd: s
     .sort((a, b) => b.count - a.count);
 }
 
+async function fetchHeatmapData(clientId: string): Promise<Array<{ day_of_week: number; hour_of_day: number; call_count: number }>> {
+  const url = `${SUPABASE_URL}/rest/v1/rpc/get_heatmap_data`;
+  const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      apikey:        SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ p_client_id: clientId, p_from: ninetyDaysAgo }),
+  });
+  if (!res.ok) return [];
+  return res.json();
+}
+
 export async function calcClientStats(client: ClientRow, weekStart: string, weekEnd: string): Promise<ClientStats> {
   const now         = new Date().toISOString();
   const periodStart = client.last_renewal_date ?? new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
