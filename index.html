@@ -207,6 +207,16 @@
       <div class="section-header">
         <div class="section-title">Customer requests</div>
       </div>
+      <div class="mm-heatmap-section" id="heatmapSection">
+        <div class="mm-heatmap-header" onclick="toggleHeatmap()">
+          <div class="section-title">Missed call patterns</div>
+          <div class="mm-heatmap-arrow" id="heatmapArrow">▾</div>
+        </div>
+        <div class="mm-heatmap-body" id="heatmapBody" style="display:none;">
+          <div id="heatmapGrid"></div>
+          <div id="intentBars"></div>
+        </div>
+      </div>
       <div class="mm-grid" id="mmGrid"></div>
       <div class="mm-divider"></div>
       <div class="mm-peak-tile">
