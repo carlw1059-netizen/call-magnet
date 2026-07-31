@@ -1111,4 +1111,32 @@ body.panel-open .main { pointer-events: none; }
 }
 
 
+/* ── Heatmap collapsible section ── */
+.mm-heatmap-section {
+  margin: 0 0 16px 0;
+}
+.mm-heatmap-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 12px 0 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  user-select: none;
+}
+.mm-heatmap-header .section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #10b981;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.mm-heatmap-arrow {
+  font-size: 16px;
+  color: #10b981;
+  transition: transform 0.2s ease;
+}
+.mm-heatmap-body {
+  padding: 16px 0 8px 0;
+}
 
