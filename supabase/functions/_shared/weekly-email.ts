@@ -96,7 +96,7 @@ export async function calcClientStats(client: ClientRow, weekStart: string, week
     countRows('link_clicks', 'clicked_at',  client.id, weekStart, weekEnd),
     countRows('bookings',    'booked_at',   client.id, weekStart, weekEnd),
     countRows('sms_events',  'received_at', client.id, periodStart, now),
-    fetchButtonClicks(client.id, weekStart, weekEnd),
+    fetchButtonClicksWithHours(client.id),
     fetchHeatmapData(client.id),
   ]);
   const conversionRate = smsSent > 0 ? `${(linkClicks / smsSent * 100).toFixed(1)}%` : '0%';
