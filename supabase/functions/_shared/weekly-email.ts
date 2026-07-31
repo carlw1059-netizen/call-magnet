@@ -66,6 +66,7 @@ export async function calcClientStats(client: ClientRow, weekStart: string, week
     countRows('bookings',    'booked_at',   client.id, weekStart, weekEnd),
     countRows('sms_events',  'received_at', client.id, periodStart, now),
     fetchButtonClicks(client.id, weekStart, weekEnd),
+    fetchHeatmapData(client.id),
   ]);
   const conversionRate = smsSent > 0 ? `${(linkClicks / smsSent * 100).toFixed(1)}%` : '0%';
   let daysUntilRenewal: number | null = null;
