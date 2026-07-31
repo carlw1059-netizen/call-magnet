@@ -59,7 +59,7 @@ async function fetchHeatmapData(clientId: string): Promise<Array<{ day_of_week: 
 export async function calcClientStats(client: ClientRow, weekStart: string, weekEnd: string): Promise<ClientStats> {
   const now         = new Date().toISOString();
   const periodStart = client.last_renewal_date ?? new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  const [smsSent, optOuts, linkClicks, bookingsLogged, currentPeriodSms, buttonClicks] = await Promise.all([
+  const [smsSent, optOuts, linkClicks, bookingsLogged, currentPeriodSms, buttonClicks, heatmapData] = await Promise.all([
     countRows('sms_events',  'received_at', client.id, weekStart, weekEnd),
     countRows('opt_outs',    'opted_out_at', client.id, weekStart, weekEnd),
     countRows('link_clicks', 'clicked_at',  client.id, weekStart, weekEnd),
