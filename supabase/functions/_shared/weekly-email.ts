@@ -75,7 +75,7 @@ export async function calcClientStats(client: ClientRow, weekStart: string, week
     daysUntilRenewal = msUntil > 0 ? Math.ceil(msUntil / 86_400_000) : 0;
   }
   const overage = Math.max(0, currentPeriodSms - (client.sms_included ?? 0));
-  return { smsSent, optOuts, linkClicks, bookingsLogged, conversionRate, daysUntilRenewal, overage, buttonClicks };
+  return { smsSent, optOuts, linkClicks, bookingsLogged, conversionRate, daysUntilRenewal, overage, buttonClicks, heatmapData };
 }
 
 function escapeHtml(str: string): string {
