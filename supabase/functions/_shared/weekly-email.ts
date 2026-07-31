@@ -15,30 +15,6 @@ export interface ClientStats {
   heatmapData:      Array<{ day_of_week: number; hour_of_day: number; call_count: number }>;
 }
 
-async function fetchButtonClicks(clientId: string, weekStart: string, weekEnd: string): Promise<Array<{ intent: string; count: number }>> {
-  const url =
-    `${SUPABASE_URL}/rest/v1/link_clicks` +
-    `?client_id=eq.${encodeURIComponent(clientId)}` +
-    `&clicked_at=gte.${encodeURIComponent(weekStart)}` +
-    `&clicked_at=lte.${encodeURIComponent(weekEnd)}` +
-    `&intent=not.is.null` +
-    `&select=intent`;
-  const res = await fetch(url, {
-    headers: {
-      apikey:        SUPABASE_SERVICE_ROLE_KEY,
-      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-    },
-  });
-  if (!res.ok) return [];
-  const rows = await res.json() as Array<{ intent: string }>;
-  const counts: Record<string, number> = {};
-  for (const row of rows) {
-    counts[row.intent] = (counts[row.intent] ?? 0) + 1;
-  }
-  return Object.entries(counts)
-    .map(([intent, count]) => ({ intent, count }))
-    .sort((a, b) => b.count - a.count);
-}
 
 async function fetchButtonClicksWithHours(clientId: string): Promise<Array<{ intent: string; count: number; peakHours: Array<{ hour: number; count: number }> }>> {
   const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
