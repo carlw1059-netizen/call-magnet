@@ -11,7 +11,7 @@ export interface ClientStats {
   conversionRate:   string;
   daysUntilRenewal: number | null;
   overage:          number;
-  buttonClicks:     Array<{ intent: string; count: number }>;
+  buttonClicks:     Array<{ intent: string; count: number; peakHours: Array<{ hour: number; count: number }> }>;
   heatmapData:      Array<{ day_of_week: number; hour_of_day: number; call_count: number }>;
 }
 
