@@ -40,6 +40,37 @@ async function fetchButtonClicks(clientId: string, weekStart: string, weekEnd: s
     .sort((a, b) => b.count - a.count);
 }
 
+async function fetchButtonClicksWithHours(clientId: string): Promise<Array<{ intent: string; count: number; peakHours: Array<{ hour: number; count: number }> }>> {
+  const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+  const url =
+    `${SUPABASE_URL}/rest/v1/link_clicks` +
+    `?client_id=eq.${encodeURIComponent(clientId)}` +
+    `&clicked_at=gte.${encodeURIComponent(ninetyDaysAgo)}` +
+    `&intent=not.is.null` +
+    `&select=intent,hour_of_day`;
+  const res = await fetch(url, {
+    headers: {
+      apikey:        SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+    },
+  });
+  if (!res.ok) return [];
+  const rows = await res.json() as Array<{ intent: string; hour_of_day: number }>;
+  const byIntent: Record<string, Record<number, number>> = {};
+  for (const row of rows) {
+    if (!byIntent[row.intent]) byIntent[row.intent] = {};
+    byIntent[row.intent][row.hour_of_day] = (byIntent[row.intent][row.hour_of_day] ?? 0) + 1;
+  }
+  return Object.entries(byIntent).map(([intent, hourCounts]) => {
+    const total = Object.values(hourCounts).reduce((a, b) => a + b, 0);
+    const peakHours = Object.entries(hourCounts)
+      .map(([h, c]) => ({ hour: Number(h), count: c }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3);
+    return { intent, count: total, peakHours };
+  }).sort((a, b) => b.count - a.count);
+}
+
 async function fetchHeatmapData(clientId: string): Promise<Array<{ day_of_week: number; hour_of_day: number; call_count: number }>> {
   const url = `${SUPABASE_URL}/rest/v1/rpc/get_heatmap_data`;
   const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
