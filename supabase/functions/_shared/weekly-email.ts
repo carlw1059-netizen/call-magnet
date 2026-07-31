@@ -173,9 +173,16 @@ function buildStatsRows(stats: ClientStats): string {
   }).join('\n');
   let buttonSection = '';
   if (stats.buttonClicks.length > 0) {
-    const buttonRows = stats.buttonClicks.map(b =>
-      `<tr><td style="border-top:1px solid #eeeeee;padding:10px 0;font-size:13px;color:#000000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${escapeHtml(b.intent)}</td><td style="border-top:1px solid #eeeeee;padding:10px 0;font-size:14px;font-weight:700;color:#10b981;text-align:right;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${b.count}</td></tr>`
-    ).join('\n');
+    const HOUR_LABELS = ['12am','1am','2am','3am','4am','5am','6am','7am','8am','9am','10am','11am','12pm','1pm','2pm','3pm','4pm','5pm','6pm','7pm','8pm','9pm','10pm','11pm'];
+    const buttonRows = stats.buttonClicks.map(b => {
+      const peakStr = b.peakHours.length > 0
+        ? '↳ Peak: ' + b.peakHours.map(p => `${HOUR_LABELS[p.hour]} (${p.count})`).join(', ')
+        : '';
+      const peakRow = peakStr
+        ? `<tr><td colspan="2" style="padding:0 0 10px 0;font-size:11px;color:#888888;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${escapeHtml(peakStr)}</td></tr>`
+        : '';
+      return `<tr><td style="border-top:1px solid #eeeeee;padding:10px 0 4px 0;font-size:13px;color:#000000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${escapeHtml(b.intent)}</td><td style="border-top:1px solid #eeeeee;padding:10px 0 4px 0;font-size:14px;font-weight:700;color:#10b981;text-align:right;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${b.count}</td></tr>${peakRow}`;
+    }).join('\n');
     buttonSection = `<p style="margin:24px 0 12px;font-size:13px;font-weight:700;color:#10b981;letter-spacing:0.04em;text-transform:uppercase;">Button clicks</p><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${buttonRows}</table>`;
   }
   const heatmapSection = buildHeatmapTable(stats.heatmapData);
