@@ -147,7 +147,8 @@ function buildStatsRows(stats: ClientStats): string {
     ).join('\n');
     buttonSection = `<p style="margin:24px 0 12px;font-size:13px;font-weight:700;color:#10b981;letter-spacing:0.04em;text-transform:uppercase;">Button clicks</p><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${buttonRows}</table>`;
   }
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rowsHtml}</table>${buttonSection}`;
+  const heatmapSection = buildHeatmapTable(stats.heatmapData);
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rowsHtml}</table>${buttonSection}${heatmapSection}`;
 }
 
 function buildFooter(): string {
