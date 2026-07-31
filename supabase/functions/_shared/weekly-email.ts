@@ -12,6 +12,7 @@ export interface ClientStats {
   daysUntilRenewal: number | null;
   overage:          number;
   buttonClicks:     Array<{ intent: string; count: number }>;
+  heatmapData:      Array<{ day_of_week: number; hour_of_day: number; call_count: number }>;
 }
 
 async function fetchButtonClicks(clientId: string, weekStart: string, weekEnd: string): Promise<Array<{ intent: string; count: number }>> {
