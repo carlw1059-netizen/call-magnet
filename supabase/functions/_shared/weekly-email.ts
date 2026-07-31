@@ -82,6 +82,50 @@ function escapeHtml(str: string): string {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+function buildHeatmapTable(heatmapData: Array<{ day_of_week: number; hour_of_day: number; call_count: number }>): string {
+  if (heatmapData.length === 0) return '';
+  const DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const HOUR_LABELS = ['12am','1am','2am','3am','4am','5am','6am','7am','8am','9am','10am','11am','12pm','1pm','2pm','3pm','4pm','5pm','6pm','7pm','8pm','9pm','10pm','11pm'];
+  const DAYS  = [0,1,2,3,4,5,6];
+  const SHOW_HOURS = [8,9,10,11,12,13,14,15,16,17,18,19,20,21];
+  const lookup: Record<string, number> = {};
+  let maxCount = 0;
+  for (const row of heatmapData) {
+    lookup[`${row.day_of_week}-${row.hour_of_day}`] = row.call_count;
+    if (row.call_count > maxCount) maxCount = row.call_count;
+  }
+  let peakDay = 0; let peakHour = 0;
+  for (const row of heatmapData) {
+    if (row.call_count === maxCount) { peakDay = row.day_of_week; peakHour = row.hour_of_day; }
+  }
+  function cellBg(count: number): string {
+    if (count === 0 || maxCount === 0) return '#f5f5f5';
+    const intensity = count / maxCount;
+    if (intensity < 0.25) return '#d1fae5';
+    if (intensity < 0.5)  return '#6ee7b7';
+    if (intensity < 0.75) return '#10b981';
+    return '#047857';
+  }
+  function cellColor(count: number): string {
+    if (count === 0 || maxCount === 0) return '#cccccc';
+    const intensity = count / maxCount;
+    return intensity >= 0.5 ? '#ffffff' : '#000000';
+  }
+  const headerCells = SHOW_HOURS.map(h => `<td style="padding:3px 4px;font-size:10px;color:#888888;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${HOUR_LABELS[h]}</td>`).join('');
+  const bodyRows = DAYS.map(d => {
+    const cells = SHOW_HOURS.map(h => {
+      const count = lookup[`${d}-${h}`] ?? 0;
+      const bg    = cellBg(count);
+      const color = cellColor(count);
+      const text  = count > 0 ? String(count) : '';
+      return `<td style="padding:4px 2px;background:${bg};text-align:center;font-size:10px;font-weight:700;color:${color};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;border-radius:2px;">${text}</td>`;
+    }).join('');
+    return `<tr><td style="padding:4px 6px 4px 0;font-size:11px;color:#000000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;white-space:nowrap;">${DAY_LABELS[d]}</td>${cells}</tr>`;
+  }).join('');
+  const peakSentence = `Peak: ${DAY_LABELS[peakDay]} ${HOUR_LABELS[peakHour]} (${maxCount} missed call${maxCount === 1 ? '' : 's'})`;
+  return `<p style="margin:24px 0 12px;font-size:13px;font-weight:700;color:#10b981;letter-spacing:0.04em;text-transform:uppercase;">When they called <span style="font-weight:400;color:#888888;font-size:11px;text-transform:none;">(last 90 days, 8am–10pm)</span></p><div style="overflow-x:auto;"><table role="presentation" cellpadding="0" cellspacing="2" border="0" style="min-width:320px;"><tr><td></td>${headerCells}</tr>${bodyRows}</table></div><p style="margin:8px 0 0;font-size:12px;color:#888888;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${escapeHtml(peakSentence)}</p>`;
+}
+
 function buildStatsRows(stats: ClientStats): string {
   const rows = [
     { label: 'SMS Sent',           value: String(stats.smsSent) },
