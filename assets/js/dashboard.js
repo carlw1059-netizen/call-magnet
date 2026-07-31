@@ -1555,6 +1555,15 @@ function mmRow(key, val) {
     '</div>';
 }
 
+function toggleHeatmap() {
+  const body = document.getElementById('heatmapBody');
+  const arrow = document.getElementById('heatmapArrow');
+  if (!body) return;
+  const isOpen = body.style.display === 'none';
+  body.style.display = isOpen ? 'block' : 'none';
+  if (arrow) arrow.textContent = isOpen ? '▴' : '▾';
+}
+
 function closeMmPanel() {
   const overlay = document.getElementById('mmPanelOverlay');
   const panel   = document.getElementById('mmPanel');
