@@ -57,7 +57,7 @@ async function fetchHeatmapData(clientId: string): Promise<Array<{ day_of_week: 
       Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ p_client_id: clientId, p_from: ninetyDaysAgo }),
+    body: JSON.stringify({ p_client_id: clientId, p_date_from: ninetyDaysAgo, p_date_to: new Date().toISOString() }),
   });
   if (!res.ok) return [];
   return res.json();
@@ -135,13 +135,13 @@ function buildHeatmapTable(heatmapData: Array<{ day_of_week: number; hour_of_day
 
 function buildStatsRows(stats: ClientStats): string {
   const rows = [
-    { label: 'SMS Sent',           value: String(stats.smsSent) },
+    { label: 'Missed callers who got your message', value: String(stats.smsSent) },
     ...(stats.optOuts > 0 ? [{ label: 'Opt-Outs', value: String(stats.optOuts) }] : []),
-    { label: 'Link Clicks',        value: String(stats.linkClicks) },
-    { label: 'Bookings Logged',    value: String(stats.bookingsLogged) },
-    { label: 'Conversion Rate',    value: stats.conversionRate },
-    { label: 'Days Until Renewal', value: stats.daysUntilRenewal !== null ? String(stats.daysUntilRenewal) : '—' },
-    { label: 'Overage',            value: stats.overage > 0 ? `+${stats.overage}` : '0' },
+    { label: 'People who opened your page',         value: String(stats.linkClicks) },
+    { label: 'Bookings logged via your page',       value: String(stats.bookingsLogged) },
+    { label: 'Page open rate',                      value: stats.conversionRate },
+    { label: 'Days until renewal',                  value: stats.daysUntilRenewal !== null ? String(stats.daysUntilRenewal) : '—' },
+    { label: 'Overage',                             value: stats.overage > 0 ? `+${stats.overage}` : '0' },
   ];
   const rowsHtml = rows.map((row, i) => {
     const top = i === 0 ? '' : 'border-top:1px solid #000000;';
@@ -172,5 +172,5 @@ function buildFooter(): string {
 export function buildWeeklyEmailHtml(client: ClientRow, stats: ClientStats, monLabel: string, sunLabel: string): string {
   const weekLabel = escapeHtml(`Week of ${monLabel} — ${sunLabel}`);
   const preheader = escapeHtml(`Your CallMagnet weekly summary — ${monLabel} to ${sunLabel}`);
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CallMagnet Weekly Summary</title></head><body style="margin:0;padding:0;background:#F5F5F5;"><div style="display:none;max-height:0;overflow:hidden;font-size:1px;color:transparent;">${preheader}</div><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F5F5F5;"><tr><td align="center" style="padding:32px 16px;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;"><tr><td style="background:#F5F5F5;border:1px solid #000000;border-bottom:2px solid #10b981;border-radius:8px 8px 0 0;padding:20px 28px;"><span style="font-family:ui-monospace,monospace;font-size:14px;font-weight:700;letter-spacing:0.16em;color:#10b981;text-transform:uppercase;">★ CallMagnet</span></td></tr><tr><td style="background:#FFFFFF;border:1px solid #000000;border-top:none;border-radius:0 0 8px 8px;padding:28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;"><p style="margin:0 0 24px;font-size:14px;font-weight:700;color:#10b981;letter-spacing:0.04em;">${weekLabel}</p>${buildStatsRows(stats)}</td></tr>${buildFooter()}</table></td></tr></table></body></html>`;
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CallMagnet Weekly Summary</title></head><body style="margin:0;padding:0;background:#F5F5F5;"><div style="display:none;max-height:0;overflow:hidden;font-size:1px;color:transparent;">${preheader}</div><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F5F5F5;"><tr><td align="center" style="padding:32px 16px;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;"><tr><td style="background:#F5F5F5;border:1px solid #000000;border-bottom:2px solid #10b981;border-radius:8px 8px 0 0;padding:20px 28px;"><span style="font-family:ui-monospace,monospace;font-size:14px;font-weight:700;letter-spacing:0.16em;color:#10b981;text-transform:uppercase;">★ CallMagnet</span></td></tr><tr><td style="background:#FFFFFF;border:1px solid #000000;border-top:none;border-radius:0 0 8px 8px;padding:28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;"><p style="margin:0 0 16px;font-size:22px;font-weight:700;color:#000000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${stats.smsSent} people tried to reach ${escapeHtml(client.business_name)} last week</p><p style="margin:0 0 24px;font-size:13px;color:#888888;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${weekLabel}</p>${buildStatsRows(stats)}</td></tr>${buildFooter()}</table></td></tr></table></body></html>`;
 }
