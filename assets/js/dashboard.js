@@ -1394,6 +1394,7 @@ async function loadMiddleManSection() {
     countEl.textContent = count;
   });
   mmDataLoaded = true;
+  loadHeatmap();
 }
 
 // ── Open slide-out panel for a tile ──────────────────────────────────────
@@ -1553,6 +1554,100 @@ function mmRow(key, val) {
     '<span class="mm-card-key">' + key + '</span>' +
     '<span class="mm-card-val">' + (val || '—') + '</span>' +
     '</div>';
+}
+
+function _esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+async function loadHeatmap() {
+  if (!currentClient) return;
+  const gridEl  = document.getElementById('heatmapGrid');
+  const barsEl  = document.getElementById('intentBars');
+  if (!gridEl || !barsEl) return;
+
+  const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+
+  let heatmapRows = [], clickRows = [];
+  try {
+    const [heatmapRes, clicksRes] = await Promise.all([
+      sb.rpc('get_heatmap_data', { p_client_id: currentClient.id, p_from: ninetyDaysAgo }),
+      sb.from('link_clicks')
+        .select('intent,hour_of_day')
+        .eq('client_id', currentClient.id)
+        .not('intent', 'is', null)
+        .gte('clicked_at', ninetyDaysAgo),
+    ]);
+    heatmapRows = heatmapRes.data || [];
+    clickRows   = clicksRes.data  || [];
+  } catch (e) {
+    console.warn('loadHeatmap fetch failed:', e);
+    return;
+  }
+
+  // ── Heatmap grid ──────────────────────────────────────────────────────────
+  const DAY_LABELS  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const HOUR_LABELS = ['12am','1am','2am','3am','4am','5am','6am','7am','8am','9am','10am','11am',
+                       '12pm','1pm','2pm','3pm','4pm','5pm','6pm','7pm','8pm','9pm','10pm','11pm'];
+  const SHOW_HOURS  = [8,9,10,11,12,13,14,15,16,17,18,19,20,21];
+
+  if (heatmapRows.length > 0) {
+    const lookup = {};
+    let maxCount = 0;
+    heatmapRows.forEach(r => {
+      lookup[r.day_of_week + '-' + r.hour_of_day] = r.call_count;
+      if (r.call_count > maxCount) maxCount = r.call_count;
+    });
+
+    function cellStyle(count) {
+      if (!count || maxCount === 0) return 'background:#1a1a2e;color:#444;';
+      const t = count / maxCount;
+      const bg = t < 0.25 ? '#064e3b' : t < 0.5 ? '#065f46' : t < 0.75 ? '#10b981' : '#34d399';
+      const fg = t >= 0.5 ? '#000' : '#10b981';
+      return 'background:' + bg + ';color:' + fg + ';font-weight:700;';
+    }
+
+    const headerCells = '<th style="width:32px;"></th>' +
+      SHOW_HOURS.map(h => '<th style="font-size:9px;color:#666;font-weight:400;text-align:center;padding:2px 1px;">' + HOUR_LABELS[h] + '</th>').join('');
+    const bodyRows = [0,1,2,3,4,5,6].map(d => {
+      const cells = SHOW_HOURS.map(h => {
+        const c = lookup[d + '-' + h] || 0;
+        return '<td style="text-align:center;font-size:9px;border-radius:2px;padding:3px 1px;' + cellStyle(c) + '">' + (c || '') + '</td>';
+      }).join('');
+      return '<tr><td style="font-size:10px;color:#888;padding-right:4px;white-space:nowrap;">' + DAY_LABELS[d] + '</td>' + cells + '</tr>';
+    }).join('');
+
+    let peakRow = heatmapRows[0];
+    heatmapRows.forEach(r => { if (r.call_count > peakRow.call_count) peakRow = r; });
+    const peakLabel = 'Peak: ' + DAY_LABELS[peakRow.day_of_week] + ' ' + HOUR_LABELS[peakRow.hour_of_day] +
+      ' (' + peakRow.call_count + ' missed call' + (peakRow.call_count === 1 ? '' : 's') + ')';
+
+    gridEl.innerHTML =
+      '<p style="margin:0 0 8px;font-size:11px;color:#666;">Last 90 days · 8am–10pm</p>' +
+      '<div style="overflow-x:auto;"><table cellpadding="0" cellspacing="2" style="border-collapse:separate;border-spacing:2px;">' +
+      '<thead><tr>' + headerCells + '</tr></thead><tbody>' + bodyRows + '</tbody></table></div>' +
+      '<p style="margin:8px 0 0;font-size:11px;color:#666;">' + peakLabel + '</p>';
+  } else {
+    gridEl.innerHTML = '<p style="margin:0;font-size:12px;color:#555;">No missed call data yet.</p>';
+  }
+
+  // ── Intent bars ───────────────────────────────────────────────────────────
+  if (clickRows.length > 0) {
+    const byIntent = {};
+    clickRows.forEach(r => {
+      byIntent[r.intent] = (byIntent[r.intent] || 0) + 1;
+    });
+    const sorted = Object.entries(byIntent).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    const maxVal = sorted[0][1];
+    const bars = sorted.map(([intent, count]) => {
+      const pct = Math.round(count / maxVal * 100);
+      return '<div style="margin-bottom:8px;">' +
+        '<div style="display:flex;justify-content:space-between;font-size:11px;color:#ccc;margin-bottom:3px;">' +
+        '<span>' + _esc(intent) + '</span><span style="color:#10b981;font-weight:700;">' + count + '</span></div>' +
+        '<div style="height:4px;background:#1a1a2e;border-radius:2px;">' +
+        '<div style="width:' + pct + '%;height:100%;background:#10b981;border-radius:2px;"></div></div></div>';
+    }).join('');
+    barsEl.innerHTML =
+      '<p style="margin:16px 0 8px;font-size:11px;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:0.04em;">Button clicks (90 days)</p>' + bars;
+  }
 }
 
 function toggleHeatmap() {
