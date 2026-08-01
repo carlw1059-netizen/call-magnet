@@ -1394,7 +1394,7 @@ async function loadMiddleManSection() {
     countEl.textContent = count;
   });
   mmDataLoaded = true;
-  loadHeatmap();
+  loadHeatmap().catch(e => console.warn('loadHeatmap failed silently:', e));
 }
 
 // ── Open slide-out panel for a tile ──────────────────────────────────────
