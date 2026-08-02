@@ -1569,7 +1569,7 @@ async function loadHeatmap() {
   let heatmapRows = [], clickRows = [];
   try {
     const [heatmapRes, clicksRes] = await Promise.all([
-      sb.rpc('get_heatmap_data', { p_client_id: currentClient.id, p_from: ninetyDaysAgo }),
+      sb.rpc('get_heatmap_data', { p_client_id: currentClient.id, p_date_from: ninetyDaysAgo, p_date_to: new Date().toISOString() }),
       sb.from('link_clicks')
         .select('intent,hour_of_day')
         .eq('client_id', currentClient.id)
