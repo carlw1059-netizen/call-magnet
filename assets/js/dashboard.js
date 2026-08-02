@@ -901,6 +901,7 @@ function renderOverageDisplay(dollarStr) {
 
 async function loadActivity(clientId, startIso, endIso, parentRequestId) {
   const card = document.getElementById('activityCard');
+  if (!card) return;
   let smsRes, clickRes, bookRes;
   try {
     [smsRes, clickRes, bookRes] = await Promise.all([
