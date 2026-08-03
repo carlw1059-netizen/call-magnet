@@ -1140,3 +1140,18 @@ body.panel-open .main { pointer-events: none; }
   padding: 16px 0 8px 0;
 }
 
+.reset-btn {
+  margin-top: 10px;
+  background: transparent;
+  border: 1px solid #CC5500;
+  color: #CC5500;
+  padding: 6px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.reset-btn:hover {
+  background: #CC5500;
+  color: #fff;
+}
+
