@@ -559,7 +559,6 @@ async function loadStats() {
   }
 
   if (getDashboardMode() === 'restaurant') {
-    await loadRestaurantTileData(clientId, myRequestId);
     if (currentClient.middle_man_enabled) {
       loadMiddleManSection().catch(e => console.warn('MM section load failed', e));
     }
@@ -640,7 +639,6 @@ function setDashboardMode(mode) {
   try { localStorage.setItem('dashboardMode', mode); } catch (e) { /* no-op */ }
   renderTilesForMode(mode);
   if (mode === 'restaurant' && currentClient) {
-    loadRestaurantTileData(currentClient.id, statsRequestId);
     if (currentClient.middle_man_enabled) {
       loadMiddleManSection();
     }
@@ -749,89 +747,6 @@ function melbourneMostRecentMonday5pmUtcIso() {
   const offsetHours = sampleMelHour - 12;
 
   return new Date(Date.parse(tYmd + 'T17:00:00Z') - offsetHours * 3600000).toISOString();
-}
-
-async function loadRestaurantTileData(clientId, myRequestId) {
-  const tonightStartIso = melbourneStartOfTodayUtcIso();
-
-  let todaySmsRes;
-  try {
-    todaySmsRes = await sb.from('sms_events').select('received_at').eq('client_id', clientId).gte('received_at', tonightStartIso);
-  } catch (e) {
-    console.warn('restaurant tiles fetch failed', e);
-    return;
-  }
-  if (myRequestId !== statsRequestId) return;
-
-  const todayEvents = todaySmsRes.data || [];
-  const peakEl = document.getElementById('rPeakWindowToday');
-  if (peakEl) peakEl.textContent = computePeakWindowLabel(todayEvents);
-}
-
-// Bucket today's sms_events into 30-min Melbourne-local slots, return the
-// peak slot as a human-friendly label. Examples:
-//   0 events       → "No calls yet today"
-//   1–2 events     → "12pm — 1 call"  (single time, count)
-//   3+ events      → "6:30–7:30pm — 8 calls"  (range, count)
-// Tie-break = earliest slot wins.
-function computePeakWindowLabel(events) {
-  if (!events || events.length === 0) return '—';
-
-  const buckets = new Map();   // "HH:MM" → count
-  const meta    = new Map();   // "HH:MM" → { h, m }  for label formatting
-  for (const ev of events) {
-    if (!ev || !ev.received_at) continue;
-    const dt = new Date(ev.received_at);
-    if (Number.isNaN(dt.getTime())) continue;
-    const parts = new Intl.DateTimeFormat('en-GB', {
-      timeZone: 'Australia/Melbourne',
-      hour: '2-digit', minute: '2-digit', hour12: false,
-    }).formatToParts(dt);
-    const h = parseInt(parts.find(p => p.type === 'hour').value, 10);
-    const m = parseInt(parts.find(p => p.type === 'minute').value, 10);
-    const bucketMin = m < 30 ? 0 : 30;
-    const key = String(h).padStart(2, '0') + ':' + String(bucketMin).padStart(2, '0');
-    buckets.set(key, (buckets.get(key) || 0) + 1);
-    if (!meta.has(key)) meta.set(key, { h, m: bucketMin });
-  }
-
-  // Earliest bucket with peak count (strict > so the first one we hit wins ties).
-  const sortedKeys = Array.from(buckets.keys()).sort();
-  let peakKey = sortedKeys[0];
-  let peakCount = buckets.get(peakKey);
-  for (const k of sortedKeys) {
-    const v = buckets.get(k);
-    if (v > peakCount) { peakKey = k; peakCount = v; }
-  }
-
-  const { h, m } = meta.get(peakKey);
-  const callWord = peakCount === 1 ? '1 call' : peakCount + ' calls';
-
-  if (events.length <= 2) {
-    return formatSingleTime(h, m) + ' — ' + callWord;
-  }
-  const endH = m === 30 ? (h + 1) % 24 : h;
-  const endM = m === 30 ? 0 : 30;
-  return formatTimeRange(h, m, endH, endM) + ' — ' + callWord;
-}
-
-function formatSingleTime(h, m) {
-  const ampm = h >= 12 ? 'pm' : 'am';
-  const h12  = h % 12 === 0 ? 12 : h % 12;
-  return h12 + (m === 0 ? '' : ':' + String(m).padStart(2, '0')) + ampm;
-}
-
-function formatTimeRange(h, m, endH, endM) {
-  const startAmpm = h >= 12 ? 'pm' : 'am';
-  const endAmpm   = endH >= 12 ? 'pm' : 'am';
-  const h12       = h % 12 === 0 ? 12 : h % 12;
-  const endH12    = endH % 12 === 0 ? 12 : endH % 12;
-  const startStr  = h12 + (m === 0 ? '' : ':' + String(m).padStart(2, '0'));
-  const endStr    = endH12 + (endM === 0 ? '' : ':' + String(endM).padStart(2, '0'));
-  if (startAmpm === endAmpm) {
-    return startStr + '–' + endStr + endAmpm;
-  }
-  return startStr + startAmpm + '–' + endStr + endAmpm;
 }
 
 function updateSmsCounter(count) {
