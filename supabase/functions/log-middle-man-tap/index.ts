@@ -160,7 +160,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         client_id: clientId,
         event:     'link_tapped',
-        context:   { intent: intentSafe, customer_number: customerNumber ?? 'unknown' },
+        context:   {
+          intent:          intentSafe,
+          customer_number: customerNumber ?? 'unknown',
+          push_title:      `New booking tap – ${intentSafe}`,
+          push_message:    `Someone tapped "${intentSafe}" on your page`,
+        },
       }),
     }).catch((err) => {
       console.warn(`log-middle-man-tap: send-client-notification fire-and-forget failed: ${err?.message ?? err}`);
