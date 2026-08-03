@@ -263,7 +263,6 @@ body.panel-open .main { pointer-events: none; }
 .sms-month-label { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: 0.05em; opacity: 0.8; }
 .overage-row { display: flex; align-items: center; gap: 6px; }
 .overage-label { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--red); letter-spacing: 0.05em; }
-.activity-card { background: var(--surface); border: 1.5px solid var(--accent); border-radius: 10px; overflow: hidden; }
 .activity-summary { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; cursor: pointer; transition: background 0.15s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .activity-summary:hover { background: var(--surface2); }
 .activity-summary-left { display: flex; align-items: center; gap: 10px; }
@@ -614,19 +613,6 @@ body.panel-open .main { pointer-events: none; }
 .dash .overage-label { color: var(--red) !important; }
 .dash .overage-overflow { background: var(--surface-glass) !important; }
 
-/* ── Activity card ── */
-.dash .activity-card {
-  background: var(--surface-03) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid var(--surface-07) !important;
-  border-radius: 16px !important;
-  box-shadow: 0 2px 8px var(--shadow-25), inset 0 1px 0 var(--surface-glass) !important;
-}
-.dash .activity-summary:hover { background: var(--surface-05) !important; }
-.dash .activity-summary-text { color: var(--text-primary) !important; }
-.dash .activity-summary-sub  { color: var(--muted) !important; }
-.dash .expand-icon { color: var(--dim) !important; }
 .dash .activity-dropdown.open { border-top-color: var(--surface-07) !important; }
 .dash .activity-row { border-bottom-color: var(--surface-07) !important; }
 .dash .activity-number { color: var(--text-primary) !important; }
