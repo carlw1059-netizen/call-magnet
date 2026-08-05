@@ -6,11 +6,11 @@ CallMagnet is a missed-call recovery SaaS for Australian small businesses. When 
 
 ## Tech stack
 
-- **Frontend:** Cloudflare Pages (index.html = admin/client PWA, b.html = customer Middle Man page, admin/ = admin tool pages)
+- **Frontend:** Netlify — two sites: callmagnet.com.au (admin/client PWA) and callmag (cm1.au — customer Middle Man pages)
 - **Backend:** Supabase (PostgreSQL + Edge Functions + Storage)
 - **SMS:** Twilio (phone numbers + Studio flows + SMS API)
 - **Push notifications:** Progressier (PWA install + push)
-- **Link tracking:** Rebrandly (short link redirect to Middle Man page)
+- **Link tracking:** Netlify (callmag site) — cm1.au serves b.html via catch-all _redirects. Click tracking via log-click Supabase edge function writing to link_clicks table. Short.io and Rebrandly both removed.
 - **Payments:** Stripe (subscriptions, webhooks)
 - **Email:** Resend (welcome, monthly report, alerts)
 
