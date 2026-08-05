@@ -63,7 +63,6 @@ interface ClientReportPayload {
   click_count: number;
   booking_count: number;
   tap_rate_pct: number | null;
-  estimated_revenue: number;
   repeat_caller_count: number;
   busiest_day_dow: number | null;
   busiest_day_calls: number | null;
@@ -205,22 +204,11 @@ async function gatherClientReport(
   const avgJob     = c.avg_job_value ?? 0;
   const bookings   = bookingCount ?? 0;
 
-  // Mirrors the dashboard's hero revenue heuristic (index.html:937-953).
-  let estimatedRevenue = 0;
-  if (clickCount > 0 && bookings > 0) {
-    estimatedRevenue = Math.round(clickCount * avgJob * (bookings / clickCount));
-  } else if (clickCount > 0) {
-    estimatedRevenue = Math.round(clickCount * avgJob * 0.7);
-  } else if (bookings > 0) {
-    estimatedRevenue = Math.round(bookings * avgJob);
-  }
-
   return {
     sms_count: smsCount,
     click_count: clickCount,
     booking_count: bookings,
     tap_rate_pct: tapRatePct,
-    estimated_revenue: estimatedRevenue,
     repeat_caller_count: repeatCount ?? 0,
     busiest_day_dow: busiest?.dow ?? null,
     busiest_day_calls: busiest?.call_count ?? null,
@@ -263,8 +251,8 @@ function renderEmailHTML(c: ClientRow, p: ClientReportPayload, period: Period): 
           <p style="margin:0 0 20px;font-size:15px;color:${BRAND.secondaryText};">Here's how ${month} went.</p>
 
           <div style="background:${BRAND.successBg};border:1px solid ${BRAND.accent};border-radius:8px;padding:18px 20px;margin-bottom:18px;">
-            <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:${BRAND.accent};font-weight:700;margin-bottom:6px;">Estimated revenue recovered</div>
-            <div style="font-size:36px;color:${BRAND.accent};font-weight:300;letter-spacing:-0.02em;">${escapeHtml(fmtMoney(p.estimated_revenue))}</div>
+            <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:${BRAND.accent};font-weight:700;margin-bottom:6px;">Missed calls captured</div>
+            <div style="font-size:36px;color:${BRAND.accent};font-weight:300;letter-spacing:-0.02em;">${p.sms_count}</div>
           </div>
 
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
