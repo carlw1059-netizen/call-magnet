@@ -1258,7 +1258,7 @@ async function loadMiddleManSection() {
 
     tile.addEventListener('click', () => openMmPanel(rawLabel, display, formType, neonColor));
     grid.appendChild(tile);
-    tileCountEls.push({ countEl, formType, rawLabel });
+    tileCountEls.push({ countEl, formType, rawLabel, btnId });
   });
 
   // ── PHASE 2: Fetch counts in background, update tiles when ready ──────────
@@ -1297,7 +1297,7 @@ async function loadMiddleManSection() {
   });
   const bookingBtnCount = enabledBtns.filter(b => (b.id || mmClassifyLabel(b.label || '')) === 'booking').length;
 
-  tileCountEls.forEach(({ countEl, formType, rawLabel }) => {
+  tileCountEls.forEach(({ countEl, formType, rawLabel, btnId }) => {
     let count = 0;
     if (formType === 'booking') {
       count = bookingBtnCount === 1
