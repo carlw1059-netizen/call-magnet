@@ -1,4 +1,5 @@
 # CallMagnet — System Architecture
+*Last updated: 2026-08-06*
 
 ## What it does
 
@@ -89,11 +90,17 @@ Missed call
 - **Magic links blocked:** `request-login-link` refuses to send magic links to the admin email address — admin must use password login.
 - **upload-middle-man-background:** `verify_jwt = true` so the gateway rejects missing or invalid JWTs before the function runs. The function then performs a two-tier ownership check (client owns the slug OR caller is admin).
 
-## Known deferred items (Phase 1.5)
+## Recent Changes (August 2026)
+- RLS enabled on `weekly_summaries` table — admin and service_role only
+- Fabricated estimated revenue stat removed from monthly report email — replaced with real `sms_count`
+- README updated — removed stale Rebrandly and Cloudflare Pages references
+- `BLOCKED_CLIENT_IDS` enforced in `twilio-missed-call` — emergency SMS block now works end to end
+- Button ID system built — stable IDs on `middle_man_buttons`, logged as `intent`, matched in dashboard. Substring fallback retained for historical records.
+- `client_audit_log` table and trigger built — every UPDATE on `clients` is automatically snapshotted
+- All 100 migrations confirmed in sync between local repo and remote DB
+- `twilio-missed-call` and `stripe-payment-succeeded` and `stripe-subscription-deleted` — is_test_account guards confirmed present
 
-- Multi-device admin support (currently hard-coded to single admin email)
-- Per-client SMS overage billing automation (currently manual Stripe invoice)
-- Automated onboarding email sequence trigger after Stripe payment confirmed
-- Stripe subscription pause (vs cancel) for temporary business closures
-- Client-facing cancellation reason analytics in admin dashboard
-- Rebrandly webhook click deduplication and attribution reporting
+## Outstanding
+- Welcome email HTML hardcoded in create-client/index.ts — needs migrating to Resend template editor
+- Staging environment not built — every deploy goes straight to production
+- UptimeRobot — add cm1.au/arcane-fairies monitor
