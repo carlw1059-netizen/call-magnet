@@ -117,10 +117,11 @@ See `docs/recovery-procedures.md` for the full Studio clone-and-swap procedure.
 
 ## Monitoring Gaps (Known)
 
-| Gap | Risk | Mitigation |
-|-----|------|------------|
-| No uptime monitor on edge functions | Silent failure goes unnoticed until a client reports missing notifications | Add UptimeRobot / BetterStack ping to a read-only endpoint |
-| Alert emails can be lost if Resend is down | Errors during Resend outage have no secondary channel | Add Pushover as a secondary alert target |
-| pg_cron failures not pushed anywhere | Missed daily/monthly runs discovered manually | Check `cron.job_run_details` weekly |
-| Twilio Studio has no error webhook | Studio bugs silently stop the whole pipeline | Monitor `sms_events` row count daily |
-| No Stripe webhook delivery confirmation | If webhook endpoint is 5xx for 72h, Stripe stops retrying | Check Stripe Dashboard → Webhooks → Recent deliveries |
+| Gap | Risk | Status | Mitigation |
+|-----|------|--------|------------|
+| UptimeRobot not monitoring cm1.au | Middle Man page down goes undetected | ⬜ Add cm1.au/arcane-fairies monitor | UptimeRobot already monitoring callmagnet.com.au and api.twilio.com |
+| Alert emails can be lost if Resend is down | Errors during Resend outage have no secondary channel | ⬜ Open | Add Pushover as secondary alert target — UptimeRobot now supports Pushover webhook |
+| pg_cron failures not pushed anywhere | Missed daily/monthly runs discovered manually | ✅ Mitigated | Check via Claude Code MCP query at start of each session: SELECT jobid, jobname, active FROM cron.job |
+| Twilio Studio has no error webhook | Studio bugs silently stop the whole pipeline | ⬜ Open | Monitor sms_events row count daily |
+| No Stripe webhook delivery confirmation | If webhook endpoint is 5xx for 72h, Stripe stops retrying | ⬜ Open | Check Stripe Dashboard → Webhooks → Recent deliveries |
+| BLOCKED_CLIENT_IDS not enforced in SMS flow | No way to emergency-stop a client's SMS | ✅ Fixed |
