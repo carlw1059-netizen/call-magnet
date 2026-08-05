@@ -1227,7 +1227,8 @@ async function loadMiddleManSection() {
   const tileCountEls = [];
   enabledBtns.forEach((btn, idx) => {
     const rawLabel  = (btn.label || '').trim();
-    const formType  = mmClassifyLabel(rawLabel);
+    const btnId     = (btn.id || '').trim();
+    const formType  = btnId || mmClassifyLabel(rawLabel);
     const emoji     = mmLabelEmoji(rawLabel);
     const display   = emoji + ' ' + rawLabel;
     const neonColor = MM_NEON[Math.min(idx, MM_NEON.length - 1)];
@@ -1294,14 +1295,18 @@ async function loadMiddleManSection() {
   submissions.forEach(s => {
     submissionCounts[s.form_type] = (submissionCounts[s.form_type] || 0) + 1;
   });
-  const bookingBtnCount = enabledBtns.filter(b => mmClassifyLabel(b.label) === 'booking').length;
+  const bookingBtnCount = enabledBtns.filter(b => (b.id || mmClassifyLabel(b.label || '')) === 'booking').length;
 
   tileCountEls.forEach(({ countEl, formType, rawLabel }) => {
     let count = 0;
     if (formType === 'booking') {
       count = bookingBtnCount === 1
         ? totalMmClicks
-        : clicks.filter(c => c.intent && c.intent.toLowerCase().includes(rawLabel.toLowerCase())).length;
+        : clicks.filter(c => c.intent && (
+            (btnId && c.intent === btnId) ||
+            (!btnId && c.intent.toLowerCase().includes(rawLabel.toLowerCase())) ||
+            (btnId && c.intent.toLowerCase().includes(rawLabel.toLowerCase()))
+          )).length;
     } else {
       count = submissionCounts[formType] || 0;
     }
