@@ -481,14 +481,14 @@
   }
 
   // ── Handle button tap ─────────────────────────────────────────────────────
-  function handleTap(btnEl, btnKey, formType, bookingUrl, intentLabel) {
+  function handleTap(btnEl, btnKey, formType, bookingUrl, intentLabel, intentId) {
     btnEl.classList.add('pressed');
     setTimeout(function() { btnEl.classList.remove('pressed'); }, 180);
 
     fetch(LOG_FUNC_URL, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug: gSlug, intent: intentLabel }),
+      body: JSON.stringify({ slug: gSlug, intent: intentId || intentLabel }),
     }).catch(function() {});
 
     // Navigate if a URL is set — formType does not matter.
@@ -683,7 +683,7 @@
         btnEl.textContent = display;
         btnEl.addEventListener('click', function(e) {
           e.preventDefault();
-          handleTap(btnEl, btnKey, formType, effectiveUrl, display);
+          handleTap(btnEl, btnKey, formType, effectiveUrl, display, btn.id || '');
         });
       } else {
         btnEl = document.createElement('button');
@@ -691,7 +691,7 @@
         btnEl.type = 'button';
         btnEl.textContent = display;
         btnEl.addEventListener('click', function() {
-          handleTap(btnEl, btnKey, formType, '', display);
+          handleTap(btnEl, btnKey, formType, '', display, btn.id || '');
         });
       }
 
