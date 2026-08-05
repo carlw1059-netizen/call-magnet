@@ -239,3 +239,63 @@ WHERE id = '<client-uuid>';
 ```
 
 **Always verify in Stripe first** that the subscription is genuinely active before setting `account_status = 'active'`. Setting active without a valid Stripe subscription means the client gets free service.
+
+---
+
+## How to Recover a Client Config from the Audit Log
+
+**When to use:** A Claude Code prompt, edge function, or admin action has overwritten a client's buttons, SMS template, status, or any other config field and you need to restore the previous value.
+
+**Step 1 — Find the client ID**
+
+```sql
+SELECT id, business_name FROM clients WHERE middle_man_slug = 'arcane-fairies';
+```
+
+**Step 2 — Pull the audit history for that client**
+
+```sql
+SELECT id, changed_at, changed_by, old_row
+FROM public.client_audit_log
+WHERE client_id = '<client-uuid>'
+ORDER BY changed_at DESC
+LIMIT 10;
+```
+
+**Step 3 — Find the snapshot from before the bad change**
+Look at `changed_at` timestamps. The row immediately before the bad change contains the old values.
+
+**Step 4 — Extract the field you need**
+
+```sql
+SELECT old_row->>'middle_man_buttons' as buttons
+FROM public.client_audit_log
+WHERE client_id = '<client-uuid>'
+ORDER BY changed_at DESC
+LIMIT 10;
+```
+
+Replace `middle_man_buttons` with whichever field needs restoring — `customer_sms_template`, `account_status`, `sms_included`, etc.
+
+**Step 5 — Restore the value**
+Copy the value from `old_row` and apply it via SQL or the admin panel. For buttons, paste the JSONB value directly back into the `middle_man_buttons` column.
+
+---
+
+## How to Emergency-Block a Client from Receiving SMS
+
+**When to use:** Legal dispute, client request, billing issue, or any situation where you need to immediately stop all SMS firing for one client.
+
+**Step 1 — Get the client's UUID**
+
+```sql
+SELECT id, business_name FROM clients WHERE middle_man_slug = '<slug>';
+```
+
+**Step 2 — Update BLOCKED_CLIENT_IDS in Vault**
+In Supabase Dashboard → Vault, find `BLOCKED_CLIENT_IDS` and set the value to the client's UUID. For multiple clients: `uuid1,uuid2,uuid3`.
+
+Takes effect on the very next call. No code change. No deploy needed.
+
+**Step 3 — To unblock**
+Clear the Vault secret back to an empty string. Takes effect immediately.
