@@ -137,6 +137,14 @@ Deno.serve(async (req) => {
     const clientId     = client.id;
     const businessName = client.business_name;
 
+    // ── Blocked client check ──────────────────────────────────────────────
+    const blockedIds = (Deno.env.get('BLOCKED_CLIENT_IDS') ?? '')
+      .split(',').map((s: string) => s.trim()).filter(Boolean);
+    if (blockedIds.includes(clientId)) {
+      console.warn(`blocked_client: skipping all actions for client_id=${clientId} business=${businessName}`);
+      return json(200, { ok: true, skipped: 'blocked_client' });
+    }
+
     // ── Manual line override log ──────────────────────────────────────────
     // Observation only — does not block SMS or change behaviour.
     if (client.manual_line_override !== null && client.manual_line_override !== undefined) {
