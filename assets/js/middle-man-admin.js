@@ -1108,6 +1108,12 @@ async function savePromo() {
 // ─── Save buttons ─────────────────────────────────────────────────────────────
 async function saveButtons() {
   if (!_editClientId) return;
+  function slugifyLabel(str) {
+    return str.toLowerCase().trim()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 40);
+  }
   var rows      = document.querySelectorAll('#mmaBtnBuilder .mma-btn-row');
   var notifRows = document.querySelectorAll('#mmaNotifBuilder .mma-notif-row');
   var buttons = [];
@@ -1127,6 +1133,7 @@ async function saveButtons() {
     var uiTitle      = titleEl ? titleEl.value.trim() : '';
     var uiMsg        = msgEl   ? msgEl.value.trim()   : '';
     buttons.push({
+      id:           existing.id || slugifyLabel(label),
       label:        label,
       sort_order:   parseInt(row.querySelector('.mma-btn-order').value, 10) || 1,
       enabled:      row.querySelector('.mma-btn-enabled-cb').checked,
