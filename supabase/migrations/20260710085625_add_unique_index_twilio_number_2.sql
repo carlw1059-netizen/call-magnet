@@ -1,1 +1,1 @@
-﻿-- applied directly via MCP
+-- applied directly via MCP
