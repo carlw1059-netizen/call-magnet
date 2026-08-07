@@ -66,6 +66,21 @@ async function sendCarlSummary(): Promise<void> {
 async function sendWeeklySummaries(): Promise<{ sent: number; skipped: number; failed: number }> {
   const { weekStart, weekEnd, monLabel, sunLabel } = getPreviousWeekRange();
   const clients = await fetchActiveClients();
+  if (clients.length === 0) {
+    console.error('weekly-summary: fetchActiveClients returned 0 clients — possible DB error');
+    fetch(`${SUPABASE_URL}/functions/v1/send-pushover-alert`, {
+      method:  'POST',
+      headers: {
+        'Content-Type':      'application/json',
+        'X-Internal-Secret': INTERNAL_SECRET ?? '',
+      },
+      body: JSON.stringify({
+        title:   '⚠️ Weekly Summary — 0 clients',
+        message: 'fetchActiveClients returned an empty array. Possible DB error — no emails were sent.',
+      }),
+    }).catch(() => {});
+    throw new Error('fetchActiveClients returned 0 clients');
+  }
   let sent = 0, skipped = 0, failed = 0;
   for (const client of clients) {
     if (!client.email) { skipped++; continue; }
@@ -113,23 +128,21 @@ Deno.serve(async (req) => {
       sendCarlSummary(),
     ]);
     console.log(`weekly-summary complete: ${JSON.stringify(result)}`);
-    try {
-      const periodWeek = new Date(weekStart).toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' });
-      const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/weekly_summaries`, {
-        method: 'POST',
-        headers: {
-          apikey: SUPABASE_SERVICE_ROLE_KEY,
-          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-          'Content-Type': 'application/json',
-          Prefer: 'resolution=merge-duplicates',
-        },
-        body: JSON.stringify({ period_week: periodWeek, status: 'sent' }),
-      });
-      if (!insertRes.ok) {
-        console.warn(`weekly-summary: weekly_summaries upsert failed: ${insertRes.status} ${await insertRes.text()}`);
-      }
-    } catch (insertErr) {
-      console.warn(`weekly-summary: weekly_summaries upsert threw: ${insertErr instanceof Error ? insertErr.message : String(insertErr)}`);
+    const periodWeek = new Date(weekStart).toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' });
+    const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/weekly_summaries`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates',
+      },
+      body: JSON.stringify({ period_week: periodWeek, status: 'sent' }),
+    });
+    if (!insertRes.ok) {
+      const detail = await insertRes.text();
+      console.error(`weekly-summary: weekly_summaries upsert failed: ${insertRes.status} ${detail}`);
+      return json(500, { error: 'upsert_failed', detail });
     }
     return json(200, { ok: true, ...result });
   } catch (err) {
