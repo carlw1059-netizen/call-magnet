@@ -1099,7 +1099,7 @@ body.panel-open .main { pointer-events: none; }
 
 /* ── Heatmap collapsible section ── */
 .mm-heatmap-section {
-  margin: 0 0 16px 0;
+  margin: 32px 0 16px 0;
 }
 .mm-heatmap-header {
   display: flex;
@@ -1118,9 +1118,12 @@ body.panel-open .main { pointer-events: none; }
   text-transform: uppercase;
 }
 .mm-heatmap-arrow {
-  font-size: 16px;
+  font-size: 13px;
   color: #10b981;
   transition: transform 0.2s ease;
+  outline: 1px solid #CC5500;
+  border-radius: 2px;
+  padding: 1px 3px;
 }
 .mm-heatmap-body {
   padding: 16px 0 8px 0;
