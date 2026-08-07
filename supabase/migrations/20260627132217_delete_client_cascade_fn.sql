@@ -12,7 +12,6 @@ BEGIN
   DELETE FROM public.cancellation_reasons      WHERE client_id = p_client_id;
   DELETE FROM public.daily_summary_runs        WHERE client_id = p_client_id;
   DELETE FROM public.link_clicks               WHERE client_id = p_client_id;
-  DELETE FROM public.middle_man_clicks         WHERE client_id = p_client_id;
   DELETE FROM public.middle_man_form_submissions WHERE client_id = p_client_id;
   DELETE FROM public.monthly_reports           WHERE client_id = p_client_id;
   DELETE FROM public.notifications_sent        WHERE client_id = p_client_id;
