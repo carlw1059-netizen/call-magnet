@@ -1118,7 +1118,7 @@ body.panel-open .main { pointer-events: none; }
   text-transform: uppercase;
 }
 .mm-heatmap-arrow {
-  font-size: 16px;
+  font-size: 22px;
   color: #10b981;
   transition: transform 0.2s ease;
   -webkit-text-stroke: 0.5px #FF0000;
