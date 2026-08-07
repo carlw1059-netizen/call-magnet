@@ -11,7 +11,7 @@ CallMagnet is a missed-call recovery SaaS for Australian small businesses. When 
 - **Backend:** Supabase (PostgreSQL + Edge Functions + Storage)
 - **SMS:** Twilio (phone numbers + Studio flows + SMS API)
 - **Push notifications:** Progressier (PWA install + push)
-- **Link tracking:** Netlify (callmag site) — cm1.au serves b.html via catch-all _redirects. Click tracking via log-click Supabase edge function writing to link_clicks table. Short.io and Rebrandly both removed.
+- **Link tracking:** Netlify (callmag site) — cm1.au serves b.html via catch-all _redirects. Click tracking via log-click Supabase edge function writing to link_clicks table.
 - **Payments:** Stripe (subscriptions, webhooks)
 - **Email:** Resend (welcome, monthly report, alerts)
 
@@ -23,7 +23,7 @@ Missed call
   → twilio-missed-call edge fn           (logs to sms_events, triggers send-missed-call-sms)
   → send-missed-call-sms edge fn         (calls send-twilio-sms, writes sms_events row)
   → send-twilio-sms edge fn              (Twilio SMS API → caller's phone)
-  → Rebrandly short link
+  → cm1.au short link
   → callmagnet.com.au/b/<slug>           (Middle Man page — b.html)
   → Button tap → log-middle-man-tap edge fn → link_clicks table
   → Form submit → submit-middle-man-form edge fn → middle_man_form_submissions table
@@ -63,9 +63,6 @@ Missed call
 | `quick-responder` | Cron-triggered fast follow-up SMS for unanswered missed calls | false |
 | `save-push-subscription` | Registers a PWA push endpoint for a client device | false |
 | `upload-middle-man-background` | Handles image/video background uploads to Supabase Storage | **true** |
-| `create-rebrandly-link` | Creates a new Rebrandly short link for a client Middle Man page | false |
-| `update-rebrandly-destination` | Updates Rebrandly destination URL when slug changes | **true** |
-| `rebrandly-webhook` | Receives Rebrandly click events (not actively used) | false |
 | `process-unsubscribe` | Validates one-time token and records opt-out | false |
 | `create-client` | Admin-only: creates a new client row with Stripe customer | false |
 | `admin-cancel-client` | Admin-only: cancels a client's Stripe subscription at period end | false |
@@ -93,7 +90,6 @@ Missed call
 ## Recent Changes (August 2026)
 - RLS enabled on `weekly_summaries` table — admin and service_role only
 - Fabricated estimated revenue stat removed from monthly report email — replaced with real `sms_count`
-- README updated — removed stale Rebrandly and Cloudflare Pages references
 - `BLOCKED_CLIENT_IDS` enforced in `twilio-missed-call` — emergency SMS block now works end to end
 - Button ID system built — stable IDs on `middle_man_buttons`, logged as `intent`, matched in dashboard. Substring fallback retained for historical records.
 - `client_audit_log` table and trigger built — every UPDATE on `clients` is automatically snapshotted
