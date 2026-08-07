@@ -57,7 +57,7 @@ function inWindow(nowMins: number, startMins: number, endMins: number): boolean 
 const corsHeaders = {
   'Access-Control-Allow-Origin': 'https://callmagnet.com.au',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Test-Time-Mins, X-Test-Day-Name',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
 Deno.serve(async (req) => {
@@ -84,9 +84,6 @@ Deno.serve(async (req) => {
     const to      = (form.get('To')      ?? '').toString().trim();
     const bodyRaw = (form.get('Body')    ?? '').toString().trim();
     const body    = bodyRaw.length > 0 ? bodyRaw : null;
-
-    const testTimeMins = req.headers.get('X-Test-Time-Mins');
-    const testDayName  = req.headers.get('X-Test-Day-Name');
 
     if (!callSid || !from || !to) {
       return json(400, { error: 'missing_required_field', detail: 'CallSid, From, and To are all required' });
@@ -160,32 +157,24 @@ Deno.serve(async (req) => {
     // SMS ALWAYS fires regardless of schedule state.
     if (client.schedule_enabled) {
       try {
-        let dayName: string;
-        let nowMins: number;
-
-        if (testTimeMins !== null && testDayName !== null) {
-          dayName = testDayName.toLowerCase().trim();
-          nowMins = parseInt(testTimeMins, 10);
-        } else {
-          const melbRes = await fetch(
-            `${SUPABASE_URL}/rest/v1/rpc/get_melbourne_day_and_time`,
-            {
-              method:  'POST',
-              headers: {
-                apikey:         SUPABASE_SERVICE_ROLE_KEY,
-                Authorization:  `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({}),
+        const melbRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/rpc/get_melbourne_day_and_time`,
+          {
+            method:  'POST',
+            headers: {
+              apikey:         SUPABASE_SERVICE_ROLE_KEY,
+              Authorization:  `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+              'Content-Type': 'application/json',
             },
-          );
-          if (!melbRes.ok) {
-            return json(500, { ok: false, error: 'Failed to get Melbourne time' });
-          }
-          const melb = await melbRes.json() as { day_name: string; time_mins: number };
-          dayName = melb.day_name;
-          nowMins = melb.time_mins;
+            body: JSON.stringify({}),
+          },
+        );
+        if (!melbRes.ok) {
+          return json(500, { ok: false, error: 'Failed to get Melbourne time' });
         }
+        const melb = await melbRes.json() as { day_name: string; time_mins: number };
+        const dayName = melb.day_name;
+        const nowMins = melb.time_mins;
 
         // Fetch today's schedule row
         const todayRes = await fetch(
