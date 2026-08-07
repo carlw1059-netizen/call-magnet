@@ -1508,7 +1508,7 @@ async function loadHeatmap() {
   const DAY_LABELS  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const HOUR_LABELS = ['12am','1am','2am','3am','4am','5am','6am','7am','8am','9am','10am','11am',
                        '12pm','1pm','2pm','3pm','4pm','5pm','6pm','7pm','8pm','9pm','10pm','11pm'];
-  const SHOW_HOURS  = [8,9,10,11,12,13,14,15,16,17,18,19,20,21];
+  const SHOW_HOURS  = [9,10,11,12,13,14,15,16,17,18,19,20,21,22];
 
   if (heatmapRows.length > 0) {
     const lookup = {};
@@ -1542,7 +1542,7 @@ async function loadHeatmap() {
       ' (' + peakRow.call_count + ' missed call' + (peakRow.call_count === 1 ? '' : 's') + ')';
 
     gridEl.innerHTML =
-      '<p style="margin:0 0 8px;font-size:11px;color:#666;">Last 90 days · 8am–10pm</p>' +
+      '<p style="margin:0 0 8px;font-size:11px;color:#666;">Last 90 days · 9am–10pm</p>' +
       '<div style="overflow-x:auto;"><table cellpadding="0" cellspacing="2" style="border-collapse:separate;border-spacing:2px;">' +
       '<thead><tr>' + headerCells + '</tr></thead><tbody>' + bodyRows + '</tbody></table></div>' +
       '<p style="margin:8px 0 0;font-size:11px;color:#666;">' + peakLabel + '</p>';
