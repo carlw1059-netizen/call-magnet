@@ -1104,7 +1104,8 @@ body.panel-open .main { pointer-events: none; }
 .mm-heatmap-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 8px;
   cursor: pointer;
   padding: 12px 0 8px 0;
   border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -1119,9 +1120,12 @@ body.panel-open .main { pointer-events: none; }
 }
 .mm-heatmap-arrow {
   font-size: 36px;
+  line-height: 1;
   color: #10b981;
   transition: transform 0.2s ease;
   -webkit-text-stroke: 0.5px #FF0000;
+  display: flex;
+  align-items: center;
 }
 .mm-heatmap-body {
   padding: 16px 0 8px 0;
