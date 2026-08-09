@@ -1472,6 +1472,46 @@ function _triggerUpload(accept, uploadBtnId, progressId, errId, defaultBtnText) 
       return;
     }
 
+    if (accept === 'video/mp4,.mp4') {
+      // Video path — goes through Netlify process-video function
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const base64 = e.target.result.split(',')[1];
+        let resp;
+        try {
+          const response = await fetch('/.netlify/functions/process-video', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + sess.access_token
+            },
+            body: JSON.stringify({ client_id: _editClientId, file_base64: base64 })
+          });
+          resp = await response.json();
+          if (!response.ok || !resp.ok) {
+            document.getElementById(errId).textContent = resp.error || 'Upload failed';
+            document.getElementById(uploadBtnId).disabled = false;
+            document.getElementById(uploadBtnId).textContent = defaultBtnText;
+            return;
+          }
+        } catch(err) {
+          document.getElementById(errId).textContent = 'Network error — try again';
+          document.getElementById(uploadBtnId).disabled = false;
+          document.getElementById(uploadBtnId).textContent = defaultBtnText;
+          return;
+        }
+        const newUrl = resp.urls.video;
+        _setVideoPreview(newUrl);
+        _extractAndUploadPoster(newUrl, _editClientId);
+        document.getElementById(progressId).textContent = '';
+        document.getElementById(uploadBtnId).disabled = false;
+        document.getElementById(uploadBtnId).textContent = defaultBtnText;
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
+    // Photo path — existing XHR continues below unchanged
+
     var fd = new FormData();
     fd.append('client_id', _editClientId);
     fd.append('file', file);
