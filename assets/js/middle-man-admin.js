@@ -528,7 +528,7 @@ function renderEditBody(client) {
             ? '<video id="mmaVideoPreview" class="mma-video-preview" autoplay muted playsinline webkit-playsinline loop preload="auto"><source src="' + _e(bgUrl) + '?v=' + Date.now() + '" type="video/mp4" /></video>'
             : '<div id="mmaVideoPreview" class="mma-video-placeholder">▶</div>') +
           '<button id="mmaVideoUploadBtn" class="mma-save-btn">Upload video</button>' +
-          '<div class="mma-info" style="text-align:center;font-size:11px;">MP4, vertical 9:16. Max 10 MB.</div>' +
+          '<div class="mma-info" style="text-align:center;font-size:11px;">MP4, vertical 9:16. Max 15 MB.</div>' +
           '<div id="mmaVideoProgress" class="mma-progress"></div>' +
           '<div id="mmaVideoErr" class="mma-err"></div>' +
           '<p class="mma-btn-hint" style="margin-top:6px;color:#9ca3af;font-size:11px;">H.264 MP4 only — run ffmpeg faststart before uploading. Max 15MB.</p>' +
