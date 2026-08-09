@@ -606,12 +606,6 @@
       vid.addEventListener('canplay', function() {
         vid.play().catch(function(err) {
           console.warn('[video] play() blocked after canplay:', err.name);
-          if (err.name === 'NotAllowedError') {
-            document.addEventListener('touchstart', function retry() {
-              vid.play().catch(function() {});
-              document.removeEventListener('touchstart', retry);
-            }, { once: true });
-          }
         });
       }, { once: true });
       bgFixed.appendChild(vid);
