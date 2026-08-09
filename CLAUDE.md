@@ -93,6 +93,17 @@ Step 4 — Delete both input.mp4 and output_faststart.mp4 from C:\Users\car31\ca
 
 ---
 
+## VIDEO SYNC RULES — NEVER BREAK
+
+* Every change to middleman.js must bump the version string in BOTH b.html AND cm1site/b.html
+* cm1site/b.html must always match root b.html exactly — sync after every change to either file
+* Never deploy a middleman.js change without first confirming both HTML files reference the same version string
+* Never upload a client video without faststart encoding — moov atom must be at the start of the file
+* Never upload HEVC/H.265 video — always H.264
+* ffmpeg re-encode command: & "C:\Users\car31\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-9.0-full_build\bin\ffmpeg.exe" -i "input.mp4" -movflags faststart -an -vcodec copy "output-faststart.mp4" -y
+
+---
+
 ## Locked Standards — Admin Pages
 
 Every admin page must follow these rules. No exceptions. No deviations.
