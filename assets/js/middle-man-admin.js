@@ -522,7 +522,7 @@ function renderEditBody(client) {
       '<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;">' +
 
         // VIDEO COLUMN
-        '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:0 0 auto;width:185px;">' +
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:0 0 auto;width:185px;min-height:320px;">' +
           '<div class="mma-media-label">Video</div>' +
           (bgType === 'video' && bgUrl
             ? '<video id="mmaVideoPreview" class="mma-video-preview" autoplay muted playsinline webkit-playsinline loop preload="auto"><source src="' + _e(bgUrl) + '?v=' + Date.now() + '" type="video/mp4" /></video>'
@@ -536,7 +536,7 @@ function renderEditBody(client) {
         '</div>' +
 
         // PHOTO COLUMN
-        '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:0 0 auto;width:185px;">' +
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:0 0 auto;width:185px;min-height:320px;">' +
           '<div class="mma-media-label">Photo</div>' +
           (bgType === 'image' && bgUrl
             ? '<img src="' + _e(bgUrl) + '?v=' + Date.now() + '" id="mmaPhotoThumb" class="mma-bg-thumb" alt="Background photo" />'
