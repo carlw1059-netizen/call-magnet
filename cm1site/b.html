@@ -86,6 +86,121 @@
 
 </div><!-- /app -->
 
-<script src="https://callmagnet.com.au/assets/js/middleman.js?v=20260628i" defer></script>
+<script src="https://callmagnet.com.au/assets/js/middleman.js?v=20260809a" defer></script>
+
+<!-- Debug overlay — only active when URL contains ?debug=1 — no effect on normal page operation -->
+<script>
+(function () {
+  if (!/[?&]debug=1/.test(window.location.search)) return;
+
+  var s = {
+    sw:      'checking…',
+    jsVer:   '—',
+    vidCreated: 'no',
+    canplay: 'no',
+    playCalled: 'no',
+    playResult: '—',
+    ctGt0:   'no'
+  };
+
+  var panel = document.createElement('div');
+  panel.style.cssText = [
+    'position:fixed', 'bottom:60px', 'left:8px', 'z-index:999999',
+    'background:rgba(0,0,0,0.88)', 'color:#39FF14',
+    'font:11px/1.6 monospace', 'padding:8px 10px', 'border-radius:6px',
+    'max-width:290px', 'pointer-events:none', 'word-break:break-all'
+  ].join(';');
+  document.body.appendChild(panel);
+
+  function upd() {
+    panel.innerHTML =
+      '<b>🔧 CM debug</b><br>' +
+      'SW cache: '       + s.sw          + '<br>' +
+      'JS ver: '         + s.jsVer       + '<br>' +
+      'vid created: '    + s.vidCreated  + '<br>' +
+      'canplay fired: '  + s.canplay     + '<br>' +
+      'play() called: '  + s.playCalled  + '<br>' +
+      'play() result: '  + s.playResult  + '<br>' +
+      'currentTime&gt;0: ' + s.ctGt0;
+  }
+  upd();
+
+  // ── Service worker cache names ────────────────────────────────────────────
+  if ('caches' in window) {
+    caches.keys().then(function (keys) {
+      s.sw = keys.length ? keys.join(' | ') : 'no caches';
+      upd();
+    }).catch(function () { s.sw = 'caches API error'; upd(); });
+  } else {
+    s.sw = 'not supported';
+    upd();
+  }
+
+  // ── JS version from script tag src ───────────────────────────────────────
+  var scriptEl = document.querySelector('script[src*="middleman.js"]');
+  if (scriptEl) {
+    var m = scriptEl.src.match(/[?&]v=([^&]+)/);
+    s.jsVer = m ? m[1] : '(no ?v= param)';
+  }
+  upd();
+
+  // ── Watch #bgFixed for a <video> element ─────────────────────────────────
+  var bgFixed = document.getElementById('bgFixed');
+  if (!bgFixed) { s.vidCreated = 'bgFixed missing'; upd(); return; }
+
+  var obs = new MutationObserver(function (mutations) {
+    for (var i = 0; i < mutations.length; i++) {
+      for (var j = 0; j < mutations[i].addedNodes.length; j++) {
+        var node = mutations[i].addedNodes[j];
+        if (node.nodeName === 'VIDEO') {
+          s.vidCreated = 'YES';
+          upd();
+          obs.disconnect();
+          hookVideo(node);
+          return;
+        }
+      }
+    }
+  });
+  obs.observe(bgFixed, { childList: true });
+
+  function hookVideo(vid) {
+    // Passive canplay listener — no interference with middleman.js listener
+    vid.addEventListener('canplay', function () {
+      s.canplay = 'YES';
+      upd();
+    });
+
+    // Intercept play() to observe call and result
+    var origPlay = vid.play.bind(vid);
+    vid.play = function () {
+      s.playCalled = 'YES';
+      upd();
+      var promise = origPlay();
+      if (promise && typeof promise.then === 'function') {
+        promise.then(function () {
+          s.playResult = 'SUCCESS';
+          upd();
+        }).catch(function (err) {
+          s.playResult = 'ERR: ' + (err && err.name ? err.name : String(err));
+          upd();
+        });
+      } else {
+        s.playResult = 'called (no promise returned)';
+        upd();
+      }
+      return promise;
+    };
+
+    // Poll currentTime every second
+    setInterval(function () {
+      s.ctGt0 = vid.currentTime > 0
+        ? 'YES (' + vid.currentTime.toFixed(1) + 's)'
+        : 'no (ct=' + vid.currentTime.toFixed(3) + ')';
+      upd();
+    }, 1000);
+  }
+})();
+</script>
 </body>
 </html>
