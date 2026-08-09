@@ -19,7 +19,7 @@
 //
 // Video (MP4 only — Phase 1.5):
 //   • Accepts video/mp4 only. MOV / WebM / AVI are rejected with clear messages.
-//   • Max 10 MB. Stored as-is at <client_id>/video.mp4 (no transcoding).
+//   • Max 15 MB. Stored as-is at <client_id>/video-{timestamp}.mp4 (no transcoding).
 //   • Returns { ok: true, urls: { video: <publicUrl> }, type: 'video' }
 //
 // NOTE: npm:sharp requires native Node.js bindings (libvips) which are NOT
@@ -37,7 +37,7 @@ const BUCKET                    = 'middle-man-backgrounds';
 
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png']);
 const MAX_IMAGE_BYTES     = 5  * 1024 * 1024;   // 5 MB
-const MAX_VIDEO_BYTES     = 10 * 1024 * 1024;   // 10 MB
+const MAX_VIDEO_BYTES     = 15 * 1024 * 1024;   // 15 MB
 
 // Maps unsupported video MIME types to human-readable format names for errors.
 const UNSUPPORTED_VIDEO_LABELS: Record<string, string> = {
@@ -183,10 +183,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
       // ── MP4 video: validate size, upload as-is ─────────────────────────
       if (fileBytes.byteLength > MAX_VIDEO_BYTES) {
         return json(400, { ok: false, error: 'validation_failed',
-                            detail: `Video must be under 10MB — try compressing it (got ${(fileBytes.byteLength / 1024 / 1024).toFixed(1)} MB)` });
+                            detail: `Video must be under 15MB — try compressing it (got ${(fileBytes.byteLength / 1024 / 1024).toFixed(1)} MB)` });
       }
 
-      const path = `${clientId}/video.mp4`;
+      const path = `${clientId}/video-${Date.now()}.mp4`;
       const { error: upErr } = await supa.storage
         .from(BUCKET)
         .upload(path, fileBytes, { contentType: 'video/mp4', upsert: true });
