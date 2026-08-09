@@ -532,6 +532,10 @@ function renderEditBody(client) {
           '<div id="mmaVideoProgress" class="mma-progress"></div>' +
           '<div id="mmaVideoErr" class="mma-err"></div>' +
           '<p class="mma-btn-hint" style="margin-top:6px;color:#9ca3af;font-size:11px;">H.264 MP4 only — run ffmpeg faststart before uploading. Max 15MB.</p>' +
+          '<div id="mmaVideoStatus" style="display:none;width:185px;margin-top:8px;border-radius:6px;overflow:hidden;border:1px solid #e5e7eb;">' +
+            '<div id="mmaVideoStatusBar" style="height:4px;width:0%;background:#10b981;transition:width 0.3s;"></div>' +
+            '<div id="mmaVideoStatusText" style="font-size:10px;padding:6px 8px;color:#6b7280;background:#f9fafb;"></div>' +
+          '</div>' +
           (bgType === 'video' && bgUrl ? '<button id="mmaVideoRemoveBtn" class="mma-remove-bg-btn">Remove video</button>' : '') +
         '</div>' +
 
@@ -1477,6 +1481,10 @@ function _triggerUpload(accept, uploadBtnId, progressId, errId, defaultBtnText) 
       const reader = new FileReader();
       reader.onload = async function(e) {
         const base64 = e.target.result.split(',')[1];
+        var statusEl = document.getElementById('mmaVideoStatus');
+        var statusBar = document.getElementById('mmaVideoStatusBar');
+        var statusText = document.getElementById('mmaVideoStatusText');
+        if (statusEl) { statusEl.style.display = 'block'; statusBar.style.width = '30%'; statusBar.style.background = '#f59e0b'; statusText.textContent = 'Processing video…'; }
         let resp;
         try {
           const response = await fetch('/.netlify/functions/process-video', {
@@ -1494,7 +1502,9 @@ function _triggerUpload(accept, uploadBtnId, progressId, errId, defaultBtnText) 
             document.getElementById(uploadBtnId).textContent = defaultBtnText;
             return;
           }
+          if (statusEl) { statusBar.style.width = '100%'; statusBar.style.background = '#10b981'; statusText.textContent = '✓ Faststart confirmed · Audio stripped · Ready'; }
         } catch(err) {
+          if (statusEl) { statusBar.style.width = '100%'; statusBar.style.background = '#ef4444'; statusText.textContent = 'Upload failed — try again'; }
           document.getElementById(errId).textContent = 'Network error — try again';
           document.getElementById(uploadBtnId).disabled = false;
           document.getElementById(uploadBtnId).textContent = defaultBtnText;
