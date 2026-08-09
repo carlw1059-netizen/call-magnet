@@ -1503,6 +1503,9 @@ function _triggerUpload(accept, uploadBtnId, progressId, errId, defaultBtnText) 
         const newUrl = resp.urls.video;
         _setVideoPreview(newUrl);
         _extractAndUploadPoster(newUrl, _editClientId);
+        _editClientData.middle_man_background_url = newUrl;
+        _editClientData.middle_man_background_type = 'video';
+        renderPreview();
         document.getElementById(progressId).textContent = '';
         document.getElementById(uploadBtnId).disabled = false;
         document.getElementById(uploadBtnId).textContent = defaultBtnText;
