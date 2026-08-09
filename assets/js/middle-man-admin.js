@@ -546,7 +546,7 @@ function renderEditBody(client) {
             ? '<img src="' + _e(bgUrl) + '?v=' + Date.now() + '" id="mmaPhotoThumb" class="mma-bg-thumb" alt="Background photo" />'
             : '<div id="mmaPhotoThumb" class="mma-video-placeholder" style="font-size:24px;">★</div>') +
           '<button id="mmaPhotoUploadBtn" class="mma-save-btn">Upload photo</button>' +
-          '<div class="mma-info" style="text-align:center;font-size:11px;">JPG or PNG, portrait. Max 5 MB.</div>' +
+          '<div class="mma-info" style="text-align:center;font-size:13px;font-weight:700;">JPG or PNG, portrait. Max 5 MB.</div>' +
           '<div id="mmaPhotoProgress" class="mma-progress"></div>' +
           '<div id="mmaPhotoErr" class="mma-err"></div>' +
           '<button id="mmaPhotoRemoveBtn" class="mma-remove-bg-btn"' + (!(bgType === 'image' && bgUrl) ? ' style="opacity:0.3;pointer-events:none;"' : '') + '>Remove photo</button>' +
