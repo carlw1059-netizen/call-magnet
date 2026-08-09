@@ -57,10 +57,10 @@
 ### Video upload — faststart encoding required
 - **Rule**: Every MP4 video uploaded to any client's Middle Man page MUST be pre-encoded with faststart (moov atom at start of file) before upload. Non-faststart MP4 will not autoplay on iOS Safari regardless of any code changes.
 - **Why**: iOS Safari requires the moov atom at the START of the file to autoplay without user gesture. Non-faststart files have moov at the END — iOS must download the entire file before it can play, which blocks autoplay.
-- **ffmpeg path on Carl's machine**: C:\Users\car31\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.2-full_build\bin\ffmpeg.exe
+- **ffmpeg path on Carl's machine**: C:\Users\car31\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-9.0-full_build\bin\ffmpeg.exe
 - **Command to re-encode any video before upload** (run in Claude Code PowerShell):
   ```powershell
-  $ffmpeg = "C:\Users\car31\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.2-full_build\bin\ffmpeg.exe"
+  $ffmpeg = "C:\Users\car31\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-9.0-full_build\bin\ffmpeg.exe"
   & $ffmpeg -ss 00:00:00.5 -i "input.mp4" -movflags faststart -acodec copy -vcodec copy "output_faststart.mp4" -y
   ```
 - **After re-encoding**: Upload output_faststart.mp4 via the admin edit view → Background Media → Upload video
@@ -77,7 +77,7 @@ Step 2 — Run this prompt in Claude Code:
 
 Read CLAUDE.md first. Run the following ffmpeg command to faststart-encode the video. Replace input.mp4 with the actual filename of the client video. Run in PowerShell:
 
-$ffmpeg = "C:\Users\car31\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.2-full_build\bin\ffmpeg.exe"
+$ffmpeg = "C:\Users\car31\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-9.0-full_build\bin\ffmpeg.exe"
 & $ffmpeg -ss 00:00:00.5 -i "input.mp4" -movflags faststart -acodec copy -vcodec copy "output_faststart.mp4" -y
 
 Then confirm output_faststart.mp4 exists in C:\Users\car31\call-magnet and that the file size is within 10% of the input file size. Report both file sizes. Do not upload anything.
