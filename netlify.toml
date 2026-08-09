@@ -62,3 +62,7 @@
   for = "/assets/css/middle-man-admin.css"
   [headers.values]
     Cache-Control = "no-store, no-cache, must-revalidate"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
