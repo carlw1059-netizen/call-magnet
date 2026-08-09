@@ -531,6 +531,7 @@ function renderEditBody(client) {
           '<div class="mma-info" style="text-align:center;font-size:11px;">MP4, vertical 9:16. Max 10 MB.</div>' +
           '<div id="mmaVideoProgress" class="mma-progress"></div>' +
           '<div id="mmaVideoErr" class="mma-err"></div>' +
+          '<p class="mma-btn-hint" style="margin-top:6px;color:#9ca3af;font-size:11px;">H.264 MP4 only — run ffmpeg faststart before uploading. Max 15MB.</p>' +
           (bgType === 'video' && bgUrl ? '<button id="mmaVideoRemoveBtn" class="mma-remove-bg-btn">Remove video</button>' : '') +
         '</div>' +
 
