@@ -1447,6 +1447,11 @@ function _triggerUpload(accept, uploadBtnId, progressId, errId, defaultBtnText) 
     var file = ev.target.files && ev.target.files[0];
     if (!file) return;
 
+    if (file.size > 15 * 1024 * 1024) {
+      document.getElementById(errId).textContent = 'Video must be under 15MB. Compress it before uploading.';
+      return;
+    }
+
     var uploadBtn = document.getElementById(uploadBtnId);
     var progress  = document.getElementById(progressId);
     var errEl     = document.getElementById(errId);
