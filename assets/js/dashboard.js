@@ -492,10 +492,10 @@ async function loadStats() {
   try {
     [smsRes, clickRes, bookRes, monthSmsRes, tapsTodayRes] = await Promise.all([
       sb.from('sms_events').select('id', { count: 'exact' }).eq('client_id', clientId).gte('received_at', effectiveStart).lte('received_at', endIso),
-      sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).gte('created_at', effectiveStart).lte('created_at', endIso),
+      sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).not('intent', 'is', null).gte('created_at', effectiveStart).lte('created_at', endIso),
       sb.from('bookings').select('id', { count: 'exact' }).eq('client_id', clientId).gte('booked_at', effectiveStart).lte('booked_at', endIso),
       sb.from('sms_events').select('id', { count: 'exact' }).eq('client_id', clientId).gte('received_at', monthStartIso),
-      sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).gte('clicked_at', tapsTodayStart)
+      sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).not('intent', 'is', null).gte('clicked_at', tapsTodayStart)
     ]);
   } catch (e) {
     console.error('stats load failed', e);
