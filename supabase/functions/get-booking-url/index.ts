@@ -63,12 +63,26 @@ Deno.serve(async (req) => {
 
 
     const now = new Date()
-    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
-    const melbOffset = 10 * 60
-    const melbTime = new Date(now.getTime() + melbOffset * 60 * 1000)
-    const dayOfWeek = days[melbTime.getUTCDay()]
-    const hourOfDay = melbTime.getUTCHours()
-    const minutes = melbTime.getUTCMinutes().toString().padStart(2, '0')
+
+    const melbRes = await fetch(
+      `${supabaseUrl}/rest/v1/rpc/get_melbourne_day_and_time`,
+      {
+        method:  'POST',
+        headers: {
+          apikey:         supabaseKey,
+          Authorization:  `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+      },
+    )
+    if (!melbRes.ok) {
+      throw new Error(`get_melbourne_day_and_time failed: ${melbRes.status}`)
+    }
+    const melb = await melbRes.json() as { day_name: string; time_mins: number }
+    const dayOfWeek   = melb.day_name
+    const hourOfDay   = Math.floor(melb.time_mins / 60)
+    const minutes     = (melb.time_mins % 60).toString().padStart(2, '0')
     const clickedTime = `${hourOfDay}:${minutes}`
 
 
