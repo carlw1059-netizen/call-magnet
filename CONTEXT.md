@@ -69,3 +69,23 @@ CallMagnet is a B2B missed-call recovery SaaS for Australian service businesses 
 **Two Netlify sites:**
 1. callmagnet.com.au — main site, admin panel, client dashboard (PWA)
 2. cm1.au — Middle Man pages only, catch-all redirect to b.html via _redirects
+
+---
+
+## 4. ENVIRONMENT VARIABLES
+
+**Supabase Vault secrets (accessed via get_vault_secret RPC):**
+- stripe_secret_key — Stripe live secret key
+- TWILIO_ACCOUNT_SID — Twilio account SID
+- TWILIO_AUTH_TOKEN — Twilio auth token
+- INTERNAL_SECRET — shared secret for cron-to-function calls
+- RESEND_API_KEY — Resend API key
+- STRIPE_WEBHOOK_SECRET_SUCCEEDED — Stripe webhook signing secret for payment-succeeded
+- STRIPE_WEBHOOK_SECRET_DELETED — Stripe webhook signing secret for subscription-deleted
+- PUSHOVER_USER_KEY — Pushover user key for Carl
+- PUSHOVER_APP_TOKEN — Pushover app token
+
+**Netlify environment variables:**
+- SUPABASE_URL — https://iskvvnhacqdxybpmwuni.supabase.co (NOT marked as secret)
+- SUPABASE_SERVICE_ROLE_KEY — Supabase service role key (secret)
+- SECRETS_SCAN_SMART_DETECTION_ENABLED — false (prevents false positive secret scan failures)
