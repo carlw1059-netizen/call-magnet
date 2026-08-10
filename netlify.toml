@@ -65,4 +65,7 @@
 
 [functions]
   directory = "netlify/functions"
-  node_bundler = "esbuild"
+  node_bundler = "js"
+
+  [functions.process-video]
+    included_files = ["netlify/functions/ffmpeg"]
