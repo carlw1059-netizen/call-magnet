@@ -233,3 +233,17 @@ CallMagnet is a B2B missed-call recovery SaaS for Australian service businesses 
 **quick-responder** — verify_jwt: false
 - Triggered by: Cron job
 - Does: Sends follow-up SMS to unanswered missed calls
+
+---
+
+## 8. EVERY NETLIFY FUNCTION
+
+**process-video** — POST only
+- Location: netlify/functions/process-video.js
+- Triggered by: Admin panel video upload (middle-man-admin.js)
+- Flow: Admin JS uploads raw MP4 directly to Supabase Storage, then calls this function with { client_id, storage_path }
+- Does: Downloads raw MP4 from Supabase Storage, runs ffmpeg faststart re-encode (-movflags faststart -an -vcodec copy), overwrites same storage_path, returns public URL
+- ffmpeg binary: netlify/functions/ffmpeg (75MB Linux x64 static binary, mode 100755)
+- Result: Faststart-encoded MP4 that autoplays on iOS Safari without user gesture
+- After success: Admin JS calls mmaSb.from('clients').update({ middle_man_background_url, middle_man_background_type: 'video' })
+- Requires: Authorization header with valid Supabase JWT
