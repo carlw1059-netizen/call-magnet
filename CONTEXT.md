@@ -408,3 +408,49 @@ These are areas where things have broken before and are likely to break again if
 ### Emergency SMS block
 - Add the client_id to the `BLOCKED_CLIENT_IDS` environment variable in Supabase
 - This prevents twilio-missed-call from processing any calls for that client without touching code
+
+---
+
+## 14. OUTSTANDING WORK
+
+These items are known, intentional, and not started. Ordered roughly by commercial priority.
+
+### HIGH — Convert Arcane Fairies to paying client
+- Alex Docherty (alex@storyvillemelbourne.com.au, +61421417758) is on a free trial
+- Needs to pay setup fee + monthly subscription
+- Twilio number +61489278544 is already live and working
+- Blocking: Carl has not yet pushed for conversion
+
+### HIGH — Build public marketing landing page
+- callmagnet.com.au currently shows the client dashboard (PWA login)
+- There is no public-facing page explaining what CallMagnet is or how to sign up
+- New clients cannot self-serve — Carl has to onboard them manually
+
+### MEDIUM — Day 14 and Day 30 onboarding email crons
+- Welcome email is sent on signup
+- No follow-up drip sequence exists
+- Planned: Day 14 "How's it going?" email, Day 30 upsell/conversion nudge
+
+### MEDIUM — Migrate welcome email HTML to Resend template editor
+- Current welcome email HTML is hardcoded as a string in the `create-client` edge function
+- Should be moved to a Resend template for easier editing without code deploys
+
+### MEDIUM — Build admin numbers page
+- No admin UI exists for managing Twilio numbers
+- Currently managed manually via Twilio console
+
+### LOW — Add weekly_summaries RLS policy
+- `weekly_summaries` table has RLS enabled but no policy yet
+- Effectively blocks all access — needs service_role + admin read policy
+
+### LOW — Delete shortio-lookup-tmp edge function
+- Dead code, never used in production
+- Safe to delete when convenient
+
+### LOW — Add cm1.au/arcane-fairies to UptimeRobot
+- No uptime monitoring exists for the Middle Man page
+- Should alert Carl if the page goes down or 404s
+
+### LOW — Staging environment for Twilio Studio
+- Current staging only covers Netlify + Supabase
+- Twilio Studio flows still point to production edge functions during staging tests
