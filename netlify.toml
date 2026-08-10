@@ -1,37 +1,20 @@
 # Netlify configuration for callmagnet.com.au
-#
-# The /b/* rewrite serves the Middle Man landing page for any slug.
-# e.g. callmagnet.com.au/b/brunswick-bistro → /b.html (status 200, not a redirect)
-# The page reads window.location.pathname to extract the slug.
-#
-# All other existing .html pages are served as-is; no existing routes are affected.
 
 [[redirects]]
   from   = "/b/*"
   to     = "/b.html"
   status = 200
 
-# /u/<token> opt-out page — token is read from window.location.pathname
-# by u.html's inline script. status 200 (rewrite, not redirect) preserves
-# the full /u/<token> path so the script can extract the token.
 [[redirects]]
   from   = "/u/*"
   to     = "/u.html"
   status = 200
 
-# cm1.au short-link redirect — cm1.au/<slug> → callmagnet.com.au/b/<slug>
-# Requires cm1.au to be a domain alias on this Netlify site.
-# Query strings (?u=<token>) are preserved automatically.
 [[redirects]]
   from   = "https://cm1.au/*"
   to     = "https://callmagnet.com.au/b/:splat"
   status = 301
   force  = true
-
-# ── Cache-Control headers ─────────────────────────────────────────────────────
-# The caller page (/b/*) and its dedicated assets must never be served from
-# any cache — the page is live/per-client and changes whenever a client updates
-# their settings. Service workers (Progressier) must revalidate on every request.
 
 [[headers]]
   for = "/b/*"
@@ -65,5 +48,5 @@
 
 [functions]
   directory = "netlify/functions"
-  node_bundler = "nft"
+  node_bundler = "esbuild"
   included_files = ["netlify/functions/ffmpeg"]
