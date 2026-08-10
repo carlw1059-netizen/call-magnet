@@ -1,9 +1,8 @@
-const ffmpeg = require('fluent-ffmpeg');
-const ffmpegPath = require('ffmpeg-static');
-const { PassThrough, Readable } = require('stream');
+const { execSync } = require('child_process');
+const path = require('path');
+const fs = require('fs');
+const os = require('os');
 const { createClient } = require('@supabase/supabase-js');
-
-ffmpeg.setFfmpegPath(ffmpegPath);
 
 exports.handler = async function(event, context) {
   if (event.httpMethod !== 'POST') {
@@ -29,26 +28,30 @@ exports.handler = async function(event, context) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Video must be under 15MB' }) };
     }
 
-    const inputStream = Readable.from(inputBuffer);
-    const outputChunks = [];
-    const outputStream = new PassThrough();
-    outputStream.on('data', chunk => outputChunks.push(chunk));
+    const tmpDir = os.tmpdir();
+    const inputPath = path.join(tmpDir, `input-${Date.now()}.mp4`);
+    const outputPath = path.join(tmpDir, `output-${Date.now()}.mp4`);
 
-    await new Promise((resolve, reject) => {
-      ffmpeg(inputStream)
-        .inputFormat('mp4')
-        .videoCodec('copy')
-        .noAudio()
-        .outputOptions(['-movflags faststart+frag_keyframe+empty_moov'])
-        .outputFormat('mp4')
-        .on('error', reject)
-        .on('end', resolve)
-        .pipe(outputStream, { end: true });
+    fs.writeFileSync(inputPath, inputBuffer);
+
+    let ffmpegPath;
+    try {
+      ffmpegPath = require('ffmpeg-static');
+    } catch(e) {
+      ffmpegPath = '/usr/bin/ffmpeg';
+    }
+
+    execSync(`"${ffmpegPath}" -i "${inputPath}" -movflags faststart -an -vcodec copy -y "${outputPath}"`, {
+      timeout: 20000
     });
 
-    const processedBuffer = Buffer.concat(outputChunks);
+    const processedBuffer = fs.readFileSync(outputPath);
+
+    fs.unlinkSync(inputPath);
+    fs.unlinkSync(outputPath);
+
     const timestamp = Date.now();
-    const path = `${client_id}/video-${timestamp}.mp4`;
+    const storagePath = `${client_id}/video-${timestamp}.mp4`;
 
     const supabase = createClient(
       process.env.SUPABASE_URL,
@@ -57,7 +60,7 @@ exports.handler = async function(event, context) {
 
     const { error: uploadError } = await supabase.storage
       .from('middle-man-backgrounds')
-      .upload(path, processedBuffer, {
+      .upload(storagePath, processedBuffer, {
         contentType: 'video/mp4',
         upsert: true
       });
@@ -68,7 +71,7 @@ exports.handler = async function(event, context) {
 
     const { data: { publicUrl } } = supabase.storage
       .from('middle-man-backgrounds')
-      .getPublicUrl(path);
+      .getPublicUrl(storagePath);
 
     return {
       statusCode: 200,
