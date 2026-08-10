@@ -67,5 +67,5 @@
   directory = "netlify/functions"
   node_bundler = "js"
 
-  [functions.process-video]
-    included_files = ["netlify/functions/ffmpeg"]
+[functions."process-video"]
+  included_files = ["netlify/functions/ffmpeg"]
