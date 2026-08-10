@@ -5,17 +5,6 @@ const os = require('os');
 const { createClient } = require('@supabase/supabase-js');
 
 exports.handler = async function(event, context) {
-  if (event.httpMethod === 'GET') {
-    const files = fs.readdirSync(__dirname);
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        __dirname,
-        files,
-        ffmpegExists: fs.existsSync(path.join(__dirname, 'ffmpeg'))
-      })
-    };
-  }
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
   }
