@@ -18,3 +18,19 @@ CallMagnet is a B2B missed-call recovery SaaS for Australian service businesses 
 - Restaurant: $499 setup + $249/month
 - Hairdresser/Barber: $249 setup + $99/month
 - SMS overage: metered via Stripe
+
+---
+
+## 2. WHO IS INVOLVED
+
+**Carl** — solo founder, admin, only person who operates the system
+- Admin email: car312@hotmail.com (is_admin = true in Supabase auth)
+- Local machine: Windows, C:\Users\car31\call-magnet
+- GitHub: carlw1059-netizen
+
+**Alex Docherty** — owner of Arcane Fairies (restaurant, Melbourne)
+- Email: alex@storyvillemelbourne.com.au
+- Phone: +61421417758
+- middle_man_slug: arcane-fairies
+- Twilio number: +61489278544
+- Status: Active free trial, not yet converted to paying client
