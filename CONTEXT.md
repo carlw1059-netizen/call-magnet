@@ -247,3 +247,35 @@ CallMagnet is a B2B missed-call recovery SaaS for Australian service businesses 
 - Result: Faststart-encoded MP4 that autoplays on iOS Safari without user gesture
 - After success: Admin JS calls mmaSb.from('clients').update({ middle_man_background_url, middle_man_background_type: 'video' })
 - Requires: Authorization header with valid Supabase JWT
+
+---
+
+## 9. THE MIDDLE MAN PAGE
+
+The Middle Man page (b.html / cm1site/b.html) is the customer-facing page callers land on after tapping the SMS link. It is the centrepiece of the product.
+
+**What it shows:**
+- Business logo at top
+- Background video or photo (uploaded by admin)
+- Coloured neon-bordered buttons for each intent (Book a table, Running late, etc.)
+- "Powered by CallMagnet" footer (tiny, can be removed for white-label)
+- "Stop these texts" opt-out link
+
+**How it works:**
+- URL: cm1.au/<middle_man_slug> (e.g. cm1.au/arcane-fairies)
+- cm1.au is a separate Netlify site (callmag) with catch-all _redirects to b.html
+- b.html loads middleman.js which fetches client config from Supabase and renders the page
+- Button taps call log-middle-man-tap edge function
+
+**iOS video autoplay rules — CRITICAL:**
+- Video must be H.264, faststart-encoded (moov atom at START of file), audio stripped, max 15MB
+- vid.play() must ONLY be called inside the canplay event listener with { once: true }
+- canplay listener must be wired BEFORE bgFixed.appendChild(vid) and BEFORE vid.load()
+- NEVER call play() in loadedmetadata, immediately after load(), or at top level
+- NEVER add touch-to-play or tap-to-play — if autoplay fails, investigate root cause only
+- Low Power Mode on iOS blocks autoplay at OS level — cannot be overridden in code
+
+**File sync rule:**
+- root/b.html and cm1site/b.html must ALWAYS be identical
+- Every change to middleman.js must bump the version string in BOTH b.html files
+- Never deploy a middleman.js change without confirming both files reference the same version
