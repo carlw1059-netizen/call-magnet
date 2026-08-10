@@ -65,5 +65,5 @@
 
 [functions]
   directory = "netlify/functions"
-  node_bundler = "js"
+  node_bundler = "nft"
   included_files = ["netlify/functions/ffmpeg"]
