@@ -454,3 +454,48 @@ These items are known, intentional, and not started. Ordered roughly by commerci
 ### LOW — Staging environment for Twilio Studio
 - Current staging only covers Netlify + Supabase
 - Twilio Studio flows still point to production edge functions during staging tests
+
+---
+
+## 15. IF YOU ARE A NEW AI TOOL PICKING THIS UP
+
+Read this section first. It will save you time.
+
+### What you need to know immediately
+- This is a solo-founder product. There is no team. Every decision is Carl's. When in doubt, ask Carl.
+- The only active client right now is Arcane Fairies (alex@storyvillemelbourne.com.au). Be careful with anything that affects them — they are a real paying trial customer.
+- Read CLAUDE.md before touching any code. It contains known bugs, locked rules, and things that have broken before.
+- Every commit must include `&& git push origin main` at the end. Commits that don't push don't deploy.
+
+### What is safe to do without asking
+- Reading any file or database record
+- Making local edits that haven't been committed
+- Searching or exploring the codebase
+- Running the staging deploy workflow
+
+### What requires Carl's confirmation
+- Any deploy to production (git push origin main)
+- Any Stripe operation (subscriptions, refunds, price changes)
+- Any SMS to a real phone number
+- Any change to Twilio Studio flows
+- Any database migration on the production Supabase project (iskvvnhacqdxybpmwuni)
+- Deleting any file or database row
+- Uploading any video to a client's Middle Man page
+
+### Common gotchas
+- The Supabase MCP `deploy_edge_function` tool cannot resolve shared imports — use CLI instead
+- Staging Supabase ref is `knupnihccvdsnoxnaqwo`, production is `iskvvnhacqdxybpmwuni` — never mix them up
+- `middle_man_slug` is the column name, not `slug`
+- `account_status` never becomes `deleted` — cancelled accounts stay in the database with `status = 'cancelled'`
+- Both `b.html` and `cm1site/b.html` must always be identical — check both when editing either
+- If iOS video doesn't autoplay, the video file is always the problem, never the code
+
+### Where to find things
+- All live edge functions: `supabase/functions/`
+- The video processing Netlify function: `netlify/functions/process-video.js`
+- The Middle Man page renderer: `middleman.js` (loaded by `b.html` and `cm1site/b.html`)
+- The client admin panel JS: `assets/js/middle-man-admin.js`
+- The client PWA dashboard JS: `assets/js/clients-admin.js`
+- Migrations: `supabase/migrations/` (100 files as of August 2026)
+- Bug history and locked rules: `CLAUDE.md`
+- This document: `CONTEXT.md`
