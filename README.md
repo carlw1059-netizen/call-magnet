@@ -1,5 +1,5 @@
 # CallMagnet — System Architecture
-*Last updated: 2026-08-06*
+*Last updated: 2026-08-11*
 
 ## What it does
 
@@ -14,23 +14,38 @@ CallMagnet is a missed-call recovery SaaS for Australian small businesses. When 
 - **Link tracking:** Netlify (callmag site) — cm1.au serves b.html via catch-all _redirects. Click tracking via log-click Supabase edge function writing to link_clicks table.
 - **Payments:** Stripe (subscriptions, webhooks)
 - **Email:** Resend (welcome, monthly report, alerts)
+- **Video processing:** Netlify serverless function (process-video) with static Linux x64 ffmpeg binary — re-encodes uploaded MP4s with faststart, strips audio, overwrites in Supabase Storage
 
 ## Data flow — missed call to recovery
 
 ```
 Missed call
-  → Twilio Studio flow
-  → twilio-missed-call edge fn           (logs to sms_events, triggers send-missed-call-sms)
-  → send-missed-call-sms edge fn         (calls send-twilio-sms, writes sms_events row)
-  → send-twilio-sms edge fn              (Twilio SMS API → caller's phone)
-  → cm1.au short link
-  → callmagnet.com.au/b/<slug>           (Middle Man page — b.html)
-  → Button tap → log-middle-man-tap edge fn → link_clicks table
-  → Form submit → submit-middle-man-form edge fn → middle_man_form_submissions table
-  → send-client-notification edge fn     (Progressier push → all owner devices)
-  → Owner opens PWA (index.html)
-  → Neon tiles show counts
-  → Slide-out panel → submission cards
+→ Twilio Studio flow
+→ twilio-missed-call edge fn (logs to sms_events, triggers send-missed-call-sms)
+→ send-missed-call-sms edge fn (calls send-twilio-sms, writes sms_events row)
+→ send-twilio-sms edge fn (Twilio SMS API → caller's phone)
+→ cm1.au short link
+→ callmagnet.com.au/b/<slug> (Middle Man page — b.html)
+→ Button tap → log-middle-man-tap edge fn → link_clicks table
+→ Form submit → submit-middle-man-form edge fn → middle_man_form_submissions table
+→ send-client-notification edge fn (Progressier push → all owner devices)
+→ Owner opens PWA (index.html)
+→ Neon tiles show counts
+→ Slide-out panel → submission cards
+```
+
+## Video upload flow
+
+```
+Admin selects MP4 in admin panel
+→ Raw file uploaded direct to Supabase Storage (middle-man-backgrounds bucket)
+→ POST to /.netlify/functions/process-video with { client_id, storage_path }
+→ Netlify function downloads file from Storage
+→ ffmpeg re-encodes: -movflags faststart -an -vcodec copy
+→ Overwrites same storage_path with processed file
+→ Public URL returned → persisted to clients.middle_man_background_url
+→ Live preview updates in admin panel
+→ Middle Man page plays video on iOS without user gesture
 ```
 
 ## Database tables (public schema)
@@ -62,7 +77,7 @@ Missed call
 | `get-booking-url` | Returns booking URL for a given slug (used by SMS link redirect) | false |
 | `quick-responder` | Cron-triggered fast follow-up SMS for unanswered missed calls | false |
 | `save-push-subscription` | Registers a PWA push endpoint for a client device | false |
-| `upload-middle-man-background` | Handles image/video background uploads to Supabase Storage | **true** |
+| `upload-middle-man-background` | Handles image background uploads to Supabase Storage | **true** |
 | `process-unsubscribe` | Validates one-time token and records opt-out | false |
 | `create-client` | Admin-only: creates a new client row with Stripe customer | false |
 | `admin-cancel-client` | Admin-only: cancels a client's Stripe subscription at period end | false |
@@ -77,6 +92,12 @@ Missed call
 | `hyper-endpoint` | Misc internal utility endpoint | false |
 | `SEND-EMAIL-SEQUENCE` | Sends onboarding email sequences to new clients | false |
 
+## Netlify functions
+
+| Function | Description |
+|---|---|
+| `process-video` | Accepts { client_id, storage_path } — downloads raw MP4 from Supabase Storage, runs ffmpeg faststart re-encode, strips audio, overwrites file, returns public URL |
+
 ## Security model
 
 - **Admin dual gate:** All admin edge functions check both `app_metadata.is_admin === true` AND `email === car312@hotmail.com` — either check failing returns 403.
@@ -86,17 +107,42 @@ Missed call
 - **Service role:** Edge functions use the `SUPABASE_SERVICE_ROLE_KEY` to bypass RLS for writes. This key is never exposed to the client.
 - **Magic links blocked:** `request-login-link` refuses to send magic links to the admin email address — admin must use password login.
 - **upload-middle-man-background:** `verify_jwt = true` so the gateway rejects missing or invalid JWTs before the function runs. The function then performs a two-tier ownership check (client owns the slug OR caller is admin).
+- **process-video:** Requires Authorization header with valid Supabase JWT. POST only.
 
-## Recent Changes (August 2026)
+## Architecture rules — never break
+
+- Column is `middle_man_slug` not `slug`
+- `clients` table never hard deleted — cancelled only via `account_status = 'cancelled'`
+- SMS never contains callmagnet.com.au
+- Number porting permanently off the table
+- iOS background video must autoplay without user gesture — never add touch-to-play
+- Videos must be H.264, faststart-encoded, audio stripped, max 15MB
+- `cm1site/b.html` and root `b.html` must always be kept in sync
+- Never change `middleman.js`, `b.html`, or `service-worker.js` to fix iOS autoplay
+- Every middleman.js change must bump version string in both b.html files
+- Short.io cancelled and gone — never re-add
+- Rebrandly cancelled and gone — never re-add
+
+## Recent changes (August 2026)
+
+- Video upload system fully operational — raw MP4 uploads to Supabase Storage, Netlify process-video function runs ffmpeg faststart re-encode, URL persisted to clients table, Middle Man page plays video on iOS
+- netlify.toml rewritten cleanly — correct TOML syntax, no conflicting blocks
+- ffmpeg static Linux x64 binary committed to netlify/functions/ffmpeg (75MB, mode 100755)
 - RLS enabled on `weekly_summaries` table — admin and service_role only
 - Fabricated estimated revenue stat removed from monthly report email — replaced with real `sms_count`
-- `BLOCKED_CLIENT_IDS` enforced in `twilio-missed-call` — emergency SMS block now works end to end
-- Button ID system built — stable IDs on `middle_man_buttons`, logged as `intent`, matched in dashboard. Substring fallback retained for historical records.
+- `BLOCKED_CLIENT_IDS` enforced in `twilio-missed-call` — emergency SMS block works end to end
+- Button ID system built — stable IDs on `middle_man_buttons`, logged as `intent`, matched in dashboard
 - `client_audit_log` table and trigger built — every UPDATE on `clients` is automatically snapshotted
 - All 100 migrations confirmed in sync between local repo and remote DB
-- `twilio-missed-call` and `stripe-payment-succeeded` and `stripe-subscription-deleted` — is_test_account guards confirmed present
 
 ## Outstanding
-- Welcome email HTML hardcoded in create-client/index.ts — needs migrating to Resend template editor
-- Staging environment not built — every deploy goes straight to production
+
+- Convert Arcane Fairies to paying client — highest commercial priority
+- Build public marketing landing page at callmagnet.com.au
+- Schedule Day 14 and Day 30 onboarding email crons
+- Migrate welcome email HTML to Resend template editor
+- Build admin numbers page
+- Add weekly_summaries RLS policy
+- Delete shortio-lookup-tmp edge function
 - UptimeRobot — add cm1.au/arcane-fairies monitor
+- Staging environment not built — every deploy goes straight to production
