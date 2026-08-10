@@ -16,28 +16,39 @@ exports.handler = async function(event, context) {
     }
 
     const body = JSON.parse(event.body);
-    const { client_id, file_base64 } = body;
+    const { client_id, storage_path } = body;
 
-    if (!client_id || !file_base64) {
-      return { statusCode: 400, body: JSON.stringify({ error: 'Missing client_id or file' }) };
+    if (!client_id || !storage_path) {
+      return { statusCode: 400, body: JSON.stringify({ error: 'Missing client_id or storage_path' }) };
     }
 
-    const inputBuffer = Buffer.from(file_base64, 'base64');
+    const supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
 
-    if (inputBuffer.length > 15 * 1024 * 1024) {
-      return { statusCode: 400, body: JSON.stringify({ error: 'Video must be under 15MB' }) };
+    // Download the file from Supabase Storage
+    const { data: downloadData, error: downloadError } = await supabase.storage
+      .from('middle-man-backgrounds')
+      .download(storage_path);
+
+    if (downloadError) {
+      return { statusCode: 500, body: JSON.stringify({ error: 'Download failed: ' + downloadError.message }) };
     }
+
+    const inputBuffer = Buffer.from(await downloadData.arrayBuffer());
 
     const tmpDir = os.tmpdir();
-    const inputPath = path.join(tmpDir, `input-${Date.now()}.mp4`);
-    const outputPath = path.join(tmpDir, `output-${Date.now()}.mp4`);
+    const timestamp = Date.now();
+    const inputPath = path.join(tmpDir, `input-${timestamp}.mp4`);
+    const outputPath = path.join(tmpDir, `output-${timestamp}.mp4`);
 
     fs.writeFileSync(inputPath, inputBuffer);
 
     const ffmpegPath = path.join(__dirname, 'ffmpeg');
 
     execSync(`"${ffmpegPath}" -i "${inputPath}" -movflags faststart -an -vcodec copy -y "${outputPath}"`, {
-      timeout: 20000
+      timeout: 30000
     });
 
     const processedBuffer = fs.readFileSync(outputPath);
@@ -45,28 +56,21 @@ exports.handler = async function(event, context) {
     fs.unlinkSync(inputPath);
     fs.unlinkSync(outputPath);
 
-    const timestamp = Date.now();
-    const storagePath = `${client_id}/video-${timestamp}.mp4`;
-
-    const supabase = createClient(
-      process.env.SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY
-    );
-
+    // Overwrite the same path with the faststart version
     const { error: uploadError } = await supabase.storage
       .from('middle-man-backgrounds')
-      .upload(storagePath, processedBuffer, {
+      .upload(storage_path, processedBuffer, {
         contentType: 'video/mp4',
         upsert: true
       });
 
     if (uploadError) {
-      return { statusCode: 500, body: JSON.stringify({ error: uploadError.message }) };
+      return { statusCode: 500, body: JSON.stringify({ error: 'Re-upload failed: ' + uploadError.message }) };
     }
 
     const { data: { publicUrl } } = supabase.storage
       .from('middle-man-backgrounds')
-      .getPublicUrl(storagePath);
+      .getPublicUrl(storage_path);
 
     return {
       statusCode: 200,
