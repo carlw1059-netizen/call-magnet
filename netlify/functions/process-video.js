@@ -34,7 +34,7 @@ exports.handler = async function(event, context) {
 
     fs.writeFileSync(inputPath, inputBuffer);
 
-    const ffmpegPath = '/usr/bin/ffmpeg';
+    const ffmpegPath = path.join(__dirname, 'ffmpeg');
 
     execSync(`"${ffmpegPath}" -i "${inputPath}" -movflags faststart -an -vcodec copy -y "${outputPath}"`, {
       timeout: 20000
