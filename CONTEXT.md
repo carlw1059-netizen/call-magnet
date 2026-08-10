@@ -89,3 +89,22 @@ CallMagnet is a B2B missed-call recovery SaaS for Australian service businesses 
 - SUPABASE_URL — https://iskvvnhacqdxybpmwuni.supabase.co (NOT marked as secret)
 - SUPABASE_SERVICE_ROLE_KEY — Supabase service role key (secret)
 - SECRETS_SCAN_SMART_DETECTION_ENABLED — false (prevents false positive secret scan failures)
+
+---
+
+## 5. THE CORE PRODUCT FLOW
+
+1. Customer calls a business number (e.g. Arcane Fairies restaurant)
+2. Call goes unanswered — business has call forwarding to their Twilio number
+3. Twilio Studio flow detects the missed call and fires a webhook to the twilio-missed-call edge function
+4. twilio-missed-call logs the event to the sms_events table and returns the sms_event_id to Studio
+5. Twilio Studio calls send-missed-call-sms with the caller number, client Twilio number, and SMS template
+6. send-missed-call-sms checks if the caller has opted out — if so, suppresses SMS
+7. send-missed-call-sms checks the monthly SMS cap — if reached, suppresses SMS
+8. send-missed-call-sms generates an unsubscribe token and builds the final SMS with the Middle Man link
+9. SMS fires to the caller FROM the client's own Twilio number (not a CallMagnet number)
+10. Caller taps the cm1.au link and lands on the Middle Man page (b.html)
+11. Caller taps an intent button (Book a table, Running late, etc.)
+12. log-middle-man-tap records the tap in link_clicks table
+13. send-client-notification fires a Progressier push notification to the business owner's devices
+14. Business owner opens their PWA dashboard and sees the submission
