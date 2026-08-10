@@ -108,3 +108,35 @@ CallMagnet is a B2B missed-call recovery SaaS for Australian service businesses 
 12. log-middle-man-tap records the tap in link_clicks table
 13. send-client-notification fires a Progressier push notification to the business owner's devices
 14. Business owner opens their PWA dashboard and sees the submission
+
+---
+
+## 6. THE PAYMENT AND ONBOARDING FLOW
+
+**Step 1 — Carl onboards the client:**
+- Go to callmagnet.com.au/admin/onboard.html
+- Fill in business name, owner details, Twilio number, vertical, pricing package
+- Submit calls create-client edge function
+- create-client creates auth user, clients row, Stripe customer, Stripe checkout session
+- Welcome email sent to client with temp password and checkout link
+- Client account_status = pending_payment
+
+**Step 2 — Client pays setup fee:**
+- Client clicks checkout link in email
+- Stripe checkout charges setup fee, saves card for future billing
+- stripe-payment-succeeded webhook fires
+- account_status set to pending_setup
+- Carl gets Pushover alert and email
+
+**Step 3 — Carl activates:**
+- Carl goes to admin panel, finds client, clicks Activate
+- Fills in pricing_package (restaurant or hairdresser)
+- activate-client edge function creates Stripe subscription (monthly + SMS overage)
+- account_status set to active
+- "Your account is live" email sent to client
+
+**Step 4 — Cancellation:**
+- Either Carl cancels via admin-cancel-client, or client cancels via submit-cancellation
+- Stripe subscription cancelled at period end
+- stripe-subscription-deleted webhook fires
+- account_status set to cancelled (NEVER deleted from database)
