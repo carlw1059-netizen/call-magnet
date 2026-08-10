@@ -302,3 +302,26 @@ The Middle Man page (b.html / cm1site/b.html) is the customer-facing page caller
 7. For migrations: apply to staging Supabase first, test, then production
 
 **Golden rule:** Nothing goes to production without being tested on staging first. Never use production Supabase ref iskvvnhacqdxybpmwuni in a test prompt.
+
+---
+
+## 11. ARCHITECTURE RULES THAT MUST NEVER BE BROKEN
+
+| Rule | Why |
+|---|---|
+| Column is middle_man_slug, never slug | Slug is a reserved/ambiguous name. Wrong column name causes silent data failures. |
+| clients table never hard deleted — cancelled only via account_status = 'cancelled' | Preserves billing history, audit trail, and prevents Stripe orphan records. |
+| SMS never contains callmagnet.com.au | B2B invisibility rule — clients pay for white-label service. |
+| Number porting permanently off the table | Regulatory and operational complexity is incompatible with current architecture. |
+| iOS video must autoplay without user gesture — never add touch-to-play | Core product feature. Tap-to-play destroys the premium first impression. |
+| Videos must be H.264, faststart-encoded, audio stripped, max 15MB | iOS Safari requires faststart (moov atom at file start) to autoplay. HEVC fails on older iOS. |
+| cm1site/b.html must always match root b.html exactly | Both files serve the same page on different paths. Drift causes split-brain bugs. |
+| Never change middleman.js, b.html, or service-worker.js to fix iOS autoplay | Autoplay failures are always caused by non-faststart video encoding, never by code. |
+| Every middleman.js change must bump version string in BOTH b.html files | Service worker caches aggressively on iOS. Version bump forces cache invalidation. |
+| Short.io cancelled and gone — never re-add | Replaced by Netlify catch-all redirect. Re-adding creates duplicate link infrastructure. |
+| Rebrandly cancelled and gone — never re-add | Same reason. |
+| Stripe key always from Vault — never plain env var | Prevents key exposure in Netlify build logs or GitHub history. |
+| All Claude Code prompts begin with "Read CLAUDE.md first" | Ensures every session inherits all architecture rules and bug history. |
+| Every commit includes git push origin main | Prevents local-only commits that don't deploy. |
+| Change one file at a time | Prevents merge conflicts and makes rollback trivial. |
+| deploy_edge_function MCP cannot resolve ../_shared/ imports | Always use CLI: npx supabase functions deploy [fn] --project-ref iskvvnhacqdxybpmwuni --no-verify-jwt |
