@@ -34,3 +34,38 @@ CallMagnet is a B2B missed-call recovery SaaS for Australian service businesses 
 - middle_man_slug: arcane-fairies
 - Twilio number: +61489278544
 - Status: Active free trial, not yet converted to paying client
+
+---
+
+## 3. THE TECH STACK
+
+| Service | What it does | Identifier |
+|---|---|---|
+| Netlify | Hosts frontend (callmagnet.com.au) and Middle Man pages (cm1.au) | Site: jocular-mooncake-c48f5c |
+| Netlify (staging) | Staging environment | callmagnet-staging.netlify.app |
+| Supabase (production) | PostgreSQL database + edge functions + file storage | Project ref: iskvvnhacqdxybpmwuni |
+| Supabase (staging) | Staging database | Project ref: knupnihccvdsnoxnaqwo |
+| Twilio | Phone numbers, Studio call flows, SMS API | Account SID in Supabase vault |
+| Stripe | Subscriptions, setup fee checkout, overage metering | Live mode |
+| Resend | All transactional email | hello@callmagnet.com.au |
+| Pushover | Push alerts to Carl's phone only | Admin alerts |
+| Progressier | PWA install + push notifications to clients | App ID: 9kXZoGF2Dlfeqec880My |
+| GitHub | Source code | carlw1059-netizen/call-magnet |
+| ffmpeg | Video processing (Linux x64 static binary in repo) | netlify/functions/ffmpeg |
+
+**Twilio numbers:**
+- +61468083169 — demo and test clients only
+- +61489278544 — Arcane Fairies (current trial client, not yet paying)
+- +61474047050 — Telstra burner for testing, currently forwarding to +61489278544
+- Additional numbers will be added here as new clients onboard — one Twilio number per client
+
+**Stripe Price IDs (live mode):**
+- Hairdresser setup: price_1TD0jm3MTu8r2rLhkXPpx0AH ($249)
+- Hairdresser monthly: price_1TD12P3MTu8r2rLhJYFPksVx ($99/month)
+- Restaurant setup: price_1Ti51s3MTu8r2rLhmmtEk3Fb ($499)
+- Restaurant monthly: price_1Ti51u3MTu8r2rLhBNxFra0k ($249/month)
+- SMS overage: price_1TMmTG3MTu8r2rLhYSWnqheS (metered)
+
+**Two Netlify sites:**
+1. callmagnet.com.au — main site, admin panel, client dashboard (PWA)
+2. cm1.au — Middle Man pages only, catch-all redirect to b.html via _redirects
