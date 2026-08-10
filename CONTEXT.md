@@ -279,3 +279,26 @@ The Middle Man page (b.html / cm1site/b.html) is the customer-facing page caller
 - root/b.html and cm1site/b.html must ALWAYS be identical
 - Every change to middleman.js must bump the version string in BOTH b.html files
 - Never deploy a middleman.js change without confirming both files reference the same version
+
+---
+
+## 10. THE STAGING ENVIRONMENT
+
+**Purpose:** Test all changes before they hit the live system with real clients.
+
+**Staging details:**
+- URL: https://callmagnet-staging.netlify.app
+- Netlify site: callmagnet-staging
+- GitHub branch: staging
+- Supabase project: knupnihccvdsnoxnaqwo (separate database, separate storage)
+
+**Workflow — always follow this:**
+1. git checkout staging
+2. Make changes and commit
+3. git push origin staging — Netlify auto-deploys to staging URL
+4. Test on staging
+5. git checkout main && git merge staging && git push origin main
+6. For edge functions: deploy to staging ref first (knupnihccvdsnoxnaqwo), test, then production ref (iskvvnhacqdxybpmwuni)
+7. For migrations: apply to staging Supabase first, test, then production
+
+**Golden rule:** Nothing goes to production without being tested on staging first. Never use production Supabase ref iskvvnhacqdxybpmwuni in a test prompt.
