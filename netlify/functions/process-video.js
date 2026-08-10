@@ -34,12 +34,7 @@ exports.handler = async function(event, context) {
 
     fs.writeFileSync(inputPath, inputBuffer);
 
-    let ffmpegPath;
-    try {
-      ffmpegPath = require('ffmpeg-static');
-    } catch(e) {
-      ffmpegPath = '/usr/bin/ffmpeg';
-    }
+    const ffmpegPath = '/usr/bin/ffmpeg';
 
     execSync(`"${ffmpegPath}" -i "${inputPath}" -movflags faststart -an -vcodec copy -y "${outputPath}"`, {
       timeout: 20000
