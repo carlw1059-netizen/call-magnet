@@ -325,3 +325,44 @@ The Middle Man page (b.html / cm1site/b.html) is the customer-facing page caller
 | Every commit includes git push origin main | Prevents local-only commits that don't deploy. |
 | Change one file at a time | Prevents merge conflicts and makes rollback trivial. |
 | deploy_edge_function MCP cannot resolve ../_shared/ imports | Always use CLI: npx supabase functions deploy [fn] --project-ref iskvvnhacqdxybpmwuni --no-verify-jwt |
+
+---
+
+## 12. KNOWN FRAGILE POINTS
+
+These are areas where things have broken before and are likely to break again if touched carelessly.
+
+### iOS video autoplay
+- Any movement of `vid.play()` out of the `canplay` listener breaks autoplay on iOS
+- The regression has happened multiple times — see CLAUDE.md for the full history
+- If someone reports "video not playing on iPhone", the answer is almost always non-faststart MP4, not a code bug
+
+### Service worker caching on iOS
+- CSS/JS changes may not appear on iOS Safari after deploy
+- Fix: bump `CACHE_VERSION` in `service-worker.js` AND bump version strings in `index.html` for `dashboard.css` and `dashboard.js`
+- Do NOT tell users it's an iPhone problem
+
+### netlify.toml TOML syntax
+- `included_files` for the ffmpeg binary must be in the global `[functions]` block, NOT nested inside a function-specific block
+- If ffmpeg stops being bundled (process-video returns ffmpegExists: false), check netlify.toml first
+
+### cm1site/b.html sync
+- It's easy to update root `b.html` and forget `cm1site/b.html`
+- Both files must always be identical — a diff between them means a split-brain bug in production
+
+### Glow bleed on mm-tiles
+- The neon box-shadow on mm-tiles bleeds to the right edge of the screen after a tile panel is closed
+- Do NOT add `overflow:hidden` to `.mm-section` or `.mm-grid` — this clips the top of tiles and creates a gap
+- Status: unresolved — leave it
+
+### Admin redirects
+- Back buttons on admin pages must go to `/`, never to `/admin/`
+- `/admin/index.html` was deleted and must never be recreated
+
+### Stripe webhook replay protection
+- `stripe-payment-succeeded` rejects events older than 5 minutes
+- If Stripe replays an old event and it's rejected, that is correct behaviour — not a bug
+
+### deploy_edge_function MCP
+- The Supabase MCP `deploy_edge_function` tool cannot resolve `../_shared/` imports
+- Always use CLI: `npx supabase functions deploy [fn] --project-ref iskvvnhacqdxybpmwuni --no-verify-jwt`
