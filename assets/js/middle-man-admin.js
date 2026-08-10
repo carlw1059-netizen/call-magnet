@@ -1518,6 +1518,10 @@ function _triggerUpload(accept, uploadBtnId, progressId, errId, defaultBtnText) 
         _extractAndUploadPoster(newUrl, _editClientId);
         _editClientData.middle_man_background_url = newUrl;
         _editClientData.middle_man_background_type = 'video';
+        await mmaSb.from('clients').update({
+          middle_man_background_url: newUrl,
+          middle_man_background_type: 'video'
+        }).eq('id', _editClientId);
         renderPreview();
         document.getElementById(progressId).textContent = '';
         document.getElementById(uploadBtnId).disabled = false;
