@@ -140,3 +140,96 @@ CallMagnet is a B2B missed-call recovery SaaS for Australian service businesses 
 - Stripe subscription cancelled at period end
 - stripe-subscription-deleted webhook fires
 - account_status set to cancelled (NEVER deleted from database)
+
+---
+
+## 7. EVERY EDGE FUNCTION
+
+**twilio-missed-call** — verify_jwt: false
+- Triggered by: Twilio Studio HTTP widget after missed call
+- Does: Parses Twilio form POST, looks up client by Twilio number, checks BLOCKED_CLIENT_IDS env var, inserts row to sms_events table
+- Returns: sms_event_id to Twilio Studio
+- Can fail: If client not found for the called number (orphaned call), logs warning and returns 200
+
+**send-missed-call-sms** — verify_jwt: false
+- Triggered by: Twilio Studio HTTP widget (after twilio-missed-call)
+- Does: Checks opt_outs table, checks monthly SMS cap, generates unsubscribe token, substitutes [LINK] placeholder with cm1.au URL, sends SMS via Twilio Messages API FROM client's own number
+- Returns: Twilio MessageSid
+- Can fail: Twilio Lookup may flag landlines and suppress SMS (non-fatal)
+
+**send-twilio-sms** — verify_jwt: false
+- Triggered by: Internal calls from other edge functions (requires X-Internal-Secret header)
+- Does: Low-level Twilio SMS wrapper, sends FROM a fixed number
+- Used for: Onboarding SMS, not missed-call replies
+
+**twilio-sms-status** — verify_jwt: false
+- Triggered by: Twilio StatusCallback on each SMS
+- Does: Updates sms_events row with delivery status and MessageSid
+
+**submit-middle-man-form** — verify_jwt: false
+- Triggered by: Middle Man page form submission
+- Does: Saves to middle_man_form_submissions table, calls send-client-notification
+
+**log-middle-man-tap** — verify_jwt: false
+- Triggered by: Middle Man page button tap
+- Does: Writes to link_clicks table with intent label and slug
+
+**send-client-notification** — verify_jwt: false
+- Triggered by: submit-middle-man-form and log-middle-man-tap
+- Does: Sends Progressier push notification to all owner devices for a client
+
+**create-client** — verify_jwt: true (admin only)
+- Triggered by: /admin/onboard.html form submission
+- Does: Validates all inputs, creates Supabase auth user, inserts clients row, creates Stripe customer and checkout session, sends welcome email via Resend, sends onboarding SMS
+- Guards: Requires is_admin=true AND email=car312@hotmail.com
+
+**activate-client** — verify_jwt: true (admin only)
+- Triggered by: Admin panel Activate button
+- Does: Creates Stripe subscription (monthly + SMS overage), sets account_status=active, sends live email to client
+- Guards: Requires is_admin=true AND email=car312@hotmail.com
+
+**admin-cancel-client** — verify_jwt: true (admin only)
+- Triggered by: Admin panel Cancel button
+- Does: Cancels Stripe subscription at period end, sets account_status=cancelled
+
+**stripe-payment-succeeded** — verify_jwt: false
+- Triggered by: Stripe webhook (checkout.session.completed and invoice.payment_succeeded)
+- Does: Verifies Stripe HMAC signature, rejects replays older than 5 minutes, sets account_status=pending_setup on checkout, sends confirmation emails, Pushover to Carl
+- Guards: is_test_account check, account_status=pending_payment check
+
+**stripe-subscription-deleted** — verify_jwt: false
+- Triggered by: Stripe webhook (customer.subscription.deleted)
+- Does: Sets account_status=cancelled, sends farewell email with lifetime stats to client
+
+**send-daily-summary** — verify_jwt: false
+- Triggered by: Cron job (requires X-Internal-Secret header)
+- Does: Sends daily missed-call count email to Carl
+
+**weekly-summary** — verify_jwt: false
+- Triggered by: Cron job (requires X-Internal-Secret header)
+- Does: Sends weekly summary email to each active client (SMS count, link clicks, heatmap, button breakdown) + internal summary to Carl
+- Test endpoint: POST https://iskvvnhacqdxybpmwuni.supabase.co/functions/v1/weekly-summary?test=1
+
+**monthly-report** — verify_jwt: false
+- Triggered by: Cron job (requires X-Internal-Secret header)
+- Does: Sends monthly recap email to each active client
+
+**request-login-link** — verify_jwt: false
+- Triggered by: Login page
+- Does: Sends magic link email to client. Blocks admin email (car312@hotmail.com) — admin must use password login
+
+**save-push-subscription** — verify_jwt: false
+- Triggered by: PWA install / push permission grant
+- Does: Registers push endpoint in push_subscriptions table
+
+**process-unsubscribe** — verify_jwt: false
+- Triggered by: Caller taps "Stop these texts" on Middle Man page
+- Does: Validates one-time token from unsubscribe_tokens table, inserts to opt_outs table
+
+**upload-middle-man-background** — verify_jwt: true
+- Triggered by: Admin panel photo upload (images only, NOT video)
+- Does: Uploads image to Supabase Storage middle-man-backgrounds bucket, updates clients.middle_man_background_url
+
+**quick-responder** — verify_jwt: false
+- Triggered by: Cron job
+- Does: Sends follow-up SMS to unanswered missed calls
