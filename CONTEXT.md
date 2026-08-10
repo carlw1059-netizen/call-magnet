@@ -366,3 +366,45 @@ These are areas where things have broken before and are likely to break again if
 ### deploy_edge_function MCP
 - The Supabase MCP `deploy_edge_function` tool cannot resolve `../_shared/` imports
 - Always use CLI: `npx supabase functions deploy [fn] --project-ref iskvvnhacqdxybpmwuni --no-verify-jwt`
+
+---
+
+## 13. HOW TO OPERATE DAY TO DAY
+
+### Onboarding a new client
+1. Go to callmagnet.com.au (sign in as Carl)
+2. Open the admin panel → Onboard
+3. Fill in: business name, owner name, owner email, owner phone, Twilio number, vertical (restaurant or hairdresser), pricing package
+4. Submit — this creates the auth user, clients row, Stripe customer, and checkout session, and sends the welcome email
+5. Tell the client to check their email and pay the setup fee
+6. Once Stripe webhook fires, Carl gets a Pushover alert
+7. Go to admin panel → find the client → click Activate → select pricing package
+8. Client gets "Your account is live" email
+
+### Uploading a background video for a client
+1. Get the raw MP4 from the client
+2. Faststart-encode it via ffmpeg (see CLAUDE.md for the exact command)
+3. Open the admin panel → edit the client → Background Media → Upload video
+4. Upload the faststart-encoded file
+5. Confirm the video plays on the live Middle Man page on an iPhone
+6. Delete both the raw and encoded files from the local machine
+
+### Checking what's happening for a client
+- Carl's PWA dashboard at callmagnet.com.au shows all active clients
+- Slide-out panel on each client tile shows recent submissions
+- Supabase Studio → sms_events table → filter by client_id for SMS history
+- Supabase Studio → link_clicks table → filter by middle_man_slug for tap history
+
+### Deploying a change
+1. Make and test the change locally (or on staging if the change is risky)
+2. For staging: `git checkout staging`, commit, `git push origin staging`, test on callmagnet-staging.netlify.app
+3. For production: `git checkout main`, merge or cherry-pick, `git push origin main`
+4. For edge functions: `npx supabase functions deploy [fn] --project-ref iskvvnhacqdxybpmwuni --no-verify-jwt`
+5. For DB migrations: apply via Supabase MCP with the correct project_id
+
+### Testing the weekly summary
+- POST https://iskvvnhacqdxybpmwuni.supabase.co/functions/v1/weekly-summary?test=1 with the service role key in Authorization header
+
+### Emergency SMS block
+- Add the client_id to the `BLOCKED_CLIENT_IDS` environment variable in Supabase
+- This prevents twilio-missed-call from processing any calls for that client without touching code
