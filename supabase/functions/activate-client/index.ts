@@ -125,41 +125,22 @@ Deno.serve(async (req) => {
 
     // ── 7. Send "account is live" email to client ──────────────────────────────
     if (RESEND_API_KEY && client.email) {
-      const bizSafe = String(client.business_name).replace(/[&<>"']/g, (c: string) =>
-        ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])
-      );
-      const html = `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Your CallMagnet account is now live</title></head>
-<body style="margin:0;padding:0;background:#0E1419;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#FFFFFF;-webkit-text-size-adjust:100%;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0E1419;">
-  <tr><td align="center" style="padding:32px 16px 24px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;background:rgba(255,255,255,0.04);border:1px solid rgba(16,185,129,0.22);border-radius:14px;">
-      <tr><td style="padding:36px 30px 32px;color:#FFFFFF;">
-        <div style="font-size:14px;letter-spacing:0.16em;color:#10b981;text-transform:uppercase;font-weight:700;margin-bottom:28px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">★ CallMagnet</div>
-        <h1 style="margin:0 0 12px;font-size:24px;font-weight:600;color:#FFFFFF;letter-spacing:-0.01em;">Your account is now live.</h1>
-        <p style="margin:0 0 24px;font-size:15px;line-height:1.55;color:rgba(255,255,255,0.75);">Hi ${bizSafe} — your CallMagnet account is set up and live. Log in to your dashboard to get started.</p>
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding:0 0 24px;">
-          <a href="https://callmagnet.com.au" style="display:inline-block;background:#10b981;color:#0a1a14;text-decoration:none;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;letter-spacing:0.01em;">Go to my dashboard</a>
-        </td></tr></table>
-        <p style="margin:0;font-size:13px;color:rgba(255,255,255,0.4);">Questions? Contact hello@callmagnet.com.au</p>
-      </td></tr>
-    </table>
-    <div style="font-size:12px;color:rgba(255,255,255,0.25);margin-top:18px;letter-spacing:0.06em;">CallMagnet</div>
-  </td></tr>
-</table>
-</body></html>`;
       await fetch('https://api.resend.com/emails', {
-        method:  'POST',
+        method: 'POST',
         headers: {
-          'Authorization': `Bearer ${RESEND_API_KEY}`,
-          'Content-Type':  'application/json',
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from:    'CallMagnet <hello@callmagnet.com.au>',
-          to:      client.email,
+          from: 'CallMagnet <hello@callmagnet.com.au>',
+          to: client.email,
           subject: 'Your CallMagnet account is now live',
-          html,
-          text: `Your account is now live, ${client.business_name}.\n\nYour CallMagnet account is set up and live. Log in at https://callmagnet.com.au to get started.\n\nQuestions? Contact hello@callmagnet.com.au\n\nCallMagnet — callmagnet.com.au\n`,
+          template: {
+            id: '74b89ec4-2850-4b22-bc50-346a15687b30',
+            variables: {
+              BUSINESS_NAME: client.business_name ?? 'there',
+            },
+          },
         }),
       }).catch((e: Error) => console.warn(`activate-client: live email failed — ${e?.message}`));
       console.log(`activate-client: live email sent to ${client.email}`);
