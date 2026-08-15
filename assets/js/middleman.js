@@ -1,8 +1,8 @@
 (function () {
   'use strict';
 
-  var SUPABASE_URL  = 'https://iskvvnhacqdxybpmwuni.supabase.co';
-  var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
+  var SUPABASE_URL  = '%%SUPABASE_URL%%';
+  var SUPABASE_ANON = '%%SUPABASE_ANON_KEY%%';
   var FORM_FUNC_URL = SUPABASE_URL + '/functions/v1/submit-middle-man-form';
   var LOG_FUNC_URL  = SUPABASE_URL + '/functions/v1/log-middle-man-tap';
   var CLICK_LOG_URL = SUPABASE_URL + '/functions/v1/log-click';
