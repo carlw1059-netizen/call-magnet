@@ -7,7 +7,7 @@
 # All other existing .html pages are served as-is; no existing routes are affected.
 
 [build]
-  command = "sed -i 's|%%SUPABASE_URL%%|https://knupnihccvdsnoxnaqwo.supabase.co|g' assets/js/clients-admin.js assets/js/dashboard.js assets/js/middle-man-admin.js assets/js/middleman.js && sed -i 's|%%SUPABASE_ANON_KEY%%|eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtudXBuaWhjY3Zkc25veG5hcXdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5NTU3MDYsImV4cCI6MjEwMTUzMTcwNn0.xwLhx1HrO7-UE8k9GEVu5xcqAEMVIL_JnFFEzQZj1oU|g' assets/js/clients-admin.js assets/js/dashboard.js assets/js/middle-man-admin.js assets/js/middleman.js"
+  command = "dos2unix assets/js/clients-admin.js assets/js/dashboard.js assets/js/middle-man-admin.js assets/js/middleman.js && sed -i 's|%%SUPABASE_URL%%|https://knupnihccvdsnoxnaqwo.supabase.co|g' assets/js/clients-admin.js assets/js/dashboard.js assets/js/middle-man-admin.js assets/js/middleman.js && sed -i 's|%%SUPABASE_ANON_KEY%%|eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtudXBuaWhjY3Zkc25veG5hcXdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5NTU3MDYsImV4cCI6MjEwMTUzMTcwNn0.xwLhx1HrO7-UE8k9GEVu5xcqAEMVIL_JnFFEzQZj1oU|g' assets/js/clients-admin.js assets/js/dashboard.js assets/js/middle-man-admin.js assets/js/middleman.js"
 
 [[redirects]]
   from   = "/b/*"
