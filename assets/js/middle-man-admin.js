@@ -2,8 +2,8 @@
 // White business-tool page. Two views: manager (client list) + edit (single).
 // Auth: is_admin === true AND email === REAL_ADMIN_EMAIL dual gate.
 
-const MMA_SUPABASE_URL      = 'https://iskvvnhacqdxybpmwuni.supabase.co';
-const MMA_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
+const MMA_SUPABASE_URL      = '%%SUPABASE_URL%%';
+const MMA_SUPABASE_ANON_KEY = '%%SUPABASE_ANON_KEY%%';
 const MMA_REAL_ADMIN_EMAIL  = 'car312@hotmail.com';
 
 let mmaSb              = null;
@@ -189,7 +189,7 @@ function _showDeleteOverlay(card, clientId, clientName) {
     errMsg.style.display = 'none';
 
     try {
-      var res = await fetch('https://iskvvnhacqdxybpmwuni.supabase.co/functions/v1/delete-client', {
+      var res = await fetch(MMA_SUPABASE_URL + '/functions/v1/delete-client', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ client_id: clientId }),
@@ -1066,7 +1066,7 @@ async function saveClientPassword() {
   var btn = document.getElementById('mmaPwSaveBtn');
   if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
   try {
-    var res  = await fetch('https://iskvvnhacqdxybpmwuni.supabase.co/functions/v1/reset-client-password', {
+    var res  = await fetch(MMA_SUPABASE_URL + '/functions/v1/reset-client-password', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + sess.access_token },
       body:    JSON.stringify({ client_id: _editClientId, new_password: pw }),
