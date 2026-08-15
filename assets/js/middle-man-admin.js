@@ -531,7 +531,7 @@ function renderEditBody(client) {
           '<div class="mma-info" style="text-align:center;font-size:13px;font-weight:700;">MP4, vertical 9:16. Max 15 MB.</div>' +
           '<div id="mmaVideoProgress" class="mma-progress"></div>' +
           '<div id="mmaVideoErr" class="mma-err"></div>' +
-          '<p class="mma-btn-hint" style="margin-top:6px;color:#9ca3af;font-size:11px;">H.264 MP4 only — run ffmpeg faststart before uploading. Max 15MB.</p>' +
+          '<p class="mma-btn-hint" style="margin-top:6px;color:#9ca3af;font-size:11px;">H.264 MP4 only. Max 15MB. Faststart encoding is automatic.</p>' +
           '<div id="mmaVideoStatus" style="display:none;width:185px;margin-top:8px;border-radius:6px;overflow:hidden;border:1px solid #e5e7eb;">' +
             '<div id="mmaVideoStatusBar" style="height:4px;width:0%;background:#10b981;transition:width 0.3s;"></div>' +
             '<div id="mmaVideoStatusText" style="font-size:10px;padding:6px 8px;color:#6b7280;background:#f9fafb;"></div>' +
