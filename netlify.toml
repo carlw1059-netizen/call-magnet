@@ -1,5 +1,8 @@
 # Netlify configuration for callmagnet.com.au
 
+[build]
+  command = "dos2unix assets/js/clients-admin.js assets/js/dashboard.js assets/js/middle-man-admin.js assets/js/middleman.js && sed -i 's|%%SUPABASE_URL%%|'\"$SUPABASE_URL\"'|g' assets/js/clients-admin.js assets/js/dashboard.js assets/js/middle-man-admin.js assets/js/middleman.js && sed -i 's|%%SUPABASE_ANON_KEY%%|'\"$SUPABASE_ANON_KEY\"'|g' assets/js/clients-admin.js assets/js/dashboard.js assets/js/middle-man-admin.js assets/js/middleman.js"
+
 [[redirects]]
   from   = "/b/*"
   to     = "/b.html"

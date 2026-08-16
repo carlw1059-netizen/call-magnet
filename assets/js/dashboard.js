@@ -3,8 +3,8 @@
 // Combines all fixes from both development sessions
 // ============================================================
 
-const SUPABASE_URL = 'https://iskvvnhacqdxybpmwuni.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
+const SUPABASE_URL = '%%SUPABASE_URL%%';
+const SUPABASE_ANON_KEY = '%%SUPABASE_ANON_KEY%%';
 
 
 let sb;
@@ -492,10 +492,10 @@ async function loadStats() {
   try {
     [smsRes, clickRes, bookRes, monthSmsRes, tapsTodayRes] = await Promise.all([
       sb.from('sms_events').select('id', { count: 'exact' }).eq('client_id', clientId).gte('received_at', effectiveStart).lte('received_at', endIso),
-      sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).not('intent', 'is', null).gte('created_at', effectiveStart).lte('created_at', endIso),
+      sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).gte('created_at', effectiveStart).lte('created_at', endIso),
       sb.from('bookings').select('id', { count: 'exact' }).eq('client_id', clientId).gte('booked_at', effectiveStart).lte('booked_at', endIso),
       sb.from('sms_events').select('id', { count: 'exact' }).eq('client_id', clientId).gte('received_at', monthStartIso),
-      sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).not('intent', 'is', null).gte('clicked_at', tapsTodayStart)
+      sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).gte('clicked_at', tapsTodayStart)
     ]);
   } catch (e) {
     console.error('stats load failed', e);
@@ -1508,7 +1508,7 @@ async function loadHeatmap() {
   const DAY_LABELS  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const HOUR_LABELS = ['12am','1am','2am','3am','4am','5am','6am','7am','8am','9am','10am','11am',
                        '12pm','1pm','2pm','3pm','4pm','5pm','6pm','7pm','8pm','9pm','10pm','11pm'];
-  const SHOW_HOURS  = [9,10,11,12,13,14,15,16,17,18,19,20,21,22];
+  const SHOW_HOURS  = [8,9,10,11,12,13,14,15,16,17,18,19,20,21];
 
   if (heatmapRows.length > 0) {
     const lookup = {};
@@ -1542,7 +1542,7 @@ async function loadHeatmap() {
       ' (' + peakRow.call_count + ' missed call' + (peakRow.call_count === 1 ? '' : 's') + ')';
 
     gridEl.innerHTML =
-      '<p style="margin:0 0 8px;font-size:11px;color:#666;">Last 90 days · 9am–10pm</p>' +
+      '<p style="margin:0 0 8px;font-size:11px;color:#666;">Last 90 days · 8am–10pm</p>' +
       '<div style="overflow-x:auto;"><table cellpadding="0" cellspacing="2" style="border-collapse:separate;border-spacing:2px;">' +
       '<thead><tr>' + headerCells + '</tr></thead><tbody>' + bodyRows + '</tbody></table></div>' +
       '<p style="margin:8px 0 0;font-size:11px;color:#666;">' + peakLabel + '</p>';

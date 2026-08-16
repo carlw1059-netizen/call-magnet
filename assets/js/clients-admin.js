@@ -2,8 +2,8 @@
 // Auth: exact middle-man-admin.js pattern — dual gate, elements captured before
 // await, null-safe guards, storageKey 'callmagnet-auth-token'.
 
-const CA_SUPABASE_URL      = 'https://iskvvnhacqdxybpmwuni.supabase.co';
-const CA_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
+const CA_SUPABASE_URL      = '%%SUPABASE_URL%%';
+const CA_SUPABASE_ANON_KEY = '%%SUPABASE_ANON_KEY%%';
 const CA_REAL_ADMIN_EMAIL  = 'car312@hotmail.com';
 
 let caSb          = null;
