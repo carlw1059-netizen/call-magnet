@@ -90,15 +90,17 @@ Deno.serve(async (req) => {
       ? Math.floor(body.free_period_days)
       : 0;
     const pricing_package  = typeof body.pricing_package === 'string' ? body.pricing_package.trim() : '';
+    const is_test_account  = body.is_test_account === true;
 
     if (!initial_password || initial_password.length < 8) {
       return json(400, { error: 'invalid_field', field: 'initial_password', detail: 'initial_password must be at least 8 characters' });
     }
-    if (!['restaurant', 'hairdresser', 'free_trial'].includes(pricing_package)) {
+    const effective_pricing_package = is_test_account ? 'free_trial' : pricing_package;
+    if (!['restaurant', 'hairdresser', 'free_trial'].includes(effective_pricing_package)) {
       return json(400, { error: 'invalid_field', field: 'pricing_package', detail: 'pricing_package must be restaurant, hairdresser, or free_trial' });
     }
-    const pkg_sms_default = pricing_package === 'restaurant' ? 75
-      : pricing_package === 'hairdresser' ? 50
+    const pkg_sms_default = effective_pricing_package === 'restaurant' ? 75
+      : effective_pricing_package === 'hairdresser' ? 50
       : 25;
     const sms_included_raw = typeof body.sms_included === 'number' ? body.sms_included : null;
     const sms_included = (sms_included_raw !== null && [25, 50, 75, 100].includes(sms_included_raw))
@@ -245,7 +247,7 @@ Deno.serve(async (req) => {
       avg_job_value,
       abn,
       customer_sms_template,
-      account_status:         pricing_package === 'free_trial' ? 'active' : 'pending_payment',
+      account_status:         effective_pricing_package === 'free_trial' ? 'active' : 'pending_payment',
       terms_accepted:         true,
       subscription_start:     now.toISOString(),
       must_change_password:   isNewUser,
@@ -254,7 +256,8 @@ Deno.serve(async (req) => {
       free_period_days,
       free_period_ends_at,
       sms_included,
-      pricing_package,
+      pricing_package:        effective_pricing_package,
+      is_test_account,
     };
 
     const { data: insertedClient, error: insertErr } = await supa
@@ -279,7 +282,7 @@ Deno.serve(async (req) => {
     let checkout_session_id:    string | null = null;
     let checkout_error:         string | null = null;
 
-    if (pricing_package !== 'free_trial') {
+    if (effective_pricing_package !== 'free_trial') {
       try {
         // Fetch Stripe secret key from Vault via public RPC (SECURITY DEFINER)
         const { data: stripeKey, error: vaultErr } = await supa
@@ -360,7 +363,7 @@ Deno.serve(async (req) => {
         console.warn(`create-client: Stripe block failed (non-fatal) — ${stripe_error}`);
       }
     } else {
-      console.log(`create-client: pricing_package=free_trial — Stripe skipped`);
+      console.log(`create-client: effective_pricing_package=${effective_pricing_package}${is_test_account ? ' (test account)' : ''} — Stripe skipped`);
     }
 
     // ── 6. Send onboarding SMS (brief notice — no login URL needed) ────────

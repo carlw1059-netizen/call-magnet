@@ -6,6 +6,7 @@ let session = null;
 let verticals = [];
 let sendSmsOn = true;
 let mmEnabledOn = true;
+let isTestAccount = false;
 let editClientId = null;
 
 /** Convert business name to a valid slug. */
@@ -152,6 +153,11 @@ function onBookingUrlChanged() {
 function toggleSms() {
   sendSmsOn = !sendSmsOn;
   document.getElementById('sendSmsToggle').classList.toggle('on', sendSmsOn);
+}
+
+function toggleTestAccount() {
+  isTestAccount = !isTestAccount;
+  document.getElementById('testAccountToggle').classList.toggle('on', isTestAccount);
 }
 
 function syncBookingUrlRow() {
@@ -326,6 +332,7 @@ async function submitForm() {
         middle_man_enabled: mmEnabledOn,
         free_period_days,
         pricing_package,
+        is_test_account:    isTestAccount,
         sms_included,
         // middle_man_slug and middle_man_buttons omitted — create-client auto-generates both
       })

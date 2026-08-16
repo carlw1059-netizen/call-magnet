@@ -398,7 +398,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   let q = sb.from('clients').select(
     'id, business_name, email, suburb, industry, account_status, cancellation_scheduled, terms_accepted, subscription_start, avg_job_value',
-  );
+  ).eq('is_test_account', false).eq('is_demo_account', false).eq('account_status', 'active');
   if (body.client_id) q = q.eq('id', body.client_id);
   const { data: clients, error: clientsErr } = await q;
   if (clientsErr) {
