@@ -7,7 +7,7 @@
 # All other existing .html pages are served as-is; no existing routes are affected.
 
 [build]
-  command = "dos2unix assets/js/clients-admin.js assets/js/dashboard.js assets/js/middle-man-admin.js assets/js/middleman.js assets/js/onboard.js && sed -i 's|%%SUPABASE_URL%%|'\"$SUPABASE_URL\"'|g' assets/js/clients-admin.js assets/js/dashboard.js assets/js/middle-man-admin.js assets/js/middleman.js assets/js/onboard.js && sed -i 's|%%SUPABASE_ANON_KEY%%|'\"$SUPABASE_ANON_KEY\"'|g' assets/js/clients-admin.js assets/js/dashboard.js assets/js/middle-man-admin.js assets/js/middleman.js assets/js/onboard.js"
+  command = "sed -i 's/\r//' assets/js/clients-admin.js assets/js/dashboard.js assets/js/middle-man-admin.js assets/js/middleman.js assets/js/onboard.js && sed -i 's|%%SUPABASE_URL%%|'\"$SUPABASE_URL\"'|g' assets/js/clients-admin.js assets/js/dashboard.js assets/js/middle-man-admin.js assets/js/middleman.js assets/js/onboard.js && sed -i 's|%%SUPABASE_ANON_KEY%%|'\"$SUPABASE_ANON_KEY\"'|g' assets/js/clients-admin.js assets/js/dashboard.js assets/js/middle-man-admin.js assets/js/middleman.js assets/js/onboard.js"
 
 [[redirects]]
   from   = "/b/*"
