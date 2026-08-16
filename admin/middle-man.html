@@ -142,6 +142,21 @@
   <header class="mma-header">
     <span class="mma-header-title">Middle Man Manager</span>
     <button id="mmaBackToDashboard" class="mma-back-btn">← Dashboard</button>
+    <div id="envBadge" style="display:inline-flex;align-items:center;gap:8px;margin-left:12px;"></div>
+    <script>
+    (function() {
+      var isStaging = window.location.hostname.indexOf('staging') !== -1;
+      var badge = document.getElementById('envBadge');
+      var otherUrl = isStaging
+        ? window.location.href.replace('callmagnet-staging.netlify.app', 'callmagnet.com.au')
+        : window.location.href.replace('callmagnet.com.au', 'callmagnet-staging.netlify.app');
+      badge.innerHTML =
+        '<span style="background:' + (isStaging ? '#f59e0b' : '#10b981') + ';color:#000;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:0.06em;">' +
+        (isStaging ? 'STAGING' : 'PRODUCTION') + '</span>' +
+        '<a href="' + otherUrl + '" style="font-size:11px;color:#888;text-decoration:none;border:1px solid #ccc;padding:3px 8px;border-radius:4px;">' +
+        (isStaging ? 'Go to Production →' : 'Go to Staging →') + '</a>';
+    })();
+    </script>
     <button onclick="window.location.href='/admin/clients.html'" style="background:#1D4ED8;color:#fff;font-weight:700;border:none;border-radius:6px;padding:8px 16px;cursor:pointer;font-size:14px;margin-left:8px;">← Back</button>
   </header>
   <div class="mma-body" id="mmaBody">
