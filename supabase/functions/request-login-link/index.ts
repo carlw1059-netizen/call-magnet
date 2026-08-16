@@ -229,7 +229,7 @@ Deno.serve(async (req) => {
       const nowMin = new Date().toISOString().slice(0, 16).replace('T', ' '); // "2026-05-15 03:42"
       const smsBody = `CallMagnet login: ${sms_url}\nSent ${nowMin} AEST. Tap to access your dashboard.`;
 
-      console.log(`request-login-link: sms channel — phone=${phone} short=${shortened} url_len=${sms_url.length} body_len=${smsBody.length}`);
+      console.log(`request-login-link: sms channel — phone=${phone} url_len=${sms_url.length} body_len=${smsBody.length}`);
 
       // Insert sms_events row before sending so:
       //   1. The row exists for the rate-limit counter before delivery completes.
