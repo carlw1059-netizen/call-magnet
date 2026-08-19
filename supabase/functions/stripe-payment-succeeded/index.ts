@@ -83,6 +83,7 @@ Deno.serve(async (req) => {
       const session        = event.data.object
       const clientId       = session.metadata?.client_id
       const pricingPackage = session.metadata?.pricing_package || ''
+      const receiptUrl = session.url ?? session.receipt_url ?? null
 
       if (!clientId) {
         return new Response(JSON.stringify({ message: 'no client_id in metadata' }), {
@@ -183,8 +184,9 @@ Deno.serve(async (req) => {
       <tr><td style="padding:36px 30px 32px;color:#FFFFFF;">
         <div style="font-size:14px;letter-spacing:0.16em;color:#10b981;text-transform:uppercase;font-weight:700;margin-bottom:28px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">★ CallMagnet</div>
         <h1 style="margin:0 0 12px;font-size:24px;font-weight:600;color:#FFFFFF;letter-spacing:-0.01em;">Payment received.</h1>
-        <p style="margin:0 0 24px;font-size:15px;line-height:1.55;color:rgba(255,255,255,0.75);">Thanks for your payment, ${bizSafe}. Carl will be in touch within 24 hours to get your account configured and live.</p>
-        <p style="margin:0;font-size:13px;color:rgba(255,255,255,0.4);">Questions? Contact hello@callmagnet.com.au</p>
+        <p style="margin:0 0 24px;font-size:15px;line-height:1.55;color:rgba(255,255,255,0.75);">Thanks for your payment, ${bizSafe}. We will be in touch within 24 hours to get your account configured and live.</p>
+        ${receiptUrl ? `<a href="${receiptUrl}" style="display:inline-block;background:#10b981;color:#0a1110;text-decoration:none;font-weight:800;font-size:15px;padding:16px 28px;border-radius:12px;margin:0 0 20px;">View your receipt</a>` : ''}
+        <p style="margin:0;font-size:13px;color:#ffffff;">Questions? hello@callmagnet.com.au</p>
       </td></tr>
     </table>
     <div style="font-size:12px;color:rgba(255,255,255,0.25);margin-top:18px;letter-spacing:0.06em;">CallMagnet</div>
@@ -199,7 +201,7 @@ Deno.serve(async (req) => {
               to:      clientGuardRows[0].email,
               subject: 'Payment received — we\'re setting up your account',
               html,
-              text: `Payment received.\n\nThanks for your payment, ${clientGuardRows[0].business_name}. Carl will be in touch within 24 hours to get your account configured and live.\n\nQuestions? Contact hello@callmagnet.com.au\n\nCallMagnet — callmagnet.com.au\n`,
+              text: `Payment received.\n\nThanks for your payment, ${clientGuardRows[0].business_name}. We will be in touch within 24 hours to get your account configured and live.\n\n${receiptUrl ? `View your receipt: ${receiptUrl}\n\n` : ''}Questions? hello@callmagnet.com.au\n\ncallmagnet.com.au\n`,
             }),
           }).catch((e: Error) => console.warn(`checkout confirmation email failed — ${e?.message}`))
           console.log(`checkout.session.completed: confirmation email sent to ${clientGuardRows[0].email}`)
