@@ -101,6 +101,8 @@ Step 4 — Delete both input.mp4 and output_faststart.mp4 from C:\Users\car31\ca
 * Never upload a client video without faststart encoding — moov atom must be at the start of the file
 * Never upload HEVC/H.265 video — always H.264
 * ffmpeg re-encode command: & "C:\Users\car31\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-9.0-full_build\bin\ffmpeg.exe" -i "input.mp4" -movflags faststart -an -vcodec copy "output-faststart.mp4" -y
+* cm1site/b.html must always use ABSOLUTE URLs for all assets (https://callmagnet.com.au/...) — never relative paths. The cm1.au _redirects catch-all (/* /b.html 200) will intercept any relative path request and serve HTML instead of the asset, breaking the page silently.
+* root b.html may use relative paths — callmagnet.com.au serves the files directly.
 
 ---
 
