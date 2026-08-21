@@ -194,15 +194,17 @@
     min-height: 0;
     transition: flex-basis 0.3s ease;
   }
-  #contentSpacer.expanded { flex: 1; min-height: 20px; }
+  #contentSpacer.expanded { flex: 1; min-height: 0; }
 
   /* ── Content / buttons area ─────────────────────────────────────────────── */
   .content {
     flex: 1;
     display: flex;
     flex-direction: column;
+    align-items: center;
     justify-content: center;
-    padding: 0;
+    padding: 0 24px;
+    width: 100%;
   }
 
   /* No background — buttons sit directly below the business name, not at the bottom */
@@ -236,17 +238,17 @@
   }
 
   /* ── Button auto-sizing by count ─────────────────────────────────────── */
-  .buttons-wrap { width: 100%; padding: 0 24px; display: flex; flex-direction: column; }
+  .buttons-wrap { width: 100%; padding: 0; display: flex; flex-direction: column; }
 
-  .buttons-wrap.btn-size-xl .tap-btn { min-height: 110px; font-size: 22px; }
-  .buttons-wrap.btn-size-lg .tap-btn { min-height: 88px; font-size: 20px; }
-  .buttons-wrap.btn-size-md .tap-btn { min-height: 70px; font-size: 18px; }
-  .buttons-wrap.btn-size-sm .tap-btn { min-height: 56px; font-size: 16px; }
-  .buttons-wrap.btn-size-xs .tap-btn { min-height: 48px; font-size: 14px; }
+  .buttons-wrap.btn-size-xl .tap-btn { min-height: 120px; font-size: 24px; }
+  .buttons-wrap.btn-size-lg .tap-btn { min-height: 96px; font-size: 22px; }
+  .buttons-wrap.btn-size-md .tap-btn { min-height: 76px; font-size: 20px; }
+  .buttons-wrap.btn-size-sm .tap-btn { min-height: 60px; font-size: 18px; }
+  .buttons-wrap.btn-size-xs .tap-btn { min-height: 50px; font-size: 16px; }
 
-  .buttons-wrap.btn-size-xl { gap: 20px; }
-  .buttons-wrap.btn-size-lg { gap: 16px; }
-  .buttons-wrap.btn-size-md { gap: 12px; }
+  .buttons-wrap.btn-size-xl { gap: 24px; }
+  .buttons-wrap.btn-size-lg { gap: 18px; }
+  .buttons-wrap.btn-size-md { gap: 14px; }
   .buttons-wrap.btn-size-sm { gap: 10px; }
   .buttons-wrap.btn-size-xs { gap: 8px; }
 
