@@ -659,7 +659,15 @@
       .sort(function(a, b) { return (a.sort_order || 0) - (b.sort_order || 0); })
       .slice(0, 9);
 
+    // ── Auto-size buttons based on count ──────────────────────────────────
+    var btnCount = enabled.length;
+    var sizeClass = btnCount <= 2 ? 'btn-size-xl'
+                  : btnCount <= 4 ? 'btn-size-lg'
+                  : btnCount <= 6 ? 'btn-size-md'
+                  : 'btn-size-sm';
+
     var wrap = document.getElementById('buttonsWrap');
+    wrap.className = 'buttons-wrap ' + sizeClass;
 
     enabled.forEach(function(btn, idx) {
       var rawLabel  = (btn.label || '').trim();
