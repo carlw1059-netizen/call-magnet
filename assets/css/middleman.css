@@ -281,18 +281,20 @@
   .tap-btn.shake-active { animation: shake 0.4s ease; }
 
   /* Fill sweep — colour sweeps across button on tap */
-  @keyframes fill-sweep {
-    0%   { background-position: 100% 0; }
-    100% { background-position: 0% 0; }
-  }
   .btn-effect-fill .tap-btn {
-    background: linear-gradient(90deg, var(--neon, #06D6A0) 50%, rgba(0,0,0,0.35) 50%);
-    background-size: 200% 100%;
-    background-position: 100% 0;
-    transition: background-position 0.4s ease;
+    position: relative;
+    overflow: hidden;
   }
-  .btn-effect-fill .tap-btn:active {
-    background-position: 0% 0;
+  .btn-effect-fill .tap-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--neon, #06D6A0);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .btn-effect-fill .tap-btn:active::after {
+    opacity: 0.25;
   }
 
   /* ── Button auto-sizing by count ─────────────────────────────────────── */
