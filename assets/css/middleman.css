@@ -334,9 +334,6 @@
     scrollbar-width: none;
     border: 2px solid var(--neon, #06D6A0);
     box-shadow: 0 0 6px var(--neon, #06D6A0), 0 0 10px color-mix(in srgb, var(--neon, #06D6A0) 40%, transparent);
-    display: flex;
-    flex-direction: column;
-    gap: 0;
   }
   .btn-unit.form-open::-webkit-scrollbar { display: none; }
 
@@ -470,7 +467,7 @@
     border-top: none;
     border-radius: 0 0 12px 12px;
     padding: 12px 16px 24px;
-    margin-top: 0;
+    margin-top: -4px;
     display: flex;
     flex-direction: column;
     gap: 12px;
