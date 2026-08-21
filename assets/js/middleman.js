@@ -664,8 +664,7 @@
     var btnCount = enabled.length;
     var sizeClass = btnCount <= 2 ? 'btn-size-xl'
                   : btnCount <= 4 ? 'btn-size-lg'
-                  : btnCount <= 6 ? 'btn-size-md'
-                  : 'btn-size-sm';
+                  : 'btn-size-md';
 
     var wrap = document.getElementById('buttonsWrap');
     wrap.className = 'buttons-wrap ' + sizeClass;
