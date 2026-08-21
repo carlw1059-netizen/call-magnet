@@ -200,7 +200,8 @@
   .content {
     flex-shrink: 0;
     padding: 0;
-    margin-top: auto; /* anchors button stack to the bottom of available space */
+    margin-top: auto;
+    margin-bottom: auto;
   }
 
   /* No background — buttons sit directly below the business name, not at the bottom */
@@ -233,15 +234,19 @@
   }
 
   /* ── Button auto-sizing by count ─────────────────────────────────────── */
-  .buttons-wrap.btn-size-xl .tap-btn { min-height: 80px; font-size: 20px; }
-  .buttons-wrap.btn-size-lg .tap-btn { min-height: 68px; font-size: 18px; }
-  .buttons-wrap.btn-size-md .tap-btn { min-height: 56px; font-size: 16px; }
-  .buttons-wrap.btn-size-sm .tap-btn { min-height: 48px; font-size: 14px; }
+  .buttons-wrap { width: 100%; padding: 0 24px; display: flex; flex-direction: column; }
 
-  .buttons-wrap.btn-size-xl { gap: 16px; }
-  .buttons-wrap.btn-size-lg { gap: 12px; }
-  .buttons-wrap.btn-size-md { gap: 10px; }
-  .buttons-wrap.btn-size-sm { gap: 8px; }
+  .buttons-wrap.btn-size-xl .tap-btn { min-height: 110px; font-size: 22px; }
+  .buttons-wrap.btn-size-lg .tap-btn { min-height: 88px; font-size: 20px; }
+  .buttons-wrap.btn-size-md .tap-btn { min-height: 70px; font-size: 18px; }
+  .buttons-wrap.btn-size-sm .tap-btn { min-height: 56px; font-size: 16px; }
+  .buttons-wrap.btn-size-xs .tap-btn { min-height: 48px; font-size: 14px; }
+
+  .buttons-wrap.btn-size-xl { gap: 20px; }
+  .buttons-wrap.btn-size-lg { gap: 16px; }
+  .buttons-wrap.btn-size-md { gap: 12px; }
+  .buttons-wrap.btn-size-sm { gap: 10px; }
+  .buttons-wrap.btn-size-xs { gap: 8px; }
 
   /* ── Button units — wrapper for one tap-btn + its form-wrap ─────────────── */
   .btn-unit {
