@@ -251,6 +251,16 @@
   .buttons-wrap.btn-size-sm { gap: 10px; }
   .buttons-wrap.btn-size-xs { gap: 8px; }
 
+  /* ── Button effects ──────────────────────────────────────────────────── */
+
+  /* Breathing glow — border pulses in and out */
+  @keyframes breathe {
+    0%, 100% { box-shadow: 0 0 4px var(--neon, #06D6A0), 0 0 8px color-mix(in srgb, var(--neon, #06D6A0) 30%, transparent); }
+    50%       { box-shadow: 0 0 16px var(--neon, #06D6A0), 0 0 32px color-mix(in srgb, var(--neon, #06D6A0) 60%, transparent); }
+  }
+  .btn-effect-breathe .tap-btn { animation: breathe 2.5s ease-in-out infinite; }
+  .btn-unit.form-open .btn-effect-breathe .tap-btn { animation: none; box-shadow: none; }
+
   /* ── Button units — wrapper for one tap-btn + its form-wrap ─────────────── */
   .btn-unit {
     position: relative;
