@@ -937,6 +937,14 @@ function buildBtnRowHtml(btn, idx) {
     '<input type="text" class="mma-btn-hex" value="' + _e(btn.color || '#00D4FF') + '" maxlength="7" placeholder="#rrggbb" style="width:62px;padding:3px 5px;font-size:11px;font-family:monospace;border:1px solid #ccc;border-radius:5px;background:#fff;color:#111;outline:none;" />' +
     '<button type="button" class="mma-btn-pulse' + (btn.animate !== false ? ' mma-btn-pulse-on' : '') + '" title="' + (btn.animate !== false ? 'Glow ON — click to turn off' : 'Glow OFF — click to turn on') + '" style="width:36px;height:32px;border:none;border-radius:6px;cursor:pointer;font-size:16px;background:' + (btn.animate !== false ? 'rgba(0,200,100,0.2)' : 'rgba(255,255,255,0.1)') + ';">✦</button>' +
     '<button type="button" class="mma-btn-sparkles' + (btn.sparkles ? ' mma-btn-sparkles-on' : '') + '" title="' + (btn.sparkles ? 'Sparkles ON — click to turn off' : 'Sparkles OFF — click to turn on') + '" style="width:36px;height:32px;border:none;border-radius:6px;cursor:pointer;font-size:14px;background:' + (btn.sparkles ? 'rgba(180,130,255,0.25)' : 'rgba(255,255,255,0.1)') + ';">✨</button>' +
+    '<select class="mma-btn-effect" style="height:32px;border-radius:6px;border:1px solid #ccc;font-size:12px;padding:0 4px;background:#fff;color:#000;cursor:pointer;">' +
+    '<option value="">No effect</option>' +
+    '<option value="breathe"' + (btn.effect === 'breathe' ? ' selected' : '') + '>Breathing glow</option>' +
+    '<option value="runner"' + (btn.effect === 'runner' ? ' selected' : '') + '>Runner</option>' +
+    '<option value="ripple"' + (btn.effect === 'ripple' ? ' selected' : '') + '>Ripple</option>' +
+    '<option value="shake"' + (btn.effect === 'shake' ? ' selected' : '') + '>Shake</option>' +
+    '<option value="fill"' + (btn.effect === 'fill' ? ' selected' : '') + '>Fill sweep</option>' +
+    '</select>' +
     '<button type="button" class="mma-btn-remove" title="Remove">×</button>' +
   '</div>';
 }
@@ -1140,6 +1148,7 @@ async function saveButtons() {
       color:        color,
       animate:      animate,
       sparkles:     sparklesBtn ? sparklesBtn.classList.contains('mma-btn-sparkles-on') : false,
+      effect:       (row.querySelector('.mma-btn-effect') || {value:''}).value || '',
       url:          (function(v) { return v && !/^(https?:|mailto:|tel:)/i.test(v) ? 'https://' + v : v; })((row.querySelector('.mma-btn-url') || { value: '' }).value.trim()),
       emoji:        (row.querySelector('.mma-btn-emoji-pick') || {}).dataset && row.querySelector('.mma-btn-emoji-pick').dataset.emoji || '',
       push_title:   uiTitle || (typeof existing.push_title   === 'string' ? existing.push_title   : ''),
@@ -1361,6 +1370,7 @@ async function saveNotifications() {
       color:        color,
       animate:      animate,
       sparkles:     sparklesBtn ? sparklesBtn.classList.contains('mma-btn-sparkles-on') : false,
+      effect:       (row.querySelector('.mma-btn-effect') || {value:''}).value || '',
       url:          (function(v) { return v && !/^(https?:|mailto:|tel:)/i.test(v) ? 'https://' + v : v; })((row.querySelector('.mma-btn-url') || { value: '' }).value.trim()),
       push_title:   titleEl ? titleEl.value.trim() : '',
       push_message: msgEl   ? msgEl.value.trim()   : '',
