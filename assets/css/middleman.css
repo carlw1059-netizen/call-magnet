@@ -369,9 +369,9 @@
   }
 
   .tap-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: block;
+    text-align: center;
+    line-height: 1.5;
     width: 100%;
     max-width: 100%;
     margin: 0;
