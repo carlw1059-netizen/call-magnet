@@ -247,13 +247,12 @@
 
   /* Runner — light streak races around the border */
   @keyframes runner {
-    0%   { background-position: 0% 50%; }
-    100% { background-position: 200% 50%; }
+    0%   { box-shadow: -120px 0 60px -20px var(--neon, #06D6A0), 0 0 4px var(--neon, #06D6A0); }
+    50%  { box-shadow: 120px 0 60px -20px var(--neon, #06D6A0), 0 0 4px var(--neon, #06D6A0); }
+    100% { box-shadow: -120px 0 60px -20px var(--neon, #06D6A0), 0 0 4px var(--neon, #06D6A0); }
   }
   .btn-effect-runner .tap-btn {
-    background: linear-gradient(90deg, rgba(0,0,0,0.35) 0%, var(--neon, #06D6A0) 50%, rgba(0,0,0,0.35) 100%);
-    background-size: 200% 100%;
-    animation: runner 2s linear infinite;
+    animation: runner 2s ease-in-out infinite;
   }
 
   /* Ripple — circle expands from tap point */
