@@ -742,6 +742,33 @@
         btnEl.classList.remove('glow-off');
       }
 
+      // Effect class on btn-unit
+      var effectClass = btn.effect ? 'btn-effect-' + btn.effect : '';
+      if (effectClass) unit.classList.add(effectClass);
+
+      // Ripple — inject circle on tap
+      if (btn.effect === 'ripple') {
+        btnEl.addEventListener('click', function(e) {
+          var circle = document.createElement('span');
+          circle.className = 'btn-ripple-circle';
+          var rect = btnEl.getBoundingClientRect();
+          var size = Math.max(rect.width, rect.height);
+          circle.style.width = circle.style.height = size + 'px';
+          circle.style.left = (e.clientX - rect.left - size / 2) + 'px';
+          circle.style.top  = (e.clientY - rect.top  - size / 2) + 'px';
+          btnEl.appendChild(circle);
+          setTimeout(function() { circle.remove(); }, 600);
+        });
+      }
+
+      // Shake — add class on tap, remove after animation
+      if (btn.effect === 'shake') {
+        btnEl.addEventListener('click', function() {
+          btnEl.classList.add('shake-active');
+          setTimeout(function() { btnEl.classList.remove('shake-active'); }, 400);
+        });
+      }
+
       // Sparkles: slow ambient floating dust particles drifting upward
       if (btn.sparkles === true) {
         applySparkles(unit, btn.color || NEON[Math.min(idx, NEON.length - 1)]);
