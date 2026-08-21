@@ -18,7 +18,8 @@
   function extractSlug() {
     var parts = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/');
     var isCallMagnet = window.location.hostname.indexOf('callmagnet.com.au') !== -1;
-    if (isCallMagnet) {
+    var isStaging = window.location.hostname.indexOf('callmagnet-staging.netlify.app') !== -1;
+    if (isCallMagnet || isStaging) {
       return (parts.length >= 2 && parts[0] === 'b') ? (parts[1] || '') : '';
     }
     return parts[0] || '';
