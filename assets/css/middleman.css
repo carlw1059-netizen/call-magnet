@@ -194,7 +194,7 @@
     min-height: 0;
     transition: flex-basis 0.3s ease;
   }
-  #contentSpacer.expanded { flex: 1; min-height: 0; }
+  #contentSpacer.expanded { flex: 0 0 0; min-height: 0; }
 
   /* ── Content / buttons area ─────────────────────────────────────────────── */
   .content {
@@ -209,8 +209,7 @@
 
   /* No background — buttons sit directly below the business name, not at the bottom */
   #mainPage.no-bg .content {
-    justify-content: flex-start;
-    padding-top: 16px;
+    justify-content: center;
   }
   #mainPage.no-bg .buttons {
     padding-top: 16px;
