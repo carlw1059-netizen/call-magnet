@@ -151,7 +151,7 @@
   #mainPage {
     display: none;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: space-between;
     flex: 1;
     min-height: 100%;
     touch-action: pan-y;
