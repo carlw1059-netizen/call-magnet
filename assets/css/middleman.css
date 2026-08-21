@@ -236,6 +236,65 @@
     background: transparent;
   }
 
+  /* ── Button effects — CSS animations ────────────────────────────────── */
+
+  /* Breathing glow — border pulses in and out */
+  @keyframes breathe {
+    0%, 100% { box-shadow: 0 0 4px var(--neon, #06D6A0), 0 0 8px color-mix(in srgb, var(--neon, #06D6A0) 30%, transparent); }
+    50%       { box-shadow: 0 0 16px var(--neon, #06D6A0), 0 0 32px color-mix(in srgb, var(--neon, #06D6A0) 60%, transparent); }
+  }
+  .btn-effect-breathe .tap-btn { animation: breathe 2.5s ease-in-out infinite; }
+
+  /* Runner — light streak races around the border */
+  @keyframes runner {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+  .btn-effect-runner .tap-btn {
+    background: linear-gradient(90deg, rgba(0,0,0,0.35) 0%, var(--neon, #06D6A0) 50%, rgba(0,0,0,0.35) 100%);
+    background-size: 200% 100%;
+    animation: runner 2s linear infinite;
+  }
+
+  /* Ripple — circle expands from tap point */
+  .btn-effect-ripple .tap-btn { overflow: hidden; }
+  .btn-ripple-circle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    transform: scale(0);
+    animation: ripple-expand 0.5s ease-out forwards;
+    pointer-events: none;
+  }
+  @keyframes ripple-expand {
+    to { transform: scale(4); opacity: 0; }
+  }
+
+  /* Shake — button shakes on tap */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%       { transform: translateX(-6px); }
+    40%       { transform: translateX(6px); }
+    60%       { transform: translateX(-4px); }
+    80%       { transform: translateX(4px); }
+  }
+  .tap-btn.shake-active { animation: shake 0.4s ease; }
+
+  /* Fill sweep — colour sweeps across button on tap */
+  @keyframes fill-sweep {
+    0%   { background-position: 100% 0; }
+    100% { background-position: 0% 0; }
+  }
+  .btn-effect-fill .tap-btn {
+    background: linear-gradient(90deg, var(--neon, #06D6A0) 50%, rgba(0,0,0,0.35) 50%);
+    background-size: 200% 100%;
+    background-position: 100% 0;
+    transition: background-position 0.4s ease;
+  }
+  .btn-effect-fill .tap-btn:active {
+    background-position: 0% 0;
+  }
+
   /* ── Button auto-sizing by count ─────────────────────────────────────── */
   .buttons-wrap { width: 100%; padding: 0; display: flex; flex-direction: column; }
 
