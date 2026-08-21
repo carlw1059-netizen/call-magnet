@@ -486,6 +486,7 @@
     border-radius: 12px 12px 0 0;
     color: var(--neon, #06D6A0);
     flex-shrink: 0;
+    padding-bottom: 0;
   }
   .btn-unit.form-open .form-wrap {
     background: transparent;
