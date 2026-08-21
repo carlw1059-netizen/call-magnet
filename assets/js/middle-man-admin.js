@@ -102,7 +102,7 @@ function buildClientCard(c, isAnyDemoActive, activeDemoId) {
   var vertBadge  = '<span class="mma-badge mma-badge-vert">' + _e(c.vertical || 'unknown') + '</span>';
   var demoBadge  = c.is_demo_account ? '<span class="mma-badge mma-badge-demo">DEMO</span>' : '';
   var slugHtml   = c.middle_man_slug
-    ? '<a href="https://callmagnet.com.au/b/' + encodeURIComponent(c.middle_man_slug) + '" target="_blank" rel="noopener" class="mma-slug-link">callmagnet.com.au/b/' + _e(c.middle_man_slug) + '</a>'
+    ? '<a href="' + (window.location.hostname.indexOf('staging') !== -1 ? 'https://callmagnet-staging.netlify.app' : 'https://callmagnet.com.au') + '/b/' + encodeURIComponent(c.middle_man_slug) + '" target="_blank" rel="noopener" class="mma-slug-link">' + (window.location.hostname.indexOf('staging') !== -1 ? 'callmagnet-staging.netlify.app' : 'callmagnet.com.au') + '/b/' + _e(c.middle_man_slug) + '</a>'
     : '<span class="mma-no-slug">No slug set</span>';
 
   var lockCtrl = '';
@@ -646,7 +646,7 @@ function renderEditBody(client) {
   // ── 8. Preview link
   var previewHtml = slug
     ? '<div style="text-align:center;padding:8px 0 4px;">' +
-        '<a id="mmaPreviewLink" href="https://callmagnet.com.au/b/' + encodeURIComponent(slug) + '" target="_blank" rel="noopener" class="mma-preview-link">View live page →</a>' +
+        '<a id="mmaPreviewLink" href="' + (window.location.hostname.indexOf('staging') !== -1 ? 'https://callmagnet-staging.netlify.app' : 'https://callmagnet.com.au') + '/b/' + encodeURIComponent(slug) + '" target="_blank" rel="noopener" class="mma-preview-link">View live page →</a>' +
       '</div>'
     : '<div id="mmaPreviewLinkWrap"></div>';
 
