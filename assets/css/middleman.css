@@ -170,7 +170,7 @@
     align-items: center;
     justify-content: center;
     padding: 16px 24px 12px;
-    min-height: 100px;
+    min-height: 60px;
     text-align: center;
   }
   .page-header.compact {
@@ -194,18 +194,22 @@
     min-height: 0;
     transition: flex-basis 0.3s ease;
   }
-  #contentSpacer.expanded { flex: 1; min-height: 20px; }
+  #contentSpacer.expanded { flex: 0 0 0; min-height: 0; }
 
   /* ── Content / buttons area ─────────────────────────────────────────────── */
   .content {
-    flex-shrink: 0;
-    padding: 0;
-    margin-top: auto; /* anchors button stack to the bottom of available space */
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 24px;
+    width: 100%;
   }
 
   /* No background — buttons sit directly below the business name, not at the bottom */
   #mainPage.no-bg .content {
-    margin-top: 0;
+    justify-content: center;
   }
   #mainPage.no-bg .buttons {
     padding-top: 16px;
@@ -231,6 +235,28 @@
     cursor: pointer;
     background: transparent;
   }
+
+  /* ── Button auto-sizing by count ─────────────────────────────────────── */
+  .buttons-wrap { width: 100%; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+
+  .buttons-wrap.btn-size-xl .tap-btn { min-height: 160px; font-size: 15px; }
+  .buttons-wrap.btn-size-lg .tap-btn { min-height: 120px; font-size: 15px; }
+  .buttons-wrap.btn-size-md .tap-btn { font-size: 15px; }
+
+  .buttons-wrap.btn-size-xl { gap: 12px; }
+  .buttons-wrap.btn-size-lg { gap: 12px; }
+  .buttons-wrap.btn-size-md { gap: 12px; }
+
+  /* ── Button effects ──────────────────────────────────────────────────── */
+
+  /* Breathing glow — border pulses in and out */
+  @keyframes breathe {
+    0%, 100% { box-shadow: 0 0 4px var(--neon, #06D6A0), 0 0 8px color-mix(in srgb, var(--neon, #06D6A0) 30%, transparent); }
+    50%       { box-shadow: 0 0 16px var(--neon, #06D6A0), 0 0 32px color-mix(in srgb, var(--neon, #06D6A0) 60%, transparent); }
+  }
+  .btn-effect-breathe .tap-btn { animation: breathe 2.5s ease-in-out infinite; }
+  .btn-unit.form-open.btn-effect-breathe .tap-btn { animation: none !important; box-shadow: none !important; }
+  .btn-unit.form-open.btn-effect-breathe { animation: breathe 2.5s ease-in-out infinite; }
 
   /* ── Button units — wrapper for one tap-btn + its form-wrap ─────────────── */
   .btn-unit {
@@ -287,7 +313,9 @@
   }
 
   .tap-btn {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
     max-width: 100%;
     margin: 0;
