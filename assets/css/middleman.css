@@ -259,7 +259,7 @@
     50%       { box-shadow: 0 0 16px var(--neon, #06D6A0), 0 0 32px color-mix(in srgb, var(--neon, #06D6A0) 60%, transparent); }
   }
   .btn-effect-breathe .tap-btn { animation: breathe 2.5s ease-in-out infinite; }
-  .btn-unit.form-open .btn-effect-breathe .tap-btn { animation: none; box-shadow: none; }
+  .btn-unit.form-open.btn-effect-breathe .tap-btn { animation: none !important; box-shadow: none !important; }
 
   /* ── Button units — wrapper for one tap-btn + its form-wrap ─────────────── */
   .btn-unit {
