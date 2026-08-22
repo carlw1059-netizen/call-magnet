@@ -520,6 +520,12 @@
 
       var tappedUnit = btnEl.closest('.btn-unit');
       if (tappedUnit) tappedUnit.classList.add('form-open');
+      // Expand sparkle zone to cover full form height
+      if (tappedUnit && tappedUnit._sparkleInterval) {
+        clearInterval(tappedUnit._sparkleInterval);
+        var sparkleColor = tappedUnit.dataset.neon || '#06D6A0';
+        applySparkles(tappedUnit, sparkleColor);
+      }
 
       // Show tap-outside catcher (z-index 5, below the form-open unit at z-index 10)
       var tapCatcher = document.getElementById('tapCatcher');
