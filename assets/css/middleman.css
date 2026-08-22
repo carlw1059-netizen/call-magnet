@@ -241,7 +241,7 @@
 
   .buttons-wrap.btn-size-xl .tap-btn { min-height: 160px; font-size: 15px; }
   .buttons-wrap.btn-size-lg .tap-btn { min-height: 120px; font-size: 15px; }
-  .buttons-wrap.btn-size-md .tap-btn { min-height: 80px; font-size: 15px; }
+  .buttons-wrap.btn-size-md .tap-btn { font-size: 15px; }
 
   .buttons-wrap.btn-size-xl { gap: 12px; }
   .buttons-wrap.btn-size-lg { gap: 12px; }
