@@ -260,6 +260,7 @@
   }
   .btn-effect-breathe .tap-btn { animation: breathe 2.5s ease-in-out infinite; }
   .btn-unit.form-open.btn-effect-breathe .tap-btn { animation: none !important; box-shadow: none !important; }
+  .btn-unit.form-open.btn-effect-breathe { animation: breathe 2.5s ease-in-out infinite; }
 
   /* ── Button units — wrapper for one tap-btn + its form-wrap ─────────────── */
   .btn-unit {
