@@ -655,7 +655,7 @@
       var logoImg = document.createElement('img');
       logoImg.src = logoUrl + '?v=' + Date.now();
       logoImg.alt = businessName;
-      logoImg.style.cssText = 'width:auto;max-width:85%;max-height:160px;object-fit:contain;display:block;margin:0 auto 4px;';
+      logoImg.style.cssText = 'width:auto;max-width:85%;max-height:90px;object-fit:contain;display:block;margin:0 auto 4px;';
       heroName.style.display = 'none';
       heroName.parentNode.insertBefore(logoImg, heroName);
     }
