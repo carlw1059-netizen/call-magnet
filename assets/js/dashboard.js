@@ -1010,6 +1010,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     _adminUserEmail = newSession?.user?.email ?? '';
     refreshAdminFab();
     if (event === 'PASSWORD_RECOVERY') {
+      console.log('[CM DEBUG] PASSWORD_RECOVERY fired', { event, session: newSession, localStorageToken: localStorage.getItem('callmagnet-auth-token') });
       showRecovery();
     }
   });

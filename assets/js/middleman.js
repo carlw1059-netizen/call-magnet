@@ -18,7 +18,8 @@
   function extractSlug() {
     var parts = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/');
     var isCallMagnet = window.location.hostname.indexOf('callmagnet.com.au') !== -1;
-    if (isCallMagnet) {
+    var isStaging = window.location.hostname.indexOf('callmagnet-staging.netlify.app') !== -1;
+    if (isCallMagnet || isStaging) {
       return (parts.length >= 2 && parts[0] === 'b') ? (parts[1] || '') : '';
     }
     return parts[0] || '';
@@ -519,6 +520,12 @@
 
       var tappedUnit = btnEl.closest('.btn-unit');
       if (tappedUnit) tappedUnit.classList.add('form-open');
+      // Expand sparkle zone to cover full form height
+      if (tappedUnit && tappedUnit._sparkleInterval) {
+        clearInterval(tappedUnit._sparkleInterval);
+        var sparkleColor = tappedUnit.dataset.neon || '#06D6A0';
+        applySparkles(tappedUnit, sparkleColor);
+      }
 
       // Show tap-outside catcher (z-index 5, below the form-open unit at z-index 10)
       var tapCatcher = document.getElementById('tapCatcher');
@@ -646,9 +653,9 @@
     var heroName = document.getElementById('heroBusinessName');
     if (logoUrl && heroName) {
       var logoImg = document.createElement('img');
-      logoImg.src = logoUrl;
+      logoImg.src = logoUrl + '?v=' + Date.now();
       logoImg.alt = businessName;
-      logoImg.style.cssText = 'width:auto;max-width:85%;max-height:90px;object-fit:contain;display:block;margin:0 auto 4px;';
+      logoImg.style.cssText = 'width:auto;max-width:85%;max-height:160px;object-fit:contain;display:block;margin:0 auto 4px;';
       heroName.style.display = 'none';
       heroName.parentNode.insertBefore(logoImg, heroName);
     }
@@ -659,7 +666,14 @@
       .sort(function(a, b) { return (a.sort_order || 0) - (b.sort_order || 0); })
       .slice(0, 9);
 
+    // ── Auto-size buttons based on count ──────────────────────────────────
+    var btnCount = enabled.length;
+    var sizeClass = btnCount <= 2 ? 'btn-size-xl'
+                  : btnCount <= 4 ? 'btn-size-lg'
+                  : 'btn-size-md';
+
     var wrap = document.getElementById('buttonsWrap');
+    wrap.className = 'buttons-wrap ' + sizeClass;
 
     enabled.forEach(function(btn, idx) {
       var rawLabel  = (btn.label || '').trim();
@@ -732,6 +746,33 @@
         btnEl.classList.add('glow-off');
       } else {
         btnEl.classList.remove('glow-off');
+      }
+
+      // Effect class on btn-unit
+      var effectClass = btn.effect ? 'btn-effect-' + btn.effect : '';
+      if (effectClass) unit.classList.add(effectClass);
+
+      // Ripple — inject circle on tap
+      if (btn.effect === 'ripple') {
+        btnEl.addEventListener('click', function(e) {
+          var circle = document.createElement('span');
+          circle.className = 'btn-ripple-circle';
+          var rect = btnEl.getBoundingClientRect();
+          var size = Math.max(rect.width, rect.height);
+          circle.style.width = circle.style.height = size + 'px';
+          circle.style.left = (e.clientX - rect.left - size / 2) + 'px';
+          circle.style.top  = (e.clientY - rect.top  - size / 2) + 'px';
+          btnEl.appendChild(circle);
+          setTimeout(function() { circle.remove(); }, 600);
+        });
+      }
+
+      // Shake — add class on tap, remove after animation
+      if (btn.effect === 'shake') {
+        btnEl.addEventListener('click', function() {
+          btnEl.classList.add('shake-active');
+          setTimeout(function() { btnEl.classList.remove('shake-active'); }, 400);
+        });
       }
 
       // Sparkles: slow ambient floating dust particles drifting upward
