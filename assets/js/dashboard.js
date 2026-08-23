@@ -103,21 +103,20 @@ async function handleRecovery() {
       return;
     }
 
-    // Clear must_change_password flag if this was a forced first-login change
     const { data: { user: recoveryUser } } = await sb.auth.getUser();
-    if (recoveryUser?.email) {
-      await sb.from('clients')
-        .update({ must_change_password: false })
-        .eq('email', recoveryUser.email)
-        .catch(() => {});
-      if (currentClient) currentClient.must_change_password = false;
-    }
-
+    const { data: { session: recoverySession } } = await sb.auth.getSession();
     okDiv.style.display = 'block';
-    const { data: { user } } = await sb.auth.getUser();
-    if (user) {
+    if (recoveryUser) {
       setTimeout(async () => {
-        await crossFadeToDashboard(user, document.getElementById('recoveryScreen'));
+        const dashResult = await crossFadeToDashboard(recoveryUser, document.getElementById('recoveryScreen'));
+        // Only clear must_change_password AFTER dashboard loads successfully — uses edge function to bypass RLS
+        if (dashResult !== false && recoverySession?.access_token) {
+          await fetch(SUPABASE_URL + '/functions/v1/clear-must-change-password', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + recoverySession.access_token },
+          }).catch(() => {});
+          if (currentClient) currentClient.must_change_password = false;
+        }
       }, 900);
     } else {
       errDiv.textContent = 'Password updated. Please sign in again.';
