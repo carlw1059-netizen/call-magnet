@@ -52,6 +52,17 @@ function showRecovery() {
   const btn = document.getElementById('recoveryBtn');
   btn.disabled = false;
   btn.textContent = 'Update password and sign in';
+  if (!document.getElementById('recoveryCancelBtn')) {
+    const cancelBtn = document.createElement('button');
+    cancelBtn.id = 'recoveryCancelBtn';
+    cancelBtn.textContent = 'Cancel — go to login';
+    cancelBtn.style.cssText = 'margin-top:12px;width:100%;padding:10px;background:transparent;border:1px solid rgba(255,255,255,0.2);color:#aaa;border-radius:8px;cursor:pointer;font-size:14px;font-family:inherit;';
+    cancelBtn.onclick = async function() {
+      await sb.auth.signOut();
+      window.location.href = '/';
+    };
+    btn.parentNode.appendChild(cancelBtn);
+  }
 }
 
 function toggleRecoveryPass(id) {
