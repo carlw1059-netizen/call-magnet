@@ -145,7 +145,7 @@ Admin selects MP4 in admin panel
 - Add weekly_summaries RLS policy
 - Delete shortio-lookup-tmp edge function
 - UptimeRobot — add cm1.au/arcane-fairies monitor
-- Staging environment not built — every deploy goes straight to production
+- All changes go directly to main — staging branch is not used
 
 ## CRITICAL INCIDENT — 22-23 August 2026
 
@@ -161,10 +161,10 @@ Staging branch work (button auto-sizing, button effects, breathing glow, sparkle
 Force reset main to last known good commit `d10087a`:
 
 ### Rules — Never Break
-- NEVER make any changes to `middleman.js`, `b.html`, `cm1site/b.html`, or `middleman.css` directly on main — staging first always
+- NEVER make untested changes to `middleman.js`, `b.html`, `cm1site/b.html`, or `middleman.css`
 - NEVER merge staging to main without checking every URL in `b.html` and `cm1site/b.html` — staging URLs must never appear in production files
 - `cm1site/b.html` must ALWAYS load CSS and JS from `callmagnet.com.au` — never from staging
 - NEVER attempt to fix a broken production page by making more changes — revert first, diagnose second
 - Emergency fix procedure: `git reset --hard <last-good-commit>` then `git push origin main --force`
 - Logo `max-height` is `90px` — never change without testing on a client with no logo AND Arcane Fairies simultaneously
-- Before any merge to main: run `grep "staging" b.html cm1site/b.html` — if any output appears, do NOT merge
+- Before every commit: run `grep "staging" b.html cm1site/b.html` — if any output appears, fix before committing

@@ -248,46 +248,6 @@ Summaries must be specific — "Mamba achieves linear-time sequence modeling via
 - Run `C:/Users/car31/AppData/Local/Programs/Python/Python313/Scripts/hyperresearch.exe --help` for the full command list
 <!-- hyperresearch:end -->
 
-## Staging Environment
+## Deployment
 
-Staging URL: https://callmagnet-staging.netlify.app
-Staging Supabase project: knupnihccvdsnoxnaqwo
-Staging GitHub branch: staging
-Staging Netlify site: callmagnet-staging
-
-### How to use staging
-
-ALWAYS test on staging before deploying to production.
-
-1. Make sure you are on the staging branch:
-   git checkout staging
-
-2. Make your changes and commit:
-   git add .
-   git commit -m "your message"
-   git push origin staging
-
-3. Netlify auto-deploys to callmagnet-staging.netlify.app within seconds.
-
-4. Test the change on staging. Confirm it works.
-
-5. Only then merge to main:
-   git checkout main
-   git merge staging
-   git push origin main
-
-6. For edge function changes, deploy to staging first:
-   npx supabase functions deploy [fn] --project-ref knupnihccvdsnoxnaqwo --no-verify-jwt
-
-   Then test. Then deploy to production:
-   npx supabase functions deploy [fn] --project-ref iskvvnhacqdxybpmwuni --no-verify-jwt
-
-7. For migrations, apply to staging first:
-   Use Supabase MCP with project_id knupnihccvdsnoxnaqwo
-
-   Then test. Then apply to production:
-   Use Supabase MCP with project_id iskvvnhacqdxybpmwuni
-
-### Golden rule
-Nothing goes to production without being tested on staging first.
-Never use production Supabase ref iskvvnhacqdxybpmwuni in a test or experimental prompt.
+All changes go directly to main. Staging branch is not used.
