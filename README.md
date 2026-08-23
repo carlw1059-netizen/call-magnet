@@ -146,3 +146,25 @@ Admin selects MP4 in admin panel
 - Delete shortio-lookup-tmp edge function
 - UptimeRobot — add cm1.au/arcane-fairies monitor
 - Staging environment not built — every deploy goes straight to production
+
+## CRITICAL INCIDENT — 22-23 August 2026
+
+### What Broke
+1. `cm1site/b.html` and `b.html` loaded CSS from `callmagnet-staging.netlify.app` instead of `callmagnet.com.au` — caused by staging work being merged to main without checking URLs
+2. Logo `max-height` changed from `90px` to `160px` directly on main — broke Arcane Fairies layout
+3. Page stopped scrolling correctly on mobile for all clients
+
+### Root Cause
+Staging branch work (button auto-sizing, button effects, breathing glow, sparkles) was merged to production. The merge brought a staging CSS URL into production files. Additionally logo changes were made directly on main bypassing staging.
+
+### Fix
+Force reset main to last known good commit `d10087a`:
+
+### Rules — Never Break
+- NEVER make any changes to `middleman.js`, `b.html`, `cm1site/b.html`, or `middleman.css` directly on main — staging first always
+- NEVER merge staging to main without checking every URL in `b.html` and `cm1site/b.html` — staging URLs must never appear in production files
+- `cm1site/b.html` must ALWAYS load CSS and JS from `callmagnet.com.au` — never from staging
+- NEVER attempt to fix a broken production page by making more changes — revert first, diagnose second
+- Emergency fix procedure: `git reset --hard <last-good-commit>` then `git push origin main --force`
+- Logo `max-height` is `90px` — never change without testing on a client with no logo AND Arcane Fairies simultaneously
+- Before any merge to main: run `grep "staging" b.html cm1site/b.html` — if any output appears, do NOT merge
