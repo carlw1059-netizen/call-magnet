@@ -92,18 +92,18 @@ async function handleRecovery() {
       return;
     }
 
-    // Single getUser() call — reused for both flag clear and dashboard load
     const { data: { user: recoveryUser } } = await sb.auth.getUser();
+    const { data: { session: recoverySession } } = await sb.auth.getSession();
     okDiv.style.display = 'block';
     if (recoveryUser) {
       setTimeout(async () => {
         const dashResult = await crossFadeToDashboard(recoveryUser, document.getElementById('recoveryScreen'));
-        // Only clear must_change_password AFTER dashboard loads successfully
-        if (dashResult !== false && recoveryUser.email) {
-          await sb.from('clients')
-            .update({ must_change_password: false })
-            .eq('email', recoveryUser.email)
-            .catch(() => {});
+        // Only clear must_change_password AFTER dashboard loads successfully — uses edge function to bypass RLS
+        if (dashResult !== false && recoverySession?.access_token) {
+          await fetch(SUPABASE_URL + '/functions/v1/clear-must-change-password', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + recoverySession.access_token },
+          }).catch(() => {});
           if (currentClient) currentClient.must_change_password = false;
         }
       }, 900);
