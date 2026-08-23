@@ -92,21 +92,20 @@ async function handleRecovery() {
       return;
     }
 
-    // Clear must_change_password flag if this was a forced first-login change
+    // Single getUser() call — reused for both flag clear and dashboard load
     const { data: { user: recoveryUser } } = await sb.auth.getUser();
-    if (recoveryUser?.email) {
-      await sb.from('clients')
-        .update({ must_change_password: false })
-        .eq('email', recoveryUser.email)
-        .catch(() => {});
-      if (currentClient) currentClient.must_change_password = false;
-    }
-
     okDiv.style.display = 'block';
-    const { data: { user } } = await sb.auth.getUser();
-    if (user) {
+    if (recoveryUser) {
       setTimeout(async () => {
-        await crossFadeToDashboard(user, document.getElementById('recoveryScreen'));
+        const dashResult = await crossFadeToDashboard(recoveryUser, document.getElementById('recoveryScreen'));
+        // Only clear must_change_password AFTER dashboard loads successfully
+        if (dashResult !== false && recoveryUser.email) {
+          await sb.from('clients')
+            .update({ must_change_password: false })
+            .eq('email', recoveryUser.email)
+            .catch(() => {});
+          if (currentClient) currentClient.must_change_password = false;
+        }
       }, 900);
     } else {
       errDiv.textContent = 'Password updated. Please sign in again.';
