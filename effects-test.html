@@ -113,6 +113,9 @@
     0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--neon, #00D4FF) 70%, transparent), 0 0 4px var(--neon, #00D4FF); }
     100% { box-shadow: 0 0 0 16px color-mix(in srgb, var(--neon, #00D4FF) 0%, transparent), 0 0 4px var(--neon, #00D4FF); }
   }
+  @keyframes ripple-expand {
+    to { transform: scale(4); opacity: 0; }
+  }
 </style>
 </head>
 <body>
@@ -192,9 +195,9 @@
     'shockwave':    'shockwave 1s ease-out infinite',
     'float':        'float 3s ease-in-out infinite',
     'runner':       'runner 2s linear infinite',
-    'ripple':       'ripple 1.5s ease-out infinite',
-    'shake':        'shake 0.6s linear infinite',
-    'fill-sweep':   'fill-sweep 2s ease-in-out infinite',
+    'ripple':       'none',
+    'shake':        'none',
+    'fill-sweep':   'none',
   };
 
   function applyEffect() {
@@ -215,6 +218,50 @@
 
   applyEffect();
   applyColour();
+
+  // ── Tap-triggered effects ─────────────────────────────────────────────
+  btn.addEventListener('click', function(e) {
+    var effect = select.value;
+
+    // Ripple — circle expands from tap point
+    if (effect === 'ripple') {
+      var circle = document.createElement('span');
+      circle.style.cssText = 'position:absolute;border-radius:50%;background:rgba(255,255,255,0.35);transform:scale(0);animation:ripple-expand 0.5s ease-out forwards;pointer-events:none;';
+      var rect = btn.getBoundingClientRect();
+      var size = Math.max(rect.width, rect.height);
+      circle.style.width = circle.style.height = size + 'px';
+      circle.style.left = (e.clientX - rect.left - size / 2) + 'px';
+      circle.style.top  = (e.clientY - rect.top  - size / 2) + 'px';
+      btn.style.overflow = 'hidden';
+      btn.appendChild(circle);
+      setTimeout(function() { circle.remove(); }, 600);
+    }
+
+    // Shake — add class, remove after animation
+    if (effect === 'shake') {
+      btn.style.animation = 'shake 0.4s ease';
+      setTimeout(function() {
+        btn.style.animation = 'none';
+      }, 400);
+    }
+
+    // Fill sweep — sweep colour across button
+    if (effect === 'fill-sweep') {
+      btn.style.background = 'linear-gradient(90deg, ' + picker.value + ' 50%, rgba(0,0,0,0.35) 50%)';
+      btn.style.backgroundSize = '200% 100%';
+      btn.style.backgroundPosition = '100% 0';
+      btn.style.transition = 'background-position 0.4s ease';
+      setTimeout(function() {
+        btn.style.backgroundPosition = '0% 0';
+        setTimeout(function() {
+          btn.style.background = 'rgba(0,0,0,0.35)';
+          btn.style.backgroundSize = '';
+          btn.style.backgroundPosition = '';
+          btn.style.transition = '';
+        }, 500);
+      }, 10);
+    }
+  });
 </script>
 </body>
 </html>
