@@ -42,10 +42,6 @@
     30% { box-shadow: 0 0 20px var(--neon, #00D4FF); opacity: 0.5; }
     40% { box-shadow: 0 0 4px var(--neon, #00D4FF); opacity: 1; }
   }
-  @keyframes soft-fade {
-    0%, 100% { box-shadow: 0 0 4px var(--neon, #00D4FF), 0 0 6px color-mix(in srgb, var(--neon, #00D4FF) 30%, transparent); }
-    50% { box-shadow: none; }
-  }
   @keyframes shimmer {
     0% { background-position: -200% center; }
     100% { background-position: 200% center; }
@@ -53,11 +49,6 @@
   @keyframes float {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-6px); }
-  }
-  @keyframes tilt {
-    0%, 100% { transform: rotate(0deg); }
-    25% { transform: rotate(1deg); }
-    75% { transform: rotate(-1deg); }
   }
   @keyframes bounce {
     0%, 100% { transform: scale(1); }
@@ -90,11 +81,6 @@
     65% { box-shadow: 0 2px 14px var(--neon, #00D4FF), 0 0 8px var(--neon, #00D4FF); }
     80% { box-shadow: 0 0 4px var(--neon, #00D4FF); }
     90% { box-shadow: 2px -2px 16px var(--neon, #00D4FF); }
-  }
-  @keyframes flash {
-    0%, 100% { background: rgba(0,0,0,0.35); }
-    10% { background: rgba(255,255,255,0.6); }
-    20% { background: rgba(0,0,0,0.35); }
   }
   @keyframes shockwave {
     0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--neon, #00D4FF) 80%, transparent); }
@@ -140,21 +126,16 @@
     <option value="colour-shift">Colour shift</option>
     <option value="double-pulse">Double pulse</option>
     <option value="strobe">Strobe</option>
-    <option value="soft-fade">Soft fade</option>
-    <option value="border-dash">Border dash</option>
     <option value="corner-glow">Corner glow</option>
     <option value="border-wipe">Border wipe</option>
     <option value="electric">Electric</option>
     <option value="shimmer">Shimmer</option>
     <option value="aurora">Aurora</option>
     <option value="spotlight">Spotlight</option>
-    <option value="explode">Explode</option>
     <option value="bounce">Bounce</option>
     <option value="glitch">Glitch</option>
     <option value="shockwave">Shockwave</option>
-    <option value="flash">Flash</option>
     <option value="float">Float</option>
-    <option value="tilt">Tilt</option>
     <option value="runner">Runner</option>
     <option value="ripple">Ripple</option>
     <option value="shake">Shake</option>
@@ -200,21 +181,16 @@
     'colour-shift': 'aurora 4s linear infinite',
     'double-pulse': 'double-pulse 2.5s ease-in-out infinite',
     'strobe':       'strobe 1.5s linear infinite',
-    'soft-fade':    'soft-fade 3s ease-in-out infinite',
-    'border-dash':  'none',
     'corner-glow':  'spotlight 3s linear infinite',
     'border-wipe':  'runner 2s linear infinite',
     'electric':     'electric 1.8s linear infinite',
     'shimmer':      'shimmer 2s linear infinite',
     'aurora':       'aurora 4s linear infinite',
     'spotlight':    'spotlight 3s linear infinite',
-    'explode':      'shockwave 1s ease-out infinite',
     'bounce':       'bounce 0.6s ease-in-out infinite',
     'glitch':       'glitch 1.5s linear infinite',
     'shockwave':    'shockwave 1s ease-out infinite',
-    'flash':        'flash 1.5s linear infinite',
     'float':        'float 3s ease-in-out infinite',
-    'tilt':         'tilt 3s ease-in-out infinite',
     'runner':       'runner 2s linear infinite',
     'ripple':       'ripple 1.5s ease-out infinite',
     'shake':        'shake 0.6s linear infinite',
