@@ -319,6 +319,7 @@
   }
   .tap-btn.glow-off {
     box-shadow: none;
+    animation: none;
   }
 
   /* ── "See what's on" section ─────────────────────────────────────────────── */
