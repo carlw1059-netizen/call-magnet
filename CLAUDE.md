@@ -114,6 +114,21 @@ RULES — NEVER BREAK:
 - If anything looks wrong on Arcane Fairies: stop, run revert command above, confirm live, then get diagnostic data before trying again
 - One file per commit — never CSS and JS together
 
+## BASELINE 2 — BREATHING GLOW (confirmed working 24 Aug 2026)
+
+Tag: baseline-breathing-glow-20260824
+Commit: 4de90d8
+CSS version: v=20260824e
+
+Feature: Breathing glow on all Middle Man buttons.
+- All buttons breathe by default — the static neon glow is now animated
+- Glow on/off toggle (btn.animate === false) correctly stops the breathing animation via .tap-btn.glow-off { animation: none }
+- Form-open kill switch prevents animation from creating a line at the top of the open form via .btn-unit.form-open .tap-btn { animation: none !important }
+- No JS changes — CSS only feature
+
+Revert command (restores to breathing glow confirmed working state):
+git checkout baseline-breathing-glow-20260824 -- assets/css/middleman.css b.html cm1site/b.html
+
 ---
 
 ## VIDEO SYNC RULES — NEVER BREAK
