@@ -93,6 +93,29 @@ Step 4 — Delete both input.mp4 and output_faststart.mp4 from C:\Users\car31\ca
 
 ---
 
+## PROTECTED BASELINE — NEVER OVERWRITE
+
+Tag: baseline-working-20260824
+Confirmed working: 24 August 2026 — Arcane Fairies correct, zero staging URLs.
+
+Revert command (restores all four Middle Man files to confirmed working state):
+git checkout baseline-working-20260824 -- assets/css/middleman.css assets/js/middleman.js b.html cm1site/b.html
+
+After any revert:
+1. Bump middleman.css version string in both b.html and cm1site/b.html
+2. Run: grep "staging" b.html cm1site/b.html — zero output required
+3. Commit and push
+4. Confirm live on cm1.au/arcane-fairies on a real device before proceeding
+
+RULES — NEVER BREAK:
+- Never make changes to middleman.css, middleman.js, b.html or cm1site/b.html without bumping version strings in both HTML files in the same commit
+- Never commit without running: grep "staging" b.html cm1site/b.html — zero output required
+- After every change to middleman.css or middleman.js: visually confirm cm1.au/arcane-fairies on a real device — logo fully visible, all 6 buttons on screen, layout unchanged
+- If anything looks wrong on Arcane Fairies: stop, run revert command above, confirm live, then get diagnostic data before trying again
+- One file per commit — never CSS and JS together
+
+---
+
 ## VIDEO SYNC RULES — NEVER BREAK
 
 * Every change to middleman.js must bump the version string in BOTH b.html AND cm1site/b.html
