@@ -399,7 +399,6 @@
     -webkit-backdrop-filter: none;
     border: none;
     box-shadow: none;
-    border-radius: 12px 12px 0 0;
     color: var(--neon, #06D6A0);
     flex-shrink: 0;
   }
