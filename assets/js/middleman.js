@@ -739,6 +739,14 @@
         applySparkles(unit, btn.color || NEON[Math.min(idx, NEON.length - 1)]);
       }
 
+      // Shake effect — fires on tap
+      if (btn.effect === 'shake') {
+        btnEl.addEventListener('click', function() {
+          btnEl.style.animation = 'shake 0.4s ease';
+          setTimeout(function() { btnEl.style.animation = ''; }, 400);
+        });
+      }
+
     });
 
     if (enabled.length === 0) wrap.style.display = 'none';
