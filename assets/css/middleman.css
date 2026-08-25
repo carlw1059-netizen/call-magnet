@@ -370,11 +370,13 @@
   .form-wrap {
     overflow: hidden;
     max-height: 0;
-    transition: max-height 0.35s ease;
+    opacity: 0;
+    transition: max-height 0.35s ease, opacity 0.1s ease;
   }
   /* Form expands inline below the tapped button — page grows naturally */
   .form-wrap.open {
     max-height: 1200px;
+    opacity: 1;
   }
 
   .inline-form {
