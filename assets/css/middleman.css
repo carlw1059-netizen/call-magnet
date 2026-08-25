@@ -261,13 +261,13 @@
   /* Sibling buttons slide away when a form is open */
   .slide-up {
     transform: translateY(-120vh);
-    transition: transform 0.3s ease;
+    transition: transform 0.2s ease;
     pointer-events: none;
     position: absolute;
   }
   .slide-down {
     transform: translateY(120vh);
-    transition: transform 0.3s ease;
+    transition: transform 0.2s ease;
     pointer-events: none;
     position: absolute;
   }
