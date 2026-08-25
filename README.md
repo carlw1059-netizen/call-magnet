@@ -206,3 +206,30 @@ Force reset main to last known good commit `d10087a`:
 - Emergency fix procedure: `git reset --hard <last-good-commit>` then `git push origin main --force`
 - Logo `max-height` is `90px` — never change without testing on a client with no logo AND Arcane Fairies simultaneously
 - Before every commit: run `grep "staging" b.html cm1site/b.html` — if any output appears, fix before committing
+
+## INCIDENT — 25 August 2026 — White Flash on Form Close
+
+### What happened
+A faint white ghost of the form fields appeared for a split second when closing any Middle Man form. Happened on all accounts, all devices.
+
+### Root cause
+`.form-wrap` uses `max-height: 0` transition over 350ms to collapse. During those 350ms the form content (name, phone, booking fields) remained fully visible in the DOM while the container shrank. The content ghosted through the background image as a faint white overlay until max-height reached zero.
+
+### What did NOT cause it
+- backdrop-filter on .tap-btn or .btn-unit.form-open
+- border-radius transition on .tap-btn
+- border-color on .tap-btn
+- GPU compositor layer release
+- Any animation or breathing glow code
+
+### What caused it
+.form-wrap had no opacity — content was fully visible during the 350ms max-height collapse.
+
+### Fix
+Added opacity: 0 to .form-wrap (closed state) and opacity: 1 to .form-wrap.open, with transition: opacity 0.1s ease. Content fades out in 100ms — before the 350ms height collapse completes. Ghost disappears instantly.
+
+### How it was diagnosed
+A photo of the screen during the flash showed the form fields circled in red — immediately identifying the correct element. Console logs on CSS properties were on the wrong element and wasted hours.
+
+### Rule added
+For any visual bug — get a photo or screenshot of the exact visual artifact FIRST before touching any code. Never diagnose a visual bug from CSS property values alone.
