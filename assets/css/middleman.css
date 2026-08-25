@@ -300,6 +300,7 @@
     border-radius: 12px;
     color: var(--neon, #06D6A0);
     box-shadow: 0 0 4px var(--neon, #06D6A0), 0 0 6px color-mix(in srgb, var(--neon, #06D6A0) 30%, transparent);
+    animation: breathe 2.5s ease-in-out infinite;
     font-size: 15px;
     font-weight: 600;
     font-family: inherit;
@@ -318,6 +319,7 @@
   }
   .tap-btn.glow-off {
     box-shadow: none;
+    animation: none;
   }
 
   /* ── "See what's on" section ─────────────────────────────────────────────── */
@@ -400,7 +402,8 @@
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     border: none;
-    box-shadow: none;
+    box-shadow: none !important;
+    animation: none !important;
     color: var(--neon, #06D6A0);
     flex-shrink: 0;
   }
@@ -610,6 +613,12 @@
     opacity: 0;
     animation: sparkle-float linear forwards;
   }
+  @keyframes breathe {
+    0%   { box-shadow: 0 0 4px var(--neon, #06D6A0), 0 0 6px color-mix(in srgb, var(--neon, #06D6A0) 30%, transparent); }
+    50%  { box-shadow: 0 0 12px var(--neon, #06D6A0), 0 0 24px color-mix(in srgb, var(--neon, #06D6A0) 60%, transparent); }
+    100% { box-shadow: 0 0 4px var(--neon, #06D6A0), 0 0 6px color-mix(in srgb, var(--neon, #06D6A0) 30%, transparent); }
+  }
+
   @keyframes sparkle-float {
     0%   { opacity: 0;   transform: translate(0, 0) scale(1); }
     12%  { opacity: 0.9; }
