@@ -461,18 +461,9 @@
 
   // ── Close the currently open inline form ─────────────────────────────────
   function closeForm() {
-    // Clear backdrop-filter and background inline before removing form-open
-    // to prevent GPU compositor layer release causing a white flash
-    document.querySelectorAll('.btn-unit.form-open').forEach(function(unit) {
-      unit.style.backdropFilter = 'none';
-      unit.style.webkitBackdropFilter = 'none';
-      unit.style.background = 'transparent';
-    });
+    // CSS handles all style resets via class removal — no inline style cleanup needed
     document.querySelectorAll('.btn-unit').forEach(function(unit) {
       unit.classList.remove('slide-up', 'slide-down', 'form-open');
-      unit.style.backdropFilter = '';
-      unit.style.webkitBackdropFilter = '';
-      unit.style.background = '';
     });
     // Collapse all open form-wraps
     document.querySelectorAll('.form-wrap.open').forEach(function(el) {
