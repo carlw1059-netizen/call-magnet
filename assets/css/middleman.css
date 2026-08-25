@@ -294,8 +294,6 @@
     padding: 16px 24px;
     position: relative;  /* establishes positioning context for .btn-runner-overlay */
     background: rgba(0,0,0,0.35);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
     border: 2px solid var(--neon, #06D6A0);
     border-radius: 12px;
     color: var(--neon, #06D6A0);
