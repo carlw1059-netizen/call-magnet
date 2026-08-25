@@ -619,6 +619,16 @@
     100% { box-shadow: 0 0 4px var(--neon, #06D6A0), 0 0 6px color-mix(in srgb, var(--neon, #06D6A0) 30%, transparent); }
   }
 
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    15% { transform: translateX(-5px); }
+    30% { transform: translateX(5px); }
+    45% { transform: translateX(-4px); }
+    60% { transform: translateX(4px); }
+    75% { transform: translateX(-2px); }
+    90% { transform: translateX(2px); }
+  }
+
   @keyframes sparkle-float {
     0%   { opacity: 0;   transform: translate(0, 0) scale(1); }
     12%  { opacity: 0.9; }
