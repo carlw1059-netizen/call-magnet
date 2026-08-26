@@ -127,7 +127,7 @@ Admin selects MP4 in admin panel
 | `send-pushover-alert` | Internal: sends Pushover push notification to Carl | false |
 | `request-login-link` | Sends magic-link email for client login (blocks admin email) | false |
 | `send-test-notification` | Admin testing: sends a test push notification to a client | false |
-| `hyper-endpoint` | Misc internal utility endpoint | false |
+| `hyper-endpoint` | Stripe webhook: handles invoice.payment_failed — suspends client account on failed payment | false |
 | `SEND-EMAIL-SEQUENCE` | Sends onboarding email sequences to new clients | false |
 
 ## Netlify functions
