@@ -1,5 +1,15 @@
 ## Known Bugs & Fix History
 
+### Auth screen architecture — password reset flow
+- **Rule**: callmagnet.com.au MUST only ever show the login screen. It must NEVER show a password reset form.
+- **How reset works**: `handleReset()` in dashboard.js calls `sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://callmagnet.com.au/reset-password' })`. The reset form lives exclusively at `reset-password.html`. Do not move it back to the main page under any circumstances.
+- **reset-password.html**: Standalone page. Gets Supabase credentials injected at build time by netlify.toml (the sed command). If you add any new HTML files that need Supabase credentials, they must be added to the netlify.toml build command in all three sed operations.
+- **What NOT to do**: Never call `request-login-link` edge function from `handleReset()` — that function sends magic sign-in links, not recovery links. Never set `redirectTo` back to `'https://callmagnet.com.au/'` — recovery links must go to `/reset-password`.
+- **_isPasswordRecoveryFlow flag**: Set at parse time (before DOMContentLoaded) by checking `window.location.hash.includes('type=recovery')`. The `onAuthStateChange` PASSWORD_RECOVERY handler is gated behind this flag. Never remove this gate — without it, spurious PASSWORD_RECOVERY events show the recovery screen on the main page.
+- **Black screen**: Was caused by dead code in `crossFadeToDashboard` that hid both the dash and fromEl when `loadDashboard` returned `'must_change_password'`. That check and that return value are both gone. Never re-add a `must_change_password` branch to `loadDashboard` or `crossFadeToDashboard`.
+- **#dash default state**: Must have `style="display:none"` in index.html. Without it, the dashboard flashes visible during the async getSession() call on every page load. Never remove this inline style.
+- **OTP tokens**: Each call to `resetPasswordForEmail` generates a new token and invalidates all previous ones for that email. If testing, always use the most recent reset email. Do not click links from earlier test emails.
+
 ### Glow bleed on mm-tiles — right edge of screen
 - **Bug**: After closing a tile panel, the tile's neon colour bled out to the right edge of the screen
 - **Root cause**: The mm-tile box-shadow uses rgba values that extend beyond the viewport
