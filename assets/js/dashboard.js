@@ -286,16 +286,6 @@ async function crossFadeToDashboard(user, fromEl) {
       revert();
       return false;
     }
-    if (ok === 'must_change_password') {
-      // loadDashboard already called showRecovery(). Just clean up the fade.
-      dashEl.style.display = 'none';
-      dashEl.classList.remove('screen-fade-in');
-      if (fromEl) {
-        fromEl.classList.remove('screen-fade-out');
-        fromEl.style.display = 'none';
-      }
-      return false;
-    }
     if (skeletonEl) skeletonEl.style.display = 'none';
     if (mainEl) mainEl.style.display = '';
     return true;
