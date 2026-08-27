@@ -103,27 +103,15 @@ async function handleRecovery() {
       return;
     }
 
-    const { data: { user: recoveryUser } } = await sb.auth.getUser();
     const { data: { session: recoverySession } } = await sb.auth.getSession();
     okDiv.style.display = 'block';
-    if (recoveryUser) {
-      // Clear flag first, then reload — reload is safer than crossFadeToDashboard
-      // here because loadDashboard timing races cause a black screen.
-      if (recoverySession?.access_token) {
-        await fetch(SUPABASE_URL + '/functions/v1/clear-must-change-password', {
-          method: 'POST',
-          headers: { 'Authorization': 'Bearer ' + recoverySession.access_token },
-        }).catch(() => {});
-      }
-      setTimeout(() => { window.location.href = '/'; }, 1200);
-    } else {
-      errDiv.textContent = 'Password updated. Please sign in again.';
-      errDiv.style.display = 'block';
-      setTimeout(() => {
-        document.getElementById('recoveryScreen').classList.remove('active');
-        document.getElementById('loginScreen').style.display = 'flex';
-      }, 1500);
+    if (recoverySession?.access_token) {
+      await fetch(SUPABASE_URL + '/functions/v1/clear-must-change-password', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + recoverySession.access_token },
+      }).catch(() => {});
     }
+    setTimeout(() => { window.location.href = '/'; }, 1500);
   } catch (e) {
     errDiv.textContent = 'Network error. Try again.';
     errDiv.style.display = 'block';
