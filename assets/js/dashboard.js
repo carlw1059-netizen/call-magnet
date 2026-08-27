@@ -959,6 +959,7 @@ async function confirmReset() {
   await loadStats();
 }
 
+window._isPasswordRecoveryFlow = window.location.hash.includes('type=recovery');
 document.addEventListener('DOMContentLoaded', async () => {
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
@@ -1010,6 +1011,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     _adminUserEmail = newSession?.user?.email ?? '';
     refreshAdminFab();
     if (event === 'PASSWORD_RECOVERY') {
+      if (!window._isPasswordRecoveryFlow) {
+        console.warn('[CM DEBUG] PASSWORD_RECOVERY fired but URL had no type=recovery — ignoring spurious event');
+        return;
+      }
       console.log('[CM DEBUG] PASSWORD_RECOVERY fired', { event, session: newSession, localStorageToken: localStorage.getItem('callmagnet-auth-token') });
       showRecovery();
     }
