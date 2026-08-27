@@ -107,18 +107,15 @@ async function handleRecovery() {
     const { data: { session: recoverySession } } = await sb.auth.getSession();
     okDiv.style.display = 'block';
     if (recoveryUser) {
-      // Clear must_change_password BEFORE loading dashboard — flag must be gone
-      // or loadDashboard will loop back into showRecovery() causing a black screen
-      if (currentClient) currentClient.must_change_password = false;
+      // Clear flag first, then reload — reload is safer than crossFadeToDashboard
+      // here because loadDashboard timing races cause a black screen.
       if (recoverySession?.access_token) {
         await fetch(SUPABASE_URL + '/functions/v1/clear-must-change-password', {
           method: 'POST',
           headers: { 'Authorization': 'Bearer ' + recoverySession.access_token },
         }).catch(() => {});
       }
-      setTimeout(async () => {
-        await crossFadeToDashboard(recoveryUser, document.getElementById('recoveryScreen'));
-      }, 900);
+      setTimeout(() => { window.location.href = '/'; }, 1200);
     } else {
       errDiv.textContent = 'Password updated. Please sign in again.';
       errDiv.style.display = 'block';
