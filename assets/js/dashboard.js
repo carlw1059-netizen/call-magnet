@@ -326,12 +326,6 @@ async function loadDashboard(user, opts = {}) {
     progressier.add({ id: currentClient.id });
   }
 
-  // First-login forced password change — must happen before any dashboard load
-  if (currentClient.must_change_password) {
-    showRecovery();
-    return 'must_change_password'; // signals crossFadeToDashboard to skip revert
-  }
-
   if (!opts.skipScreenSwap) {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('dash').style.display = 'block';
