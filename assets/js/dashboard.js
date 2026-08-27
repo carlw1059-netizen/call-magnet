@@ -165,7 +165,7 @@ async function handleReset() {
   btn.textContent = 'Sending...';
   try {
     const { error: resetErr } = await sb.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://callmagnet.com.au/',
+      redirectTo: 'https://callmagnet.com.au/reset-password',
     });
     if (resetErr) {
       errDiv.textContent = 'Could not send reset email. Try again.';

@@ -1,7 +1,7 @@
 # Netlify configuration for callmagnet.com.au
 
 [build]
-  command = "sed -i 's/\r//' assets/js/clients-admin.js assets/js/dashboard.js assets/js/middle-man-admin.js assets/js/middleman.js assets/js/onboard.js && CLEAN_URL=$(echo -n \"$SUPABASE_URL\" | tr -d '\\n\\r') && CLEAN_ANON=$(echo -n \"$SUPABASE_ANON_KEY\" | tr -d '\\n\\r') && sed -i 's|%%SUPABASE_URL%%|'\"$CLEAN_URL\"'|g' assets/js/clients-admin.js assets/js/dashboard.js assets/js/middle-man-admin.js assets/js/middleman.js assets/js/onboard.js && sed -i 's|%%SUPABASE_ANON_KEY%%|'\"$CLEAN_ANON\"'|g' assets/js/clients-admin.js assets/js/dashboard.js assets/js/middle-man-admin.js assets/js/middleman.js assets/js/onboard.js"
+  command = "sed -i 's/\r//' assets/js/clients-admin.js assets/js/dashboard.js assets/js/middle-man-admin.js assets/js/middleman.js assets/js/onboard.js reset-password.html && CLEAN_URL=$(echo -n \"$SUPABASE_URL\" | tr -d '\\n\\r') && CLEAN_ANON=$(echo -n \"$SUPABASE_ANON_KEY\" | tr -d '\\n\\r') && sed -i 's|%%SUPABASE_URL%%|'\"$CLEAN_URL\"'|g' assets/js/clients-admin.js assets/js/dashboard.js assets/js/middle-man-admin.js assets/js/middleman.js assets/js/onboard.js reset-password.html && sed -i 's|%%SUPABASE_ANON_KEY%%|'\"$CLEAN_ANON\"'|g' assets/js/clients-admin.js assets/js/dashboard.js assets/js/middle-man-admin.js assets/js/middleman.js assets/js/onboard.js reset-password.html"
 
 [[redirects]]
   from   = "/b/*"
