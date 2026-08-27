@@ -107,16 +107,17 @@ async function handleRecovery() {
     const { data: { session: recoverySession } } = await sb.auth.getSession();
     okDiv.style.display = 'block';
     if (recoveryUser) {
+      // Clear must_change_password BEFORE loading dashboard — flag must be gone
+      // or loadDashboard will loop back into showRecovery() causing a black screen
+      if (currentClient) currentClient.must_change_password = false;
+      if (recoverySession?.access_token) {
+        await fetch(SUPABASE_URL + '/functions/v1/clear-must-change-password', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + recoverySession.access_token },
+        }).catch(() => {});
+      }
       setTimeout(async () => {
-        const dashResult = await crossFadeToDashboard(recoveryUser, document.getElementById('recoveryScreen'));
-        // Only clear must_change_password AFTER dashboard loads successfully — uses edge function to bypass RLS
-        if (dashResult !== false && recoverySession?.access_token) {
-          await fetch(SUPABASE_URL + '/functions/v1/clear-must-change-password', {
-            method: 'POST',
-            headers: { 'Authorization': 'Bearer ' + recoverySession.access_token },
-          }).catch(() => {});
-          if (currentClient) currentClient.must_change_password = false;
-        }
+        await crossFadeToDashboard(recoveryUser, document.getElementById('recoveryScreen'));
       }, 900);
     } else {
       errDiv.textContent = 'Password updated. Please sign in again.';
