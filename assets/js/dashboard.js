@@ -164,12 +164,10 @@ async function handleReset() {
   btn.disabled = true;
   btn.textContent = 'Sending...';
   try {
-    const res = await fetch(SUPABASE_URL + '/functions/v1/request-login-link', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
-      body: JSON.stringify({ identifier: email }),
+    const { error: resetErr } = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://callmagnet.com.au/',
     });
-    if (!res.ok) {
+    if (resetErr) {
       errDiv.textContent = 'Could not send reset email. Try again.';
       errDiv.style.display = 'block';
     } else {
