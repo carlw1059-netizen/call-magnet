@@ -298,6 +298,19 @@ async function loadDashboard(user, opts = {}) {
 
   currentClient = clients[0];
 
+  if (currentClient.must_change_password) {
+    await sb.auth.resetPasswordForEmail(currentClient.email, {
+      redirectTo: 'https://callmagnet.com.au/reset-password',
+    });
+    document.getElementById('errorMsg').textContent =
+      'Welcome! You need to set up your password before logging in. Check your email for a setup link — it expires in 60 minutes.';
+    document.getElementById('errorMsg').style.display = 'block';
+    const loginBtn = document.getElementById('loginBtn');
+    if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'Sign in'; }
+    await sb.auth.signOut();
+    return false;
+  }
+
   if (typeof progressier !== 'undefined' && currentClient?.id) {
     progressier.add({ id: currentClient.id });
   }
