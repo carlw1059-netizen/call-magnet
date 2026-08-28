@@ -307,7 +307,8 @@
     text-align: center;
     letter-spacing: 0.01em;
     line-height: 1.3;
-    transition: opacity 0.12s, transform 0.08s, border-radius 0.15s;
+    transition: opacity 0.12s, transform 0.08s;
+    animation: breathe 2.5s ease-in-out infinite;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
     text-decoration: none;
@@ -318,6 +319,22 @@
   }
   .tap-btn.glow-off {
     box-shadow: none;
+  }
+  .tap-btn.glow-off {
+    animation: none;
+  }
+  @keyframes breathe {
+    0%   { box-shadow: 0 0 4px var(--neon, #06D6A0), 0 0 6px color-mix(in srgb, var(--neon, #06D6A0) 30%, transparent); }
+    50%  { box-shadow: 0 0 12px var(--neon, #06D6A0), 0 0 24px color-mix(in srgb, var(--neon, #06D6A0) 60%, transparent); }
+    100% { box-shadow: 0 0 4px var(--neon, #06D6A0), 0 0 6px color-mix(in srgb, var(--neon, #06D6A0) 30%, transparent); }
+  }
+  @keyframes shake {
+    0%   { transform: translateX(0); }
+    20%  { transform: translateX(-6px); }
+    40%  { transform: translateX(6px); }
+    60%  { transform: translateX(-4px); }
+    80%  { transform: translateX(4px); }
+    100% { transform: translateX(0); }
   }
 
   /* ── "See what's on" section ─────────────────────────────────────────────── */
