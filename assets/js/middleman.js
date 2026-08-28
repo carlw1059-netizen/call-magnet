@@ -638,19 +638,18 @@
     }
 
     // ── Business name + promo ─────────────────────────────────────────────
-    document.getElementById('heroBusinessName').textContent = businessName;
+    var _heroEl = document.getElementById('heroBusinessName');
+    if (_heroEl) _heroEl.textContent = businessName;
     document.title = businessName || 'CallMagnet';
 
-    // ── Logo: if set, insert above #heroBusinessName and hide the text ────
+    // ── Logo zone ─────────────────────────────────────────────────────────
     var logoUrl = client.middle_man_logo_url || null;
-    var heroName = document.getElementById('heroBusinessName');
-    if (logoUrl && heroName) {
+    var logoZone = document.getElementById('logoZone');
+    if (logoUrl && logoZone) {
       var logoImg = document.createElement('img');
       logoImg.src = logoUrl;
       logoImg.alt = businessName;
-      logoImg.style.cssText = 'width:auto;max-width:85%;max-height:90px;object-fit:contain;display:block;margin:0 auto 4px;';
-      heroName.style.display = 'none';
-      heroName.parentNode.insertBefore(logoImg, heroName);
+      logoZone.appendChild(logoImg);
     }
 
     // ── Buttons ───────────────────────────────────────────────────────────
