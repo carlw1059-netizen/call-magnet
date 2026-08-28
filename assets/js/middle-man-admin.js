@@ -1031,7 +1031,7 @@ async function removeLogo() {
     var preview = document.getElementById('mmaLogoPreview');
     if (preview) preview.outerHTML = '<div id="mmaLogoPreview" style="margin-bottom:10px;font-size:12px;color:#000000;">No logo uploaded yet.</div>';
     var removeBtn = document.getElementById('mmaLogoRemoveBtn');
-    if (removeBtn) removeBtn.style.display = 'none';
+    if (removeBtn) removeBtn.remove();
     _flash('mmaLogoMsg', '✓ Logo removed', false);
   } catch (err) {
     _flash('mmaLogoMsg', '✗ ' + err.message, true);
