@@ -616,3 +616,18 @@
     100% { opacity: 0;   transform: translate(var(--sparkle-drift, 0px), -56px) scale(0.15); }
   }
 
+
+#logoZone {
+  width: 100%;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#logoZone img {
+  max-height: 90px;
+  max-width: min(calc(100% - 48px), 440px);
+  width: auto;
+  object-fit: contain;
+  display: block;
+}

@@ -646,8 +646,7 @@
       var logoImg = document.createElement('img');
       logoImg.src = logoUrl;
       logoImg.alt = businessName;
-      logoImg.style.cssText = 'width:auto;max-width:85%;max-height:90px;object-fit:contain;display:block;margin:0 auto;';
-      document.getElementById('pageHeader').appendChild(logoImg);
+      document.getElementById('logoZone').appendChild(logoImg);
     }
 
     // ── Buttons ───────────────────────────────────────────────────────────
