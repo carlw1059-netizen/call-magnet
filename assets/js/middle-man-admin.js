@@ -405,7 +405,7 @@ function renderEditBody(client) {
         '<button id="mmaLogoUploadBtn" class="mma-save-btn">Upload</button>' +
       '</div>' +
       '<div id="mmaLogoMsg" class="mma-saved-msg" style="margin-left:0;margin-top:6px;"></div>' +
-      '<button id="mmaLogoRemoveBtn" class="mma-save-btn" style="margin-top:8px;background:#cc3333;' + (_editClientData.middle_man_logo_url ? '' : 'display:none;') + '">Remove logo</button>' +
+      '<button id="mmaLogoRemoveBtn" class="mma-save-btn" style="margin-top:8px;background:#cc3333;">Remove logo</button>' +
     '</div>';
 
   // ── 1. Heading (FIX 1: 22px)
@@ -1004,7 +1004,7 @@ async function uploadLogo() {
     }
     _flash('mmaLogoMsg', '✓ Logo uploaded', false);
     var existingRemoveBtn = document.getElementById('mmaLogoRemoveBtn');
-    if (existingRemoveBtn) existingRemoveBtn.style.display = '';
+    if (existingRemoveBtn) existingRemoveBtn.style.display = 'block';
   } catch (err) {
     _flash('mmaLogoMsg', '✗ ' + err.message, true);
   } finally {
@@ -1021,7 +1021,7 @@ async function removeLogo() {
     var preview = document.getElementById('mmaLogoPreview');
     if (preview) preview.outerHTML = '<div id="mmaLogoPreview" style="margin-bottom:10px;font-size:12px;color:#000000;">No logo uploaded yet.</div>';
     var removeBtn = document.getElementById('mmaLogoRemoveBtn');
-    if (removeBtn) removeBtn.style.display = 'none';
+    if (removeBtn) removeBtn.style.display = 'block';
     _flash('mmaLogoMsg', '✓ Logo removed', false);
   } catch (err) {
     _flash('mmaLogoMsg', '✗ ' + err.message, true);
