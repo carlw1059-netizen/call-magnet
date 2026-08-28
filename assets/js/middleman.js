@@ -638,18 +638,19 @@
     }
 
     // ── Business name + promo ─────────────────────────────────────────────
-    var _heroEl = document.getElementById('heroBusinessName');
-    if (_heroEl) _heroEl.textContent = businessName;
+    document.getElementById('heroBusinessName').textContent = businessName;
     document.title = businessName || 'CallMagnet';
 
-    // ── Logo zone ─────────────────────────────────────────────────────────
+    // ── Logo: if set, insert above #heroBusinessName and hide the text ────
     var logoUrl = client.middle_man_logo_url || null;
-    var logoZone = document.getElementById('logoZone');
-    if (logoUrl && logoZone) {
+    var heroName = document.getElementById('heroBusinessName');
+    if (logoUrl && heroName) {
       var logoImg = document.createElement('img');
       logoImg.src = logoUrl;
       logoImg.alt = businessName;
-      logoZone.appendChild(logoImg);
+      logoImg.style.cssText = 'width:auto;max-width:85%;max-height:90px;object-fit:contain;display:block;margin:0 auto 4px;';
+      heroName.style.display = 'none';
+      heroName.parentNode.insertBefore(logoImg, heroName);
     }
 
     // ── Buttons ───────────────────────────────────────────────────────────
@@ -736,14 +737,6 @@
       // Sparkles: slow ambient floating dust particles drifting upward
       if (btn.sparkles === true) {
         applySparkles(unit, btn.color || NEON[Math.min(idx, NEON.length - 1)]);
-      }
-
-      // Shake effect — fires on tap
-      if (btn.effect === 'shake') {
-        btnEl.addEventListener('click', function() {
-          btnEl.style.animation = 'shake 0.4s ease';
-          setTimeout(function() { btnEl.style.animation = ''; }, 400);
-        });
       }
 
     });

@@ -169,30 +169,23 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    padding: 16px 24px 12px;
+    min-height: 100px;
     text-align: center;
   }
   .page-header.compact {
     min-height: 60px;
     padding-bottom: 8px;
   }
-
-  /* ── Logo zone — fixed height, always invisible ─────────────────────── */
-  #logoZone {
-    height: 110px;
+  .hero-business-name {
     width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  #logoZone img {
-    max-height: 90px;
-    max-width: min(calc(100% - 48px), 440px);
-    width: auto;
-    height: auto;
-    object-fit: contain;
-    display: block;
+    text-align: center;
+    font-size: clamp(18px, 5vw, 32px);
+    font-weight: 700;
+    color: #FFFFFF;
+    line-height: 1.2;
+    word-break: break-word;
+    padding: 0 16px;
   }
 
   /* ── Flexible spacer — pushes buttons to lower half when bg image present ─ */
@@ -268,13 +261,13 @@
   /* Sibling buttons slide away when a form is open */
   .slide-up {
     transform: translateY(-120vh);
-    transition: transform 0.2s ease;
+    transition: transform 0.3s ease;
     pointer-events: none;
     position: absolute;
   }
   .slide-down {
     transform: translateY(120vh);
-    transition: transform 0.2s ease;
+    transition: transform 0.3s ease;
     pointer-events: none;
     position: absolute;
   }
@@ -307,7 +300,6 @@
     border-radius: 12px;
     color: var(--neon, #06D6A0);
     box-shadow: 0 0 4px var(--neon, #06D6A0), 0 0 6px color-mix(in srgb, var(--neon, #06D6A0) 30%, transparent);
-    animation: breathe 2.5s ease-in-out infinite;
     font-size: 15px;
     font-weight: 600;
     font-family: inherit;
@@ -326,7 +318,6 @@
   }
   .tap-btn.glow-off {
     box-shadow: none;
-    animation: none;
   }
 
   /* ── "See what's on" section ─────────────────────────────────────────────── */
@@ -379,13 +370,11 @@
   .form-wrap {
     overflow: hidden;
     max-height: 0;
-    opacity: 0;
-    transition: max-height 0.35s ease, opacity 0.1s ease;
+    transition: max-height 0.35s ease;
   }
   /* Form expands inline below the tapped button — page grows naturally */
   .form-wrap.open {
     max-height: 1200px;
-    opacity: 1;
   }
 
   .inline-form {
@@ -409,8 +398,8 @@
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     border: none;
-    box-shadow: none !important;
-    animation: none !important;
+    box-shadow: none;
+    border-radius: 12px 12px 0 0;
     color: var(--neon, #06D6A0);
     flex-shrink: 0;
   }
@@ -620,22 +609,6 @@
     opacity: 0;
     animation: sparkle-float linear forwards;
   }
-  @keyframes breathe {
-    0%   { box-shadow: 0 0 4px var(--neon, #06D6A0), 0 0 6px color-mix(in srgb, var(--neon, #06D6A0) 30%, transparent); }
-    50%  { box-shadow: 0 0 12px var(--neon, #06D6A0), 0 0 24px color-mix(in srgb, var(--neon, #06D6A0) 60%, transparent); }
-    100% { box-shadow: 0 0 4px var(--neon, #06D6A0), 0 0 6px color-mix(in srgb, var(--neon, #06D6A0) 30%, transparent); }
-  }
-
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    15% { transform: translateX(-5px); }
-    30% { transform: translateX(5px); }
-    45% { transform: translateX(-4px); }
-    60% { transform: translateX(4px); }
-    75% { transform: translateX(-2px); }
-    90% { transform: translateX(2px); }
-  }
-
   @keyframes sparkle-float {
     0%   { opacity: 0;   transform: translate(0, 0) scale(1); }
     12%  { opacity: 0.9; }
