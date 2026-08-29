@@ -6,3 +6,21 @@ skills-lock.json
 .netlify
 
 graphify-out/
+
+# Dependencies
+node_modules/
+
+# Research and notes
+research/
+
+# Tool directories
+.hyperresearch/
+.ua/
+
+# Scratch and debug files
+STRUCTURE.md
+callmagnet-hero-debug.html
+logo-test.html
+
+# Accidental Windows path files
+C*
