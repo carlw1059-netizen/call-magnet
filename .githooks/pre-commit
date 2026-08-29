@@ -1,0 +1,20 @@
+#!/bin/sh
+# CallMagnet pre-commit hook
+# Blocks commits if "staging" appears in b.html or cm1site/b.html
+
+FILES="b.html cm1site/b.html"
+
+for FILE in $FILES; do
+  if [ -f "$FILE" ]; then
+    if grep -q "staging" "$FILE"; then
+      echo ""
+      echo "COMMIT BLOCKED: '$FILE' contains the word 'staging'"
+      echo "Run: grep -n 'staging' $FILE"
+      echo "Fix the file before committing."
+      echo ""
+      exit 1
+    fi
+  fi
+done
+
+exit 0
