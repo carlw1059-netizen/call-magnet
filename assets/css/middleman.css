@@ -637,13 +637,13 @@
 
 #logoZone {
   width: 100%;
-  height: 110px;
+  height: 180px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 #logoZone img {
-  max-height: 90px;
+  max-height: 160px;
   max-width: min(100%, 440px);
   width: auto;
   object-fit: contain;
