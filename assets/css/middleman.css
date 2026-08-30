@@ -644,8 +644,8 @@
 }
 #logoZone img {
   max-height: 90px;
-  max-width: min(100%, 440px);
-  width: 100%;
+  width: calc(100% - 48px);
+  max-width: 440px;
   object-fit: contain;
   display: block;
 }
