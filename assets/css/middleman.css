@@ -643,8 +643,8 @@
   justify-content: center;
 }
 #logoZone img {
-  max-height: 90px;
   width: calc(100% - 48px);
+  height: 90px;
   max-width: 440px;
   object-fit: contain;
   display: block;
