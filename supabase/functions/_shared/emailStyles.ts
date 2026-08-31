@@ -66,7 +66,7 @@ export function renderEmailShell(content: string, preheader?: string): string {
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${BRAND.pageBackground};">
     <tr>
       <td align="center" style="padding:32px 16px;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:${BRAND.cardBackground};border:1px solid ${BRAND.borderColor};border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.35);">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:${BRAND.cardBackground};border:1px solid ${BRAND.borderColor};border-left:3px solid ${BRAND.edge};border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.35);">
           <tr>
             <td class="em-card" style="padding:40px 36px;font-family:${BRAND.fontStack};color:${BRAND.primaryText};">
               <div style="font-family:ui-monospace, SFMono-Regular, 'DM Mono', monospace;font-size:14px;letter-spacing:0.16em;color:${BRAND.accent};text-transform:uppercase;font-weight:700;margin-bottom:28px;">
@@ -74,7 +74,7 @@ export function renderEmailShell(content: string, preheader?: string): string {
               </div>
               ${content}
               <div style="margin-top:40px;padding-top:24px;border-top:1px solid ${BRAND.borderColor};font-size:12px;color:${BRAND.mutedText};text-align:center;font-family:${BRAND.fontStack};">
-                <a href="https://callmagnet.com.au" style="color:${BRAND.mutedText};text-decoration:none;">callmagnet.com.au</a>
+                <span style="color:${BRAND.accent};font-family:ui-monospace,SFMono-Regular,'DM Mono',monospace;letter-spacing:0.08em;">CallMagnet — Pull every customer back.</span>
               </div>
             </td>
           </tr>
