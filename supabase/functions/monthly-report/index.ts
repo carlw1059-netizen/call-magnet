@@ -20,7 +20,7 @@
 // footer note); the run-summary alert email uses the standard renderEmailShell.
 
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
-import { BRAND, escapeHtml as sharedEscapeHtml, renderEmailShell } from '../_shared/emailStyles.ts';
+import { BRAND, escapeHtml, renderEmailShell } from '../_shared/emailStyles.ts';
 
 // ─── env ──────────────────────────────────────────────────────────────────
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
@@ -219,16 +219,11 @@ async function gatherClientReport(
 }
 
 // ─── email rendering ──────────────────────────────────────────────────────
-const escapeHtml = sharedEscapeHtml;
-
 function fmtMoney(n: number): string {
   return '$' + n.toLocaleString('en-AU');
 }
 
-// Recap email keeps its distinctive multi-section card layout (header bar,
-// hero stat block, 2×2 metric grid, prose footer). All brand colours pulled
-// from BRAND so a palette swap propagates without touching this function.
-function renderEmailHTML(c: ClientRow, p: ClientReportPayload, period: Period): string {
+function renderEmailHTML(c: ClientRow, p: ClientReportPayload, period: Period, dashboardUrl: string): string {
   const biz = escapeHtml(c.business_name);
   const month = escapeHtml(period.label);
   const busiestLine = (p.busiest_day_dow !== null && p.busiest_day_calls !== null && p.busiest_day_calls > 0)
@@ -238,66 +233,54 @@ function renderEmailHTML(c: ClientRow, p: ClientReportPayload, period: Period): 
     ? `<p style="margin:0 0 12px;">Compared to ${p.benchmark_cohort_size} similar businesses in your area: their median tap rate is ${p.benchmark_median_tap_rate_pct}% — yours is ${p.tap_rate_pct}%.</p>`
     : '';
 
-  return `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8"><title>Your ${month} CallMagnet recap</title></head>
-<body style="margin:0;padding:0;background:${BRAND.pageBackground};font-family:${BRAND.fontStack};color:${BRAND.primaryText};">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${BRAND.pageBackground};padding:24px 0;">
-    <tr><td align="center">
-      <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="background:${BRAND.cardBackground};border:1px solid ${BRAND.borderColor};border-radius:10px;overflow:hidden;">
-        <tr><td style="padding:24px 28px;background:${BRAND.cardBackground};border-bottom:1px solid ${BRAND.borderColor};color:${BRAND.accent};font-family:'DM Mono', ui-monospace, SFMono-Regular, monospace;letter-spacing:0.15em;font-size:14px;font-weight:700;text-transform:uppercase;">★ CallMagnet</td></tr>
-        <tr><td style="padding:28px;">
-          <h1 style="margin:0 0 8px;font-size:22px;color:${BRAND.primaryText};letter-spacing:-0.01em;">Hi ${biz},</h1>
-          <p style="margin:0 0 20px;font-size:15px;color:${BRAND.secondaryText};">Here's how ${month} went.</p>
+  const content = `
+    <h1 style="margin:0 0 8px;font-size:22px;color:${BRAND.primaryText};letter-spacing:-0.01em;">Hi ${biz},</h1>
+    <p style="margin:0 0 20px;font-size:15px;color:${BRAND.secondaryText};">Here's how ${month} went.</p>
 
-          <div style="background:${BRAND.successBg};border:1px solid ${BRAND.accent};border-radius:8px;padding:18px 20px;margin-bottom:18px;">
-            <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:${BRAND.accent};font-weight:700;margin-bottom:6px;">Missed calls captured</div>
-            <div style="font-size:36px;color:${BRAND.accent};font-weight:300;letter-spacing:-0.02em;">${p.sms_count}</div>
+    <div style="background:${BRAND.successBg};border:1px solid ${BRAND.accent};border-radius:8px;padding:18px 20px;margin-bottom:18px;">
+      <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:${BRAND.accent};font-weight:700;margin-bottom:6px;">Missed calls captured</div>
+      <div style="font-size:36px;color:${BRAND.accent};font-weight:300;letter-spacing:-0.02em;">${p.sms_count}</div>
+    </div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
+      <tr>
+        <td width="50%" style="padding:6px 6px 6px 0;vertical-align:top;">
+          <div style="border:1px solid ${BRAND.accent};border-radius:6px;padding:10px 14px;">
+            <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${BRAND.accent};font-weight:700;margin-bottom:4px;">SMS sent</div>
+            <div style="font-size:24px;color:${BRAND.primaryText};font-weight:300;">${p.sms_count}</div>
           </div>
+        </td>
+        <td width="50%" style="padding:6px 0 6px 6px;vertical-align:top;">
+          <div style="border:1px solid ${BRAND.accent};border-radius:6px;padding:10px 14px;">
+            <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${BRAND.accent};font-weight:700;margin-bottom:4px;">Link taps</div>
+            <div style="font-size:24px;color:${BRAND.primaryText};font-weight:300;">${p.click_count}</div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td width="50%" style="padding:6px 6px 6px 0;vertical-align:top;">
+          <div style="border:1px solid ${BRAND.accent};border-radius:6px;padding:10px 14px;">
+            <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${BRAND.accent};font-weight:700;margin-bottom:4px;">Bookings</div>
+            <div style="font-size:24px;color:${BRAND.primaryText};font-weight:300;">${p.booking_count}</div>
+          </div>
+        </td>
+        <td width="50%" style="padding:6px 0 6px 6px;vertical-align:top;">
+          <div style="border:1px solid ${BRAND.accent};border-radius:6px;padding:10px 14px;">
+            <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${BRAND.accent};font-weight:700;margin-bottom:4px;">Tap rate</div>
+            <div style="font-size:24px;color:${BRAND.primaryText};font-weight:300;">${p.tap_rate_pct ?? 0}%</div>
+          </div>
+        </td>
+      </tr>
+    </table>
 
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
-            <tr>
-              <td width="50%" style="padding:6px 6px 6px 0;vertical-align:top;">
-                <div style="border:1px solid ${BRAND.accent};border-radius:6px;padding:10px 14px;">
-                  <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${BRAND.accent};font-weight:700;margin-bottom:4px;">SMS sent</div>
-                  <div style="font-size:24px;color:${BRAND.primaryText};font-weight:300;">${p.sms_count}</div>
-                </div>
-              </td>
-              <td width="50%" style="padding:6px 0 6px 6px;vertical-align:top;">
-                <div style="border:1px solid ${BRAND.accent};border-radius:6px;padding:10px 14px;">
-                  <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${BRAND.accent};font-weight:700;margin-bottom:4px;">Link taps</div>
-                  <div style="font-size:24px;color:${BRAND.primaryText};font-weight:300;">${p.click_count}</div>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td width="50%" style="padding:6px 6px 6px 0;vertical-align:top;">
-                <div style="border:1px solid ${BRAND.accent};border-radius:6px;padding:10px 14px;">
-                  <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${BRAND.accent};font-weight:700;margin-bottom:4px;">Bookings</div>
-                  <div style="font-size:24px;color:${BRAND.primaryText};font-weight:300;">${p.booking_count}</div>
-                </div>
-              </td>
-              <td width="50%" style="padding:6px 0 6px 6px;vertical-align:top;">
-                <div style="border:1px solid ${BRAND.accent};border-radius:6px;padding:10px 14px;">
-                  <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${BRAND.accent};font-weight:700;margin-bottom:4px;">Tap rate</div>
-                  <div style="font-size:24px;color:${BRAND.primaryText};font-weight:300;">${p.tap_rate_pct ?? 0}%</div>
-                </div>
-              </td>
-            </tr>
-          </table>
+    <p style="margin:0 0 12px;font-size:14px;color:${BRAND.primaryText};">You've now had <strong>${p.repeat_caller_count}</strong> ${p.repeat_caller_count === 1 ? 'customer' : 'customers'} call you back twice or more.</p>
+    ${busiestLine}
+    ${benchLine}
 
-          <p style="margin:0 0 12px;font-size:14px;color:${BRAND.primaryText};">You've now had <strong>${p.repeat_caller_count}</strong> ${p.repeat_caller_count === 1 ? 'customer' : 'customers'} call you back twice or more.</p>
-          ${busiestLine}
-          ${benchLine}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:32px 0 8px;"><tr><td align="center"><a href="${dashboardUrl}" style="display:inline-block;background:${BRAND.accent};color:#000000;padding:14px 32px;border-radius:8px;font-weight:700;text-decoration:none;font-size:15px;font-family:${BRAND.fontStack};letter-spacing:0.02em;">View your dashboard →</a></td></tr></table>
+  `;
 
-          <p style="margin:24px 0 0;font-size:13px;color:${BRAND.secondaryText};">Sign in to your dashboard at <a href="https://callmagnet.com.au" style="color:${BRAND.accent};">callmagnet.com.au</a> to see live activity.</p>
-        </td></tr>
-        <tr><td style="padding:18px 28px;background:${BRAND.pageBackground};border-top:1px solid ${BRAND.borderColor};font-size:11px;color:${BRAND.mutedText};font-family:'DM Mono', ui-monospace, SFMono-Regular, monospace;letter-spacing:0.05em;">CallMagnet — Pull every customer back.</td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
+  return renderEmailShell(content, `Your ${period.label} CallMagnet recap`);
 }
 
 // Run-summary alert email — fired at the end of each cron run with sent /
@@ -352,6 +335,23 @@ async function sendViaResend(args: { to: string; subject: string; html: string; 
     return { ok: true, messageId: typeof json?.id === 'string' ? json.id : undefined };
   } catch (err) {
     return { ok: false, error: `Resend fetch threw: ${(err as Error).message}` };
+  }
+}
+
+// ─── magic link helper ────────────────────────────────────────────────────
+async function getDashboardUrl(email: string): Promise<string> {
+  try {
+    const supa = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const { data } = await supa.auth.admin.generateLink({
+      type: 'magiclink',
+      email,
+      options: { redirectTo: 'https://callmagnet.com.au' },
+    });
+    return data?.properties?.action_link ?? 'https://callmagnet.com.au';
+  } catch {
+    return 'https://callmagnet.com.au';
   }
 }
 
@@ -430,7 +430,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
     if (dryRun) {
       try {
         const payload = await gatherClientReport(sb, c, period);
-        const html = renderEmailHTML(c, payload, period);
+        const dashboardUrl = await getDashboardUrl(c.email!);
+        const html = renderEmailHTML(c, payload, period, dashboardUrl);
         sent.push({ client_id: c.id, business_name: c.business_name });
         if (!dryRunPreviewHtml) dryRunPreviewHtml = html;
       } catch (err) {
@@ -462,7 +463,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
     let payload: ClientReportPayload | null = null;
     try {
       payload = await gatherClientReport(sb, c, period);
-      const html = renderEmailHTML(c, payload, period);
+      const dashboardUrl = await getDashboardUrl(c.email!);
+      const html = renderEmailHTML(c, payload, period, dashboardUrl);
       const send = await sendViaResend({
         to: c.email!, subject: `Your ${period.label} CallMagnet recap`, html,
       });
