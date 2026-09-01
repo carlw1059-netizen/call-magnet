@@ -14,9 +14,27 @@
 // Day14/Day30 email blasts to all live clients on manual invocation.
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from 'npm:@supabase/supabase-js@2';
 import { BRAND, escapeHtml, renderEmailShell } from "../_shared/emailStyles.ts";
 
-const INTERNAL_SECRET = Deno.env.get('INTERNAL_SECRET');
+const INTERNAL_SECRET           = Deno.env.get('INTERNAL_SECRET');
+const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+async function getDashboardUrl(email: string): Promise<string> {
+  const supa = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  const { data, error } = await supa.auth.admin.generateLink({
+    type: 'magiclink',
+    email,
+    options: { redirectTo: 'https://callmagnet.com.au/?source=email' },
+  });
+  if (error || !data?.properties?.action_link) {
+    return 'https://callmagnet.com.au/?source=email';
+  }
+  return data.properties.action_link;
+}
 
 Deno.serve(async (req) => {
   // Warmup — return before any DB or email work.
@@ -108,7 +126,7 @@ Deno.serve(async (req) => {
               </div>
               <p style="font-size:15px;color:${BRAND.primaryText};line-height:1.7;margin-bottom:16px;">Every one of those callers tried to reach your business number and couldn't get through. Without CallMagnet — they would have called someone else.</p>
               <p style="font-size:15px;color:${BRAND.primaryText};line-height:1.7;margin-bottom:32px;">When a missed caller books with you — tap <strong>+ Log a booking</strong> in your dashboard. It keeps your revenue total accurate and shows you exactly what CallMagnet is recovering.</p>
-              <a href="https://callmagnet.com.au" style="display:inline-block;background:${BRAND.accent};color:#0E1419;padding:12px 24px;border-radius:10px;font-weight:700;text-decoration:none;font-size:14px;margin-bottom:32px;">View your dashboard →</a>
+              <a href="${await getDashboardUrl(client.email)}" style="display:inline-block;background:${BRAND.accent};color:#0E1419;padding:12px 24px;border-radius:10px;font-weight:700;text-decoration:none;font-size:14px;margin-bottom:32px;">View your dashboard →</a>
               <p style="font-size:13px;color:${BRAND.mutedText};margin-top:40px;">Questions? Reply to this email or contact hello@callmagnet.com.au</p>
             </div>`
           })
@@ -179,7 +197,7 @@ Deno.serve(async (req) => {
               </div>
               <p style="font-size:15px;color:${BRAND.primaryText};line-height:1.7;margin-bottom:16px;">Those are customers who called your business number, couldn't get through, and still booked — because CallMagnet sent them straight to your booking link before they moved on.</p>
               <p style="font-size:15px;color:${BRAND.primaryText};line-height:1.7;margin-bottom:32px;">At 3 recovered bookings a week at $80 each — CallMagnet pays for itself in the first week of every month. The other three weeks are yours.</p>
-              <a href="https://callmagnet.com.au" style="display:inline-block;background:${BRAND.accent};color:#0E1419;padding:12px 24px;border-radius:10px;font-weight:700;text-decoration:none;font-size:14px;margin-bottom:32px;">View your dashboard →</a>
+              <a href="${await getDashboardUrl(client.email)}" style="display:inline-block;background:${BRAND.accent};color:#0E1419;padding:12px 24px;border-radius:10px;font-weight:700;text-decoration:none;font-size:14px;margin-bottom:32px;">View your dashboard →</a>
               <p style="font-size:13px;color:${BRAND.mutedText};margin-top:8px;">Thank you for being one of our first clients.</p>
               <p style="font-size:13px;color:${BRAND.mutedText};">We will never sell your data. Ever.</p>
             </div>`

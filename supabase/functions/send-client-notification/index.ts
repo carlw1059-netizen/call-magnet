@@ -38,6 +38,7 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import webPush from 'npm:web-push@3.6.7';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 import { BRAND, escapeHtml, renderEmailShell } from "../_shared/emailStyles.ts";
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
@@ -142,12 +143,28 @@ async function countSmsForWindow(clientId: string, since: string): Promise<numbe
   return parseInt(range.split('/')[1] ?? '0', 10) || 0;
 }
 
+async function getDashboardUrl(email: string): Promise<string> {
+  const supa = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  const { data, error } = await supa.auth.admin.generateLink({
+    type: 'magiclink',
+    email,
+    options: { redirectTo: 'https://callmagnet.com.au/?source=email' },
+  });
+  if (error || !data?.properties?.action_link) {
+    return 'https://callmagnet.com.au/?source=email';
+  }
+  return data.properties.action_link;
+}
+
 // Build the restaurant-specific missed-call email body.
 // title is already HTML-escaped by the caller.
 function buildRestaurantMissedCallEmail(
   title: string,
   todayCount: number, todayRevenue: number,
   weekCount: number,  weekRevenue: number,
+  ctaUrl: string,
 ): string {
   const fmt = (n: number) => n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : `$${n}`;
   return `
@@ -172,7 +189,7 @@ function buildRestaurantMissedCallEmail(
       </tr>
     </table>
     <div style="text-align:center;margin:0 0 28px;">
-      <a href="https://callmagnet.com.au/?source=email" style="display:inline-block;background:${BRAND.accent};color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 28px;border-radius:8px;letter-spacing:0.01em;">View Dashboard</a>
+      <a href="${ctaUrl}" style="display:inline-block;background:${BRAND.accent};color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 28px;border-radius:8px;letter-spacing:0.01em;">View Dashboard</a>
     </div>
     <p style="font-size:11px;color:${BRAND.mutedText};margin:0;line-height:1.5;">*Based on Lead Connect 2025 research: 62% of unanswered callers contact a competitor when their first call goes unanswered.</p>
   `;
@@ -478,10 +495,12 @@ Deno.serve(async (req) => {
           const revPerItem   = client.avg_job_value ?? 75;
           const todayRevenue = Math.round(todayCount * 0.62 * revPerItem);
           const weekRevenue  = Math.round(weekCount  * 0.62 * revPerItem);
+          const ctaUrl = await getDashboardUrl(client.email);
           emailContent = buildRestaurantMissedCallEmail(
             escapeHtml(title),
             todayCount, todayRevenue,
             weekCount,  weekRevenue,
+            ctaUrl,
           );
         } else {
           emailContent = `
