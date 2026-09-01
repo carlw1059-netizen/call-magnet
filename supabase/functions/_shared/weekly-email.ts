@@ -1,3 +1,4 @@
+import { BRAND, escapeHtml as sharedEscapeHtml, renderEmailShell } from './emailStyles.ts';
 import { countRows, ClientRow } from './weekly-db.ts';
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
@@ -85,10 +86,6 @@ export async function calcClientStats(client: ClientRow, weekStart: string, week
   return { smsSent, optOuts, linkClicks, bookingsLogged, conversionRate, daysUntilRenewal, overage, buttonClicks, heatmapData };
 }
 
-function escapeHtml(str: string): string {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
 function buildHeatmapTable(heatmapData: Array<{ day_of_week: number; hour_of_day: number; call_count: number }>): string {
   if (heatmapData.length === 0) return '';
   const DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -130,7 +127,7 @@ function buildHeatmapTable(heatmapData: Array<{ day_of_week: number; hour_of_day
     return `<tr><td style="padding:4px 6px 4px 0;font-size:11px;color:#000000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;white-space:nowrap;">${DAY_LABELS[d]}</td>${cells}</tr>`;
   }).join('');
   const peakSentence = `Peak: ${DAY_LABELS[peakDay]} ${HOUR_LABELS[peakHour]} (${maxCount} missed call${maxCount === 1 ? '' : 's'})`;
-  return `<p style="margin:24px 0 12px;font-size:13px;font-weight:700;color:#10b981;letter-spacing:0.04em;text-transform:uppercase;">When they called <span style="font-weight:400;color:#888888;font-size:11px;text-transform:none;">(last 90 days, 8am–10pm)</span></p><div style="overflow-x:auto;"><table role="presentation" cellpadding="0" cellspacing="2" border="0" style="min-width:320px;"><tr><td></td>${headerCells}</tr>${bodyRows}</table></div><p style="margin:8px 0 0;font-size:12px;color:#888888;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${escapeHtml(peakSentence)}</p>`;
+  return `<p style="margin:24px 0 12px;font-size:13px;font-weight:700;color:#10b981;letter-spacing:0.04em;text-transform:uppercase;">When they called <span style="font-weight:400;color:#888888;font-size:11px;text-transform:none;">(last 90 days, 8am–10pm)</span></p><div style="overflow-x:auto;"><table role="presentation" cellpadding="0" cellspacing="2" border="0" style="min-width:320px;"><tr><td></td>${headerCells}</tr>${bodyRows}</table></div><p style="margin:8px 0 0;font-size:12px;color:#888888;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${sharedEscapeHtml(peakSentence)}</p>`;
 }
 
 function buildStatsRows(stats: ClientStats): string {
@@ -145,7 +142,7 @@ function buildStatsRows(stats: ClientStats): string {
   ];
   const rowsHtml = rows.map((row, i) => {
     const top = i === 0 ? '' : 'border-top:1px solid #000000;';
-    return `<tr><td style="${top}padding:14px 0;font-size:14px;color:#000000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${escapeHtml(row.label)}</td><td style="${top}padding:14px 0;font-size:16px;font-weight:700;color:#10b981;text-align:right;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${escapeHtml(row.value)}</td></tr>`;
+    return `<tr><td style="${top}padding:14px 0;font-size:14px;color:#000000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${sharedEscapeHtml(row.label)}</td><td style="${top}padding:14px 0;font-size:16px;font-weight:700;color:#10b981;text-align:right;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${sharedEscapeHtml(row.value)}</td></tr>`;
   }).join('\n');
   let buttonSection = '';
   if (stats.buttonClicks.length > 0) {
@@ -155,9 +152,9 @@ function buildStatsRows(stats: ClientStats): string {
         ? '↳ Peak: ' + b.peakHours.map(p => `${HOUR_LABELS[p.hour]} (${p.count})`).join(', ')
         : '';
       const peakRow = peakStr
-        ? `<tr><td colspan="2" style="padding:0 0 10px 0;font-size:11px;color:#888888;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${escapeHtml(peakStr)}</td></tr>`
+        ? `<tr><td colspan="2" style="padding:0 0 10px 0;font-size:11px;color:#888888;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${sharedEscapeHtml(peakStr)}</td></tr>`
         : '';
-      return `<tr><td style="border-top:1px solid #eeeeee;padding:10px 0 4px 0;font-size:13px;color:#000000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${escapeHtml(b.intent)}</td><td style="border-top:1px solid #eeeeee;padding:10px 0 4px 0;font-size:14px;font-weight:700;color:#10b981;text-align:right;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${b.count}</td></tr>${peakRow}`;
+      return `<tr><td style="border-top:1px solid #eeeeee;padding:10px 0 4px 0;font-size:13px;color:#000000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${sharedEscapeHtml(b.intent)}</td><td style="border-top:1px solid #eeeeee;padding:10px 0 4px 0;font-size:14px;font-weight:700;color:#10b981;text-align:right;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${b.count}</td></tr>${peakRow}`;
     }).join('\n');
     buttonSection = `<p style="margin:24px 0 12px;font-size:13px;font-weight:700;color:#10b981;letter-spacing:0.04em;text-transform:uppercase;">Button clicks</p><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${buttonRows}</table>`;
   }
@@ -165,12 +162,33 @@ function buildStatsRows(stats: ClientStats): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rowsHtml}</table>${buttonSection}${heatmapSection}`;
 }
 
-function buildFooter(): string {
-  return `<tr><td align="center" style="background:#F5F5F5;border:1px solid #000000;border-top:none;border-radius:0 0 8px 8px;padding:20px 28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:12px;color:#888888;line-height:1.6;">You&rsquo;re receiving this because you&rsquo;re a CallMagnet client.<br><a href="mailto:hello@callmagnet.com.au" style="color:#10b981;text-decoration:none;">Contact us</a></td></tr>`;
+async function getDashboardUrl(email: string): Promise<string> {
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const { createClient } = await import('npm:@supabase/supabase-js@2');
+    const supa = createClient(supabaseUrl, serviceKey);
+    const { data } = await supa.auth.admin.generateLink({
+      type: 'magiclink',
+      email,
+      options: { redirectTo: 'https://callmagnet.com.au' },
+    });
+    return data?.properties?.action_link ?? 'https://callmagnet.com.au';
+  } catch {
+    return 'https://callmagnet.com.au';
+  }
 }
 
-export function buildWeeklyEmailHtml(client: ClientRow, stats: ClientStats, monLabel: string, sunLabel: string): string {
-  const weekLabel = escapeHtml(`Week of ${monLabel} — ${sunLabel}`);
-  const preheader = escapeHtml(`Your CallMagnet weekly summary — ${monLabel} to ${sunLabel}`);
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CallMagnet Weekly Summary</title></head><body style="margin:0;padding:0;background:#F5F5F5;"><div style="display:none;max-height:0;overflow:hidden;font-size:1px;color:transparent;">${preheader}</div><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F5F5F5;"><tr><td align="center" style="padding:32px 16px;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;"><tr><td style="background:#F5F5F5;border:1px solid #000000;border-bottom:2px solid #10b981;border-radius:8px 8px 0 0;padding:20px 28px;"><span style="font-family:ui-monospace,monospace;font-size:14px;font-weight:700;letter-spacing:0.16em;color:#10b981;text-transform:uppercase;">★ CallMagnet</span></td></tr><tr><td style="background:#FFFFFF;border:1px solid #000000;border-top:none;border-radius:0 0 8px 8px;padding:28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;"><p style="margin:0 0 16px;font-size:22px;font-weight:700;color:#000000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${stats.smsSent} people tried to reach ${escapeHtml(client.business_name)} last week</p><p style="margin:0 0 24px;font-size:13px;color:#888888;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${weekLabel}</p>${buildStatsRows(stats)}</td></tr>${buildFooter()}</table></td></tr></table></body></html>`;
+export async function buildWeeklyEmailHtml(client: ClientRow, stats: ClientStats, monLabel: string, sunLabel: string): Promise<string> {
+  const weekLabel = sharedEscapeHtml(`Week of ${monLabel} — ${sunLabel}`);
+  const preheader = sharedEscapeHtml(`Your CallMagnet weekly summary — ${monLabel} to ${sunLabel}`);
+  const dashboardUrl = await getDashboardUrl(client.email);
+  const cta = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:32px 0 8px;"><tr><td align="center"><a href="${dashboardUrl}" style="display:inline-block;background:${BRAND.accent};color:#000000;padding:14px 32px;border-radius:8px;font-weight:700;text-decoration:none;font-size:15px;font-family:${BRAND.fontStack};letter-spacing:0.02em;">View your dashboard →</a></td></tr></table>`;
+  const content = `
+    <p style="margin:0 0 16px;font-size:22px;font-weight:700;color:${BRAND.primaryText};">${stats.smsSent} people tried to reach ${sharedEscapeHtml(client.business_name)} last week</p>
+    <p style="margin:0 0 24px;font-size:13px;color:${BRAND.secondaryText};">${weekLabel}</p>
+    ${buildStatsRows(stats)}
+    ${cta}
+  `;
+  return renderEmailShell(content, preheader);
 }
