@@ -246,6 +246,7 @@ Deno.serve(async (req) => {
         const emailHtml = await buildSummaryEmail({
           businessName:    client.business_name,
           dateString:      melbDateString,
+          email:           client.email,
           // Today
           missedCalls:     missedCallsCount,
           smsSent:         smsSentCount,
@@ -412,6 +413,7 @@ function formatMoney(n: number): string {
 interface SummaryEmailParams {
   businessName: string;
   dateString:   string;
+  email:        string;
   // Today
   missedCalls:  number;
   smsSent:      number;
@@ -517,7 +519,7 @@ async function buildSummaryEmail(p: SummaryEmailParams): Promise<string> {
   // Shared trailing-window sections + CTA — same in both branches.
   const last7  = renderTrailingWindow('Last 7 days',  p.missedCalls7d);
   const last30 = renderTrailingWindow('Last 30 days', p.missedCalls30d);
-  const ctaUrl = await getDashboardUrl(client.email);
+  const ctaUrl = await getDashboardUrl(p.email);
   const cta    = renderCtaButton(ctaUrl, 'View dashboard →');
 
   return renderEmailShell(heading + todayContent + last7 + last30 + cta + footnote, preheader);
