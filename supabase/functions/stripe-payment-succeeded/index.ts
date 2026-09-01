@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import { renderEmailShell, BRAND, escapeHtml } from '../_shared/emailStyles.ts';
 
 
 
@@ -6,6 +7,23 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+async function getDashboardUrl(email: string): Promise<string> {
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const { createClient } = await import('npm:@supabase/supabase-js@2');
+    const supa = createClient(supabaseUrl, serviceKey);
+    const { data } = await supa.auth.admin.generateLink({
+      type: 'magiclink',
+      email,
+      options: { redirectTo: 'https://callmagnet.com.au' },
+    });
+    return data?.properties?.action_link ?? 'https://callmagnet.com.au';
+  } catch {
+    return 'https://callmagnet.com.au';
+  }
 }
 
 
@@ -172,27 +190,18 @@ Deno.serve(async (req) => {
 
         // Confirmation email to client
         if (resendKey) {
-          const bizSafe = String(clientGuardRows[0].business_name).replace(/[&<>"']/g, (c: string) =>
-            ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])
-          )
-          const html = `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Payment received</title></head>
-<body style="margin:0;padding:0;background:#0E1419;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#FFFFFF;-webkit-text-size-adjust:100%;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0E1419;">
-  <tr><td align="center" style="padding:32px 16px 24px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;background:rgba(255,255,255,0.04);border:1px solid rgba(16,185,129,0.22);border-radius:14px;">
-      <tr><td style="padding:36px 30px 32px;color:#FFFFFF;">
-        <div style="font-size:14px;letter-spacing:0.16em;color:#10b981;text-transform:uppercase;font-weight:700;margin-bottom:28px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">★ CallMagnet</div>
-        <h1 style="margin:0 0 12px;font-size:24px;font-weight:600;color:#FFFFFF;letter-spacing:-0.01em;">Payment received.</h1>
-        <p style="margin:0 0 24px;font-size:15px;line-height:1.55;color:rgba(255,255,255,0.75);">Thanks for your payment, ${bizSafe}. We will be in touch within 24 hours to get your account configured and live.</p>
-        ${receiptUrl ? `<a href="${receiptUrl}" style="display:inline-block;background:#10b981;color:#0a1110;text-decoration:none;font-weight:800;font-size:15px;padding:16px 28px;border-radius:12px;margin:0 0 20px;">View your receipt</a>` : ''}
-        <p style="margin:0;font-size:13px;color:#ffffff;">Questions? hello@callmagnet.com.au</p>
-      </td></tr>
-    </table>
-    <div style="font-size:12px;color:rgba(255,255,255,0.25);margin-top:18px;letter-spacing:0.06em;">CallMagnet</div>
-  </td></tr>
-</table>
-</body></html>`
+          const clientName = clientGuardRows[0].business_name;
+          const amount = session.amount_total ? (session.amount_total / 100).toFixed(0) : '0';
+          const paymentHtml = renderEmailShell(`
+  <h1 class="em-heading" style="font-size:26px;font-weight:700;color:${BRAND.primaryText};margin:0 0 8px;letter-spacing:-0.02em;">Payment confirmed. We're on it.</h1>
+  <p style="font-size:14px;color:${BRAND.secondaryText};margin:0 0 24px;">${escapeHtml(clientName)} — Setup fee</p>
+  <div style="background:${BRAND.successBg};border:1px solid ${BRAND.accent};border-radius:8px;padding:20px;margin:0 0 24px;">
+    <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:${BRAND.accent};margin-bottom:8px;">Amount paid</div>
+    <div style="font-size:32px;font-weight:300;color:${BRAND.primaryText};">$${amount} AUD</div>
+  </div>
+  <p style="font-size:14px;color:${BRAND.primaryText};line-height:1.6;margin:0 0 16px;">We're now setting up your Middle Man page and getting everything ready. We'll be in touch shortly with your login details and next steps.</p>
+  <p style="margin:0;font-size:12px;color:${BRAND.mutedText};">Questions? Contact hello@callmagnet.com.au</p>
+`, 'Payment received — we are setting up your account');
           await fetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
@@ -200,8 +209,8 @@ Deno.serve(async (req) => {
               from:    'CallMagnet <hello@callmagnet.com.au>',
               to:      clientGuardRows[0].email,
               subject: 'Payment received — we\'re setting up your account',
-              html,
-              text: `Payment received.\n\nThanks for your payment, ${clientGuardRows[0].business_name}. We will be in touch within 24 hours to get your account configured and live.\n\n${receiptUrl ? `View your receipt: ${receiptUrl}\n\n` : ''}Questions? hello@callmagnet.com.au\n\ncallmagnet.com.au\n`,
+              html: paymentHtml,
+              text: `Payment received.\n\nThanks for your payment, ${clientGuardRows[0].business_name}. We will be in touch within 24 hours to get your account configured and live.\n\nQuestions? hello@callmagnet.com.au\n\ncallmagnet.com.au\n`,
             }),
           }).catch((e: Error) => console.warn(`checkout confirmation email failed — ${e?.message}`))
           console.log(`checkout.session.completed: confirmation email sent to ${clientGuardRows[0].email}`)
@@ -289,41 +298,14 @@ Deno.serve(async (req) => {
       // Send welcome email if first payment
       const emailsSent = client.emails_sent || []
       if (!emailsSent.includes('welcome') && resendKey) {
-        // Locked dark palette. Only 7 hex/rgba values appear in this HTML:
-        // #0E1419 (bg) #161D24 (card) #06D6A0 (accent) #CC5500 (edge)
-        // #FFFFFF (text) #B0B8C1 (secondary) #6B7480 (muted) rgba(6,214,160,0.15) (border)
-        const bizSafe = String(client.business_name).replace(/[&<>"']/g, (c) =>
-          ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]
-        )
-        const html = `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="x-apple-disable-message-reformatting"><title>You're live, ${bizSafe}.</title></head>
-<body style="margin:0;padding:0;background:#0E1419;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#FFFFFF;-webkit-text-size-adjust:100%;">
-<div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:transparent;">Your CallMagnet system is now live.</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0E1419;">
-  <tr><td align="center" style="padding:32px 16px 24px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:#161D24;border:1px solid rgba(6,214,160,0.15);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.35);">
-      <tr><td style="padding:40px 36px;color:#FFFFFF;">
-        <div style="font-size:14px;letter-spacing:0.16em;color:#06D6A0;text-transform:uppercase;font-weight:700;margin-bottom:28px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">★ CallMagnet</div>
-        <h1 style="margin:0 0 8px;font-size:26px;font-weight:600;color:#FFFFFF;letter-spacing:-0.01em;">You're live, ${bizSafe}.</h1>
-        <p style="margin:0 0 28px;font-size:15px;line-height:1.55;color:#B0B8C1;">Your CallMagnet system is active right now.</p>
-        <p style="margin:0 0 16px;font-size:15px;line-height:1.65;color:#FFFFFF;">From this moment — every time someone calls your business number and can't get through, they'll automatically receive an SMS with your booking link within seconds.</p>
-        <p style="margin:0 0 28px;font-size:15px;line-height:1.65;color:#FFFFFF;">You don't need to do anything. No app to monitor. No calls to return. CallMagnet runs silently in the background and catches the revenue you would have lost.</p>
-        <div style="background:#0E1419;border:1px solid rgba(6,214,160,0.15);border-left:3px solid #CC5500;border-radius:10px;padding:18px 20px;margin:0 0 28px;">
-          <div style="font-size:11px;letter-spacing:0.12em;color:#06D6A0;text-transform:uppercase;font-weight:700;margin-bottom:10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">One thing to do now</div>
-          <p style="margin:0 0 6px;font-size:14px;line-height:1.5;color:#FFFFFF;">When a missed caller books with you — tap <strong style="color:#06D6A0;">+ Log a booking</strong> in your dashboard.</p>
-          <p style="margin:0;font-size:14px;line-height:1.5;color:#B0B8C1;">It takes two seconds and tracks exactly how much revenue CallMagnet is recovering for you.</p>
-        </div>
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="left" style="padding:0 0 20px;">
-          <a href="https://callmagnet.com.au" style="display:inline-block;background:#06D6A0;color:#0E1419;text-decoration:none;font-weight:700;font-size:15px;padding:14px 28px;border-radius:10px;letter-spacing:0.01em;">View your dashboard →</a>
-        </td></tr></table>
-        <p style="margin:32px 0 0;font-size:13px;line-height:1.5;color:#B0B8C1;">Questions? Reply to this email or contact <a href="mailto:hello@callmagnet.com.au" style="color:#06D6A0;text-decoration:none;">hello@callmagnet.com.au</a></p>
-        <p style="margin:8px 0 0;font-size:13px;line-height:1.5;color:#6B7480;">We will never sell your data. Ever.</p>
-      </td></tr>
-    </table>
-    <div style="font-size:12px;color:#6B7480;margin-top:18px;letter-spacing:0.06em;">CallMagnet</div>
-  </td></tr>
-</table>
-</body></html>`
+        const dashboardUrl = await getDashboardUrl(client.email);
+        const liveHtml = renderEmailShell(`
+  <h1 class="em-heading" style="font-size:26px;font-weight:700;color:${BRAND.primaryText};margin:0 0 8px;letter-spacing:-0.02em;">You're live, ${escapeHtml(client.business_name)}.</h1>
+  <p style="font-size:14px;color:${BRAND.secondaryText};margin:0 0 24px;">Your CallMagnet system is active.</p>
+  <p style="font-size:14px;color:${BRAND.primaryText};line-height:1.6;margin:0 0 24px;">From this moment, every missed call to your number triggers an automatic SMS to the caller. Your Middle Man page is live and your dashboard is ready.</p>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px;"><tr><td align="center"><a href="${dashboardUrl}" style="display:inline-block;background:${BRAND.accent};color:#000000;padding:14px 32px;border-radius:8px;font-weight:700;text-decoration:none;font-size:15px;font-family:${BRAND.fontStack};letter-spacing:0.02em;">View your dashboard →</a></td></tr></table>
+  <p style="margin:0;font-size:12px;color:${BRAND.mutedText};">Questions? Contact hello@callmagnet.com.au</p>
+`, 'Your CallMagnet system is live');
         const text =
           `You're live, ${client.business_name}.\n\n` +
           `Your CallMagnet system is active right now.\n\n` +
@@ -343,7 +325,7 @@ Deno.serve(async (req) => {
             from: 'CallMagnet <hello@callmagnet.com.au>',
             to: client.email,
             subject: `You're live, ${client.business_name}.`,
-            html,
+            html: liveHtml,
             text
           })
         })
