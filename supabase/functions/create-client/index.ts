@@ -18,6 +18,7 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { renderEmailShell, BRAND, escapeHtml } from '../_shared/emailStyles.ts';
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -28,6 +29,23 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
+
+async function getDashboardUrl(email: string): Promise<string> {
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const { createClient: createAdminClient } = await import('npm:@supabase/supabase-js@2');
+    const supa = createAdminClient(supabaseUrl, serviceKey);
+    const { data } = await supa.auth.admin.generateLink({
+      type: 'magiclink',
+      email,
+      options: { redirectTo: 'https://callmagnet.com.au' },
+    });
+    return data?.properties?.action_link ?? 'https://callmagnet.com.au';
+  } catch {
+    return 'https://callmagnet.com.au';
+  }
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -433,7 +451,7 @@ Deno.serve(async (req) => {
     let welcome_email_error: string | null = null;
 
     // Generate magic link for new users (best-effort — fall back to homepage)
-    const loginButtonUrl = 'https://callmagnet.com.au';
+    const loginButtonUrl = await getDashboardUrl(owner_email);
 
     if (RESEND_API_KEY) {
       try {
@@ -457,60 +475,15 @@ Deno.serve(async (req) => {
           ? `Your login details:\n  Business: ${business_name}\n  Email:    ${owner_email}\n  Temporary password: ${initial_password}\n\nSave your password — you'll need it if you log out and come back.\n\n`
           : `Use your existing password to sign in. If you've forgotten it, use "Forgot password?" on the login page.\n\n`;
 
-        const html = `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="x-apple-disable-message-reformatting"><meta name="color-scheme" content="dark light"><meta name="supported-color-schemes" content="dark light"><title>Welcome to CallMagnet</title></head>
-<body style="margin:0;padding:0;background:#0E1419;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:rgba(255,255,255,0.92);-webkit-text-size-adjust:100%;">
-<div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:transparent;">Your CallMagnet dashboard is ready.</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0E1419;">
-  <tr><td align="center" style="padding:32px 16px 24px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;background:rgba(255,255,255,0.04);border:1px solid rgba(6,214,160,0.22);border-radius:14px;">
-      <tr><td style="padding:36px 30px 32px;color:rgba(255,255,255,0.92);">
-        <div style="font-size:14px;letter-spacing:0.16em;color:#06D6A0;text-transform:uppercase;font-weight:700;margin-bottom:28px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">★ CallMagnet</div>
-        <h1 style="margin:0 0 12px;font-size:24px;font-weight:600;color:rgba(255,255,255,0.92);letter-spacing:-0.01em;">Welcome, ${escapedBiz}.</h1>
-        <p style="margin:0 0 24px;font-size:15px;line-height:1.55;color:rgba(255,255,255,0.78);">Your CallMagnet account is set up. Log in to see your dashboard and watch SMS replies fire to customers in real time once your phone forwarding is configured.</p>
-        ${credentialBlock}
-        ${checkoutUrl ? `<p style="margin:0 0 14px;font-size:14px;line-height:1.55;color:rgba(255,255,255,0.65);">You'll need to complete payment before your account goes live.</p>
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding:0 0 24px;">
-          <a href="${checkoutUrl}" style="display:inline-block;background:#06D6A0;color:#0a1110;text-decoration:none;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;letter-spacing:0.01em;">Complete your account setup</a>
-        </td></tr></table>` : `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding:0 0 24px;">
-          <a href="${loginPageUrl}" style="display:inline-block;background:#06D6A0;color:#0a1110;text-decoration:none;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;letter-spacing:0.01em;">Go to my dashboard</a>
-        </td></tr></table>`}
-        <div style="margin:0 0 24px;padding:18px 18px;background:rgba(6,214,160,0.06);border:1px solid rgba(6,214,160,0.18);border-radius:10px;">
-          <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#06D6A0;font-weight:700;margin-bottom:10px;">Next steps</div>
-          <ol style="margin:0;padding:0 0 0 20px;font-size:14px;line-height:1.55;color:rgba(255,255,255,0.85);">
-            ${checkoutUrl
-              ? `<li style="margin-bottom:6px;">Complete payment using the button above</li>
-            <li style="margin-bottom:6px;">You'll receive a confirmation email once your account is active</li>
-            <li>Email us at hello@callmagnet.com.au if anything looks wrong</li>`
-              : `<li style="margin-bottom:6px;">Log in at callmagnet.com.au with the details above</li>
-            <li style="margin-bottom:6px;">Walk through the dashboard tiles</li>
-            <li>Email us at hello@callmagnet.com.au if anything looks wrong</li>`}
-          </ol>
-        </div>
-      </td></tr>
-    </table>
-    <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:18px;letter-spacing:0.06em;">CallMagnet</div>
-  </td></tr>
-</table>
-</body></html>`;
-        const text = checkoutUrl
-          ? `Welcome, ${business_name}.\n\n` +
-            `Your CallMagnet account is set up. You'll need to complete payment before it goes live.\n\n` +
-            credentialText +
-            `Complete your account setup: ${checkoutUrl}\n\n` +
-            `Next steps:\n` +
-            `1. Complete payment using the link above\n` +
-            `2. You'll receive a confirmation email once your account is active\n` +
-            `3. Email us at hello@callmagnet.com.au if anything looks wrong\n\n` +
-            `CallMagnet — callmagnet.com.au\n`
-          : `Welcome, ${business_name}.\n\n` +
-            `Your CallMagnet account is set up. Log in at ${loginPageUrl} to see your dashboard.\n\n` +
-            credentialText +
-            `Next steps:\n` +
-            `1. Log in at callmagnet.com.au with the details above\n` +
-            `2. Walk through the dashboard tiles\n` +
-            `3. Email us at hello@callmagnet.com.au if anything looks wrong\n\n` +
-            `CallMagnet — callmagnet.com.au\n`;
+        const html = renderEmailShell(`
+  <h1 class="em-heading" style="font-size:26px;font-weight:700;color:${BRAND.primaryText};margin:0 0 8px;letter-spacing:-0.02em;">Welcome to CallMagnet, ${escapeHtml(business_name)}.</h1>
+  <p style="font-size:14px;color:${BRAND.secondaryText};margin:0 0 24px;">Your missed-call SMS system is set up and ready to go.</p>
+  <p style="font-size:14px;color:${BRAND.primaryText};line-height:1.6;margin:0 0 16px;">Your Middle Man page is live. When a customer calls and you miss it, they automatically receive an SMS with a link to your page.</p>
+  <p style="font-size:14px;color:${BRAND.primaryText};line-height:1.6;margin:0 0 24px;">Log in to your dashboard to see your activity, customise your buttons, and track every missed call.</p>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px;"><tr><td align="center"><a href="${loginButtonUrl}" style="display:inline-block;background:${BRAND.accent};color:#000000;padding:14px 32px;border-radius:8px;font-weight:700;text-decoration:none;font-size:15px;font-family:${BRAND.fontStack};letter-spacing:0.02em;">Go to my dashboard →</a></td></tr></table>
+  <p style="margin:0;font-size:12px;color:${BRAND.mutedText};">Questions? Reply to this email or contact hello@callmagnet.com.au</p>
+`, 'Your CallMagnet dashboard is ready — log in now');
+        const text = `Welcome to CallMagnet, ${business_name}. Your dashboard is ready. Log in at https://callmagnet.com.au`;
         console.log(`create-client: email send — checkoutUrl=${checkoutUrl}, pricing_package=${pricing_package}`);
         const resendRes = await fetch('https://api.resend.com/emails', {
           method:  'POST',
