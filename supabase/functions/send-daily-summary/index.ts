@@ -46,6 +46,7 @@
 // straightforward if we ever need historical 7d/30d).
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from 'npm:@supabase/supabase-js@2';
 import { BRAND, escapeHtml, renderEmailShell } from "../_shared/emailStyles.ts";
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
@@ -63,7 +64,20 @@ const DEFAULT_REVENUE_PER_BOOKING = 75;
 
 const CONVERSION_RATE = 0.62;
 
-const DASHBOARD_CTA_URL = 'https://callmagnet.com.au/?source=email';
+async function getDashboardUrl(email: string): Promise<string> {
+  const supa = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  const { data, error } = await supa.auth.admin.generateLink({
+    type: 'magiclink',
+    email,
+    options: { redirectTo: 'https://callmagnet.com.au/?source=email' },
+  });
+  if (error || !data?.properties?.action_link) {
+    return 'https://callmagnet.com.au/?source=email';
+  }
+  return data.properties.action_link;
+}
 
 interface ClientRow {
   id:            string;
@@ -229,7 +243,7 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        const emailHtml = buildSummaryEmail({
+        const emailHtml = await buildSummaryEmail({
           businessName:    client.business_name,
           dateString:      melbDateString,
           // Today
@@ -427,19 +441,16 @@ function buildSummarySubject(businessName: string, missedCallsCount: number): st
 function renderTrailingWindow(
   label: string,
   missed: number,
-  revenue: number,
 ): string {
   const noun = missed === 1 ? 'missed call' : 'missed calls';
-  const revenueLine =
-    missed > 0
-      ? `<div style="font-size:14px;color:${BRAND.accent};font-weight:600;">$${formatMoney(revenue)} estimated recovered</div>`
-      : `<div style="font-size:14px;color:${BRAND.secondaryText};">No activity in this window</div>`;
+  const activityLine = missed > 0
+    ? `<div style="font-size:24px;font-weight:300;color:${BRAND.primaryText};letter-spacing:-0.01em;line-height:1.1;">${missed} ${noun}</div>`
+    : `<div style="font-size:14px;color:${BRAND.secondaryText};">No activity in this window</div>`;
 
   return `<div style="margin-bottom:14px;">
     <div style="font-size:11px;color:${BRAND.secondaryText};font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;">${label}</div>
     <div style="background:${BRAND.pageBackground};border:1px solid ${BRAND.borderColor};border-radius:8px;padding:18px 20px;">
-      <div style="font-size:24px;font-weight:300;color:${BRAND.primaryText};letter-spacing:-0.01em;line-height:1.1;margin-bottom:6px;">${missed} ${noun}</div>
-      ${revenueLine}
+      ${activityLine}
     </div>
   </div>`;
 }
@@ -456,7 +467,7 @@ function renderCtaButton(url: string, label: string): string {
   </table>`;
 }
 
-function buildSummaryEmail(p: SummaryEmailParams): string {
+async function buildSummaryEmail(p: SummaryEmailParams): Promise<string> {
   const safeBusiness = escapeHtml(p.businessName);
   const safeDate     = escapeHtml(p.dateString);
   const hasActivity  = p.missedCalls > 0;
@@ -489,15 +500,8 @@ function buildSummaryEmail(p: SummaryEmailParams): string {
         <div style="font-size:12px;color:${BRAND.secondaryText};font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px;">Auto-SMS sent</div>
         <div style="font-size:28px;font-weight:300;color:${BRAND.primaryText};letter-spacing:-0.02em;line-height:1;">${p.smsSent}</div>
       </div>
-      ${linkTapsTile}
-      <div style="background:${BRAND.successBg};border:1px solid ${BRAND.accent};border-radius:8px;padding:20px;margin-bottom:24px;">
-        <div style="font-size:11px;color:${BRAND.accent};font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;">Estimated impact today</div>
-        <div style="font-size:16px;font-weight:600;color:${BRAND.primaryText};line-height:1.5;">
-          Approximately <strong>${p.bookings}</strong> ${p.bookings === 1 ? 'booking' : 'bookings'} recovered,<br>
-          worth <strong>$${formatMoney(p.revenue)}</strong>.
-        </div>
-      </div>`;
-    footnote  = `<p style="font-size:12px;color:${BRAND.secondaryText};margin:0;line-height:1.5;">Estimated recovery based on industry research (Lead Connect 2025): 62% of unanswered callers contact a competitor when their first call isn't answered. CallMagnet keeps your booking link in their pocket within seconds.</p>`;
+      ${linkTapsTile}`;
+    footnote  = '';
     preheader = `${p.missedCalls} missed call${p.missedCalls === 1 ? '' : 's'} captured today at ${p.businessName}`;
   } else {
     todayContent = `<div style="background:${BRAND.pageBackground};border:1px solid ${BRAND.borderColor};border-radius:8px;padding:24px;margin-bottom:${linkTapsTile ? '14' : '24'}px;text-align:center;">
@@ -511,9 +515,10 @@ function buildSummaryEmail(p: SummaryEmailParams): string {
   }
 
   // Shared trailing-window sections + CTA — same in both branches.
-  const last7  = renderTrailingWindow('Last 7 days',  p.missedCalls7d,  p.revenue7d);
-  const last30 = renderTrailingWindow('Last 30 days', p.missedCalls30d, p.revenue30d);
-  const cta    = renderCtaButton(DASHBOARD_CTA_URL, 'View dashboard →');
+  const last7  = renderTrailingWindow('Last 7 days',  p.missedCalls7d);
+  const last30 = renderTrailingWindow('Last 30 days', p.missedCalls30d);
+  const ctaUrl = await getDashboardUrl(client.email);
+  const cta    = renderCtaButton(ctaUrl, 'View dashboard →');
 
   return renderEmailShell(heading + todayContent + last7 + last30 + cta + footnote, preheader);
 }
