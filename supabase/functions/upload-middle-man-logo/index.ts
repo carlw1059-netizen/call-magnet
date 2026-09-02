@@ -137,7 +137,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     const { error: updateErr } = await supa
       .from('clients')
       .update({
-        middle_man_logo_url:  publicUrl,
+        middle_man_logo_url:  `${publicUrl}?v=${Date.now()}`,
         middle_man_updated_at: new Date().toISOString(),
       })
       .eq('id', clientId);
