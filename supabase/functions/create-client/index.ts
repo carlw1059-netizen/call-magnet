@@ -479,8 +479,17 @@ Deno.serve(async (req) => {
   <h1 class="em-heading" style="font-size:26px;font-weight:700;color:${BRAND.primaryText};margin:0 0 8px;letter-spacing:-0.02em;">Welcome to CallMagnet, ${escapeHtml(business_name)}.</h1>
   <p style="font-size:14px;color:${BRAND.secondaryText};margin:0 0 24px;">Your missed-call SMS system is set up and ready to go.</p>
   <p style="font-size:14px;color:${BRAND.primaryText};line-height:1.6;margin:0 0 16px;">Your Middle Man page is live. When a customer calls and you miss it, they automatically receive an SMS with a link to your page.</p>
-  <p style="font-size:14px;color:${BRAND.primaryText};line-height:1.6;margin:0 0 24px;">Log in to your dashboard to see your activity, customise your buttons, and track every missed call.</p>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px;"><tr><td align="center"><a href="${loginButtonUrl}" style="display:inline-block;background:${BRAND.accent};color:#000000;padding:14px 32px;border-radius:8px;font-weight:700;text-decoration:none;font-size:15px;font-family:${BRAND.fontStack};letter-spacing:0.02em;">Go to my dashboard →</a></td></tr></table>
+  <p style="font-size:14px;color:${BRAND.primaryText};line-height:1.6;margin:0 0 28px;">Log in to your dashboard to see your activity, customise your buttons, and track every missed call.</p>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 32px;"><tr><td align="center"><a href="${loginButtonUrl}" style="display:inline-block;background:${BRAND.accent};color:#000000;padding:14px 32px;border-radius:8px;font-weight:700;text-decoration:none;font-size:15px;font-family:${BRAND.fontStack};letter-spacing:0.02em;">Go to my dashboard →</a></td></tr></table>
+  <div style="background:${BRAND.pageBackground};border:1px solid ${BRAND.borderColor};border-radius:10px;padding:20px 24px;margin:0 0 24px;">
+    <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${BRAND.accent};margin-bottom:16px;font-family:ui-monospace,SFMono-Regular,'DM Mono',monospace;">Install the app on your phone</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr><td style="padding:8px 0;vertical-align:top;width:24px;font-size:14px;font-weight:700;color:${BRAND.accent};">1.</td><td style="padding:8px 0;font-size:14px;color:${BRAND.primaryText};line-height:1.5;">Go to <strong>callmagnet.com.au</strong> on your phone</td></tr>
+      <tr><td style="padding:8px 0;vertical-align:top;font-size:14px;font-weight:700;color:${BRAND.accent};">2.</td><td style="padding:8px 0;font-size:14px;color:${BRAND.primaryText};line-height:1.5;">Tap the <strong style="color:${BRAND.accent};">emerald star ★</strong> in the bottom right corner for instructions on how to add CallMagnet to your home screen</td></tr>
+      <tr><td style="padding:8px 0;vertical-align:top;font-size:14px;font-weight:700;color:${BRAND.accent};">3.</td><td style="padding:8px 0;font-size:14px;color:${BRAND.primaryText};line-height:1.5;">Login once installed and <strong>allow notifications</strong> when prompted</td></tr>
+      <tr><td style="padding:8px 0;vertical-align:top;font-size:14px;font-weight:700;color:${BRAND.accent};">4.</td><td style="padding:8px 0;font-size:14px;color:${BRAND.primaryText};line-height:1.5;">Go to <strong>app settings</strong> on your device, find CallMagnet — turn on <strong>notifications and sounds</strong></td></tr>
+    </table>
+  </div>
   <p style="margin:0;font-size:12px;color:${BRAND.mutedText};">Questions? Reply to this email or contact hello@callmagnet.com.au</p>
 `, 'Your CallMagnet dashboard is ready — log in now');
         const text = `Welcome to CallMagnet, ${business_name}. Your dashboard is ready. Log in at https://callmagnet.com.au`;
