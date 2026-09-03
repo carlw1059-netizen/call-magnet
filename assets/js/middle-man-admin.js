@@ -1871,7 +1871,7 @@ function renderPreview() {
     '<div style="height:105px;width:100%;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0 12px;">' +
       (logoUrl
         ? '<img src="' + logoUrl + '" alt="' + _e(bizName) + '" style="max-height:70px;max-width:85%;object-fit:contain;display:block;" />'
-        : '<div style="color:#fff;font-size:11px;font-weight:700;text-align:center;padding:0 8px;">' + _e(bizName) + '</div>') +
+        : '') +
     '</div>' +
     '<div style="height:38px;flex-shrink:0;"></div>' +
     '<div style="width:100%;padding:0 12px;flex-shrink:0;">' +
