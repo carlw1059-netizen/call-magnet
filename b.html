@@ -11,9 +11,14 @@
   /* Force the Progressier service worker to revalidate on every load.
      Without this, SW serves stale cached assets even after a hard refresh. */
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then(function(registrations) {
-      for (var r of registrations) { r.update(); }
-    });
+    navigator.serviceWorker.register('/assets/js/sw.js', { scope: '/' })
+      .then(function(reg) {
+        reg.update();
+        console.log('[SW] registered scope:', reg.scope);
+      })
+      .catch(function(err) {
+        console.warn('[SW] registration failed:', err);
+      });
   }
 </script>
 <link rel="stylesheet" href="https://callmagnet.com.au/assets/css/middleman.css?v=20260904b">
@@ -86,6 +91,6 @@
 
 </div><!-- /app -->
 
-<script src="/assets/js/middleman.js?v=20260904b" defer></script>
+<script src="/assets/js/middleman.js?v=20260905a" defer></script>
 </body>
 </html>
