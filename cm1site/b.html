@@ -11,7 +11,7 @@
   /* Force the Progressier service worker to revalidate on every load.
      Without this, SW serves stale cached assets even after a hard refresh. */
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('https://callmagnet.com.au/assets/js/sw.js', { scope: '/' })
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
       .then(function(reg) {
         reg.update();
         console.log('[SW] registered scope:', reg.scope);
