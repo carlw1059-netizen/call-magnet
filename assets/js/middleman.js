@@ -601,11 +601,27 @@
         var code = vid.error ? vid.error.code : '?';
         var msg  = vid.error ? vid.error.message : 'unknown';
         console.log('[video] ERROR event — code:', code, '| message:', msg);
+        vid.style.display = 'none';
+        if (posterUrl && posterUrl.indexOf('data:image') === -1) {
+          bgFixed.style.backgroundImage = 'url(' + posterUrl + ')';
+          bgFixed.style.backgroundSize = 'cover';
+          bgFixed.style.backgroundPosition = 'center';
+        } else {
+          bgFixed.style.backgroundColor = '#0E1419';
+        }
       });
 
       vid.addEventListener('canplay', function() {
         vid.play().catch(function(err) {
           console.warn('[video] play() blocked after canplay:', err.name);
+          vid.style.display = 'none';
+          if (posterUrl && posterUrl.indexOf('data:image') === -1) {
+            bgFixed.style.backgroundImage = 'url(' + posterUrl + ')';
+            bgFixed.style.backgroundSize = 'cover';
+            bgFixed.style.backgroundPosition = 'center';
+          } else {
+            bgFixed.style.backgroundColor = '#0E1419';
+          }
         });
       }, { once: true });
       bgFixed.appendChild(vid);
