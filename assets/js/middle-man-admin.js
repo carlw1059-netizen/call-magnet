@@ -1472,65 +1472,7 @@ function _triggerUpload(accept, uploadBtnId, progressId, errId, defaultBtnText) 
       return;
     }
 
-    if (accept === 'video/mp4,.mp4') {
-      // Video path — upload raw file direct to Supabase Storage, then call process-video for ffmpeg faststart
-      var statusEl = document.getElementById('mmaVideoStatus');
-      var statusBar = document.getElementById('mmaVideoStatusBar');
-      var statusText = document.getElementById('mmaVideoStatusText');
-      if (statusEl) { statusEl.style.display = 'block'; statusBar.style.width = '20%'; statusBar.style.background = '#f59e0b'; statusText.textContent = 'Uploading video…'; }
-      try {
-        const timestamp = Date.now();
-        const storagePath = _editClientId + '/video-' + timestamp + '.mp4';
-        const { error: storageError } = await mmaSb.storage
-          .from('middle-man-backgrounds')
-          .upload(storagePath, file, { contentType: 'video/mp4', upsert: true });
-        if (storageError) {
-          if (statusEl) { statusBar.style.width = '100%'; statusBar.style.background = '#ef4444'; statusText.textContent = 'Upload failed — try again'; }
-          document.getElementById(errId).textContent = storageError.message || 'Upload failed';
-          document.getElementById(uploadBtnId).disabled = false;
-          document.getElementById(uploadBtnId).textContent = defaultBtnText;
-          return;
-        }
-        if (statusEl) { statusBar.style.width = '60%'; statusBar.style.background = '#f59e0b'; statusText.textContent = 'Processing video…'; }
-        const response = await fetch('/.netlify/functions/process-video', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + sess.access_token
-          },
-          body: JSON.stringify({ client_id: _editClientId, storage_path: storagePath })
-        });
-        const resp = await response.json();
-        if (!response.ok || !resp.ok) {
-          if (statusEl) { statusBar.style.width = '100%'; statusBar.style.background = '#ef4444'; statusText.textContent = 'Processing failed — try again'; }
-          document.getElementById(errId).textContent = resp.error || 'Processing failed';
-          document.getElementById(uploadBtnId).disabled = false;
-          document.getElementById(uploadBtnId).textContent = defaultBtnText;
-          return;
-        }
-        if (statusEl) { statusBar.style.width = '100%'; statusBar.style.background = '#10b981'; statusText.textContent = '✓ Faststart confirmed · Audio stripped · Ready'; }
-        const newUrl = resp.urls.video;
-        _setVideoPreview(newUrl);
-        _extractAndUploadPoster(newUrl, _editClientId);
-        _editClientData.middle_man_background_url = newUrl;
-        _editClientData.middle_man_background_type = 'video';
-        await mmaSb.from('clients').update({
-          middle_man_background_url: newUrl,
-          middle_man_background_type: 'video'
-        }).eq('id', _editClientId);
-        renderPreview();
-        document.getElementById(progressId).textContent = '';
-        document.getElementById(uploadBtnId).disabled = false;
-        document.getElementById(uploadBtnId).textContent = defaultBtnText;
-      } catch(err) {
-        if (statusEl) { statusBar.style.width = '100%'; statusBar.style.background = '#ef4444'; statusText.textContent = 'Upload failed — try again'; }
-        document.getElementById(errId).textContent = 'Network error — try again';
-        document.getElementById(uploadBtnId).disabled = false;
-        document.getElementById(uploadBtnId).textContent = defaultBtnText;
-      }
-      return;
-    }
-    // Photo path — existing XHR continues below unchanged
+    // Video and image both go through upload-middle-man-background edge function (writes to R2)
 
     var fd = new FormData();
     fd.append('client_id', _editClientId);
