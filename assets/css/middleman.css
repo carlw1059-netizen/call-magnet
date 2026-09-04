@@ -312,6 +312,7 @@
     -webkit-tap-highlight-color: transparent;
     user-select: none;
     text-decoration: none;
+    touch-action: manipulation;
   }
   .tap-btn:active, .tap-btn.pressed {
     opacity: 0.72;
@@ -360,6 +361,7 @@
     transition: background 0.12s;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
+    touch-action: manipulation;
   }
   .whats-on-btn:active { background: rgba(255,255,255,0.05); }
   .whats-on-content {
@@ -456,6 +458,7 @@
     justify-content: center;
     z-index: 20;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
     font-family: inherit;
     line-height: 1;
     flex-shrink: 0;
@@ -553,6 +556,7 @@
     cursor: pointer;
     transition: opacity 0.12s, transform 0.08s;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
   .submit-btn:active { transform: scale(0.98); }
   .submit-btn:disabled { opacity: 0.5; cursor: default; }
