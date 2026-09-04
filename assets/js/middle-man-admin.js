@@ -1687,35 +1687,32 @@ async function _extractAndUploadPoster(videoUrl, clientId) {
     }
     console.log('[poster] blob ready —', blob.size, 'bytes');
 
-    // Upload to the middle-man-backgrounds storage bucket
-    var storagePath  = clientId + '/poster.jpg';
-    console.log('[poster] uploading to storage:', storagePath);
-    var uploadResult = await mmaSb.storage
-      .from('middle-man-backgrounds')
-      .upload(storagePath, blob, { contentType: 'image/jpeg', upsert: true });
-    if (uploadResult.error) {
-      console.warn('[poster] FAIL — storage upload error:', uploadResult.error.message);
+    // Upload to R2 via edge function
+    console.log('[poster] uploading to R2 via upload-middle-man-poster…');
+    var sessionResult2 = await mmaSb.auth.getSession();
+    var sess2 = sessionResult2.data && sessionResult2.data.session;
+    if (!sess2) {
+      console.warn('[poster] FAIL — no session for poster upload');
       return;
     }
-    console.log('[poster] storage upload OK');
-
-    var urlResult = mmaSb.storage.from('middle-man-backgrounds').getPublicUrl(storagePath);
-    var publicUrl = urlResult.data && urlResult.data.publicUrl;
-    if (!publicUrl) {
-      console.warn('[poster] FAIL — could not resolve public URL from storage');
+    var posterFd = new FormData();
+    posterFd.append('client_id', clientId);
+    posterFd.append('file', blob, 'poster.jpg');
+    var posterResp = await fetch(MMA_SUPABASE_URL + '/functions/v1/upload-middle-man-poster', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + sess2.access_token,
+        'apikey': MMA_SUPABASE_ANON_KEY,
+      },
+      body: posterFd,
+    });
+    var posterJson = await posterResp.json().catch(function() { return {}; });
+    if (!posterResp.ok || !posterJson.ok) {
+      console.warn('[poster] FAIL — edge function error:', posterJson.error || posterResp.status);
       return;
     }
-    console.log('[poster] public URL:', publicUrl);
-
-    // Write the poster URL to the clients table
-    console.log('[poster] writing poster URL to clients table…');
-    var dbResult = await mmaSb.from('clients')
-      .update({ middle_man_background_poster_url: publicUrl })
-      .eq('id', clientId);
-    if (dbResult.error) {
-      console.warn('[poster] FAIL — DB update error:', dbResult.error.message);
-      return;
-    }
+    console.log('[poster] upload OK');
+    var publicUrl = posterJson.url;
 
     if (_editClientData) _editClientData.middle_man_background_poster_url = publicUrl;
     console.log('[poster] SUCCESS — poster saved →', publicUrl);
