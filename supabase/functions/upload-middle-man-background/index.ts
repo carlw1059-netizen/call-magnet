@@ -29,11 +29,27 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient }   from 'npm:@supabase/supabase-js@2';
 import { Image }          from 'https://deno.land/x/imagescript@1.2.15/mod.ts';
+import { S3Client, PutObjectCommand } from 'npm:@aws-sdk/client-s3@3';
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const ADMIN_EMAIL               = 'car312@hotmail.com';
 const BUCKET                    = 'middle-man-backgrounds';
+
+const R2_ACCOUNT_ID  = Deno.env.get('CLOUDFLARE_ACCOUNT_ID')!;
+const R2_ACCESS_KEY  = Deno.env.get('CLOUDFLARE_R2_ACCESS_KEY_ID')!;
+const R2_SECRET_KEY  = Deno.env.get('CLOUDFLARE_R2_SECRET_ACCESS_KEY')!;
+const R2_BUCKET      = 'callmagnet-media';
+const R2_PUBLIC_BASE = 'https://media.callmagnet.com.au';
+
+const r2 = new S3Client({
+  region: 'auto',
+  endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId: R2_ACCESS_KEY,
+    secretAccessKey: R2_SECRET_KEY,
+  },
+});
 
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png']);
 const MAX_IMAGE_BYTES     = 5  * 1024 * 1024;   // 5 MB
@@ -187,12 +203,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
 
       const path = `${clientId}/video-${Date.now()}.mp4`;
-      const { error: upErr } = await supa.storage
-        .from(BUCKET)
-        .upload(path, fileBytes, { contentType: 'video/mp4', upsert: true });
-      if (upErr) throw new Error(`Storage upload failed (video): ${upErr.message}`);
-
-      const { data: { publicUrl } } = supa.storage.from(BUCKET).getPublicUrl(path);
+      await r2.send(new PutObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: path,
+        Body: fileBytes,
+        ContentType: 'video/mp4',
+      }));
+      const publicUrl = `${R2_PUBLIC_BASE}/${path}`;
       urls   = { video: publicUrl };
       bgType = 'video';
 
@@ -232,13 +249,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
         const jpegBytes = await cropped.encodeJPEG(85);
         const path      = `${clientId}/${key}.jpg`;
 
-        const { error: upErr } = await supa.storage
-          .from(BUCKET)
-          .upload(path, jpegBytes, { contentType: 'image/jpeg', upsert: true });
-        if (upErr) throw new Error(`Storage upload failed (${key}): ${upErr.message}`);
-
-        const { data: { publicUrl } } = supa.storage.from(BUCKET).getPublicUrl(path);
-        urls[key] = publicUrl;
+        await r2.send(new PutObjectCommand({
+          Bucket: R2_BUCKET,
+          Key: path,
+          Body: jpegBytes,
+          ContentType: 'image/jpeg',
+        }));
+        urls[key] = `${R2_PUBLIC_BASE}/${path}`;
       }
       bgType = 'image';
     }
