@@ -17,11 +17,27 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { S3Client, PutObjectCommand } from 'npm:@aws-sdk/client-s3@3';
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const ADMIN_EMAIL               = 'car312@hotmail.com';
 const BUCKET                    = 'middle-man-backgrounds';
+
+const R2_ACCOUNT_ID  = Deno.env.get('CLOUDFLARE_ACCOUNT_ID')!;
+const R2_ACCESS_KEY  = Deno.env.get('CLOUDFLARE_R2_ACCESS_KEY_ID')!;
+const R2_SECRET_KEY  = Deno.env.get('CLOUDFLARE_R2_SECRET_ACCESS_KEY')!;
+const R2_BUCKET      = 'callmagnet-media';
+const R2_PUBLIC_BASE = 'https://media.callmagnet.com.au';
+
+const r2 = new S3Client({
+  region: 'auto',
+  endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId: R2_ACCESS_KEY,
+    secretAccessKey: R2_SECRET_KEY,
+  },
+});
 
 const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const MAX_BYTES          = 2 * 1024 * 1024;  // 2 MB
@@ -123,21 +139,19 @@ Deno.serve(async (req: Request): Promise<Response> => {
     // ── 4. Upload to storage ───────────────────────────────────────────────
     // Always stored at the same path — upsert:true overwrites previous logo.
     const storagePath = `${clientId}/logo.png`;
-    const { error: upErr } = await supa.storage
-      .from(BUCKET)
-      .upload(storagePath, fileBytes, { contentType: mime, upsert: true });
-    if (upErr) {
-      console.error('upload-middle-man-logo: storage upload failed:', upErr.message);
-      throw new Error(`Storage upload failed: ${upErr.message}`);
-    }
-
-    const { data: { publicUrl } } = supa.storage.from(BUCKET).getPublicUrl(storagePath);
+    await r2.send(new PutObjectCommand({
+      Bucket: R2_BUCKET,
+      Key: storagePath,
+      Body: fileBytes,
+      ContentType: mime,
+    }));
+    const publicUrl = `${R2_PUBLIC_BASE}/${storagePath}`;
 
     // ── 5. Update clients row ──────────────────────────────────────────────
     const { error: updateErr } = await supa
       .from('clients')
       .update({
-        middle_man_logo_url:  `${publicUrl}?v=${Date.now()}`,
+        middle_man_logo_url:  publicUrl,
         middle_man_updated_at: new Date().toISOString(),
       })
       .eq('id', clientId);
