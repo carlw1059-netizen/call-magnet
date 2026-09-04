@@ -656,6 +656,33 @@
     // ── Business name + promo ─────────────────────────────────────────────
     document.title = businessName || 'CallMagnet';
 
+      // ── OG tags — set dynamically after client data loads ──────────────────
+      function setMeta(property, content) {
+        if (!content) return;
+        var el = document.querySelector('meta[property="' + property + '"]')
+              || document.querySelector('meta[name="' + property + '"]');
+        if (!el) {
+          el = document.createElement('meta');
+          el.setAttribute(property.startsWith('og:') || property.startsWith('twitter:') ? 'property' : 'name', property);
+          document.head.appendChild(el);
+        }
+        el.setAttribute('content', content);
+      }
+      var pageUrl = window.location.href;
+      var ogImage = client.middle_man_logo_url
+                  ? client.middle_man_logo_url.split('?')[0]
+                  : (client.middle_man_background_poster_url
+                  ? client.middle_man_background_poster_url.split('?')[0]
+                  : '');
+      setMeta('og:title',       businessName || 'CallMagnet');
+      setMeta('og:description', 'Tap to connect with ' + (businessName || 'us'));
+      setMeta('og:image',       ogImage);
+      setMeta('og:url',         pageUrl);
+      setMeta('og:type',        'website');
+      setMeta('twitter:card',   'summary_large_image');
+      setMeta('twitter:title',  businessName || 'CallMagnet');
+      setMeta('twitter:image',  ogImage);
+
     // ── Logo ──────────────────────────────────────────────────────────────
     var logoUrl = client.middle_man_logo_url || null;
     if (logoUrl) {
