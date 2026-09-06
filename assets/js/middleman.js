@@ -594,7 +594,6 @@
             hls.on(window.Hls.Events.MANIFEST_PARSED, function() {
               vid.play().catch(function(err) {
                 console.warn('[video] HLS play() blocked:', err.name);
-                vid.style.display = 'none';
                 if (posterUrl && posterUrl.indexOf('data:image') === -1) {
                   bgFixed.style.backgroundImage = 'url(' + posterUrl + ')';
                   bgFixed.style.backgroundSize = 'cover';
@@ -629,7 +628,6 @@
         var code = vid.error ? vid.error.code : '?';
         var msg  = vid.error ? vid.error.message : 'unknown';
         console.log('[video] ERROR event — code:', code, '| message:', msg);
-        vid.style.display = 'none';
         if (posterUrl && posterUrl.indexOf('data:image') === -1) {
           bgFixed.style.backgroundImage = 'url(' + posterUrl + ')';
           bgFixed.style.backgroundSize = 'cover';
@@ -642,7 +640,6 @@
       vid.addEventListener('canplay', function() {
         vid.play().catch(function(err) {
           console.warn('[video] play() blocked after canplay:', err.name);
-          vid.style.display = 'none';
           if (posterUrl && posterUrl.indexOf('data:image') === -1) {
             bgFixed.style.backgroundImage = 'url(' + posterUrl + ')';
             bgFixed.style.backgroundSize = 'cover';
