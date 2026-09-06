@@ -728,7 +728,7 @@
     enabled.forEach(function(btn, idx) {
       var rawLabel  = (btn.label || '').trim();
       var formType  = classifyLabel(rawLabel);
-      var emoji     = btn.emoji || labelEmoji(rawLabel);
+      var emoji     = btn.emoji || '';
       var display   = emoji ? emoji + ' ' + rawLabel : rawLabel; // FIX 3: emoji prefix
       var btnKey    = 'btn' + idx;
 
