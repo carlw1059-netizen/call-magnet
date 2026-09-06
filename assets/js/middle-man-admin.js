@@ -1516,6 +1516,7 @@ function _triggerUpload(accept, uploadBtnId, progressId, errId, defaultBtnText) 
       if (isVideo) {
         // Update video preview (FIX 6: autoplay with all iOS attrs)
         _setVideoPreview(newUrl);
+        renderPreview();
         // Extract first frame as poster and upload (non-blocking, fails silently)
         _extractAndUploadPoster(newUrl, _editClientId);
         // Clear photo thumbnail — video is now active
@@ -1527,6 +1528,7 @@ function _triggerUpload(accept, uploadBtnId, progressId, errId, defaultBtnText) 
       } else {
         // Update photo thumbnail
         _setPhotoThumb(newUrl);
+        renderPreview();
         // Clear video preview — photo is now active
         _setVideoPreview(null);
         // Show photo remove, ensure video remove is hidden
@@ -1565,7 +1567,8 @@ function _setPhotoThumb(url) {
   } else {
     var ph   = document.createElement('div');
     ph.id    = 'mmaPhotoThumb';
-    ph.className = 'mma-bg-placeholder';
+    ph.className = 'mma-video-placeholder';
+    ph.style.cssText = 'font-size:24px;width:185px;min-height:200px;display:flex;align-items:center;justify-content:center;';
     ph.textContent = '★';
     thumb.parentNode.replaceChild(ph, thumb);
   }
