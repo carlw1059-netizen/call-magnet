@@ -42,6 +42,9 @@ const R2_SECRET_KEY  = Deno.env.get('CLOUDFLARE_R2_SECRET_ACCESS_KEY')!;
 const R2_BUCKET      = 'callmagnet-media';
 const R2_PUBLIC_BASE = 'https://media.callmagnet.com.au';
 
+const MUX_TOKEN_ID     = Deno.env.get('MUX_TOKEN_ID')!;
+const MUX_TOKEN_SECRET = Deno.env.get('MUX_TOKEN_SECRET')!;
+
 const r2 = new S3Client({
   region: 'auto',
   endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
@@ -196,23 +199,94 @@ Deno.serve(async (req: Request): Promise<Response> => {
     let bgType: 'image' | 'video' = 'image';
 
     if (isMp4) {
-      // ── MP4 video: validate size, upload as-is ─────────────────────────
+      // ── MP4 video: validate size, upload raw to R2 as backup, send to Mux ─
       if (fileBytes.byteLength > MAX_VIDEO_BYTES) {
         return json(400, { ok: false, error: 'validation_failed',
                             detail: `Video must be under 15MB — try compressing it (got ${(fileBytes.byteLength / 1024 / 1024).toFixed(1)} MB)` });
       }
 
-      const path = `${clientId}/video-${Date.now()}.mp4`;
+      // 1. Save raw file to R2 as permanent backup
+      const r2Path = `${clientId}/video-${Date.now()}-raw.mp4`;
       await r2.send(new PutObjectCommand({
         Bucket: R2_BUCKET,
-        Key: path,
+        Key: r2Path,
         Body: fileBytes,
         ContentType: 'video/mp4',
       }));
-      const publicUrl = `${R2_PUBLIC_BASE}/${path}`;
-      urls   = { video: publicUrl };
-      bgType = 'video';
+      const r2BackupUrl = `${R2_PUBLIC_BASE}/${r2Path}`;
 
+      // 2. Create a Mux direct upload
+      const muxTokenId     = Deno.env.get('MUX_TOKEN_ID')!;
+      const muxTokenSecret = Deno.env.get('MUX_TOKEN_SECRET')!;
+      const muxAuth        = btoa(`${muxTokenId}:${muxTokenSecret}`);
+
+      // Create asset directly from raw bytes via Mux upload URL
+      const muxUploadRes = await fetch('https://api.mux.com/video/v1/uploads', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${muxAuth}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cors_origin: 'https://callmagnet.com.au',
+          new_asset_settings: {
+            playback_policy: ['public'],
+            mp4_support: 'standard',
+          },
+        }),
+      });
+
+      if (!muxUploadRes.ok) {
+        const err = await muxUploadRes.text();
+        console.error('Mux upload creation failed:', err);
+        // Fall back to R2 URL if Mux fails
+        urls   = { video: r2BackupUrl };
+        bgType = 'video';
+      } else {
+        const muxUpload = await muxUploadRes.json();
+        const uploadUrl = muxUpload.data.url;
+        const uploadId  = muxUpload.data.id;
+
+        // 3. PUT the video bytes to the Mux upload URL
+        const putRes = await fetch(uploadUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'video/mp4' },
+          body: fileBytes,
+        });
+
+        if (!putRes.ok) {
+          console.error('Mux PUT failed:', await putRes.text());
+          urls   = { video: r2BackupUrl };
+          bgType = 'video';
+        } else {
+          // 4. Get the asset ID from the upload
+          const assetRes = await fetch(`https://api.mux.com/video/v1/uploads/${uploadId}`, {
+            headers: { 'Authorization': `Basic ${muxAuth}` },
+          });
+          const assetData = await assetRes.json();
+          const assetId   = assetData.data.asset_id;
+
+          // 5. Update clients with processing status — webhook will update playback URL
+          await supa.from('clients').update({
+            mux_asset_id:            assetId ?? uploadId,
+            video_processing_status: 'processing',
+            middle_man_background_url: r2BackupUrl,
+            middle_man_background_type: 'video',
+            middle_man_updated_at:   new Date().toISOString(),
+          }).eq('id', clientId);
+
+          return json(200, {
+            ok: true,
+            urls: { video: r2BackupUrl },
+            type: 'video',
+            status: 'processing',
+            message: 'Video uploaded — processing by Mux. Live within 5 minutes.',
+            updated_at: new Date().toISOString(),
+          });
+        }
+      }
+
+      bgType = 'video';
     } else {
       // ── Image (JPEG or PNG): decode → validate → 3-variant encode pipeline
       if (fileBytes.byteLength > MAX_IMAGE_BYTES) {
