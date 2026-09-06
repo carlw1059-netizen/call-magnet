@@ -142,18 +142,6 @@
     return 'something_else';
   }
 
-  // ── Emoji for a button label ──────────────────────────────────────────────
-  function labelEmoji(label) {
-    var l = label.toLowerCase();
-    if (l.indexOf('change') !== -1 || l.indexOf('alter') !== -1 || l.indexOf('cancel') !== -1) return '✏️'; // ✏️
-    if (l.indexOf('book') !== -1) return '🍽️'; // 🍽️
-    if (l.indexOf('function') !== -1 || l.indexOf('event') !== -1) return '🎁'; // 🎁
-    if (l.indexOf('lost') !== -1 || l.indexOf('found') !== -1) return '❓'; // ❓
-    if (l.indexOf('late') !== -1 || l.indexOf('running') !== -1) return '🏃'; // 🏃
-    if (l.indexOf('something else') !== -1 || l.indexOf('enquiry') !== -1 || l.indexOf('other') !== -1) return '📣'; // 📣
-    return '📣'; // 📣 default
-  }
-
   // ── AU phone validation ───────────────────────────────────────────────────
   function isValidAuPhone(v) {
     return /^(\+614\d{8}|04\d{8}|4\d{8}|614\d{8}|0[2-9]\d{8})$/.test(v.replace(/\s+/g, ''));
