@@ -1752,6 +1752,7 @@ async function removeBg() {
       _setPhotoThumb(null);
     }
     _setVideoPreview(null);
+    renderPreview();
 
     var btn = document.getElementById(isVideo ? 'mmaVideoRemoveBtn' : 'mmaPhotoRemoveBtn');
     if (btn) btn.style.display = 'none';
