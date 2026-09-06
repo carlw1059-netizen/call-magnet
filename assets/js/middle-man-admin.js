@@ -1515,6 +1515,7 @@ function _triggerUpload(accept, uploadBtnId, progressId, errId, defaultBtnText) 
         renderPreview();
         // Extract first frame as poster and upload (non-blocking, fails silently)
         _extractAndUploadPoster(newUrl, _editClientId);
+        _pollMuxStatus(_editClientId);
         // Clear photo thumbnail — video is now active
         _setPhotoThumb(null);
         // Show video remove, ensure photo remove is hidden
@@ -1628,6 +1629,48 @@ function _ensureRemoveBtn(btnId, label) {
   btn.textContent   = label;
   btn.addEventListener('click', removeBg);
   uploadBtn.parentNode.appendChild(btn);
+}
+
+// ─── Mux processing status poller ────────────────────────────────────────────
+function _pollMuxStatus(clientId) {
+  var statusEl  = document.getElementById('mmaVideoStatus');
+  var statusBar = document.getElementById('mmaVideoStatusBar');
+  var statusText = document.getElementById('mmaVideoStatusText');
+  if (!statusEl) return;
+  statusEl.style.display = 'block';
+  statusBar.style.width = '30%';
+  statusBar.style.background = '#f59e0b';
+  statusText.textContent = '⏳ Processing — live in a few minutes…';
+
+  var attempts = 0;
+  var maxAttempts = 24; // 4 minutes at 10s intervals
+  var interval = setInterval(async function() {
+    attempts++;
+    try {
+      var sessionResult = await mmaSb.auth.getSession();
+      var sess = sessionResult.data && sessionResult.data.session;
+      if (!sess) { clearInterval(interval); return; }
+      var res = await fetch(
+        MMA_SUPABASE_URL + '/rest/v1/clients?select=video_processing_status&id=eq.' + clientId,
+        { headers: { 'Authorization': 'Bearer ' + sess.access_token, 'apikey': MMA_SUPABASE_ANON_KEY } }
+      );
+      var data = await res.json();
+      if (data && data[0] && data[0].video_processing_status === 'live') {
+        clearInterval(interval);
+        statusBar.style.width = '100%';
+        statusBar.style.background = '#10b981';
+        statusText.textContent = '✅ Video is live';
+        setTimeout(function() { statusEl.style.display = 'none'; }, 4000);
+      } else if (attempts >= maxAttempts) {
+        clearInterval(interval);
+        statusBar.style.width = '100%';
+        statusBar.style.background = '#f59e0b';
+        statusText.textContent = 'Still processing — refresh the page to check';
+      }
+    } catch (e) {
+      console.warn('[mux poll] error:', e);
+    }
+  }, 10000);
 }
 
 // ─── Client-side poster extraction (JOB 1: instant-look video load) ─────────
