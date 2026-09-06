@@ -1438,6 +1438,7 @@ function triggerVideoUpload() {
 
 // ─── Shared upload core ───────────────────────────────────────────────────────
 function _triggerUpload(accept, uploadBtnId, progressId, errId, defaultBtnText) {
+  console.log('[upload] _editClientId at click time:', _editClientId);
   if (!_editClientId) return;
 
   var fileInput  = document.createElement('input');
