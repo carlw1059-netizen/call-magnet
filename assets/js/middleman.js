@@ -571,7 +571,7 @@
       vid.appendChild(vsrc);
 
       // For non-Safari browsers load HLS.js to handle .m3u8 streams
-      if (isMuxHls && !vid.canPlayType('application/x-mpegURL')) {
+      if (isMuxHls) {
         var hlsScript = document.createElement('script');
         hlsScript.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js';
         hlsScript.onload = function() {
