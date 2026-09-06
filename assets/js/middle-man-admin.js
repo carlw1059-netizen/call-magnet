@@ -1437,30 +1437,8 @@ function triggerVideoUpload() {
 }
 
 // ─── Shared upload core ───────────────────────────────────────────────────────
-async function _triggerUpload(accept, uploadBtnId, progressId, errId, defaultBtnText) {
+function _triggerUpload(accept, uploadBtnId, progressId, errId, defaultBtnText) {
   if (!_editClientId) return;
-
-  // ── Pre-flight network check — fail fast with clear message if offline ──
-  var errElPre = document.getElementById(errId);
-  try {
-    var ping = await fetch(MMA_SUPABASE_URL + '/functions/v1/upload-middle-man-background', {
-      method: 'OPTIONS',
-      signal: AbortSignal.timeout(5000),
-    });
-    if (!ping.ok && ping.status !== 204 && ping.status !== 200) {
-      if (errElPre) {
-        errElPre.textContent = 'Cannot reach server — check your internet connection and try again.';
-        errElPre.style.display = 'block';
-      }
-      return;
-    }
-  } catch {
-    if (errElPre) {
-      errElPre.textContent = 'No internet connection — please check your network and try again.';
-      errElPre.style.display = 'block';
-    }
-    return;
-  }
 
   var fileInput  = document.createElement('input');
   fileInput.type = 'file';
