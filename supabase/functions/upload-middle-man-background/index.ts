@@ -19,7 +19,7 @@
 //
 // Video (MP4 only — Phase 1.5):
 //   • Accepts video/mp4 only. MOV / WebM / AVI are rejected with clear messages.
-//   • Max 15 MB. Stored as-is at <client_id>/video-{timestamp}.mp4 (no transcoding).
+//   • No file size limit. Stored as-is at <client_id>/video-{timestamp}.mp4 (no transcoding).
 //   • Returns { ok: true, urls: { video: <publicUrl> }, type: 'video' }
 //
 // NOTE: npm:sharp requires native Node.js bindings (libvips) which are NOT
@@ -56,7 +56,6 @@ const r2 = new S3Client({
 
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png']);
 const MAX_IMAGE_BYTES     = 5  * 1024 * 1024;   // 5 MB
-const MAX_VIDEO_BYTES     = 15 * 1024 * 1024;   // 15 MB
 
 // Maps unsupported video MIME types to human-readable format names for errors.
 const UNSUPPORTED_VIDEO_LABELS: Record<string, string> = {
@@ -200,10 +199,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     if (isMp4) {
       // ── MP4 video: validate size, upload raw to R2 as backup, send to Mux ─
-      if (fileBytes.byteLength > MAX_VIDEO_BYTES) {
-        return json(400, { ok: false, error: 'validation_failed',
-                            detail: `Video must be under 15MB — try compressing it (got ${(fileBytes.byteLength / 1024 / 1024).toFixed(1)} MB)` });
-      }
 
       // 1. Save raw file to R2 as permanent backup
       const r2Path = `${clientId}/video-${Date.now()}-raw.mp4`;
@@ -221,6 +216,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       const muxAuth        = btoa(`${muxTokenId}:${muxTokenSecret}`);
 
       // Create asset directly from raw bytes via Mux upload URL
+      console.log('[mux] attempting upload, token id length:', muxTokenId?.length, 'auth length:', muxAuth?.length);
       const muxUploadRes = await fetch('https://api.mux.com/video/v1/uploads', {
         method: 'POST',
         headers: {
@@ -231,14 +227,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
           cors_origin: 'https://callmagnet.com.au',
           new_asset_settings: {
             playback_policy: ['public'],
-            mp4_support: 'standard',
           },
         }),
       });
 
       if (!muxUploadRes.ok) {
         const err = await muxUploadRes.text();
-        console.error('Mux upload creation failed:', err);
+        console.error('[mux] upload creation failed — status:', muxUploadRes.status, 'body:', err);
         // Fall back to R2 URL if Mux fails
         urls   = { video: r2BackupUrl };
         bgType = 'video';
