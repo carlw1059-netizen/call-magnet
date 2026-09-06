@@ -576,10 +576,38 @@
         'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
       vid.setAttribute('poster', posterUrl);
       console.log('[video] poster attr:', client.middle_man_background_poster_url ? posterUrl : '(1×1 gif fallback)');
+      var isMuxHls = bgUrl.includes('.m3u8');
       var vsrc = document.createElement('source');
       vsrc.src  = bgUrl;
-      vsrc.type = 'video/mp4';
+      vsrc.type = isMuxHls ? 'application/x-mpegURL' : 'video/mp4';
       vid.appendChild(vsrc);
+
+      // For non-Safari browsers load HLS.js to handle .m3u8 streams
+      if (isMuxHls && !vid.canPlayType('application/x-mpegURL')) {
+        var hlsScript = document.createElement('script');
+        hlsScript.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js';
+        hlsScript.onload = function() {
+          if (window.Hls && window.Hls.isSupported()) {
+            var hls = new window.Hls();
+            hls.loadSource(bgUrl);
+            hls.attachMedia(vid);
+            hls.on(window.Hls.Events.MANIFEST_PARSED, function() {
+              vid.play().catch(function(err) {
+                console.warn('[video] HLS play() blocked:', err.name);
+                vid.style.display = 'none';
+                if (posterUrl && posterUrl.indexOf('data:image') === -1) {
+                  bgFixed.style.backgroundImage = 'url(' + posterUrl + ')';
+                  bgFixed.style.backgroundSize = 'cover';
+                  bgFixed.style.backgroundPosition = 'center';
+                } else {
+                  bgFixed.style.backgroundColor = '#0E1419';
+                }
+              });
+            });
+          }
+        };
+        document.head.appendChild(hlsScript);
+      }
 
       // ── Diagnostic event listeners (wired BEFORE load/play) ─────────────
       vid.addEventListener('loadedmetadata', function() {
