@@ -523,7 +523,9 @@ function renderEditBody(client) {
         '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:0 0 auto;width:185px;min-height:320px;">' +
           '<div class="mma-media-label">Video</div>' +
           (bgType === 'video' && bgUrl
-            ? '<video id="mmaVideoPreview" class="mma-video-preview" autoplay muted playsinline webkit-playsinline loop preload="auto"><source src="' + _e(bgUrl) + '?v=' + Date.now() + '" type="video/mp4" /></video>'
+            ? (bgUrl.includes('.m3u8')
+                ? '<div id="mmaVideoPreview" class="mma-video-placeholder" style="font-size:13px;color:#10b981;font-weight:700;">✅ Video live</div>'
+                : '<video id="mmaVideoPreview" class="mma-video-preview" autoplay muted playsinline webkit-playsinline loop preload="auto"><source src="' + _e(bgUrl) + '?v=' + Date.now() + '" type="video/mp4" /></video>')
             : '<div id="mmaVideoPreview" class="mma-video-placeholder">▶</div>') +
           '<button id="mmaVideoUploadBtn" class="mma-save-btn">Upload video</button>' +
           '<div class="mma-info" style="text-align:center;font-size:13px;font-weight:700;">MP4, vertical 9:16.</div>' +
