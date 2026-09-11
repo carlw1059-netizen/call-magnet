@@ -736,7 +736,7 @@
           a.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" fill="' + color + '"><path d="' + ic.path + '"/></svg>';
           iconRow.appendChild(a);
         });
-        document.getElementById('logoZone').after(iconRow);
+        document.getElementById('buttonsWrap').after(iconRow);
       }
     }
 
