@@ -357,7 +357,7 @@ async function loadClientForEdit(clientId) {
   try {
     var result = await mmaSb
       .from('clients')
-      .select('id,business_name,email,vertical,middle_man_enabled,middle_man_slug,booking_url,middle_man_logo_url,middle_man_promo_text,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_buttons,middle_man_updated_at,is_demo_account,is_locked,customer_sms_template,twilio_number,twilio_number_2,schedule_enabled,manual_line_override')
+      .select('id,business_name,email,vertical,middle_man_enabled,middle_man_slug,booking_url,middle_man_logo_url,middle_man_promo_text,middle_man_background_url,middle_man_background_type,middle_man_background_poster_url,middle_man_buttons,middle_man_updated_at,is_demo_account,is_locked,customer_sms_template,twilio_number,twilio_number_2,schedule_enabled,manual_line_override,social_enabled,social_instagram,social_instagram_color,social_facebook,social_facebook_color,social_tiktok,social_tiktok_color,social_youtube,social_youtube_color,social_whatsapp,social_whatsapp_color,social_spotify,social_spotify_color,social_soundcloud,social_soundcloud_color')
       .eq('id', clientId)
       .single();
     if (result.error) throw result.error;
@@ -578,6 +578,47 @@ function renderEditBody(client) {
       '</div>' +
     '</div>';
 
+  // ── 7. Social Media
+  var SOCIAL_PLATFORMS = [
+    { key: 'instagram',  label: 'Instagram',  placeholder: 'https://instagram.com/yourvenue' },
+    { key: 'facebook',   label: 'Facebook',   placeholder: 'https://facebook.com/yourvenue' },
+    { key: 'tiktok',     label: 'TikTok',     placeholder: 'https://tiktok.com/@yourvenue' },
+    { key: 'youtube',    label: 'YouTube',    placeholder: 'https://youtube.com/yourchannel' },
+    { key: 'whatsapp',   label: 'WhatsApp',   placeholder: 'https://wa.me/61400000000' },
+    { key: 'spotify',    label: 'Spotify',    placeholder: 'https://open.spotify.com/artist/...' },
+    { key: 'soundcloud', label: 'SoundCloud', placeholder: 'https://soundcloud.com/yourvenue' },
+  ];
+  var socialOn = !!client.social_enabled;
+  var socialRowsHtml = SOCIAL_PLATFORMS.map(function(p) {
+    var urlVal   = _e(client['social_' + p.key] || '');
+    var colorVal = _e(client['social_' + p.key + '_color'] || '#ffffff');
+    return '<div class="mma-social-row" data-platform="' + p.key + '" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
+      '<span style="width:90px;font-size:13px;font-weight:700;color:#000;flex-shrink:0;">' + p.label + '</span>' +
+      '<input type="url" id="mma-' + p.key + '-url" placeholder="' + p.placeholder + '" value="' + urlVal + '" class="mma-field-input" style="flex:1;min-width:0;" />' +
+      '<input type="color" id="mma-' + p.key + '-color" class="mma-social-color" value="' + colorVal + '" title="Icon colour" style="width:36px;height:32px;padding:2px;border:none;border-radius:6px;cursor:pointer;background:none;flex-shrink:0;" />' +
+      '<input type="text" id="mma-' + p.key + '-hex" class="mma-social-hex" value="' + colorVal + '" maxlength="7" placeholder="#rrggbb" style="width:62px;padding:3px 5px;font-size:11px;font-family:monospace;border:1px solid #ccc;border-radius:5px;background:#fff;color:#111;outline:none;flex-shrink:0;" />' +
+    '</div>';
+  }).join('');
+  var socialSection =
+    '<div class="mma-section">' +
+      '<div class="mma-section-label">Social Media</div>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;">' +
+        '<span id="mmaSocialDesc" style="font-size:15px;color:#000000;">' +
+          (socialOn ? 'Currently ON — social icons shown on page' : 'Currently OFF — social icons hidden') +
+        '</span>' +
+        '<button id="mmaSocialToggleBtn" class="mma-toggle-btn ' + (socialOn ? 'mma-toggle-on' : 'mma-toggle-off') + '">' +
+          (socialOn ? 'ON' : 'OFF') +
+        '</button>' +
+      '</div>' +
+      '<div id="mmaSocialRows" style="display:' + (socialOn ? 'block' : 'none') + ';">' +
+        socialRowsHtml +
+        '<div style="display:flex;align-items:center;gap:10px;margin-top:8px;">' +
+          '<button id="mmaSocialSaveBtn" class="mma-save-btn">Save social media</button>' +
+          '<span id="mmaSocialMsg" class="mma-saved-msg">&#10003; Saved</span>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
   // ── 8. Notification Messages
   var notifSection = buildNotifSection(buttons);
 
@@ -661,7 +702,7 @@ function renderEditBody(client) {
     : '';
   var formWrapStart = lockedDemo ? '<div style="opacity:0.6;pointer-events:none;">' : '';
   var formWrapEnd   = lockedDemo ? '</div>' : '';
-  content.innerHTML = heading + lockedBanner + formWrapStart + toggleSection + slugSection + smsSection + clientLoginSection + promoSection + logoSection + mediaSection + btnsSection + notifSection + scheduleSection + previewHtml + formWrapEnd;
+  content.innerHTML = heading + lockedBanner + formWrapStart + toggleSection + slugSection + smsSection + clientLoginSection + promoSection + logoSection + mediaSection + btnsSection + socialSection + notifSection + scheduleSection + previewHtml + formWrapEnd;
 
   // ── Wire event listeners ─────────────────────────────────────────────────────
   document.getElementById('mmaLogoUploadBtn').addEventListener('click', uploadLogo);
@@ -763,6 +804,29 @@ function renderEditBody(client) {
   });
   document.getElementById('mmaSaveBtnsBtn').addEventListener('click', saveButtons);
   document.getElementById('mmaSaveNotifsBtn').addEventListener('click', saveNotifications);
+
+  // Social media section
+  document.getElementById('mmaSocialToggleBtn').addEventListener('click', toggleSocial);
+  document.getElementById('mmaSocialSaveBtn').addEventListener('click', saveSocial);
+  document.getElementById('mmaSocialRows').addEventListener('input', function(ev) {
+    var row = ev.target.closest('.mma-social-row');
+    if (!row) return;
+    var hexInput = ev.target.closest('.mma-social-hex');
+    if (hexInput) {
+      var raw = hexInput.value.trim();
+      var hex = raw.charAt(0) === '#' ? raw : '#' + raw;
+      if (/^#[0-9a-fA-F]{3}$/.test(hex)) { hex = '#' + hex[1]+hex[1] + hex[2]+hex[2] + hex[3]+hex[3]; }
+      if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return;
+      var cp = row.querySelector('.mma-social-color');
+      if (cp) cp.value = hex;
+      return;
+    }
+    var colorInput = ev.target.closest('.mma-social-color');
+    if (colorInput) {
+      var hi = row.querySelector('.mma-social-hex');
+      if (hi) hi.value = colorInput.value;
+    }
+  });
   wireNotifBuilder();
 
   // ── Short Link & SMS section wiring ──────────────────────────────────────────
@@ -976,6 +1040,50 @@ async function toggleEnabled() {
     alert('Toggle failed: ' + err.message);
   } finally {
     btn.disabled = false;
+  }
+}
+
+// ─── Toggle social enabled ────────────────────────────────────────────────────
+async function toggleSocial() {
+  if (!_editClientId || !_editClientData) return;
+  var btn    = document.getElementById('mmaSocialToggleBtn');
+  var desc   = document.getElementById('mmaSocialDesc');
+  var rows   = document.getElementById('mmaSocialRows');
+  var newVal = !_editClientData.social_enabled;
+  btn.disabled = true;
+  try {
+    var result = await mmaSb.from('clients').update({ social_enabled: newVal }).eq('id', _editClientId);
+    if (result.error) throw result.error;
+    _editClientData.social_enabled = newVal;
+    btn.textContent = newVal ? 'ON' : 'OFF';
+    btn.className   = 'mma-toggle-btn ' + (newVal ? 'mma-toggle-on' : 'mma-toggle-off');
+    if (desc) desc.textContent = newVal ? 'Currently ON — social icons shown on page' : 'Currently OFF — social icons hidden';
+    if (rows) rows.style.display = newVal ? 'block' : 'none';
+  } catch (err) {
+    alert('Toggle failed: ' + err.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ─── Save social media ────────────────────────────────────────────────────────
+async function saveSocial() {
+  if (!_editClientId) return;
+  var PLATFORMS = ['instagram','facebook','tiktok','youtube','whatsapp','spotify','soundcloud'];
+  var payload = { social_enabled: !!(_editClientData && _editClientData.social_enabled) };
+  PLATFORMS.forEach(function(p) {
+    var urlEl   = document.getElementById('mma-' + p + '-url');
+    var colorEl = document.getElementById('mma-' + p + '-color');
+    payload['social_' + p]               = urlEl   ? (urlEl.value.trim() || null) : null;
+    payload['social_' + p + '_color']    = colorEl ? colorEl.value : '#ffffff';
+  });
+  try {
+    var result = await mmaSb.from('clients').update(payload).eq('id', _editClientId);
+    if (result.error) throw result.error;
+    if (_editClientData) Object.assign(_editClientData, payload);
+    _flash('mmaSocialMsg', '✓ Saved', false);
+  } catch (err) {
+    _flash('mmaSocialMsg', '✗ ' + err.message, true);
   }
 }
 
