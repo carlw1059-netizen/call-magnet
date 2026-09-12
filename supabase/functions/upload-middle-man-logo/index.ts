@@ -137,8 +137,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
     }
 
     // ── 4. Upload to storage ───────────────────────────────────────────────
-    // Always stored at the same path — upsert:true overwrites previous logo.
-    const storagePath = `${clientId}/logo.png`;
+    // Timestamp suffix busts Cloudflare cache — each upload gets a unique URL.
+    const storagePath = `${clientId}/logo-${Date.now()}.png`;
     await r2.send(new PutObjectCommand({
       Bucket: R2_BUCKET,
       Key: storagePath,
