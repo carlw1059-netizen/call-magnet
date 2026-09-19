@@ -213,6 +213,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
   } else if (!customPushTitle || !customPushMessage) {
     console.log('submit-middle-man-form: no custom push wording set for this button — skipping notification');
   } else {
+    const finalPushMessage = (formType === 'function' && companyName)
+      ? `${customPushMessage} — from ${companyName}`
+      : customPushMessage;
+
     fetch(`${SUPABASE_URL}/functions/v1/send-client-notification`, {
       method:  'POST',
       headers: {
@@ -225,7 +229,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         event:     'link_tapped',
         context:   {
           push_title:      customPushTitle,
-          push_message:    customPushMessage,
+          push_message:    finalPushMessage,
           customer_number: toE164(callerPhone),
         },
       }),
