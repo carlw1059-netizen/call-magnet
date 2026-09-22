@@ -175,7 +175,7 @@
   }
 
   // ── Build inline form HTML ────────────────────────────────────────────────
-  function buildFormHtml(formType, businessName) {
+  function buildFormHtml(formType, businessName, btnData) {
     var nameField = ''
       + '<div class="field-wrap">'
       + '<label class="field-label">Your name</label>'
@@ -200,6 +200,12 @@
     var emailFieldOpt = ''
       + '<div class="field-wrap">'
       + '<label class="field-label">Email (receive our functions package)</label>'
+      + '<input class="field-input" type="email" data-field="email" placeholder="your@email.com">'
+      + '</div>';
+
+    var emailFieldInfopackOpt = ''
+      + '<div class="field-wrap">'
+      + '<label class="field-label">Your email <span class="opt">(optional)</span></label>'
       + '<input class="field-input" type="email" data-field="email" placeholder="your@email.com">'
       + '</div>';
 
@@ -279,6 +285,11 @@
         + '</div>';
     }
 
+    // For non-function button types: show generic email field when info pack is configured
+    if (formType !== 'function' && btnData && btnData.infopack_url) {
+      inner += emailFieldInfopackOpt;
+    }
+
     var titles = {
       change_cancel:  'Change or cancel booking',
       'function':     'Function enquiry',
@@ -308,7 +319,8 @@
   // ── Attach form event listeners ───────────────────────────────────────────
   // intentLabel: the display label of the button (with emoji) — logged on submit
   // bookingUrl:  redirect destination after successful submit (2 second delay)
-  function attachFormListeners(formWrap, formType, businessName, intentLabel, bookingUrl) {
+  // btnData:     the full button config object (optional) — used for infopack_url
+  function attachFormListeners(formWrap, formType, businessName, intentLabel, bookingUrl, btnData) {
     var form = formWrap.querySelector('.inline-form');
     if (!form) return;
 
@@ -397,11 +409,9 @@
       } else if (formType === 'function') {
         var guests      = getField('guests');
         var companyName = getField('company_name');
-        var email       = getField('email');
         var noteBase    = 'Guests: ' + guests;
         payload.note    = companyName ? 'Company: ' + companyName + '\n' + noteBase : noteBase;
         if (companyName) payload.company_name = companyName; // used by edge fn for push notification
-        if (email) payload.email = email;
       } else if (formType === 'lost_found') {
         var lostItem = getField('lost_item');
         payload.note = 'Lost: ' + lostItem + (note ? '. ' + note : '');
@@ -409,7 +419,12 @@
         if (note) payload.note = note;
       }
 
+      // Capture email field (present for function type or when infopack_url is set)
+      var email = getField('email');
+      if (email) payload.email = email;
+
       // ── Submit form ────────────────────────────────────────────────────────
+      var infopackUrl = (btnData && btnData.infopack_url) || '';
       submitBtn.disabled = true;
       submitBtn.textContent = 'Sending…';
 
@@ -418,8 +433,8 @@
         headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON },
         body: JSON.stringify(payload),
       })
-      .then(function() { handleSuccess(formWrap, name, formType, businessName); })
-      .catch(function() { handleSuccess(formWrap, name, formType, businessName); });
+      .then(function() { handleSuccess(formWrap, name, formType, businessName, infopackUrl); })
+      .catch(function() { handleSuccess(formWrap, name, formType, businessName, infopackUrl); });
       // Always show success — never block the customer
     });
   }
@@ -428,7 +443,7 @@
   // Booking redirects are handled in handleTap() before any form opens.
   // All other form types (change_cancel, function, late_arrival, lost_found,
   // something_else) show success and stay put.
-  function handleSuccess(formWrap, name, formType, businessName) {
+  function handleSuccess(formWrap, name, formType, businessName, infopackUrl) {
     var formEl = formWrap.querySelector('.inline-form');
     if (formEl) formEl.style.display = 'none';
 
@@ -437,6 +452,12 @@
     successEl.innerHTML = CHECK_SVG
       + '<div class="success-heading">Got it, ' + esc(name) + '</div>'
       + '<div class="success-msg">' + successMsg(formType, businessName) + '</div>';
+
+    if (infopackUrl) {
+      successEl.innerHTML +=
+        '<a class="infopack-link" href="' + esc(infopackUrl) + '" target="_blank" rel="noopener">View Info Pack →</a>';
+    }
+
     formWrap.appendChild(successEl);
 
     // Reset the Send button at 0.8s — ready while success is still showing
@@ -448,14 +469,16 @@
       }
     }, 800);
 
-    // At 2s — close form, return to home, clean up
-    setTimeout(function() {
-      closeForm();
-      var existingSuccess = formWrap.querySelector('.success-state');
-      if (existingSuccess) existingSuccess.remove();
-      var formAgain = formWrap.querySelector('.inline-form');
-      if (formAgain) formAgain.style.display = '';
-    }, 2000);
+    // At 2s — close form, return to home, clean up (suppressed when info pack link is shown)
+    if (!infopackUrl) {
+      setTimeout(function() {
+        closeForm();
+        var existingSuccess = formWrap.querySelector('.success-state');
+        if (existingSuccess) existingSuccess.remove();
+        var formAgain = formWrap.querySelector('.inline-form');
+        if (formAgain) formAgain.style.display = '';
+      }, 2000);
+    }
   }
 
   // ── Close the currently open inline form ─────────────────────────────────
@@ -812,9 +835,9 @@
         formWrap.className = 'form-wrap';
         formWrap.id = 'form-' + btnKey;
         formWrap.dataset.neon = btn.color || NEON[Math.min(idx, NEON.length - 1)];
-        formWrap.innerHTML = buildFormHtml(formType, businessName);
+        formWrap.innerHTML = buildFormHtml(formType, businessName, btn);
         unit.appendChild(formWrap);
-        attachFormListeners(formWrap, formType, businessName, display, btnDestUrl);
+        attachFormListeners(formWrap, formType, businessName, display, btnDestUrl, btn);
       }
 
       wrap.appendChild(unit);

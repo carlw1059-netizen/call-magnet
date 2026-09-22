@@ -1010,6 +1010,7 @@ function buildBtnRowHtml(btn, idx) {
     '<option value="">No effect</option>' +
     '<option value="shake"' + (btn.effect === 'shake' ? ' selected' : '') + '>Shake</option>' +
     '</select>' +
+    '<input type="url" class="mma-btn-infopack" value="' + _e(btn.infopack_url || '') + '" placeholder="Info pack URL (optional)…" style="flex:1;min-width:120px;" />' +
     '<button type="button" class="mma-btn-remove" title="Remove">×</button>' +
   '</div>';
 }
@@ -1254,6 +1255,7 @@ async function saveButtons() {
       emoji:        (row.querySelector('.mma-btn-emoji-pick') || {}).dataset && row.querySelector('.mma-btn-emoji-pick').dataset.emoji || '',
       push_title:   uiTitle || (typeof existing.push_title   === 'string' ? existing.push_title   : ''),
       push_message: uiMsg   || (typeof existing.push_message === 'string' ? existing.push_message : ''),
+      infopack_url: (row.querySelector('.mma-btn-infopack') || { value: '' }).value.trim(),
     });
   });
   try {
@@ -1475,6 +1477,7 @@ async function saveNotifications() {
       url:          (function(v) { return v && !/^(https?:|mailto:|tel:)/i.test(v) ? 'https://' + v : v; })((row.querySelector('.mma-btn-url') || { value: '' }).value.trim()),
       push_title:   titleEl ? titleEl.value.trim() : '',
       push_message: msgEl   ? msgEl.value.trim()   : '',
+      infopack_url: (row.querySelector('.mma-btn-infopack') || { value: '' }).value.trim(),
     });
   });
   try {

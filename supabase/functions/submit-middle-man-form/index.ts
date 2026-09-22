@@ -110,6 +110,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const rawNote             = typeof body.note                 === 'string' ? body.note.trim()                : '';
   const note                = rawNote.slice(0, 200);
   const companyName         = typeof body.company_name         === 'string' ? body.company_name.trim().slice(0, 100) : '';
+  const email               = typeof body.email                === 'string' ? body.email.trim().slice(0, 200)         : '';
 
   // ── Validate required fields ────────────────────────────────────────────────
   if (!slug)       return err400('Missing slug');
@@ -197,6 +198,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   if (note)                insertPayload.note                  = note;
   if (ipHash)              insertPayload.ip_hash               = ipHash;
   if (userAgent)           insertPayload.user_agent            = userAgent;
+  if (email)               insertPayload.email                 = email;
 
   const { error: insertErr } = await supa
     .from('middle_man_form_submissions')
