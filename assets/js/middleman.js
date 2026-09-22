@@ -199,7 +199,7 @@
 
     var emailFieldOpt = ''
       + '<div class="field-wrap">'
-      + '<label class="field-label">Email <span class="opt">(receive our functions package)</span></label>'
+      + '<label class="field-label">Email (receive our functions package)</label>'
       + '<input class="field-input" type="email" data-field="email" placeholder="your@email.com">'
       + '</div>';
 
