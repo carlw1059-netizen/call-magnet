@@ -197,6 +197,12 @@
       + '<div class="field-counter"><span data-counter="note">0</span>/500</div>'
       + '</div>';
 
+    var emailFieldOpt = ''
+      + '<div class="field-wrap">'
+      + '<label class="field-label">Email <span class="opt">(receive our functions package)</span></label>'
+      + '<input class="field-input" type="email" data-field="email" placeholder="your@email.com">'
+      + '</div>';
+
     var inner = '';
     if (formType === 'change_cancel') {
       inner = nameField + phoneField
@@ -236,7 +242,7 @@
         + '<input class="field-input" type="number" data-field="guests" placeholder="e.g. 30" min="1" max="500" inputmode="numeric">'
         + '<span class="field-error" data-err="guests">Please enter the number of guests.</span>'
         + '</div>'
-        + noteFieldOpt;
+        + emailFieldOpt;
     } else if (formType === 'late_arrival') {
       inner = nameField + phoneField
         + '<div class="field-wrap">'
@@ -391,9 +397,11 @@
       } else if (formType === 'function') {
         var guests      = getField('guests');
         var companyName = getField('company_name');
-        var noteBase    = 'Guests: ' + guests + (note ? '. ' + note : '');
+        var email       = getField('email');
+        var noteBase    = 'Guests: ' + guests;
         payload.note    = companyName ? 'Company: ' + companyName + '\n' + noteBase : noteBase;
         if (companyName) payload.company_name = companyName; // used by edge fn for push notification
+        if (email) payload.email = email;
       } else if (formType === 'lost_found') {
         var lostItem = getField('lost_item');
         payload.note = 'Lost: ' + lostItem + (note ? '. ' + note : '');
