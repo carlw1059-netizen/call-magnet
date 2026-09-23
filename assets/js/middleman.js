@@ -81,6 +81,7 @@
       emitSparkle(unit, color);
     }, 700);
     unit._sparkleInterval = iv;
+    unit._sparkleColor = color;
   }
 
   function emitSparkle(unit, color) {
@@ -487,6 +488,9 @@
     // CSS handles all style resets via class removal — no inline style cleanup needed
     document.querySelectorAll('.btn-unit').forEach(function(unit) {
       unit.classList.remove('slide-up', 'slide-down', 'form-open');
+      if (unit._sparkleColor && unit._sparkleInterval === null) {
+        applySparkles(unit, unit._sparkleColor);
+      }
     });
     // Collapse all open form-wraps
     document.querySelectorAll('.form-wrap.open').forEach(function(el) {
@@ -541,7 +545,11 @@
       gOpenFormKey = btnKey;
 
       var tappedUnit = btnEl.closest('.btn-unit');
-      if (tappedUnit) tappedUnit.classList.add('form-open');
+      if (tappedUnit) {
+        tappedUnit.classList.add('form-open');
+        clearInterval(tappedUnit._sparkleInterval);
+        tappedUnit._sparkleInterval = null;
+      }
 
       // Show tap-outside catcher (z-index 5, below the form-open unit at z-index 10)
       var tapCatcher = document.getElementById('tapCatcher');
