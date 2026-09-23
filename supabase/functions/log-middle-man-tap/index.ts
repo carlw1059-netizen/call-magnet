@@ -83,7 +83,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   const { data: clientRow, error: clientErr } = await supa
     .from('clients')
-    .select('id, business_name')
+    .select('id, business_name, middle_man_buttons')
     .eq('middle_man_slug', slug)
     .eq('account_status', 'active')
     .maybeSingle();
@@ -140,16 +140,49 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   // ── Fire-and-forget: send-client-notification (event: link_tapped) ──────────
-  // Only fire for booking-type taps (e.g. "Book a table"). Other buttons open
-  // forms and fire their own per-formType notification on submit via
-  // submit-middle-man-form — firing here too would duplicate or send the wrong message.
-  const isBookingTap = /book|table|appointment/i.test(intentSafe);
+  // Match the tapped button in middle_man_buttons.
+  // URL buttons → notify here. Form buttons → skip (submit-middle-man-form fires its own).
+  let notifyTitle:   string | null = null;
+  let notifyMessage: string | null = null;
+
+  try {
+    const btns: Array<Record<string, unknown>> = Array.isArray(clientRow.middle_man_buttons)
+      ? clientRow.middle_man_buttons
+      : JSON.parse(String(clientRow.middle_man_buttons ?? '[]'));
+
+    const match = btns.find(b =>
+      b.enabled !== false && (
+        (b.id    && String(b.id).trim()    === intentSafe) ||
+        (b.label && String(b.label).trim() === intentSafe)
+      )
+    );
+
+    if (match) {
+      const hasUrl = typeof match.url === 'string' && (match.url as string).trim() !== '';
+      if (!hasUrl) {
+        // Form button — submit-middle-man-form will fire the push on submission
+        console.log(`log-middle-man-tap: skipping notification for form button "${intentSafe}"`);
+      } else {
+        const label = typeof match.label === 'string' ? (match.label as string).trim() : intentSafe;
+        notifyTitle   = (typeof match.push_title   === 'string' && (match.push_title   as string).trim())
+          ? (match.push_title as string).trim() : label;
+        notifyMessage = (typeof match.push_message === 'string' && (match.push_message as string).trim())
+          ? (match.push_message as string).trim() : `Someone tapped "${label}" on your page`;
+      }
+    } else {
+      // No button matched — use intent as fallback
+      notifyTitle   = intentSafe;
+      notifyMessage = `Someone tapped "${intentSafe}" on your page`;
+    }
+  } catch (e) {
+    console.warn(`log-middle-man-tap: button lookup failed: ${(e as Error)?.message ?? e}`);
+    notifyTitle   = intentSafe;
+    notifyMessage = `Someone tapped "${intentSafe}" on your page`;
+  }
 
   if (!INTERNAL_SECRET) {
     console.warn('log-middle-man-tap: INTERNAL_SECRET not configured — skipping send-client-notification');
-  } else if (!isBookingTap) {
-    console.log(`log-middle-man-tap: skipping notification for non-booking intent "${intentSafe}" — form submit will fire its own`);
-  } else {
+  } else if (notifyTitle && notifyMessage) {
     fetch(`${SUPABASE_URL}/functions/v1/send-client-notification`, {
       method:  'POST',
       headers: {
@@ -163,8 +196,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
         context:   {
           intent:          intentSafe,
           customer_number: customerNumber ?? 'unknown',
-          push_title:      `New booking tap – ${intentSafe}`,
-          push_message:    `Someone tapped "${intentSafe}" on your page`,
+          push_title:      notifyTitle,
+          push_message:    notifyMessage,
         },
       }),
     }).catch((err) => {
