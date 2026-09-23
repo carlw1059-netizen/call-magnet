@@ -1074,6 +1074,74 @@ body.panel-open .main { pointer-events: none; }
 }
 .mm-card-toggle:hover { color: #FFFFFF; }
 
+/* ── Done + Notes additions ── */
+.mm-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.mm-card-header .mm-card-title {
+  margin-bottom: 0;
+}
+.mm-done-btn {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 6px;
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+.mm-card-done .mm-done-btn {
+  border-color: #CC0000;
+  color: #FF4444;
+}
+.mm-card-done {
+  border-color: rgba(204,0,0,0.6) !important;
+  box-shadow: 0 0 8px rgba(204,0,0,0.2) !important;
+}
+.mm-card.mm-card-open .mm-card-extra {
+  max-height: 700px;
+}
+.mm-notes-wrap {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mm-notes-input {
+  width: 100%;
+  min-height: 70px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  color: #FFFFFF;
+  font-size: 13px;
+  padding: 8px 10px;
+  resize: vertical;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+.mm-notes-input::placeholder { color: rgba(255,255,255,0.4); }
+.mm-notes-save {
+  align-self: flex-end;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 6px;
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 14px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* ── Tap-to-reveal phone ───────────────────────────────────────────────── */
 .phone-masked {
   cursor: pointer;

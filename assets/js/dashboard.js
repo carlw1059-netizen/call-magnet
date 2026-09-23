@@ -1397,6 +1397,41 @@ async function openMmPanel(rawLabel, displayLabel, formType, neonColor) {
       toggleMmCard(cardEl, toggleEl);
     });
   });
+
+  // ── Done button ──────────────────────────────────────────────────────────
+  bodyEl.querySelectorAll('.mm-done-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const recordId = btn.dataset.recordId;
+      const cardEl   = bodyEl.querySelector('[data-record-id="' + recordId + '"][data-mm-expandable]');
+      const isDone   = cardEl && cardEl.classList.contains('mm-card-done');
+      if (!confirm(isDone ? 'Mark as not done?' : 'Mark as done?')) return;
+      const newDone  = !isDone;
+      const { error } = await sb.from('middle_man_form_submissions').update({ done: newDone }).eq('id', recordId);
+      if (error) { console.warn('Done update failed', error); return; }
+      if (cardEl) cardEl.classList.toggle('mm-card-done', newDone);
+      btn.textContent = newDone ? '✓ Done' : 'Done';
+    });
+  });
+
+  // ── Notes save ───────────────────────────────────────────────────────────
+  bodyEl.querySelectorAll('.mm-notes-save').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const recordId = btn.dataset.recordId;
+      const textarea = bodyEl.querySelector('.mm-notes-input[data-record-id="' + recordId + '"]');
+      if (!textarea) return;
+      const { error } = await sb.from('middle_man_form_submissions').update({ staff_notes: textarea.value.trim() }).eq('id', recordId);
+      if (error) { console.warn('Notes save failed', error); return; }
+      btn.textContent = 'Saved ✓';
+      setTimeout(() => { btn.textContent = 'Save note'; }, 1500);
+    });
+  });
+
+  // Prevent textarea clicks toggling the accordion
+  bodyEl.querySelectorAll('.mm-notes-input').forEach(ta => {
+    ta.addEventListener('click', e => e.stopPropagation());
+  });
 }
 
 // ── Build a single submission card ────────────────────────────────────────
@@ -1469,11 +1504,21 @@ function buildMmCard(record, formType, neonColor) {
     if (noteText)                     secondaryRows += mmRow('Message', noteText);
   }
 
-  return '<div class="mm-card" style="' + cs + '" data-mm-expandable>' +
-    '<div class="mm-card-title">' + (titles[formType] || '📣 Enquiry') + '</div>' +
+  const doneClass = record.done ? ' mm-card-done' : '';
+  return '<div class="mm-card' + doneClass + '" style="' + cs + '" data-mm-expandable data-record-id="' + record.id + '">' +
+    '<div class="mm-card-header">' +
+      '<div class="mm-card-title">' + (titles[formType] || '📣 Enquiry') + '</div>' +
+      '<button class="mm-done-btn" data-record-id="' + record.id + '">' + (record.done ? '✓ Done' : 'Done') + '</button>' +
+    '</div>' +
     primaryRows +
     notePreviewRow +
-    '<div class="mm-card-extra">' + secondaryRows + '</div>' +
+    '<div class="mm-card-extra">' +
+      secondaryRows +
+      '<div class="mm-notes-wrap">' +
+        '<textarea class="mm-notes-input" data-record-id="' + record.id + '" placeholder="Staff notes…">' + _escMgr(record.staff_notes || '') + '</textarea>' +
+        '<button class="mm-notes-save" data-record-id="' + record.id + '">Save note</button>' +
+      '</div>' +
+    '</div>' +
     '<div class="mm-card-toggle" data-mm-toggle>▼ Show more</div>' +
     '</div>';
 }
