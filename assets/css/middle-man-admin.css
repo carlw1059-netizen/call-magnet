@@ -339,7 +339,8 @@ html, body {
 }
 .btn-controls-col {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: start;
   gap: 6px;
 }
 .opt5-clr {
