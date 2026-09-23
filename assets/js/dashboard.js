@@ -1730,11 +1730,36 @@ async function registerVapidPush(clientId) {
     await vapidLog('pushmanager', 'available');
     const reg = await navigator.serviceWorker.ready;
     await vapidLog('sw-ready', reg.active?.scriptURL || 'no-active');
-    const sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(vapidKey),
-    });
+
+    async function subscribeWithOurKey() {
+      const existing = await reg.pushManager.getSubscription();
+      if (existing) {
+        await vapidLog('unsubscribe', existing.endpoint);
+        await existing.unsubscribe();
+      }
+      return reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
+      });
+    }
+
+    let sub = await subscribeWithOurKey();
     await vapidLog('subscribed', sub.endpoint);
+
+    // Verify Progressier didn't re-subscribe over us
+    await new Promise(r => setTimeout(r, 100));
+    const check = await reg.pushManager.getSubscription();
+    if (!check || check.endpoint !== sub.endpoint) {
+      await vapidLog('retry', 'endpoint changed — retrying');
+      sub = await subscribeWithOurKey();
+      const recheck = await reg.pushManager.getSubscription();
+      if (!recheck || recheck.endpoint !== sub.endpoint) {
+        console.warn('[vapid] push enrollment lost race after retry');
+        await vapidLog('ERROR', 'lost race after retry');
+        return;
+      }
+    }
+
     const p256dh = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh'))));
     const auth   = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth'))));
     const { data: { session } } = await sb.auth.getSession();
