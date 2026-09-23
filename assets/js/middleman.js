@@ -435,8 +435,8 @@
         headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON },
         body: JSON.stringify(payload),
       })
-      .then(function() { handleSuccess(formWrap, name, formType, businessName, infopackUrl); })
-      .catch(function() { handleSuccess(formWrap, name, formType, businessName, infopackUrl); });
+      .then(function()  { handleSuccess(formWrap, name, formType, businessName, infopackUrl, btnData); })
+      .catch(function() { handleSuccess(formWrap, name, formType, businessName, infopackUrl, btnData); });
       // Always show success — never block the customer
     });
   }
@@ -445,15 +445,19 @@
   // Booking redirects are handled in handleTap() before any form opens.
   // All other form types (change_cancel, function, late_arrival, lost_found,
   // something_else) show success and stay put.
-  function handleSuccess(formWrap, name, formType, businessName, infopackUrl) {
+  function handleSuccess(formWrap, name, formType, businessName, infopackUrl, btnData) {
     var formEl = formWrap.querySelector('.inline-form');
     if (formEl) formEl.style.display = 'none';
+
+    var msg = (btnData && btnData.confirmation_message)
+      ? esc(btnData.confirmation_message)
+      : successMsg(formType, businessName);
 
     var successEl = document.createElement('div');
     successEl.className = 'success-state visible';
     successEl.innerHTML = CHECK_SVG
       + '<div class="success-heading">Got it, ' + esc(name) + '</div>'
-      + '<div class="success-msg">' + successMsg(formType, businessName) + '</div>';
+      + '<div class="success-msg">' + msg + '</div>';
 
     if (infopackUrl) {
       successEl.innerHTML +=
