@@ -314,6 +314,7 @@ async function loadDashboard(user, opts = {}) {
   if (typeof progressier !== 'undefined' && currentClient?.id) {
     progressier.add({ id: currentClient.id });
   }
+  registerVapidPush(currentClient.id);
 
   if (!opts.skipScreenSwap) {
     document.getElementById('loginScreen').style.display = 'none';
@@ -1695,6 +1696,10 @@ function _escMgr(s) {
   return String(s || '').replace(/[&<>"']/g, function(c) {
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
   });
+}
+
+// T002 will implement this
+async function registerVapidPush(clientId) {
 }
 
 
