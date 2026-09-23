@@ -750,19 +750,7 @@ function renderEditBody(client) {
     var emojiPickBtn = ev.target.closest('.mma-btn-emoji-pick');
     if (emojiPickBtn) {
       ev.stopPropagation();
-      var rows = document.querySelectorAll('#mmaBtnBuilder .mma-btn-row');
-      var rowIdx = Array.prototype.indexOf.call(rows, emojiPickBtn.closest('.mma-btn-row'));
-      emojiPickBtn.dataset.pickerId = 'btn-emoji-' + rowIdx;
-      var proxy = document.createElement('input');
-      proxy.type = 'hidden';
-      proxy.value = '';
-      proxy.addEventListener('input', function() {
-        var em = proxy.value;
-        if (em) { emojiPickBtn.textContent = em; emojiPickBtn.dataset.emoji = em; }
-        if (proxy.parentNode) proxy.parentNode.removeChild(proxy);
-      });
-      document.body.appendChild(proxy);
-      mmaShowEmojiPicker(proxy, emojiPickBtn);
+      mmaShowEmojiDropdown(emojiPickBtn);
       return;
     }
 
@@ -998,8 +986,8 @@ function renderEditBody(client) {
 function buildBtnRowHtml(btn, idx) {
   return '<div class="mma-btn-row">' +
     '<input type="hidden" class="mma-btn-order" value="' + _e(btn.sort_order || idx + 1) + '" />' +
-    '<span style="min-width:18px;text-align:center;font-size:13px;font-weight:600;color:#555;">' + (btn.sort_order || idx + 1) + '</span>' +
-    '<button type="button" class="mma-btn-emoji-pick" data-emoji="' + _e(btn.emoji || '') + '" title="Pick emoji" style="width:36px;height:32px;border:none;border-radius:6px;cursor:pointer;font-size:16px;background:rgba(255,255,255,0.1);">' + _e(btn.emoji || '😊') + '</button>' +
+    '<span style="min-width:18px;text-align:center;font-size:15px;font-weight:700;color:#555;">' + (btn.sort_order || idx + 1) + '</span>' +
+    '<button type="button" class="mma-btn-emoji-pick" data-emoji="' + _e(btn.emoji || '') + '" title="Pick emoji" style="width:36px;height:32px;border:none;border-radius:6px;cursor:pointer;font-size:16px;background:rgba(255,255,255,0.1);margin-left:-4px;">' + _e(btn.emoji || '😊') + '</button>' +
     '<input type="checkbox"' + (btn.enabled !== false ? ' checked' : '') + ' class="mma-btn-enabled mma-btn-enabled-cb" style="display:none" />' +
     '<input type="text" value="' + _e(btn.label || '') + '" maxlength="40" placeholder="Button label…" class="mma-btn-label" />' +
     '<input type="url" value="' + _e(btn.url || '') + '" placeholder="Button URL (optional)…" class="mma-btn-url" />' +
@@ -1299,6 +1287,69 @@ function mmaInsertAtCursor(field, text) {
     field.value += text;
     field.dispatchEvent(new Event('input'));
   }
+}
+
+function mmaShowEmojiDropdown(triggerBtn) {
+  var existing = document.getElementById('mmaEmojiDropdown');
+  if (existing) {
+    var wasFor = existing._trigger;
+    existing.parentNode.removeChild(existing);
+    if (wasFor === triggerBtn) return;
+  }
+
+  var drop = document.createElement('div');
+  drop.id = 'mmaEmojiDropdown';
+  drop._trigger = triggerBtn;
+  drop.style.cssText = 'position:fixed;z-index:10000;background:#fff;border:1px solid #E0E0E0;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.15);padding:4px;display:flex;flex-direction:column;min-width:160px;';
+
+  function makeOpt(label, color, onClick) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = label;
+    b.style.cssText = 'border:none;background:none;cursor:pointer;padding:8px 12px;text-align:left;font-size:13px;border-radius:6px;color:' + color + ';';
+    b.addEventListener('mouseenter', function() { b.style.background = '#F5F5F5'; });
+    b.addEventListener('mouseleave', function() { b.style.background = 'none'; });
+    b.addEventListener('click', function(e) { e.stopPropagation(); onClick(); });
+    return b;
+  }
+
+  drop.appendChild(makeOpt('😊 Choose emoji', '#111', function() {
+    if (drop.parentNode) drop.parentNode.removeChild(drop);
+    // ponytail: inputmode="emoji" opens soft keyboard on mobile; desktop users press Win+. after focus
+    var inp = document.createElement('input');
+    inp.type = 'text';
+    inp.setAttribute('inputmode', 'emoji');
+    inp.style.cssText = 'position:fixed;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;';
+    document.body.appendChild(inp);
+    inp.focus();
+    inp.addEventListener('input', function() {
+      var em = Array.from(inp.value)[0] || '';
+      if (em) { triggerBtn.textContent = em; triggerBtn.dataset.emoji = em; }
+      if (inp.parentNode) document.body.removeChild(inp);
+    });
+    inp.addEventListener('blur', function() {
+      setTimeout(function() { if (inp.parentNode) document.body.removeChild(inp); }, 300);
+    });
+  }));
+
+  drop.appendChild(makeOpt('No emoji ✕', '#CC0000', function() {
+    triggerBtn.textContent = '';
+    triggerBtn.dataset.emoji = '';
+    if (drop.parentNode) drop.parentNode.removeChild(drop);
+  }));
+
+  var rect = triggerBtn.getBoundingClientRect();
+  drop.style.top  = (rect.bottom + 4) + 'px';
+  drop.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - 168)) + 'px';
+  document.body.appendChild(drop);
+
+  function onOutside(e) {
+    if (!drop.contains(e.target) && e.target !== triggerBtn) {
+      if (drop.parentNode) drop.parentNode.removeChild(drop);
+      document.removeEventListener('mousedown', onOutside);
+    }
+  }
+  setTimeout(function() { document.addEventListener('mousedown', onOutside); }, 0);
 }
 
 function mmaShowEmojiPicker(targetField, triggerBtn) {

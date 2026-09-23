@@ -345,7 +345,7 @@ html, body {
   flex-shrink: 0;
 }
 .mma-btn-label {
-  flex: 1;
+  flex: 2;
   padding: 5px 8px;
   background: #FFFFFF;
   color: #111111;
