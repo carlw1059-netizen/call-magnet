@@ -259,7 +259,7 @@ Deno.serve(async (req) => {
       return json(400, { error: 'invalid_event', detail: "event must be 'missed_call', 'booking_logged', or 'link_tapped'" });
     }
 
-    // ── link_tapped: Progressier-only path (no Web Push, no email) ──────────
+    // ── link_tapped: VAPID fan-out with Progressier fallback ────────────────
     if (event === 'link_tapped') {
       const ltClientRes = await fetch(
         `${SUPABASE_URL}/rest/v1/clients?id=eq.${encodeURIComponent(clientId)}&select=id,business_name,vertical`,
@@ -277,8 +277,6 @@ Deno.serve(async (req) => {
       if (ltClientArr.length === 0) {
         return json(404, { error: 'client_not_found', detail: `no client with id ${clientId}` });
       }
-      const ltVertical = ltClientArr[0].vertical;
-      const ltBusinessName = ltClientArr[0].business_name ?? '';
 
       // Notification title and body come only from the admin-set push_title and
       // push_message on each Middle Man button. If either is missing, skip.
@@ -292,6 +290,67 @@ Deno.serve(async (req) => {
 
       const ltTitle = ctxPushTitle;
       const ltBody  = ctxPushMessage;
+
+      // Check push_subscriptions — determines VAPID vs Progressier path
+      const ltSubsRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/push_subscriptions?client_id=eq.${encodeURIComponent(clientId)}&select=id,endpoint,p256dh,auth`,
+        {
+          headers: {
+            apikey:        SUPABASE_SERVICE_ROLE_KEY,
+            Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          },
+        },
+      );
+      if (!ltSubsRes.ok) {
+        throw new Error(`subscriptions_lookup_failed: ${ltSubsRes.status} ${await ltSubsRes.text()}`);
+      }
+      const ltSubs = await ltSubsRes.json() as SubscriptionRow[];
+
+      if (vapidAvailable && ltSubs.length > 0) {
+        // ── VAPID path ──────────────────────────────────────────────────────
+        console.log('send-client-notification: link_tapped via vapid');
+        webPush.setVapidDetails(VAPID_SUBJECT!, VAPID_PUBLIC_KEY!, VAPID_PRIVATE_KEY!);
+        const ltPayload = JSON.stringify({ source: 'callmagnet-vapid', title: ltTitle, body: ltBody, url: 'https://callmagnet.com.au' });
+
+        const ltResults = await Promise.allSettled(
+          ltSubs.map(async (sub) => {
+            try {
+              await webPush.sendNotification(
+                { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+                ltPayload,
+              );
+              return { id: sub.id, ok: true as const };
+            } catch (e: unknown) {
+              const status = (e as { statusCode?: number })?.statusCode;
+              return { id: sub.id, ok: false as const, status, message: String((e as Error)?.message ?? e) };
+            }
+          }),
+        );
+
+        const ltExpiredIds: string[] = [];
+        for (const r of ltResults) {
+          if (r.status === 'fulfilled') {
+            if (r.value.ok) {
+              logNotification({ client_id: clientId, channel: 'push', event: 'link_tapped', status: 'sent', metadata: { subscription_id: r.value.id, title: ltTitle, body: ltBody } });
+            } else {
+              if (r.value.status === 404 || r.value.status === 410) ltExpiredIds.push(r.value.id);
+              logNotification({ client_id: clientId, channel: 'push', event: 'link_tapped', status: 'failed', error_message: r.value.message, provider_response: { statusCode: r.value.status }, metadata: { subscription_id: r.value.id } });
+            }
+          } else {
+            logNotification({ client_id: clientId, channel: 'push', event: 'link_tapped', status: 'failed', error_message: String((r as PromiseRejectedResult).reason ?? 'rejected') });
+          }
+        }
+        if (ltExpiredIds.length > 0) {
+          fetch(
+            `${SUPABASE_URL}/rest/v1/push_subscriptions?id=in.(${ltExpiredIds.map(encodeURIComponent).join(',')})`,
+            { method: 'DELETE', headers: { apikey: SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`, Prefer: 'return=minimal' } },
+          ).catch((err) => console.warn(`expired sub cleanup failed: ${err}`));
+        }
+        return json(200, { sent: true, event: 'link_tapped', path: 'vapid', client_id: clientId });
+      }
+
+      // ── Progressier fallback ────────────────────────────────────────────────
+      console.log('send-client-notification: link_tapped via progressier-fallback');
 
       if (!PROGRESSIER_API_KEY) {
         console.warn('link_tapped: PROGRESSIER_API_KEY missing — skipping push');
@@ -344,7 +403,7 @@ Deno.serve(async (req) => {
         provider_response: { status: progRes.status },
         metadata:          { title: ltTitle, body: ltBody, url: 'https://callmagnet.com.au' },
       });
-      return json(200, { sent: true, event: 'link_tapped', client_id: clientId });
+      return json(200, { sent: true, event: 'link_tapped', path: 'progressier', client_id: clientId });
     }
 
     // ── lookup client (vertical, business_name, email, avg_job_value) ───────
