@@ -997,9 +997,10 @@ function renderEditBody(client) {
 // ─── Button row HTML builder ──────────────────────────────────────────────────
 function buildBtnRowHtml(btn, idx) {
   return '<div class="mma-btn-row">' +
-    '<input type="number" min="1" max="9" value="' + _e(btn.sort_order || idx + 1) + '" class="mma-btn-order" />' +
+    '<input type="hidden" class="mma-btn-order" value="' + _e(btn.sort_order || idx + 1) + '" />' +
+    '<span style="min-width:18px;text-align:center;font-size:13px;font-weight:600;color:#555;">' + (btn.sort_order || idx + 1) + '</span>' +
     '<button type="button" class="mma-btn-emoji-pick" data-emoji="' + _e(btn.emoji || '') + '" title="Pick emoji" style="width:36px;height:32px;border:none;border-radius:6px;cursor:pointer;font-size:16px;background:rgba(255,255,255,0.1);">' + _e(btn.emoji || '😊') + '</button>' +
-    '<input type="checkbox"' + (btn.enabled !== false ? ' checked' : '') + ' class="mma-btn-enabled mma-btn-enabled-cb" />' +
+    '<input type="checkbox"' + (btn.enabled !== false ? ' checked' : '') + ' class="mma-btn-enabled mma-btn-enabled-cb" style="display:none" />' +
     '<input type="text" value="' + _e(btn.label || '') + '" maxlength="40" placeholder="Button label…" class="mma-btn-label" />' +
     '<input type="url" value="' + _e(btn.url || '') + '" placeholder="Button URL (optional)…" class="mma-btn-url" />' +
     '<input type="color" class="mma-btn-color" value="' + _e(btn.color || '#00D4FF') + '" title="Button colour" style="width:36px;height:32px;padding:2px;border:none;border-radius:6px;cursor:pointer;background:none;" />' +
