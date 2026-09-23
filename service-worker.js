@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 28 Jun 2026 — force cache bust to fix iOS video autoplay after refresh
-const CACHE_VERSION = 'callmagnet-v66-20260815';
+// Last bumped: 24 Sep 2026 — add VAPID push + notificationclick handlers
+const CACHE_VERSION = 'callmagnet-v67-20260924';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
@@ -82,4 +82,33 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Everything else: network-only
+});
+
+self.addEventListener('push', (event) => {
+  let data = { title: 'CallMagnet', body: 'New notification' };
+  try { data = event.data.json(); } catch (_) {}
+  if (data.source !== 'callmagnet-vapid') return;
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body:  data.body,
+      icon:  '/android-chrome-192x192.png',
+      badge: '/favicon-32x32.png',
+      data:  { url: data.url || 'https://callmagnet.com.au' },
+      tag:   'callmagnet-notification',
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.startsWith('https://callmagnet.com.au') && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      return clients.openWindow('https://callmagnet.com.au');
+    })
+  );
 });
