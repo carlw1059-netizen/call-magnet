@@ -337,11 +337,49 @@ html, body {
   height: 32px;
   box-sizing: border-box;
 }
-.btn-controls-row {
+.btn-controls-col {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 6px;
+}
+.opt5-clr {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.opt5-clr input[type=color] {
+  width: 62px;
+  height: 28px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 2px;
+  box-sizing: border-box;
+}
+.opt5-clr input[type=text] {
+  width: 62px;
+  height: 28px;
+  font-size: 11px;
+  font-family: monospace;
+  text-align: center;
+  box-sizing: border-box;
+}
+.opt5-effects {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.opt5-icons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+.opt5-icons .icon-btn {
+  width: 28px;
+  height: 28px;
+}
+.opt5-effects .mma-btn-effect {
+  width: 62px;
+  height: 28px;
 }
 .mma-btn-order {
   width: 42px;
