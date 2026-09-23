@@ -111,6 +111,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const note                = rawNote.slice(0, 200);
   const companyName         = typeof body.company_name         === 'string' ? body.company_name.trim().slice(0, 100) : '';
   const email               = typeof body.email                === 'string' ? body.email.trim().slice(0, 200)         : '';
+  const btnId               = typeof body.btn_id               === 'string' ? body.btn_id.trim().slice(0, 50)         : '';
 
   // ── Validate required fields ────────────────────────────────────────────────
   if (!slug)       return err400('Missing slug');
@@ -118,9 +119,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
   if (!callerName) return err400('Missing caller_name');
   if (!callerPhone) return err400('Missing caller_phone');
 
-  if (!VALID_FORM_TYPES.has(formType)) {
+  const isBtnIdSlug = btnId !== '' && /^[a-z0-9_]{1,50}$/.test(btnId);
+  if (!VALID_FORM_TYPES.has(formType) && !isBtnIdSlug) {
     return err400(`Invalid form_type: ${formType}`);
   }
+  const effectiveFormType = isBtnIdSlug ? btnId : formType;
 
   if (!isValidAuPhone(callerPhone)) {
     return err400('caller_phone must be a valid Australian phone number (e.g. 04XX XXX XXX)');
@@ -166,7 +169,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
     const btns: Array<Record<string, unknown>> = Array.isArray(clientRow.middle_man_buttons)
       ? clientRow.middle_man_buttons
       : JSON.parse(String(clientRow.middle_man_buttons ?? '[]'));
-    const match = btns.find(b => b.enabled !== false && classifyBtnLabel(String(b.label ?? '')) === formType);
+    const match = btns.find(b => b.enabled !== false && (
+      (b.id && b.id === effectiveFormType) || classifyBtnLabel(String(b.label ?? '')) === effectiveFormType
+    ));
     if (match) {
       if (typeof match.push_title   === 'string' && (match.push_title   as string).trim()) customPushTitle   = (match.push_title   as string).trim();
       if (typeof match.push_message === 'string' && (match.push_message as string).trim()) customPushMessage = (match.push_message as string).trim();
@@ -188,7 +193,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   // ── INSERT form submission ──────────────────────────────────────────────────
   const insertPayload: Record<string, unknown> = {
     client_id:  clientId,
-    form_type:  formType,
+    form_type:  effectiveFormType,
     caller_name:  callerName,
     caller_phone: callerPhone,
     submitted_at: new Date().toISOString(),
@@ -215,7 +220,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   } else if (!customPushTitle || !customPushMessage) {
     console.log('submit-middle-man-form: no custom push wording set for this button — skipping notification');
   } else {
-    const finalPushMessage = (formType === 'function' && companyName)
+    const finalPushMessage = companyName
       ? `${customPushMessage} — from ${companyName}`
       : customPushMessage;
 
