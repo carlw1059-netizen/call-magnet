@@ -422,6 +422,7 @@
       // Capture email field (present for function type or when infopack_url is set)
       var email = getField('email');
       if (email) payload.email = email;
+      payload.btn_id = (btnData && btnData.id) ? btnData.id : '';
 
       // ── Submit form ────────────────────────────────────────────────────────
       var infopackUrl = (btnData && btnData.infopack_url) || '';
