@@ -1266,7 +1266,9 @@ async function loadMiddleManSection() {
   });
 
   // ── PHASE 2: Fetch counts in background, update tiles when ready ──────────
-  const monthStartIso = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+  const monthStartIso    = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+  const mmEffectiveStart = (currentClient.reset_date && currentClient.reset_date > monthStartIso)
+    ? currentClient.reset_date : monthStartIso;
 
   let submissions = [], clicks = [];
   try {
@@ -1274,12 +1276,12 @@ async function loadMiddleManSection() {
       sb.from('middle_man_form_submissions')
         .select('form_type')
         .eq('client_id', currentClient.id)
-        .gte('submitted_at', monthStartIso),
+        .gte('submitted_at', mmEffectiveStart),
       sb.from('link_clicks')
         .select('intent')
         .eq('client_id', currentClient.id)
         .not('intent', 'is', null)
-        .gte('clicked_at', monthStartIso)
+        .gte('clicked_at', mmEffectiveStart)
     ]);
     submissions = submissionsRes.data || [];
     clicks      = clicksRes.data      || [];
