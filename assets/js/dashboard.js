@@ -1698,8 +1698,45 @@ function _escMgr(s) {
   });
 }
 
-// T002 will implement this
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  return Uint8Array.from([...atob(base64)].map(c => c.charCodeAt(0)));
+}
+
 async function registerVapidPush(clientId) {
+  if (!clientId) return;
+  try {
+    const vapidKey = document.querySelector('meta[name="vapid-public-key"]')?.content;
+    if (!vapidKey || vapidKey.includes('%%')) return;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapidKey),
+    });
+    const p256dh = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh'))));
+    const auth   = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth'))));
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
+    await fetch(`${SUPABASE_URL}/functions/v1/save-push-subscription`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+        'apikey': SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        client_id:  clientId,
+        endpoint:   sub.endpoint,
+        p256dh,
+        auth,
+        user_agent: navigator.userAgent,
+      }),
+    });
+  } catch (err) {
+    console.warn('[vapid] registerVapidPush failed:', err);
+  }
 }
 
 

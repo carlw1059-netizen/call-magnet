@@ -26,6 +26,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
+const SUPABASE_ANON_KEY         = Deno.env.get('SUPABASE_ANON_KEY')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const INTERNAL_SECRET           = Deno.env.get('INTERNAL_SECRET');
 
@@ -35,14 +36,19 @@ Deno.serve(async (req) => {
   }
 
   try {
-    if (!INTERNAL_SECRET) {
-      console.error('save-push-subscription: INTERNAL_SECRET missing from env');
-      return json(500, { error: 'config_error', detail: 'shared secret not configured in Vault' });
-    }
+    const internalSecret = req.headers.get('X-Internal-Secret');
+    const authHeader     = req.headers.get('Authorization');
 
-    if (req.headers.get('X-Internal-Secret') !== INTERNAL_SECRET) {
-      return json(401, { error: 'unauthorized' });
+    let authed = false;
+    if (internalSecret) {
+      authed = !!INTERNAL_SECRET && internalSecret === INTERNAL_SECRET;
+    } else if (authHeader?.startsWith('Bearer ')) {
+      const authRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+        headers: { apikey: SUPABASE_ANON_KEY, Authorization: authHeader },
+      });
+      authed = authRes.ok;
     }
+    if (!authed) return json(401, { error: 'unauthorized' });
 
     const body = await req.json().catch(() => null) as
       | { client_id?: unknown; endpoint?: unknown; p256dh?: unknown; auth?: unknown; user_agent?: unknown }
