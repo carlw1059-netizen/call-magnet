@@ -1477,9 +1477,10 @@ async function saveNotifications() {
       sparkles:     sparklesBtn ? sparklesBtn.classList.contains('mma-btn-sparkles-on') : false,
       effect:       (row.querySelector('.mma-btn-effect') || {value:''}).value || '',
       url:          (function(v) { return v && !/^(https?:|mailto:|tel:)/i.test(v) ? 'https://' + v : v; })((row.querySelector('.mma-btn-url') || { value: '' }).value.trim()),
-      push_title:   titleEl ? titleEl.value.trim() : '',
-      push_message: msgEl   ? msgEl.value.trim()   : '',
-      infopack_url: (row.querySelector('.mma-btn-infopack') || { value: '' }).value.trim(),
+      push_title:         titleEl ? titleEl.value.trim() : '',
+      push_message:       msgEl   ? msgEl.value.trim()   : '',
+      infopack_url:         (row.querySelector('.mma-btn-infopack')     || { value: '' }).value.trim(),
+      confirmation_message: (row.querySelector('.mma-btn-confirmation') || { value: '' }).value.trim(),
     });
   });
   try {
