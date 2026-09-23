@@ -143,14 +143,13 @@ async function handleAuth() {
     if (error) {
       errDiv.textContent = error.message;
       errDiv.style.display = 'block';
-      btn.disabled = false;
-      btn.textContent = 'Sign in';
     } else {
       await crossFadeToDashboard(data.user, document.getElementById('loginScreen'));
     }
   } catch (e) {
     errDiv.textContent = 'Network error. Check your connection and try again.';
     errDiv.style.display = 'block';
+  } finally {
     btn.disabled = false;
     btn.textContent = 'Sign in';
   }
@@ -369,7 +368,12 @@ async function loadDashboard(user, opts = {}) {
   setTimeout(maybeShowInstallBanner, 1500);
   refreshVerticalToggleVisibility();
   renderTilesForMode(getDashboardMode());
-  await loadStats();
+  try {
+    await loadStats();
+  } catch (e) {
+    console.error('loadStats failed during login', e);
+    return false;
+  }
   startAutoRefresh();
   return true;
 }
