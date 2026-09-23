@@ -163,8 +163,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
     if (l.includes('lost')  || l.includes('found') || l.includes('left something')) return 'lost_found';
     return 'something_else';
   }
-  let customPushTitle:   string | null = null;
-  let customPushMessage: string | null = null;
+  let notifyTitle:   string = 'New form submission';
+  let notifyMessage: string = 'A customer submitted a form on your page';
   try {
     const btns: Array<Record<string, unknown>> = Array.isArray(clientRow.middle_man_buttons)
       ? clientRow.middle_man_buttons
@@ -173,10 +173,17 @@ Deno.serve(async (req: Request): Promise<Response> => {
       (b.id && b.id === effectiveFormType) || classifyBtnLabel(String(b.label ?? '')) === effectiveFormType
     ));
     if (match) {
-      if (typeof match.push_title   === 'string' && (match.push_title   as string).trim()) customPushTitle   = (match.push_title   as string).trim();
-      if (typeof match.push_message === 'string' && (match.push_message as string).trim()) customPushMessage = (match.push_message as string).trim();
+      const label = typeof match.label === 'string' && (match.label as string).trim()
+        ? (match.label as string).trim()
+        : effectiveFormType;
+      notifyTitle   = (typeof match.push_title   === 'string' && (match.push_title   as string).trim())
+        ? (match.push_title   as string).trim()
+        : label;
+      notifyMessage = (typeof match.push_message === 'string' && (match.push_message as string).trim())
+        ? (match.push_message as string).trim()
+        : `A customer submitted "${label}" on your page`;
     }
-  } catch (_) { /* non-fatal — notification skipped if button lookup fails */ }
+  } catch (_) { /* non-fatal — fallback wording used if button lookup fails */ }
 
   // ── Hash caller IP ──────────────────────────────────────────────────────────
   const ipRaw  = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown';
@@ -217,12 +224,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
   // ── Fire-and-forget: send-client-notification ───────────────────────────────
   if (!INTERNAL_SECRET) {
     console.warn('submit-middle-man-form: INTERNAL_SECRET not configured — skipping notifications');
-  } else if (!customPushTitle || !customPushMessage) {
-    console.log('submit-middle-man-form: no custom push wording set for this button — skipping notification');
   } else {
     const finalPushMessage = companyName
-      ? `${customPushMessage} — from ${companyName}`
-      : customPushMessage;
+      ? `${notifyMessage} — from ${companyName}`
+      : notifyMessage;
 
     fetch(`${SUPABASE_URL}/functions/v1/send-client-notification`, {
       method:  'POST',
@@ -235,7 +240,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         client_id: clientId,
         event:     'link_tapped',
         context:   {
-          push_title:      customPushTitle,
+          push_title:      notifyTitle,
           push_message:    finalPushMessage,
           customer_number: toE164(callerPhone),
         },
