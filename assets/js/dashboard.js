@@ -183,6 +183,7 @@ async function handleReset() {
 
 async function handleLogout() {
   stopAutoRefresh();
+  if (mmRefreshInterval !== null) { clearInterval(mmRefreshInterval); mmRefreshInterval = null; }
   currentClient = null;
   document.getElementById('dash').style.display = 'none';
   const loginScreen = document.getElementById('loginScreen');
@@ -555,6 +556,9 @@ async function loadStats() {
 
   if (currentClient.middle_man_enabled) {
     loadMiddleManSection().catch(e => console.warn('MM section load failed', e));
+    if (mmRefreshInterval === null) {
+      mmRefreshInterval = setInterval(() => loadMiddleManSection(), 30000);
+    }
   }
 
   await loadActivity(clientId, effectiveStart, endIso, myRequestId);
@@ -659,6 +663,10 @@ function renderTilesForMode(mode) {
   if (mode !== 'restaurant') {
     const mmSec = document.getElementById('mmSection');
     if (mmSec) mmSec.classList.remove('visible');
+    if (mmRefreshInterval !== null) {
+      clearInterval(mmRefreshInterval);
+      mmRefreshInterval = null;
+    }
   }
   if (mode === 'restaurant') {
     if (hg) hg.style.display = 'none';
@@ -1106,8 +1114,9 @@ const MM_NEON_RGB = ['0,212,255','255,107,0','57,255,20','255,16,240','255,230,0
 // mmLastCounts stores the most recently confirmed count per formType so that
 // re-renders during auto-refresh show the last known count (not "0") while
 // the new fetch is in flight. mmDataLoaded gates the initial loading skeleton.
-let mmLastCounts  = {}; // { formType: count }
-let mmDataLoaded  = false;
+let mmLastCounts      = {}; // { formType: count }
+let mmDataLoaded      = false;
+let mmRefreshInterval = null;
 
 function mmHexRgba(hex, a) {
   const r = parseInt(hex.slice(1,3), 16);
