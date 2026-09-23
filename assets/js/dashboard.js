@@ -1295,13 +1295,11 @@ async function loadMiddleManSection() {
   tileCountEls.forEach(({ countEl, formType, rawLabel, btnId }) => {
     let count = 0;
     if (formType === 'booking') {
-      count = bookingBtnCount === 1
-        ? totalMmClicks
-        : clicks.filter(c => c.intent && (
-            (btnId && c.intent === btnId) ||
-            (!btnId && c.intent.toLowerCase().includes(rawLabel.toLowerCase())) ||
-            (btnId && c.intent.toLowerCase().includes(rawLabel.toLowerCase()))
-          )).length;
+      count = clicks.filter(c => c.intent && (
+          (btnId && c.intent === btnId) ||
+          (!btnId && c.intent.toLowerCase().includes(rawLabel.toLowerCase())) ||
+          (btnId && c.intent.toLowerCase().includes(rawLabel.toLowerCase()))
+        )).length;
     } else {
       count = submissionCounts[formType] || 0;
     }
