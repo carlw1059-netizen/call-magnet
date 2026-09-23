@@ -553,10 +553,8 @@ async function loadStats() {
     document.getElementById('overageRow').style.display = 'none';
   }
 
-  if (getDashboardMode() === 'restaurant') {
-    if (currentClient.middle_man_enabled) {
-      loadMiddleManSection().catch(e => console.warn('MM section load failed', e));
-    }
+  if (currentClient.middle_man_enabled) {
+    loadMiddleManSection().catch(e => console.warn('MM section load failed', e));
   }
 
   await loadActivity(clientId, effectiveStart, endIso, myRequestId);
@@ -633,10 +631,8 @@ function setDashboardMode(mode) {
   if (mode !== 'restaurant' && mode !== 'hairdresser') return;
   try { localStorage.setItem('dashboardMode', mode); } catch (e) { /* no-op */ }
   renderTilesForMode(mode);
-  if (mode === 'restaurant' && currentClient) {
-    if (currentClient.middle_man_enabled) {
-      loadMiddleManSection();
-    }
+  if (currentClient && currentClient.middle_man_enabled) {
+    loadMiddleManSection();
   }
   if (isAdminToggleUser() && currentClient) {
     const dbVertical = mode === 'restaurant' ? 'restaurant' : 'barber';
@@ -680,7 +676,6 @@ function renderTilesForMode(mode) {
 
   // ── Restaurant + Middle Man: hide dashboard chrome not relevant to this vertical ──
   const isRestaurantMM = currentClient &&
-    currentClient.vertical === 'restaurant' &&
     currentClient.middle_man_enabled === true;
   document.getElementById('refreshBtn')?.classList.toggle('hidden', !!isRestaurantMM);
   document.getElementById('periodNav')?.classList.toggle('hidden', !!isRestaurantMM);
@@ -1191,7 +1186,6 @@ function mmFormatTime(iso) {
 // ── Render the Customer requests tiles section ─────────────────────────────
 async function loadMiddleManSection() {
   if (!currentClient) return;
-  if (getDashboardMode() !== 'restaurant') return;
   if (!currentClient.middle_man_enabled) return;
 
   const sectionEl = document.getElementById('mmSection');
