@@ -1359,16 +1359,26 @@ async function openMmPanel(rawLabel, displayLabel, formType, neonColor) {
 
   let records = [];
   try {
-    if (formType === 'booking') {
+    var panelBtn = enabledBtns.find(function(b) {
+      var id = (b.id || '').trim();
+      return id === (btnId || '') || (!id && mmClassifyLabel((b.label || '').trim()) === formType);
+    });
+    var panelIsUrl = panelBtn && typeof panelBtn.url === 'string' && panelBtn.url.trim() !== '';
+
+    if (panelIsUrl) {
+      const intentFilter = btnId || rawLabel;
       const { data } = await sb.from('link_clicks')
-        .select('intent, clicked_at, customer_number, id')
+        .select('intent, clicked_at, customer_number, dismissed')
         .eq('client_id', currentClient.id)
-        .not('intent', 'is', null)
         .eq('dismissed', false)
+        .not('intent', 'is', null)
         .gte('clicked_at', panelStart)
         .order('clicked_at', { ascending: false })
         .limit(50);
-      records = data || [];
+      records = (data || []).filter(c => c.intent && (
+        c.intent === intentFilter ||
+        c.intent.toLowerCase().includes(rawLabel.toLowerCase())
+      ));
     } else {
       const { data } = await sb.from('middle_man_form_submissions')
         .select('*')
