@@ -1310,11 +1310,16 @@ async function loadMiddleManSection() {
 
   tileCountEls.forEach(({ countEl, formType, rawLabel, btnId }) => {
     let count = 0;
-    if (formType === 'booking') {
+    var hasUrl = enabledBtns.find(function(b) {
+      var id = (b.id || '').trim();
+      return id === btnId || (!id && mmClassifyLabel((b.label || '').trim()) === formType);
+    });
+    var isUrlButton = hasUrl && typeof hasUrl.url === 'string' && hasUrl.url.trim() !== '';
+
+    if (isUrlButton) {
       count = clicks.filter(c => c.intent && (
           (btnId && c.intent === btnId) ||
-          (!btnId && c.intent.toLowerCase().includes(rawLabel.toLowerCase())) ||
-          (btnId && c.intent.toLowerCase().includes(rawLabel.toLowerCase()))
+          c.intent.toLowerCase().includes(rawLabel.toLowerCase())
         )).length;
     } else {
       count = submissionCounts[formType] || 0;
