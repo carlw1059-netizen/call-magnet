@@ -1265,7 +1265,8 @@ async function loadMiddleManSection() {
     tile.appendChild(countEl);
     tile.insertAdjacentHTML('beforeend', '<div class="mm-tile-sub">' + todayName + '</div>');
 
-    tile.addEventListener('click', () => openMmPanel(rawLabel, display, formType, neonColor, btnId));
+    const isUrlBtn = typeof btn.url === 'string' && btn.url.trim() !== '';
+    tile.addEventListener('click', () => openMmPanel(rawLabel, display, formType, neonColor, btnId, isUrlBtn));
     grid.appendChild(tile);
     tileCountEls.push({ countEl, formType, rawLabel, btnId });
   });
@@ -1333,7 +1334,7 @@ async function loadMiddleManSection() {
 }
 
 // ── Open slide-out panel for a tile ──────────────────────────────────────
-async function openMmPanel(rawLabel, displayLabel, formType, neonColor, btnId) {
+async function openMmPanel(rawLabel, displayLabel, formType, neonColor, btnId, isUrlButton) {
   const overlay = document.getElementById('mmPanelOverlay');
   const panel   = document.getElementById('mmPanel');
   const titleEl = document.getElementById('mmPanelTitle');
@@ -1359,11 +1360,7 @@ async function openMmPanel(rawLabel, displayLabel, formType, neonColor, btnId) {
 
   let records = [];
   try {
-    var panelBtn = enabledBtns.find(function(b) {
-      var id = (b.id || '').trim();
-      return id === (btnId || '') || (!id && mmClassifyLabel((b.label || '').trim()) === formType);
-    });
-    var panelIsUrl = panelBtn && typeof panelBtn.url === 'string' && panelBtn.url.trim() !== '';
+    var panelIsUrl = !!isUrlButton;
 
     if (panelIsUrl) {
       const intentFilter = btnId || formType;
