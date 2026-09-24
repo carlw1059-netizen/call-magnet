@@ -1354,6 +1354,8 @@ async function openMmPanel(rawLabel, displayLabel, formType, neonColor) {
   document.body.classList.add('panel-open');
 
   const monthStartIso = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+  const panelStart = (currentClient.reset_date && currentClient.reset_date > monthStartIso)
+    ? currentClient.reset_date : monthStartIso;
 
   let records = [];
   try {
@@ -1362,7 +1364,7 @@ async function openMmPanel(rawLabel, displayLabel, formType, neonColor) {
         .select('intent, clicked_at, customer_number')
         .eq('client_id', currentClient.id)
         .not('intent', 'is', null)
-        .gte('clicked_at', monthStartIso)
+        .gte('clicked_at', panelStart)
         .order('clicked_at', { ascending: false })
         .limit(50);
       records = data || [];
@@ -1371,7 +1373,7 @@ async function openMmPanel(rawLabel, displayLabel, formType, neonColor) {
         .select('*')
         .eq('client_id', currentClient.id)
         .eq('form_type', formType)
-        .gte('submitted_at', monthStartIso)
+        .gte('submitted_at', panelStart)
         .order('submitted_at', { ascending: false })
         .limit(50);
       records = data || [];
