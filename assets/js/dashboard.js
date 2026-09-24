@@ -1771,4 +1771,10 @@ async function registerVapidPush(clientId) {
   }
 }
 
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible' && typeof currentClient !== 'undefined' && currentClient?.id) {
+    registerVapidPush(currentClient.id);
+  }
+});
+
 
