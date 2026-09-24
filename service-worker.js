@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
 // Last bumped: 24 Sep 2026 — add VAPID push + notificationclick handlers
-const CACHE_VERSION = 'callmagnet-v70-20260924';
+const CACHE_VERSION = 'callmagnet-v71-20260924';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
@@ -88,7 +88,6 @@ self.addEventListener('push', (event) => {
   let data = { title: 'CallMagnet', body: 'New notification' };
   try { data = event.data.json(); } catch (_) {}
 
-  // Debug: log that a push arrived at the SW, regardless of source
   var debugUrl = 'https://iskvvnhacqdxybpmwuni.supabase.co/rest/v1/vapid_debug_log';
   var debugKey = '%%SUPABASE_ANON_KEY%%';
   fetch(debugUrl, {
@@ -97,11 +96,13 @@ self.addEventListener('push', (event) => {
     body: JSON.stringify({ step: 'sw-push-received', detail: JSON.stringify({ source: data.source, title: data.title }).substring(0, 200) })
   }).catch(function() {});
 
-  if (data.source !== 'callmagnet-vapid') return;
-  event.stopImmediatePropagation();
+  if (data.source === 'callmagnet-vapid') {
+    event.stopImmediatePropagation();
+  }
+
   event.waitUntil(
-    self.registration.showNotification(data.title, {
-      body:  data.body,
+    self.registration.showNotification(data.title || 'CallMagnet', {
+      body:  data.body || 'New notification',
       icon:  '/android-chrome-192x192.png',
       badge: '/favicon-32x32.png',
       data:  { url: data.url || 'https://callmagnet.com.au' },
