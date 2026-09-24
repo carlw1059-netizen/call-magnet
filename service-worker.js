@@ -88,13 +88,13 @@ self.addEventListener('push', (event) => {
   let data = { title: 'CallMagnet', body: 'New notification' };
   try { data = event.data.json(); } catch (_) {}
   if (data.source !== 'callmagnet-vapid') return;
+  event.stopImmediatePropagation();
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body:  data.body,
       icon:  '/android-chrome-192x192.png',
       badge: '/favicon-32x32.png',
       data:  { url: data.url || 'https://callmagnet.com.au' },
-      tag:   'callmagnet-notification',
     })
   );
 });
