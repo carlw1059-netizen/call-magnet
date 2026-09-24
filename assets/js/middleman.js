@@ -518,7 +518,7 @@
 
     navigator.sendBeacon(LOG_FUNC_URL, new Blob(
       [JSON.stringify({ slug: gSlug, intent: intentId || intentLabel })],
-      { type: 'application/json' }
+      { type: 'text/plain' }
     ));
 
     // Navigate if a URL is set — formType does not matter.

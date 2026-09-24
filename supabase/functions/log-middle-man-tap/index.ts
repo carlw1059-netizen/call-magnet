@@ -56,7 +56,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
   // ── Parse body ──────────────────────────────────────────────────────────────
   let body: Record<string, unknown>;
   try {
-    body = await req.json();
+    const contentType = req.headers.get('content-type') || '';
+    body = contentType.includes('application/json')
+      ? await req.json()
+      : JSON.parse(await req.text());
   } catch {
     // Malformed JSON — log and return 200 (don't interrupt the customer's tap flow)
     console.warn('log-middle-man-tap: malformed JSON body');
