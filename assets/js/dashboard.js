@@ -1366,19 +1366,16 @@ async function openMmPanel(rawLabel, displayLabel, formType, neonColor, btnId) {
     var panelIsUrl = panelBtn && typeof panelBtn.url === 'string' && panelBtn.url.trim() !== '';
 
     if (panelIsUrl) {
-      const intentFilter = btnId || rawLabel;
+      const intentFilter = btnId || formType;
       const { data } = await sb.from('link_clicks')
         .select('intent, clicked_at, customer_number, dismissed')
         .eq('client_id', currentClient.id)
         .eq('dismissed', false)
-        .not('intent', 'is', null)
+        .eq('intent', intentFilter)
         .gte('clicked_at', panelStart)
         .order('clicked_at', { ascending: false })
         .limit(50);
-      records = (data || []).filter(c => c.intent && (
-        c.intent === intentFilter ||
-        c.intent.toLowerCase().includes(rawLabel.toLowerCase())
-      ));
+      records = data || [];
     } else {
       const { data } = await sb.from('middle_man_form_submissions')
         .select('*')
