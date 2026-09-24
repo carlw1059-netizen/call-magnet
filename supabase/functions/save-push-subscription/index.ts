@@ -90,19 +90,32 @@ Deno.serve(async (req) => {
       return json(404, { error: 'client_not_found', detail: `no client with id ${clientId}` });
     }
 
-    // ── UPSERT into push_subscriptions ─────────────────────────────────────
-    // PostgREST upsert: Prefer: resolution=merge-duplicates + on_conflict=...
-    // last_used_at is set explicitly so re-subscribes refresh the timestamp;
-    // the column's now() default fires only on INSERT.
-    const upsertRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/push_subscriptions?on_conflict=client_id,endpoint`,
+    // ── DELETE all existing rows for this client, then INSERT fresh ────────
+    // Each login generates a new APNs endpoint so upsert-on-endpoint always
+    // inserts. Delete first to keep exactly one row per client.
+    const deleteRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/push_subscriptions?client_id=eq.${encodeURIComponent(clientId)}`,
+      {
+        method: 'DELETE',
+        headers: {
+          apikey:        SUPABASE_SERVICE_ROLE_KEY,
+          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+      },
+    );
+    if (!deleteRes.ok) {
+      throw new Error(`delete_failed: ${deleteRes.status} ${await deleteRes.text()}`);
+    }
+
+    const insertRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/push_subscriptions`,
       {
         method: 'POST',
         headers: {
           apikey:        SUPABASE_SERVICE_ROLE_KEY,
           Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
           'Content-Type': 'application/json',
-          Prefer:        'resolution=merge-duplicates,return=representation',
+          Prefer:        'return=representation',
         },
         body: JSON.stringify({
           client_id:    clientId,
@@ -114,10 +127,10 @@ Deno.serve(async (req) => {
         }),
       },
     );
-    if (!upsertRes.ok) {
-      throw new Error(`upsert_failed: ${upsertRes.status} ${await upsertRes.text()}`);
+    if (!insertRes.ok) {
+      throw new Error(`insert_failed: ${insertRes.status} ${await insertRes.text()}`);
     }
-    const inserted = await upsertRes.json() as { id: string }[];
+    const inserted = await insertRes.json() as { id: string }[];
     return json(200, { ok: true, subscription_id: inserted[0]?.id });
 
   } catch (err) {
