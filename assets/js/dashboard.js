@@ -1265,7 +1265,7 @@ async function loadMiddleManSection() {
     tile.appendChild(countEl);
     tile.insertAdjacentHTML('beforeend', '<div class="mm-tile-sub">' + todayName + '</div>');
 
-    tile.addEventListener('click', () => openMmPanel(rawLabel, display, formType, neonColor));
+    tile.addEventListener('click', () => openMmPanel(rawLabel, display, formType, neonColor, btnId));
     grid.appendChild(tile);
     tileCountEls.push({ countEl, formType, rawLabel, btnId });
   });
@@ -1333,7 +1333,7 @@ async function loadMiddleManSection() {
 }
 
 // ── Open slide-out panel for a tile ──────────────────────────────────────
-async function openMmPanel(rawLabel, displayLabel, formType, neonColor) {
+async function openMmPanel(rawLabel, displayLabel, formType, neonColor, btnId) {
   const overlay = document.getElementById('mmPanelOverlay');
   const panel   = document.getElementById('mmPanel');
   const titleEl = document.getElementById('mmPanelTitle');
