@@ -1361,9 +1361,10 @@ async function openMmPanel(rawLabel, displayLabel, formType, neonColor) {
   try {
     if (formType === 'booking') {
       const { data } = await sb.from('link_clicks')
-        .select('intent, clicked_at, customer_number')
+        .select('intent, clicked_at, customer_number, id')
         .eq('client_id', currentClient.id)
         .not('intent', 'is', null)
+        .eq('dismissed', false)
         .gte('clicked_at', panelStart)
         .order('clicked_at', { ascending: false })
         .limit(50);
@@ -1373,6 +1374,7 @@ async function openMmPanel(rawLabel, displayLabel, formType, neonColor) {
         .select('*')
         .eq('client_id', currentClient.id)
         .eq('form_type', formType)
+        .eq('dismissed', false)
         .gte('submitted_at', panelStart)
         .order('submitted_at', { ascending: false })
         .limit(50);
@@ -1436,6 +1438,20 @@ async function openMmPanel(rawLabel, displayLabel, formType, neonColor) {
     });
   });
 
+  // ── Dismiss button ───────────────────────────────────────────────────────
+  bodyEl.querySelectorAll('.mm-dismiss-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (!confirm('Remove this card?')) return;
+      const recordId = btn.dataset.recordId;
+      const table = btn.dataset.recordTable;
+      const { error } = await sb.from(table).update({ dismissed: true }).eq('id', recordId);
+      if (error) { console.warn('Dismiss failed', error); return; }
+      const cardEl = btn.closest('.mm-card');
+      if (cardEl) cardEl.remove();
+    });
+  });
+
   // Prevent textarea clicks toggling the accordion
   bodyEl.querySelectorAll('.mm-notes-input').forEach(ta => {
     ta.addEventListener('click', e => e.stopPropagation());
@@ -1456,7 +1472,10 @@ function buildMmCard(record, formType, neonColor) {
   // Booking taps — flat card (only 2 fields, no expand needed)
   if (formType === 'booking') {
     return '<div class="mm-card" style="' + cs + '">' +
-      '<div class="mm-card-title">🍽️ Booking tap</div>' +
+      '<div class="mm-card-header">' +
+        '<div class="mm-card-title">🍽️ Booking tap</div>' +
+        '<button class="mm-dismiss-btn" data-record-id="' + record.id + '" data-record-table="link_clicks" style="background:transparent;border:1px solid #CC5500;color:#CC5500;font-size:14px;width:26px;height:26px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>' +
+      '</div>' +
       mmRow('Tapped at', mmFormatTime(record.clicked_at)) +
       (record.customer_number ? mmRow('Phone', buildPhoneReveal(record.customer_number)) : '') +
       '</div>';
@@ -1517,6 +1536,7 @@ function buildMmCard(record, formType, neonColor) {
     '<div class="mm-card-header">' +
       '<div class="mm-card-title">' + (titles[formType] || '📣 Enquiry') + '</div>' +
       '<button class="mm-done-btn" data-record-id="' + record.id + '">' + (record.done ? '✓ Done' : 'Done') + '</button>' +
+      '<button class="mm-dismiss-btn" data-record-id="' + record.id + '" data-record-table="middle_man_form_submissions" style="background:transparent;border:1px solid #CC5500;color:#CC5500;font-size:14px;width:26px;height:26px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>' +
     '</div>' +
     primaryRows +
     notePreviewRow +
