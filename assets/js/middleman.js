@@ -517,9 +517,10 @@
     setTimeout(function() { btnEl.classList.remove('pressed'); }, 180);
 
     fetch(LOG_FUNC_URL, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug: gSlug, intent: intentId || intentLabel }),
+      method:    'POST',
+      headers:   { 'Content-Type': 'application/json' },
+      body:      JSON.stringify({ slug: gSlug, intent: intentId || intentLabel }),
+      keepalive: true,
     }).catch(function() {});
 
     // Navigate if a URL is set — formType does not matter.
