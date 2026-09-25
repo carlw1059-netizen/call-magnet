@@ -685,6 +685,22 @@
       }, { once: true });
       bgFixed.appendChild(vid);
       vid.load();
+
+      // Desktop: clone video for sharp card background
+      if (window.innerWidth > 480) {
+        var bgCard = document.getElementById('bgCard');
+        if (bgCard) {
+          var cardVid = vid.cloneNode(true);
+          cardVid.addEventListener('canplay', function() {
+            cardVid.play().catch(function(err) {
+              console.warn('[video] card clone play() blocked:', err.name);
+            });
+          }, { once: true });
+          bgCard.appendChild(cardVid);
+          cardVid.load();
+        }
+      }
+
       bgFixed.classList.add('loaded');
       document.getElementById('contentSpacer').classList.add('expanded');
 
@@ -695,6 +711,15 @@
         bgFixed.style.backgroundImage = 'url(' + JSON.stringify(bgUrl) + ')';
         bgFixed.style.backgroundSize = 'cover';
         bgFixed.style.backgroundPosition = 'center top';
+
+        // Desktop: set blurred background image
+        if (window.innerWidth > 480) {
+          var bgBlur = document.getElementById('bgBlur');
+          if (bgBlur) {
+            bgBlur.style.backgroundImage = 'url(' + bgUrl + ')';
+          }
+        }
+
         bgFixed.classList.add('loaded');
         document.getElementById('contentSpacer').classList.add('expanded');
       };
