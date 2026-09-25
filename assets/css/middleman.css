@@ -653,3 +653,14 @@
   object-fit: contain;
   display: block;
 }
+
+/* Centre buttons when few — footer grows to match spacer */
+#mainPage:not(.no-bg) .footer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+#mainPage:not(.no-bg) .content {
+  margin-top: 0;
+}
