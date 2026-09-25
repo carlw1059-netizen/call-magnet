@@ -664,3 +664,39 @@
 #mainPage:not(.no-bg) .content {
   margin-top: 0;
 }
+
+/* Desktop containment — phone-shaped card on wide screens */
+@media (min-width: 481px) {
+  body {
+    background: #080c10;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    top: -40px; left: -40px; right: -40px; bottom: -40px;
+    background:
+      radial-gradient(ellipse at 30% 40%, rgba(16, 185, 129, 0.12) 0%, transparent 60%),
+      radial-gradient(ellipse at 70% 60%, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
+    filter: blur(40px);
+    z-index: 0;
+  }
+  #app {
+    position: relative;
+    max-width: 430px;
+    width: 100%;
+    min-height: 85vh;
+    height: auto;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow:
+      0 0 80px rgba(16, 185, 129, 0.06),
+      0 0 40px rgba(0, 0, 0, 0.6),
+      0 4px 30px rgba(0, 0, 0, 0.4);
+    z-index: 1;
+  }
+}
