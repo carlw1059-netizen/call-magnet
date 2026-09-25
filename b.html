@@ -28,10 +28,12 @@
 <div style="position:fixed;bottom:-8px;left:0;width:100%;min-height:12px;background:#0E1419;z-index:9999;pointer-events:none;"></div>
 
 <!-- Full-screen background layers (z-index 0 and 1) -->
+<div id="bgBlur"></div>
 <div id="bgFixed"></div>
 <div id="bgOverlay"></div>
 
 <div id="app">
+  <div id="bgCard"></div>
 
   <!-- Tap-outside catcher: transparent, z-index 5, shown when a form is open.
        Sits above the video/overlay (z-index 0–1) but below the open btn-unit
