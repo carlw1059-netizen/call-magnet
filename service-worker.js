@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
 // Last bumped: 24 Sep 2026 — add VAPID push + notificationclick handlers
-const CACHE_VERSION = 'callmagnet-v71-20260924';
+const CACHE_VERSION = 'callmagnet-v72-20260925';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
