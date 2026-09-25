@@ -25,19 +25,12 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://callmagnet.com.au',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
-
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_ANON_KEY         = Deno.env.get('SUPABASE_ANON_KEY')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const INTERNAL_SECRET           = Deno.env.get('INTERNAL_SECRET');
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405 });
   }
@@ -150,6 +143,6 @@ Deno.serve(async (req) => {
 function json(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    headers: { 'Content-Type': 'application/json' },
   });
 }
