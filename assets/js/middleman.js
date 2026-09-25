@@ -791,7 +791,7 @@
       if (hasAny) {
         var iconRow = document.createElement('div');
         iconRow.id = 'social-icon-row';
-        iconRow.style.cssText = 'display:flex;gap:16px;justify-content:center;align-items:center;margin:12px 0;';
+        iconRow.style.cssText = 'display:flex;gap:16px;justify-content:center;align-items:center;margin:0 0 8px;';
         SOCIAL_ICONS.forEach(function(ic) {
           var url = client['social_' + ic.key];
           if (!url) return;
@@ -804,7 +804,13 @@
           a.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:32px;height:32px;display:block;flex-shrink:0;" fill="' + color + '"><path d="' + ic.path + '"/></svg>';
           iconRow.appendChild(a);
         });
-        document.getElementById('buttonsWrap').after(iconRow);
+        var footerEl = document.querySelector('.footer');
+        var poweredEl = document.querySelector('.footer-powered');
+        if (footerEl && poweredEl) {
+          footerEl.insertBefore(iconRow, poweredEl);
+        } else {
+          document.getElementById('buttonsWrap').after(iconRow);
+        }
       }
     }
 
