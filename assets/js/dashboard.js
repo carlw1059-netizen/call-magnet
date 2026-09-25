@@ -1398,7 +1398,7 @@ async function openMmPanel(rawLabel, displayLabel, formType, neonColor, btnId, i
     return;
   }
 
-  bodyEl.innerHTML = records.map(r => buildMmCard(r, formType, neonColor)).join('');
+  bodyEl.innerHTML = records.map(r => buildMmCard(r, formType, neonColor, panelIsUrl, displayLabel)).join('');
 
   // ── Wire up accordion toggles ─────────────────────────────────────────────
   // Reset previously open card so the new panel starts fully collapsed.
@@ -1468,16 +1468,16 @@ async function openMmPanel(rawLabel, displayLabel, formType, neonColor, btnId, i
 //   + note preview if note > 60 chars (class mm-card-note-preview, hidden when expanded)
 //   Secondary (.mm-card-extra, max-height transition): submitted time + all extra fields
 //   Toggle (▼ Show more / ▲ Less): appears on all form-submission cards
-function buildMmCard(record, formType, neonColor) {
+function buildMmCard(record, formType, neonColor, isUrlButton, displayLabel) {
   const bdr = mmHexRgba(neonColor, 0.3);
   const shd = mmHexRgba(neonColor, 0.1);
   const cs  = `border-color:${bdr};box-shadow:0 0 8px ${shd}`;
 
-  // Booking taps — flat card (only 2 fields, no expand needed)
-  if (formType === 'booking') {
+  // Link/URL taps — flat card (only 2 fields, no expand needed)
+  if (isUrlButton) {
     return '<div class="mm-card" style="' + cs + '">' +
       '<div class="mm-card-header">' +
-        '<div class="mm-card-title">🍽️ Booking tap</div>' +
+        '<div class="mm-card-title">' + _escMgr(displayLabel || 'Tap') + '</div>' +
         '<button class="mm-dismiss-btn" data-record-id="' + record.id + '" data-record-table="link_clicks" style="background:transparent;border:1px solid #CC5500;color:#CC5500;font-size:14px;width:26px;height:26px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>' +
       '</div>' +
       mmRow('Tapped at', mmFormatTime(record.clicked_at)) +
