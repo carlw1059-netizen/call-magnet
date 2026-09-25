@@ -690,7 +690,8 @@
     z-index: 0;
     background-size: cover;
     background-position: center;
-    filter: blur(20px) brightness(0.65);
+    filter: blur(24px) brightness(0.85) saturate(180%);
+    background-color: rgba(255, 255, 255, 0.08);
   }
   #bgCard {
     display: block;
