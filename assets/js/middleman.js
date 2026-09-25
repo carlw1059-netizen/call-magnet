@@ -686,18 +686,27 @@
       bgFixed.appendChild(vid);
       vid.load();
 
-      // Desktop: clone video for sharp card background
+      // Desktop: move video into card and grab frame for blur
       if (window.innerWidth > 480) {
         var bgCard = document.getElementById('bgCard');
-        if (bgCard) {
-          var cardVid = vid.cloneNode(true);
-          cardVid.addEventListener('canplay', function() {
-            cardVid.play().catch(function(err) {
-              console.warn('[video] card clone play() blocked:', err.name);
-            });
+        var bgBlurEl = document.getElementById('bgBlur');
+        var bgFixedEl = document.getElementById('bgFixed');
+        if (bgCard && bgBlurEl) {
+          bgCard.appendChild(vid);
+          if (bgFixedEl) bgFixedEl.style.display = 'none';
+          vid.addEventListener('playing', function() {
+            try {
+              var canvas = document.createElement('canvas');
+              canvas.width = vid.videoWidth || 1280;
+              canvas.height = vid.videoHeight || 720;
+              var ctx = canvas.getContext('2d');
+              ctx.drawImage(vid, 0, 0, canvas.width, canvas.height);
+              var frameUrl = canvas.toDataURL('image/jpeg', 0.6);
+              bgBlurEl.style.backgroundImage = 'url(' + frameUrl + ')';
+            } catch (e) {
+              console.warn('[video] frame grab failed:', e);
+            }
           }, { once: true });
-          bgCard.appendChild(cardVid);
-          cardVid.load();
         }
       }
 

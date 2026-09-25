@@ -690,7 +690,7 @@
     z-index: 0;
     background-size: cover;
     background-position: center;
-    filter: blur(30px) brightness(0.4);
+    filter: blur(20px) brightness(0.65);
   }
   #bgCard {
     display: block;
@@ -705,9 +705,6 @@
     min-width: 100%; min-height: 100%;
     transform: translate(-50%, -50%);
     object-fit: cover;
-  }
-  #bgFixed {
-    filter: blur(30px) brightness(0.4);
   }
   #app {
     position: relative;
