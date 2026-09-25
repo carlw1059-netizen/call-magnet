@@ -963,6 +963,40 @@
         : 'https://callmagnet.com.au/u/' + encodeURIComponent(slug);
       stopLink.href = unsub;
     }
+
+    // TEMP DIAGNOSTIC — remove after phone layout investigation
+    if (window.innerWidth <= 480) {
+      setTimeout(function() {
+        try {
+          var bf = document.getElementById('bgFixed');
+          var v = bf ? bf.querySelector('video') : null;
+          var probe = document.createElement('div');
+          probe.style.cssText = 'position:fixed;top:0;left:0;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);visibility:hidden;';
+          document.body.appendChild(probe);
+          var ps = getComputedStyle(probe);
+          var r = function(el) { if (!el) return null; var b = el.getBoundingClientRect(); return [Math.round(b.top), Math.round(b.left), Math.round(b.width), Math.round(b.height)]; };
+          var data = {
+            inner: [innerWidth, innerHeight],
+            docClient: [document.documentElement.clientWidth, document.documentElement.clientHeight],
+            visualViewport: window.visualViewport ? [Math.round(visualViewport.width), Math.round(visualViewport.height), Math.round(visualViewport.offsetTop)] : null,
+            screen: [screen.width, screen.height],
+            safeTop: ps.paddingTop,
+            safeBottom: ps.paddingBottom,
+            bgFixedRect: r(bf),
+            videoRect: r(v),
+            videoNatural: v ? [v.videoWidth, v.videoHeight] : null,
+            standalone: !!window.navigator.standalone,
+            ua: navigator.userAgent.substring(0, 120)
+          };
+          probe.remove();
+          fetch(SUPABASE_URL + '/rest/v1/vapid_debug_log', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON, 'Prefer': 'return=minimal' },
+            body: JSON.stringify({ step: 'mm-phone-layout', detail: JSON.stringify(data) })
+          }).catch(function() {});
+        } catch (e) {}
+      }, 4000);
+    }
   }
 
   // ── Boot ──────────────────────────────────────────────────────────────────
