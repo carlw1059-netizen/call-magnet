@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
-// Last bumped: 24 Sep 2026 — add VAPID push + notificationclick handlers
-const CACHE_VERSION = 'callmagnet-v72-20260925';
+// Last bumped: 25 Sep 2026 — remove temporary debug logging from push handler
+const CACHE_VERSION = 'callmagnet-v73-20260925';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
@@ -87,14 +87,6 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('push', (event) => {
   let data = { title: 'CallMagnet', body: 'New notification' };
   try { data = event.data.json(); } catch (_) {}
-
-  var debugUrl = 'https://iskvvnhacqdxybpmwuni.supabase.co/rest/v1/vapid_debug_log';
-  var debugKey = '%%SUPABASE_ANON_KEY%%';
-  fetch(debugUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'apikey': debugKey, 'Authorization': 'Bearer ' + debugKey, 'Prefer': 'return=minimal' },
-    body: JSON.stringify({ step: 'sw-push-received', detail: JSON.stringify({ source: data.source, title: data.title }).substring(0, 200) })
-  }).catch(function() {});
 
   if (data.source === 'callmagnet-vapid') {
     event.stopImmediatePropagation();
