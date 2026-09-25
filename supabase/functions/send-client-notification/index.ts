@@ -334,7 +334,7 @@ Deno.serve(async (req) => {
               logNotification({ client_id: clientId, channel: 'push', event: 'link_tapped', status: 'sent', metadata: { subscription_id: r.value.id, title: ltTitle, body: ltBody } });
             } else {
               if (r.value.status === 404 || r.value.status === 410) ltExpiredIds.push(r.value.id);
-              logNotification({ client_id: clientId, channel: 'push', event: 'link_tapped', status: 'failed', error_message: r.value.message, provider_response: { statusCode: r.value.status }, metadata: { subscription_id: r.value.id } });
+              logNotification({ client_id: clientId, channel: 'push', event: 'link_tapped', status: 'failed', error_message: 'status ' + (r.value.status ?? 'unknown') + ': ' + r.value.message, provider_response: { statusCode: r.value.status }, metadata: { subscription_id: r.value.id, statusCode: r.value.status } });
             }
           } else {
             logNotification({ client_id: clientId, channel: 'push', event: 'link_tapped', status: 'failed', error_message: String((r as PromiseRejectedResult).reason ?? 'rejected') });
