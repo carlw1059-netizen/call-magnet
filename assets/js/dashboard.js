@@ -1389,7 +1389,7 @@ async function openMmPanel(rawLabel, displayLabel, formType, neonColor, btnId, i
   }
 
   const count = records.length;
-  const word  = formType === 'booking' ? 'tap' : 'request';
+  const word  = panelIsUrl ? 'tap' : 'request';
   const dayName = new Date().toLocaleDateString('en-AU', { weekday: 'long' });
   subEl.textContent = count + ' ' + word + (count !== 1 ? 's' : '') + ' this ' + dayName;
 
