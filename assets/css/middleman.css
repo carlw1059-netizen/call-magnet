@@ -41,6 +41,9 @@
     object-fit: cover;
     transform: translateZ(0);
   }
+  #bgFixed video {
+    object-position: 50% 0%;
+  }
   #bgOverlay {
     position: fixed;
     top: 0;
