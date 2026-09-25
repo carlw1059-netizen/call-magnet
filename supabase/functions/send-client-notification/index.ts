@@ -322,7 +322,8 @@ Deno.serve(async (req) => {
               return { id: sub.id, ok: true as const };
             } catch (e: unknown) {
               const status = (e as { statusCode?: number })?.statusCode;
-              return { id: sub.id, ok: false as const, status, message: String((e as Error)?.message ?? e) };
+              const body   = (e as { body?: string })?.body;
+              return { id: sub.id, ok: false as const, status, message: String((e as Error)?.message ?? e), body, host: new URL(sub.endpoint).host };
             }
           }),
         );
@@ -334,7 +335,7 @@ Deno.serve(async (req) => {
               logNotification({ client_id: clientId, channel: 'push', event: 'link_tapped', status: 'sent', metadata: { subscription_id: r.value.id, title: ltTitle, body: ltBody } });
             } else {
               if (r.value.status === 404 || r.value.status === 410) ltExpiredIds.push(r.value.id);
-              logNotification({ client_id: clientId, channel: 'push', event: 'link_tapped', status: 'failed', error_message: 'status ' + (r.value.status ?? 'unknown') + ': ' + r.value.message, provider_response: { statusCode: r.value.status }, metadata: { subscription_id: r.value.id, statusCode: r.value.status } });
+              logNotification({ client_id: clientId, channel: 'push', event: 'link_tapped', status: 'failed', error_message: 'status ' + (r.value.status ?? 'unknown') + ': ' + (r.value.body || r.value.message), provider_response: { statusCode: r.value.status }, metadata: { subscription_id: r.value.id, statusCode: r.value.status, body: r.value.body, host: r.value.host } });
             }
           } else {
             logNotification({ client_id: clientId, channel: 'push', event: 'link_tapped', status: 'failed', error_message: String((r as PromiseRejectedResult).reason ?? 'rejected') });
