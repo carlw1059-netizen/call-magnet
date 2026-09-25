@@ -1365,7 +1365,7 @@ async function openMmPanel(rawLabel, displayLabel, formType, neonColor, btnId, i
     if (panelIsUrl) {
       const intentFilter = btnId || formType;
       const { data } = await sb.from('link_clicks')
-        .select('intent, clicked_at, customer_number, dismissed')
+        .select('id, intent, clicked_at, customer_number, dismissed')
         .eq('client_id', currentClient.id)
         .eq('dismissed', false)
         .eq('intent', intentFilter)
