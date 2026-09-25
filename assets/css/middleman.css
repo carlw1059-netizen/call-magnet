@@ -665,6 +665,14 @@
   margin-top: 0;
 }
 
+/* Desktop blurred background — base (mobile hidden) */
+#bgBlur {
+  display: none;
+}
+#bgCard {
+  display: none;
+}
+
 /* Desktop containment — phone-shaped card on wide screens */
 @media (min-width: 481px) {
   body {
@@ -675,15 +683,31 @@
     min-height: 100vh;
     padding: 40px 20px;
   }
-  body::before {
-    content: '';
+  #bgBlur {
+    display: block;
     position: fixed;
     top: -40px; left: -40px; right: -40px; bottom: -40px;
-    background:
-      radial-gradient(ellipse at 30% 40%, rgba(16, 185, 129, 0.12) 0%, transparent 60%),
-      radial-gradient(ellipse at 70% 60%, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
-    filter: blur(40px);
     z-index: 0;
+    background-size: cover;
+    background-position: center;
+    filter: blur(30px) brightness(0.4);
+  }
+  #bgCard {
+    display: block;
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+  #bgCard video {
+    position: absolute;
+    top: 50%; left: 50%;
+    min-width: 100%; min-height: 100%;
+    transform: translate(-50%, -50%);
+    object-fit: cover;
+  }
+  #bgFixed {
+    filter: blur(30px) brightness(0.4);
   }
   #app {
     position: relative;
