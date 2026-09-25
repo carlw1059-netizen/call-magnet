@@ -1735,50 +1735,26 @@ function urlBase64ToUint8Array(base64String) {
   return Uint8Array.from([...atob(base64)].map(c => c.charCodeAt(0)));
 }
 
-async function vapidLog(step, detail) {
-  try {
-    await fetch(SUPABASE_URL + '/rest/v1/vapid_debug_log', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-        'Prefer': 'return=minimal',
-      },
-      body: JSON.stringify({ step, detail: String(detail) }),
-    });
-  } catch(_) {}
-}
-
 async function registerVapidPush(clientId) {
   if (!clientId) return;
-  await vapidLog('start', clientId);
   try {
     const vapidKey = document.querySelector('meta[name="vapid-public-key"]')?.content;
-    await vapidLog('meta', vapidKey || 'MISSING');
     if (!vapidKey || vapidKey.includes('%%')) return;
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
-    await vapidLog('pushmanager', 'available');
     const reg = await navigator.serviceWorker.ready;
-    await vapidLog('sw-ready', reg.active?.scriptURL || 'no-active');
 
     let sub = await reg.pushManager.getSubscription();
 
-    if (sub) {
-      await vapidLog('existing-sub', sub.endpoint);
-    } else {
-      await vapidLog('no-sub', 'subscribing fresh');
+    if (!sub) {
       sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidKey),
       });
-      await vapidLog('subscribed', sub.endpoint);
     }
 
     const p256dh = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh'))));
     const auth   = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth'))));
     const { data: { session } } = await sb.auth.getSession();
-    await vapidLog('session', session ? 'ok' : 'MISSING');
     if (!session) return;
     const saveRes = await fetch(`${SUPABASE_URL}/functions/v1/save-push-subscription`, {
       method: 'POST',
@@ -1795,9 +1771,8 @@ async function registerVapidPush(clientId) {
         user_agent: navigator.userAgent,
       }),
     });
-    await vapidLog('saved', saveRes.status);
+    if (!saveRes.ok) console.warn('[vapid] save failed:', saveRes.status);
   } catch (err) {
-    await vapidLog('ERROR', err.message || String(err));
     console.warn('[vapid] registerVapidPush failed:', err);
   }
 }
