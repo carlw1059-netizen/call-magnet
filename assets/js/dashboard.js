@@ -1750,18 +1750,6 @@ async function vapidLog(step, detail) {
   } catch(_) {}
 }
 
-function vapidKeyMatches(sub, vapidKey) {
-  try {
-    const k = sub && sub.options && sub.options.applicationServerKey;
-    if (!k) return false;
-    const b64 = btoa(String.fromCharCode(...new Uint8Array(k)))
-      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    return b64 === vapidKey.replace(/=+$/, '');
-  } catch (_) {
-    return false;
-  }
-}
-
 async function registerVapidPush(clientId) {
   if (!clientId) return;
   await vapidLog('start', clientId);
@@ -1775,12 +1763,6 @@ async function registerVapidPush(clientId) {
     await vapidLog('sw-ready', reg.active?.scriptURL || 'no-active');
 
     let sub = await reg.pushManager.getSubscription();
-
-    if (sub && !vapidKeyMatches(sub, vapidKey)) {
-      await vapidLog('key-mismatch', sub.endpoint);
-      await sub.unsubscribe();
-      sub = null;
-    }
 
     if (sub) {
       await vapidLog('existing-sub', sub.endpoint);
