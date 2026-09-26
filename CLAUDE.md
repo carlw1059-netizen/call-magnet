@@ -168,6 +168,21 @@ Every admin page must follow these rules. No exceptions. No deviations.
 - **Single column nav**: Any nav on admin pages is single column only
 
 
+## PUSH NOTIFICATIONS — SAFEGUARDS
+
+Before changing any push-related file (`registerVapidPush` or other push code in `dashboard.js`, the `service-worker.js` push handler, `progressier.js`, `save-push-subscription`, `send-client-notification`, or the Progressier setup):
+1. Read `docs/push-notifications.md` first.
+2. State the current working state in plain English and what the change will do.
+3. Get Carl's go-ahead before making the change.
+4. Straight after deploy, test on the dashboard phone: tap Menu on the Middle Man page, confirm the notification arrives with sound, and confirm `notifications_sent` shows status `sent`.
+5. If it fails, revert the change first, then investigate.
+6. Add a row to the change log in `docs/push-notifications.md`: date, commit, what changed, why, test result.
+
+Never subscribe or unsubscribe push automatically on page load.
+Never remove the Progressier fallback unless a replacement has been tested live on the dashboard phone.
+
+---
+
 ## Deployment
 
 All changes go directly to main. Staging branch is not used.
