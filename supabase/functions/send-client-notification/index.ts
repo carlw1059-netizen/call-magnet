@@ -367,6 +367,11 @@ Deno.serve(async (req) => {
           error_message: 'PROGRESSIER_API_KEY not configured',
           metadata:      { title: ltTitle, body: ltBody },
         });
+        fetch(`${SUPABASE_URL}/functions/v1/send-pushover-alert`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Internal-Secret': INTERNAL_SECRET!, Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` },
+          body: JSON.stringify({ title: '⚠️ Push failed', message: `${ltClientArr[0].business_name} — link_tapped — PROGRESSIER_API_KEY not configured` }),
+        }).catch(() => {});
         return json(200, { sent: false, reason: 'PROGRESSIER_API_KEY not configured', event, client_id: clientId });
       }
 
@@ -396,6 +401,11 @@ Deno.serve(async (req) => {
           provider_response: { status: progRes.status, body: errText },
           metadata:          { title: ltTitle, body: ltBody },
         });
+        fetch(`${SUPABASE_URL}/functions/v1/send-pushover-alert`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Internal-Secret': INTERNAL_SECRET!, Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` },
+          body: JSON.stringify({ title: '⚠️ Push failed', message: `${ltClientArr[0].business_name} — link_tapped — progressier ${progRes.status}: ${errText}` }),
+        }).catch(() => {});
         return json(200, { sent: false, reason: 'progressier_api_error', status: progRes.status, event, client_id: clientId });
       }
 
@@ -581,9 +591,19 @@ Deno.serve(async (req) => {
           provider_response: { status: progFallbackRes.status, body: errText },
           metadata:          { title, body: msg, path: 'progressier-fallback' },
         });
+        fetch(`${SUPABASE_URL}/functions/v1/send-pushover-alert`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Internal-Secret': INTERNAL_SECRET!, Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` },
+          body: JSON.stringify({ title: '⚠️ Push failed', message: `${client.business_name} — ${event} — progressier fallback ${progFallbackRes.status}: ${errText}` }),
+        }).catch(() => {});
       }
     } else if (pushSent === 0 && !PROGRESSIER_API_KEY) {
       console.warn(`${event}: vapid all failed and PROGRESSIER_API_KEY missing — no push fallback`);
+      fetch(`${SUPABASE_URL}/functions/v1/send-pushover-alert`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Internal-Secret': INTERNAL_SECRET!, Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` },
+        body: JSON.stringify({ title: '⚠️ Push failed', message: `${client.business_name} — ${event} — PROGRESSIER_API_KEY not configured` }),
+      }).catch(() => {});
     }
 
     // ── send Resend email (always, in parallel with the cleanups above) ─────
