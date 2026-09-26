@@ -347,7 +347,11 @@ Deno.serve(async (req) => {
             { method: 'DELETE', headers: { apikey: SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`, Prefer: 'return=minimal' } },
           ).catch((err) => console.warn(`expired sub cleanup failed: ${err}`));
         }
-        return json(200, { sent: true, event: 'link_tapped', path: 'vapid', client_id: clientId });
+        const ltAnyOk = ltResults.some(r => r.status === 'fulfilled' && r.value.ok);
+        if (ltAnyOk) {
+          return json(200, { sent: true, event: 'link_tapped', path: 'vapid', client_id: clientId });
+        }
+        console.log('send-client-notification: link_tapped vapid all failed, using progressier-fallback');
       }
 
       // ── Progressier fallback ────────────────────────────────────────────────
