@@ -2088,12 +2088,23 @@ async function sendTestSmsFromEdit() {
   if (!to)                         { if (tag) { tag.textContent = '✗ Phone number is required.';         tag.style.color = '#CC0000'; } return; }
   if (!message || message === '—') { if (tag) { tag.textContent = '✗ SMS message is empty.';             tag.style.color = '#CC0000'; } return; }
 
+  var sessionResult = await mmaSb.auth.getSession();
+  var sess = sessionResult.data && sessionResult.data.session;
+  if (!sess) {
+    if (tag) { tag.textContent = '✗ Not signed in — please refresh'; tag.style.color = '#CC0000'; }
+    return;
+  }
+
   if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
 
   try {
     var res  = await fetch(MMA_SUPABASE_URL + '/functions/v1/send-test-sms', {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': 'Bearer ' + sess.access_token,
+        'apikey':        MMA_SUPABASE_ANON_KEY,
+      },
       body:    JSON.stringify({ to: to, message: message, slug: slug, from: (_editClientData && _editClientData.twilio_number) || '' }),
     });
     var data = await res.json().catch(function() { return {}; });
@@ -2109,7 +2120,7 @@ async function sendTestSmsFromEdit() {
       if (tag) { tag.textContent = '✗ ' + (data.error || 'Unknown error'); tag.style.color = '#CC0000'; }
     }
   } catch (err) {
-    if (tag) { tag.textContent = '✗ Network error: ' + err.message; tag.style.color = '#CC0000'; }
+    if (tag) { tag.textContent = '✗ ' + (err.message || 'Network error'); tag.style.color = '#CC0000'; }
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = 'Send test'; }
   }
