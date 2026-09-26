@@ -544,6 +544,48 @@ Deno.serve(async (req) => {
       ).catch((err) => console.warn(`expired sub cleanup failed: ${err}`));
     }
 
+    // ── Progressier fallback when every VAPID send failed ──────────────────
+    if (pushSent === 0 && PROGRESSIER_API_KEY) {
+      console.log(`send-client-notification: ${event} vapid all failed, using progressier-fallback`);
+      const progFallbackRes = await fetch('https://progressier.app/9kXZoGF2Dlfeqec880My/send', {
+        method: 'POST',
+        headers: {
+          Authorization:  `Bearer ${PROGRESSIER_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          recipients: { id: clientId },
+          title,
+          body:       msg,
+          url:        'https://callmagnet.com.au',
+        }),
+      });
+      if (progFallbackRes.ok) {
+        logNotification({
+          client_id:         clientId,
+          channel:           'push',
+          event,
+          status:            'sent',
+          provider_response: { status: progFallbackRes.status },
+          metadata:          { title, body: msg, path: 'progressier-fallback' },
+        });
+      } else {
+        const errText = await progFallbackRes.text();
+        console.error(`${event}: progressier fallback api error ${progFallbackRes.status}: ${errText}`);
+        logNotification({
+          client_id:         clientId,
+          channel:           'push',
+          event,
+          status:            'failed',
+          error_message:     errText,
+          provider_response: { status: progFallbackRes.status, body: errText },
+          metadata:          { title, body: msg, path: 'progressier-fallback' },
+        });
+      }
+    } else if (pushSent === 0 && !PROGRESSIER_API_KEY) {
+      console.warn(`${event}: vapid all failed and PROGRESSIER_API_KEY missing — no push fallback`);
+    }
+
     // ── send Resend email (always, in parallel with the cleanups above) ─────
     let emailSent = false;
     if (RESEND_API_KEY && client.email) {
