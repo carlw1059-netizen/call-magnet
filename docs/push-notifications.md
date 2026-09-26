@@ -59,3 +59,4 @@
 | 26 Sep 2026 | `cdceb77` | Revert `db27a62` — keep Progressier registration intact until push rebuild | Auto-resubscribe on page load fails on iPhone (no user gesture); broke registration | No |
 | 26 Sep 2026 | `1437905` | Bump `dashboard.js` to `v=20260926c` after revert | Cache-bust after revert chain | No |
 | 26 Sep 2026 | `e4e9117` | Add Progressier fallback to `missed_call` and `booking_logged` paths | Same VapidPkHashMismatch failure was silently dropping missed call and booking notifications | No |
+| 26 Sep 2026 | `762cd3d` | Pushover alert to Carl when push fails completely (VAPID failed + Progressier fallback also failed or skipped) — all three event paths | Silent complete failures were invisible; Carl had no way to know an owner received nothing | No |
