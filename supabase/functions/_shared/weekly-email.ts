@@ -14,6 +14,7 @@ export interface ClientStats {
   overage:          number;
   buttonClicks:     Array<{ intent: string; count: number; peakHours: Array<{ hour: number; count: number }> }>;
   heatmapData:      Array<{ day_of_week: number; hour_of_day: number; call_count: number }>;
+  socialTaps:       Array<{ platform: string; count: number }>;
 }
 
 
@@ -24,6 +25,7 @@ async function fetchButtonClicksWithHours(clientId: string): Promise<Array<{ int
     `?client_id=eq.${encodeURIComponent(clientId)}` +
     `&clicked_at=gte.${encodeURIComponent(ninetyDaysAgo)}` +
     `&intent=not.is.null` +
+    `&intent=not.like.social_%25` +
     `&select=intent,hour_of_day`;
   const res = await fetch(url, {
     headers: {
@@ -48,6 +50,41 @@ async function fetchButtonClicksWithHours(clientId: string): Promise<Array<{ int
   }).sort((a, b) => b.count - a.count);
 }
 
+const SOCIAL_FRIENDLY: Record<string, string> = {
+  social_instagram:  'Instagram',
+  social_facebook:   'Facebook',
+  social_tiktok:     'TikTok',
+  social_youtube:    'YouTube',
+  social_whatsapp:   'WhatsApp',
+  social_spotify:    'Spotify',
+  social_soundcloud: 'SoundCloud',
+};
+
+async function fetchSocialTaps(clientId: string, weekStart: string, weekEnd: string): Promise<Array<{ platform: string; count: number }>> {
+  const url =
+    `${SUPABASE_URL}/rest/v1/link_clicks` +
+    `?client_id=eq.${encodeURIComponent(clientId)}` +
+    `&clicked_at=gte.${encodeURIComponent(weekStart)}` +
+    `&clicked_at=lte.${encodeURIComponent(weekEnd)}` +
+    `&intent=like.social_%25` +
+    `&select=intent`;
+  const res = await fetch(url, {
+    headers: {
+      apikey:        SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+    },
+  });
+  if (!res.ok) return [];
+  const rows = await res.json() as Array<{ intent: string }>;
+  const counts: Record<string, number> = {};
+  for (const row of rows) {
+    if (row.intent in SOCIAL_FRIENDLY) counts[row.intent] = (counts[row.intent] ?? 0) + 1;
+  }
+  return Object.entries(counts)
+    .map(([intent, count]) => ({ platform: SOCIAL_FRIENDLY[intent], count }))
+    .sort((a, b) => b.count - a.count);
+}
+
 async function fetchHeatmapData(clientId: string): Promise<Array<{ day_of_week: number; hour_of_day: number; call_count: number }>> {
   const url = `${SUPABASE_URL}/rest/v1/rpc/get_heatmap_data`;
   const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
@@ -64,17 +101,43 @@ async function fetchHeatmapData(clientId: string): Promise<Array<{ day_of_week: 
   return res.json();
 }
 
+async function countLinkClicksExcludingSocial(clientId: string, weekStart: string, weekEnd: string): Promise<number> {
+  try {
+    const url =
+      `${SUPABASE_URL}/rest/v1/link_clicks` +
+      `?client_id=eq.${encodeURIComponent(clientId)}` +
+      `&clicked_at=gte.${encodeURIComponent(weekStart)}` +
+      `&clicked_at=lte.${encodeURIComponent(weekEnd)}` +
+      `&or=(intent.is.null,intent.not.like.social_%25)` +
+      `&select=id`;
+    const res = await fetch(url, {
+      method: 'HEAD',
+      headers: {
+        apikey:        SUPABASE_SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        Prefer:        'count=exact',
+      },
+    });
+    if (!res.ok) return 0;
+    const m = (res.headers.get('content-range') ?? '').match(/\/(\d+)$/);
+    return m ? parseInt(m[1], 10) : 0;
+  } catch {
+    return 0;
+  }
+}
+
 export async function calcClientStats(client: ClientRow, weekStart: string, weekEnd: string): Promise<ClientStats> {
   const now         = new Date().toISOString();
   const periodStart = client.last_renewal_date ?? new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  const [smsSent, optOuts, linkClicks, bookingsLogged, currentPeriodSms, buttonClicks, heatmapData] = await Promise.all([
+  const [smsSent, optOuts, linkClicks, bookingsLogged, currentPeriodSms, buttonClicks, heatmapData, socialTaps] = await Promise.all([
     countRows('sms_events',  'received_at', client.id, weekStart, weekEnd),
     countRows('opt_outs',    'opted_out_at', client.id, weekStart, weekEnd),
-    countRows('link_clicks', 'clicked_at',  client.id, weekStart, weekEnd),
+    countLinkClicksExcludingSocial(client.id, weekStart, weekEnd),
     countRows('bookings',    'booked_at',   client.id, weekStart, weekEnd),
     countRows('sms_events',  'received_at', client.id, periodStart, now),
     fetchButtonClicksWithHours(client.id),
     fetchHeatmapData(client.id),
+    fetchSocialTaps(client.id, weekStart, weekEnd),
   ]);
   const conversionRate = smsSent > 0 ? `${(linkClicks / smsSent * 100).toFixed(1)}%` : '0%';
   let daysUntilRenewal: number | null = null;
@@ -83,7 +146,7 @@ export async function calcClientStats(client: ClientRow, weekStart: string, week
     daysUntilRenewal = msUntil > 0 ? Math.ceil(msUntil / 86_400_000) : 0;
   }
   const overage = Math.max(0, currentPeriodSms - (client.sms_included ?? 0));
-  return { smsSent, optOuts, linkClicks, bookingsLogged, conversionRate, daysUntilRenewal, overage, buttonClicks, heatmapData };
+  return { smsSent, optOuts, linkClicks, bookingsLogged, conversionRate, daysUntilRenewal, overage, buttonClicks, heatmapData, socialTaps };
 }
 
 function buildHeatmapTable(heatmapData: Array<{ day_of_week: number; hour_of_day: number; call_count: number }>): string {
@@ -158,8 +221,16 @@ function buildStatsRows(stats: ClientStats): string {
     }).join('\n');
     buttonSection = `<p style="margin:24px 0 12px;font-size:13px;font-weight:700;color:#10b981;letter-spacing:0.04em;text-transform:uppercase;">Button clicks</p><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${buttonRows}</table>`;
   }
+  let socialSection = '';
+  if (stats.socialTaps.length > 0) {
+    const socialRows = stats.socialTaps.map((s, i) => {
+      const top = i === 0 ? '' : 'border-top:1px solid #eeeeee;';
+      return `<tr><td style="${top}padding:10px 0 4px 0;font-size:13px;color:#000000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${sharedEscapeHtml(s.platform)}</td><td style="${top}padding:10px 0 4px 0;font-size:14px;font-weight:700;color:#10b981;text-align:right;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${s.count} tap${s.count === 1 ? '' : 's'}</td></tr>`;
+    }).join('\n');
+    socialSection = `<p style="margin:24px 0 12px;font-size:13px;font-weight:700;color:#10b981;letter-spacing:0.04em;text-transform:uppercase;">Social taps</p><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${socialRows}</table>`;
+  }
   const heatmapSection = buildHeatmapTable(stats.heatmapData);
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rowsHtml}</table>${buttonSection}${heatmapSection}`;
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rowsHtml}</table>${buttonSection}${socialSection}${heatmapSection}`;
 }
 
 async function getDashboardUrl(email: string): Promise<string> {
