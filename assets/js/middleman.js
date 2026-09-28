@@ -802,6 +802,18 @@
           a.rel = 'noopener';
           a.style.cssText = 'display:inline-flex;';
           a.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:32px;height:32px;display:block;flex-shrink:0;" fill="' + color + '"><path d="' + ic.path + '"/></svg>';
+          a.addEventListener('click', (function(key) {
+            return function() {
+              try {
+                navigator.sendBeacon(CLICK_LOG_URL, new Blob([JSON.stringify({
+                  slug:       slug,
+                  intent:     'social_' + key,
+                  user_agent: navigator.userAgent || '',
+                  referrer:   document.referrer || ''
+                })], { type: 'text/plain' }));
+              } catch (e) {}
+            };
+          })(ic.key));
           iconRow.appendChild(a);
         });
         var footerEl = document.querySelector('.footer');
