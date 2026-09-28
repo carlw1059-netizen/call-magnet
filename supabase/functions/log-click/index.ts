@@ -1,4 +1,5 @@
 // log-click: records a Middle Man page visit (page load) for click analytics.
+// Also records individual social icon taps when an intent is supplied.
 //
 // Auth: verify_jwt = false — called directly from the customer's browser on /b/<slug>.
 //
@@ -6,16 +7,23 @@
 // any DB write fails, the error is logged server-side but the caller gets 200 so
 // the customer's page load is never blocked by a logging failure.
 //
-// Request: POST application/json
+// Request: POST application/json OR text/plain (for sendBeacon compatibility)
 //   slug       string — middle_man_slug value (required)
 //   user_agent string — navigator.userAgent (required)
 //   referrer   string — document.referrer (optional, may be empty)
+//   intent     string — social icon tap intent (optional); must be one of the
+//                       SOCIAL_INTENTS allowlist; ignored if not recognised
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+const SOCIAL_INTENTS = new Set([
+  'social_instagram', 'social_facebook', 'social_tiktok',
+  'social_youtube',   'social_whatsapp', 'social_spotify', 'social_soundcloud',
+]);
 
 const corsHeaders = {
   'Access-Control-Allow-Origin':  '*',
@@ -39,10 +47,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
     return OK;
   }
 
-  // ── Parse body ──────────────────────────────────────────────────────────────
+  // ── Parse body (application/json or text/plain for sendBeacon) ─────────────
   let body: Record<string, unknown>;
   try {
-    body = await req.json();
+    const raw = await req.text();
+    body = JSON.parse(raw);
   } catch {
     console.warn('log-click: malformed JSON body');
     return OK;
@@ -51,6 +60,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const slug      = typeof body.slug       === 'string' ? body.slug.trim()       : '';
   const userAgent = typeof body.user_agent === 'string' ? body.user_agent.trim() : '';
   const referrer  = typeof body.referrer   === 'string' ? body.referrer.trim()   : '';
+  const rawIntent = typeof body.intent     === 'string' ? body.intent.trim()     : '';
+  const intent    = SOCIAL_INTENTS.has(rawIntent) ? rawIntent : null;
 
   if (!slug) {
     console.warn('log-click: missing slug — click not logged');
@@ -101,6 +112,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       referrer:    referrer,
       country:     null,
       city:        null,
+      intent:      intent,
       raw_payload: body,
     }),
   });
