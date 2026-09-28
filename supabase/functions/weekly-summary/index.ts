@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
   if (url.searchParams.get('test') === '1') {
     const { monLabel, sunLabel, weekStart, weekEnd } = getPreviousWeekRange();
     const testClient: ClientRow = { id: 'test', business_name: 'Test Business', email: 'hello@callmagnet.com.au', sms_included: 500, reset_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), last_renewal_date: new Date(Date.now() - 16 * 24 * 60 * 60 * 1000).toISOString() };
-    const testStats: ClientStats = { smsSent: 47, optOuts: 0, linkClicks: 23, bookingsLogged: 8, conversionRate: '48.9%', daysUntilRenewal: 14, overage: 0, buttonClicks: [], heatmapData: [], socialTaps: [] };
+    const testStats: ClientStats = { smsSent: 47, optOuts: 0, linkClicks: 23, bookingsLogged: 8, conversionRate: '48.9%', daysUntilRenewal: 14, overage: 0, buttonClicks: [], heatmapData: [], socialTaps: [{ platform: 'Instagram', count: 14 }, { platform: 'Facebook', count: 6 }, { platform: 'TikTok', count: 3 }] };
     const html = await buildWeeklyEmailHtml(testClient, testStats, monLabel, sunLabel);
     const res  = await fetch('https://api.resend.com/emails', {
       method: 'POST',
