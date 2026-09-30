@@ -39,7 +39,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import webPush from 'npm:web-push@3.6.7';
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { BRAND, escapeHtml, renderEmailShell } from "../_shared/emailStyles.ts";
+
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -47,7 +47,7 @@ const INTERNAL_SECRET           = Deno.env.get('INTERNAL_SECRET');
 const VAPID_PUBLIC_KEY          = Deno.env.get('VAPID_PUBLIC_KEY');
 const VAPID_PRIVATE_KEY         = Deno.env.get('VAPID_PRIVATE_KEY');
 const VAPID_SUBJECT             = Deno.env.get('VAPID_SUBJECT'); // e.g. mailto:hello@callmagnet.com.au
-const RESEND_API_KEY            = Deno.env.get('RESEND_API_KEY');
+
 const PROGRESSIER_API_KEY       = Deno.env.get('PROGRESSIER_API_KEY');
 
 interface SubscriptionRow {
@@ -93,107 +93,6 @@ function templateFor(
   return   { title: '✅ Booking logged',     body: `${customerName} — added to your bookings` };
 }
 
-// ── Melbourne timezone helpers ───────────────────────────────────────────────
-
-// Returns UTC ISO string for midnight of the current Melbourne calendar day.
-// Subtracts elapsed Melbourne milliseconds-into-day from now — DST-safe.
-function getMelbourneDayStartUTC(now = new Date()): string {
-  const parts = new Intl.DateTimeFormat('en-AU', {
-    timeZone: 'Australia/Melbourne',
-    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
-  }).formatToParts(now).reduce((a, p) => { a[p.type] = p.value; return a; }, {} as Record<string, string>);
-  const melbMsIntoDay = (Number(parts.hour) * 3600 + Number(parts.minute) * 60 + Number(parts.second)) * 1000;
-  return new Date(now.getTime() - melbMsIntoDay).toISOString();
-}
-
-// Returns UTC ISO string for the most recent Monday at 17:00 Melbourne time.
-// If it is currently before 17:00 on Monday (week hasn't opened yet), returns
-// the previous Monday's 17:00 instead.
-function getMelbourneWeekStartUTC(now = new Date()): string {
-  const parts = new Intl.DateTimeFormat('en-AU', {
-    timeZone: 'Australia/Melbourne',
-    weekday: 'short',
-    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
-  }).formatToParts(now).reduce((a, p) => { a[p.type] = p.value; return a; }, {} as Record<string, string>);
-  const dows: Record<string, number> = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 0 };
-  const dow              = dows[parts.weekday] ?? 0;
-  const daysSinceMonday  = dow === 0 ? 6 : dow - 1;
-  const melbMsIntoDay    = (Number(parts.hour) * 3600 + Number(parts.minute) * 60 + Number(parts.second)) * 1000;
-  const melbMidnightUTC  = now.getTime() - melbMsIntoDay;
-  const mondayMidnightUTC = melbMidnightUTC - daysSinceMonday * 86400000;
-  const monday5pmUTC      = mondayMidnightUTC + 17 * 3600000;
-  return new Date(now.getTime() < monday5pmUTC ? monday5pmUTC - 7 * 86400000 : monday5pmUTC).toISOString();
-}
-
-// Count sms_events rows for a client since a UTC ISO timestamp.
-// Uses Prefer: count=exact so Content-Range returns the total — no rows transferred.
-async function countSmsForWindow(clientId: string, since: string): Promise<number> {
-  const r = await fetch(
-    `${SUPABASE_URL}/rest/v1/sms_events?client_id=eq.${encodeURIComponent(clientId)}&received_at=gte.${encodeURIComponent(since)}&select=id`,
-    {
-      headers: {
-        apikey:        SUPABASE_SERVICE_ROLE_KEY,
-        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        Prefer:        'count=exact',
-      },
-    },
-  );
-  if (!r.ok) return 0;
-  const range = r.headers.get('Content-Range') ?? '*/0';
-  return parseInt(range.split('/')[1] ?? '0', 10) || 0;
-}
-
-async function getDashboardUrl(email: string): Promise<string> {
-  const supa = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-  const { data, error } = await supa.auth.admin.generateLink({
-    type: 'magiclink',
-    email,
-    options: { redirectTo: 'https://callmagnet.com.au/?source=email' },
-  });
-  if (error || !data?.properties?.action_link) {
-    return 'https://callmagnet.com.au/?source=email';
-  }
-  return data.properties.action_link;
-}
-
-// Build the restaurant-specific missed-call email body.
-// title is already HTML-escaped by the caller.
-function buildRestaurantMissedCallEmail(
-  title: string,
-  todayCount: number, todayRevenue: number,
-  weekCount: number,  weekRevenue: number,
-  ctaUrl: string,
-): string {
-  const fmt = (n: number) => n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : `$${n}`;
-  return `
-    <h1 style="font-size:22px;font-weight:700;color:${BRAND.primaryText};margin:0 0 8px;letter-spacing:-0.02em;">${title}</h1>
-    <p style="font-size:14px;color:${BRAND.secondaryText};line-height:1.5;margin:0 0 28px;">Reservation SMS sent automatically.</p>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px;">
-      <tr>
-        <td style="width:50%;padding:0 6px 0 0;vertical-align:top;">
-          <div style="background:${BRAND.pageBackground};border-radius:10px;padding:18px 14px;text-align:center;">
-            <div style="font-size:32px;font-weight:700;color:${BRAND.accent};line-height:1;">${todayCount}</div>
-            <div style="font-size:11px;color:${BRAND.secondaryText};margin-top:4px;text-transform:uppercase;letter-spacing:0.05em;">Today</div>
-            <div style="font-size:15px;font-weight:600;color:${BRAND.primaryText};margin-top:8px;">${fmt(todayRevenue)} est. recovered</div>
-          </div>
-        </td>
-        <td style="width:50%;padding:0 0 0 6px;vertical-align:top;">
-          <div style="background:${BRAND.pageBackground};border-radius:10px;padding:18px 14px;text-align:center;">
-            <div style="font-size:32px;font-weight:700;color:${BRAND.accent};line-height:1;">${weekCount}</div>
-            <div style="font-size:11px;color:${BRAND.secondaryText};margin-top:4px;text-transform:uppercase;letter-spacing:0.05em;">This week</div>
-            <div style="font-size:15px;font-weight:600;color:${BRAND.primaryText};margin-top:8px;">${fmt(weekRevenue)} est. recovered</div>
-          </div>
-        </td>
-      </tr>
-    </table>
-    <div style="text-align:center;margin:0 0 28px;">
-      <a href="${ctaUrl}" style="display:inline-block;background:${BRAND.accent};color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 28px;border-radius:8px;letter-spacing:0.01em;">View Dashboard</a>
-    </div>
-    <p style="font-size:11px;color:${BRAND.mutedText};margin:0;line-height:1.5;">*Based on Lead Connect 2025 research: 62% of unanswered callers contact a competitor when their first call goes unanswered.</p>
-  `;
-}
 
 Deno.serve(async (req) => {
   if (new URL(req.url).searchParams.get('warmup') === '1') {
@@ -606,112 +505,12 @@ Deno.serve(async (req) => {
       }).catch(() => {});
     }
 
-    // ── send Resend email (always, in parallel with the cleanups above) ─────
-    let emailSent = false;
-    if (RESEND_API_KEY && client.email) {
-      try {
-        let emailContent: string;
-
-        if (event === 'missed_call' && client.vertical === 'restaurant') {
-          // ── restaurant missed-call: fetch today/week stats, build rich email ──
-          const [todayCount, weekCount] = await Promise.all([
-            countSmsForWindow(clientId, getMelbourneDayStartUTC()),
-            countSmsForWindow(clientId, getMelbourneWeekStartUTC()),
-          ]);
-          const revPerItem   = client.avg_job_value ?? 75;
-          const todayRevenue = Math.round(todayCount * 0.62 * revPerItem);
-          const weekRevenue  = Math.round(weekCount  * 0.62 * revPerItem);
-          const ctaUrl = await getDashboardUrl(client.email);
-          emailContent = buildRestaurantMissedCallEmail(
-            escapeHtml(title),
-            todayCount, todayRevenue,
-            weekCount,  weekRevenue,
-            ctaUrl,
-          );
-        } else {
-          emailContent = `
-          <h1 style="font-size:22px;font-weight:700;color:${BRAND.primaryText};margin:0 0 12px;letter-spacing:-0.02em;">${escapeHtml(title)}</h1>
-          <p style="font-size:15px;color:${BRAND.secondaryText};line-height:1.5;margin:0 0 24px;">${escapeHtml(msg)}</p>
-          <p style="font-size:13px;color:${BRAND.secondaryText};margin:0;">Open your dashboard at <a href="https://callmagnet.com.au" style="color:${BRAND.accent};text-decoration:none;">callmagnet.com.au</a></p>
-        `;
-        }
-
-        const plainText = `${title}\n\n${msg}\n\nOpen your dashboard: https://callmagnet.com.au\n\nCallMagnet — callmagnet.com.au\n`;
-        const resendRes = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            Authorization:  `Bearer ${RESEND_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            from:    'CallMagnet <hello@callmagnet.com.au>',
-            to:      client.email,
-            subject: title,
-            html:    renderEmailShell(emailContent, msg),
-            text:    plainText,
-          }),
-        });
-        emailSent = resendRes.ok;
-        if (resendRes.ok) {
-          logNotification({
-            client_id:         clientId,
-            channel:           'email',
-            event,
-            status:            'sent',
-            provider_response: { status: resendRes.status },
-            metadata:          { recipient: client.email, subject: title },
-          });
-        } else {
-          const errText = await resendRes.text();
-          console.warn(`resend_email_failed: ${resendRes.status} ${errText}`);
-          logNotification({
-            client_id:         clientId,
-            channel:           'email',
-            event,
-            status:            'failed',
-            error_message:     errText,
-            provider_response: { status: resendRes.status },
-            metadata:          { recipient: client.email, subject: title },
-          });
-        }
-      } catch (e) {
-        const errMsg = `exception: ${(e as Error)?.message ?? e}`;
-        console.warn(`resend_email_exception: ${errMsg}`);
-        logNotification({
-          client_id:     clientId,
-          channel:       'email',
-          event,
-          status:        'failed',
-          error_message: errMsg,
-          metadata:      { recipient: client.email },
-        });
-      }
-    } else if (!RESEND_API_KEY) {
-      console.warn('RESEND_API_KEY missing — skipping email');
-      logNotification({
-        client_id:     clientId,
-        channel:       'email',
-        event,
-        status:        'skipped',
-        error_message: 'RESEND_API_KEY missing',
-      });
-    } else {
-      console.warn(`client ${clientId} has no email — skipping email`);
-      logNotification({
-        client_id:     clientId,
-        channel:       'email',
-        event,
-        status:        'skipped',
-        error_message: 'client has no email address',
-      });
-    }
-
     return json(200, {
       ok:                  true,
       push_sent:           pushSent,
       push_failed:         pushFailed,
       push_expired_pruned: expiredIds.length,
-      email_sent:          emailSent,
+      email_sent:          false,
     });
 
   } catch (err) {
