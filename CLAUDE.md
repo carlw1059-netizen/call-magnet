@@ -188,3 +188,4 @@ Never remove the Progressier fallback unless a replacement has been tested live 
 All changes go directly to main. Staging branch is not used.
 
 Daily summary email (send-daily-summary) switched off 29 Sep 2026 — weekly summary replaces it. Crons removed, code and daily_summary_runs table kept.
+Day 14 / Day 30 emails (SEND-EMAIL-SEQUENCE) switched off 30 Sep 2026 — code kept.
