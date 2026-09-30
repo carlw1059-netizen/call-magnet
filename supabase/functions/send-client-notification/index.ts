@@ -158,6 +158,11 @@ Deno.serve(async (req) => {
       return json(400, { error: 'invalid_event', detail: "event must be 'missed_call', 'booking_logged', or 'link_tapped'" });
     }
 
+    // Missed calls: no push or email to client — the phone already shows the missed call (Carl, 30 Sep 2026).
+    if (event === 'missed_call') {
+      return json(200, { sent: false, skipped: 'missed_call_notifications_off', event: 'missed_call', client_id: clientId });
+    }
+
     // ── link_tapped: VAPID fan-out with Progressier fallback ────────────────
     if (event === 'link_tapped') {
       const ltClientRes = await fetch(
