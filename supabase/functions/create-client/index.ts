@@ -19,6 +19,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { renderEmailShell, BRAND, escapeHtml } from '../_shared/emailStyles.ts';
+import { ui } from '../_shared/emailUi.ts';
+import { getEmailParts } from '../_shared/emailCopy.ts';
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -455,44 +457,46 @@ Deno.serve(async (req) => {
 
     if (RESEND_API_KEY) {
       try {
-        const escapedBiz = business_name.replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]!));
-        const loginPageUrl = loginButtonUrl;
+        // Words come from the email_copy table (Carl edits them in Supabase); look is locked in emailUi.ts
+        const copy = await getEmailParts(
+          isNewUser ? 'welcome_new_user' : 'welcome_existing_user',
+          { BUSINESS_NAME: business_name },
+        );
 
-        // Credential block: always show for new users
-        const credentialBlock = isNewUser
-          ? `<div style="margin:0 0 24px;padding:18px;background:rgba(6,214,160,0.06);border:1px solid rgba(6,214,160,0.28);border-radius:10px;">
-          <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#06D6A0;font-weight:700;margin-bottom:10px;">Your login details</div>
-          <table style="width:100%;font-size:14px;line-height:1.6;color:rgba(255,255,255,0.85);border-collapse:collapse;">
-            <tr><td style="padding:2px 0;color:rgba(255,255,255,0.55);width:130px;">Business</td><td style="padding:2px 0;font-weight:700;">${escapedBiz}</td></tr>
-            <tr><td style="padding:2px 0;color:rgba(255,255,255,0.55);">Email</td><td style="padding:2px 0;font-family:ui-monospace,monospace;font-weight:700;">${owner_email}</td></tr>
-            <tr><td style="padding:2px 0;color:rgba(255,255,255,0.55);">Temporary password</td><td style="padding:2px 0;font-family:ui-monospace,monospace;font-weight:700;letter-spacing:0.08em;">${initial_password}</td></tr>
-          </table>
-          <p style="margin:10px 0 0;font-size:12px;color:rgba(255,255,255,0.5);">Save your password — you'll need it if you log out and come back.</p>
-        </div>`
-          : `<p style="margin:0 0 24px;font-size:14px;line-height:1.55;color:rgba(255,255,255,0.65);">Use your existing email and password to sign in. If you've forgotten your password, tap "Forgot password?" on the login page.</p>`;
+        const loginBlock = isNewUser
+          ? ui.panel(
+              ui.label('Your login details') +
+              ui.rows([
+                ['Business', escapeHtml(business_name)],
+                ['Email', escapeHtml(owner_email)],
+                ['Temporary password', escapeHtml(String(initial_password))],
+              ]) +
+              `<p style="font-family:${BRAND.fontStack};font-size:12px;color:${BRAND.secondaryText};margin:12px 0 0;">Save your password — you'll need it if you log out and come back.</p>`
+            )
+          : '';
+
+        const installBox = ui.panel(ui.label('Install the app on your phone') + ui.steps([
+          'Go to <strong>callmagnet.com.au</strong> on your phone',
+          `Tap the <strong style="color:${BRAND.accent};">emerald star ★</strong> in the bottom right corner for instructions on how to add CallMagnet to your home screen`,
+          'Login once installed and <strong>allow notifications</strong> when prompted',
+          'Go to <strong>app settings</strong> on your device, find CallMagnet — turn on <strong>notifications and sounds</strong>',
+        ]));
+
+        const html = renderEmailShell(
+          copy.top +
+          loginBlock +
+          (copy.buttonLabel ? ui.button(loginButtonUrl, escapeHtml(copy.buttonLabel)) : '') +
+          installBox +
+          copy.footnoteHtml +
+          ui.contact(),
+          copy.preheader,
+        );
 
         const credentialText = isNewUser
           ? `Your login details:\n  Business: ${business_name}\n  Email:    ${owner_email}\n  Temporary password: ${initial_password}\n\nSave your password — you'll need it if you log out and come back.\n\n`
           : `Use your existing password to sign in. If you've forgotten it, use "Forgot password?" on the login page.\n\n`;
 
-        const html = renderEmailShell(`
-  <h1 class="em-heading" style="font-size:26px;font-weight:700;color:${BRAND.primaryText};margin:0 0 8px;letter-spacing:-0.02em;">Welcome to CallMagnet, ${escapeHtml(business_name)}.</h1>
-  <p style="font-size:14px;color:${BRAND.secondaryText};margin:0 0 24px;">Your missed-call SMS system is set up and ready to go.</p>
-  <p style="font-size:14px;color:${BRAND.primaryText};line-height:1.6;margin:0 0 16px;">Your Middle Man page is live. When a customer calls and you miss it, they automatically receive an SMS with a link to your page.</p>
-  <p style="font-size:14px;color:${BRAND.primaryText};line-height:1.6;margin:0 0 28px;">Log in to your dashboard to see your activity, customise your buttons, and track every missed call.</p>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 32px;"><tr><td align="center"><a href="${loginButtonUrl}" style="display:inline-block;background:${BRAND.accent};color:#000000;padding:14px 32px;border-radius:8px;font-weight:700;text-decoration:none;font-size:15px;font-family:${BRAND.fontStack};letter-spacing:0.02em;">Go to my dashboard →</a></td></tr></table>
-  <div style="background:${BRAND.pageBackground};border:1px solid ${BRAND.borderColor};border-radius:10px;padding:20px 24px;margin:0 0 24px;">
-    <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${BRAND.accent};margin-bottom:16px;font-family:ui-monospace,SFMono-Regular,'DM Mono',monospace;">Install the app on your phone</div>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-      <tr><td style="padding:8px 0;vertical-align:top;width:24px;font-size:14px;font-weight:700;color:${BRAND.accent};">1.</td><td style="padding:8px 0;font-size:14px;color:${BRAND.primaryText};line-height:1.5;">Go to <strong>callmagnet.com.au</strong> on your phone</td></tr>
-      <tr><td style="padding:8px 0;vertical-align:top;font-size:14px;font-weight:700;color:${BRAND.accent};">2.</td><td style="padding:8px 0;font-size:14px;color:${BRAND.primaryText};line-height:1.5;">Tap the <strong style="color:${BRAND.accent};">emerald star ★</strong> in the bottom right corner for instructions on how to add CallMagnet to your home screen</td></tr>
-      <tr><td style="padding:8px 0;vertical-align:top;font-size:14px;font-weight:700;color:${BRAND.accent};">3.</td><td style="padding:8px 0;font-size:14px;color:${BRAND.primaryText};line-height:1.5;">Login once installed and <strong>allow notifications</strong> when prompted</td></tr>
-      <tr><td style="padding:8px 0;vertical-align:top;font-size:14px;font-weight:700;color:${BRAND.accent};">4.</td><td style="padding:8px 0;font-size:14px;color:${BRAND.primaryText};line-height:1.5;">Go to <strong>app settings</strong> on your device, find CallMagnet — turn on <strong>notifications and sounds</strong></td></tr>
-    </table>
-  </div>
-  <p style="margin:0;font-size:12px;color:${BRAND.mutedText};">Questions? Reply to this email or contact hello@callmagnet.com.au</p>
-`, 'Your CallMagnet dashboard is ready — log in now');
-        const text = `Welcome to CallMagnet, ${business_name}. Your dashboard is ready. Log in at https://callmagnet.com.au`;
+        const text = `${copy.subject}\n\n${credentialText}Log in at https://callmagnet.com.au\n\nQuestions? hello@callmagnet.com.au`;
         console.log(`create-client: email send — checkoutUrl=${checkoutUrl}, pricing_package=${pricing_package}`);
         const resendRes = await fetch('https://api.resend.com/emails', {
           method:  'POST',
@@ -503,7 +507,7 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             from:    'CallMagnet <hello@callmagnet.com.au>',
             to:      owner_email,
-            subject: 'Welcome to CallMagnet — your dashboard is ready',
+            subject: copy.subject,
             html,
             text,
           }),
