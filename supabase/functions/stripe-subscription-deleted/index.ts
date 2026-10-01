@@ -21,12 +21,14 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { BRAND, escapeHtml, renderEmailShell } from "../_shared/emailStyles.ts";
+import { ui } from "../_shared/emailUi.ts";
+import { getEmailParts } from "../_shared/emailCopy.ts";
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const RESEND_API_KEY            = Deno.env.get('RESEND_API_KEY');
 const INTERNAL_SECRET           = Deno.env.get('INTERNAL_SECRET');
-const ALERT_TO                  = 'car312@hotmail.com';
+const ALERT_TO                  = 'hello@callmagnet.com.au';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -177,56 +179,21 @@ Deno.serve(async (req) => {
 
       // ── Farewell email ────────────────────────────────────────────────────
       if (client.email && RESEND_API_KEY) {
-        const bizSafe = escapeHtml(client.business_name);
-
-        const statRow = (label: string, value: string | number) =>
-          `<tr>
-            <td style="padding:8px 0;font-size:14px;color:${BRAND.secondaryText};border-bottom:1px solid rgba(255,255,255,0.06);">${label}</td>
-            <td style="padding:8px 0;font-size:14px;font-weight:700;color:${BRAND.primaryText};text-align:right;border-bottom:1px solid rgba(255,255,255,0.06);">${value}</td>
-          </tr>`;
-
-        const emailContent = `
-          <h1 class="em-heading" style="font-size:26px;font-weight:600;color:${BRAND.primaryText};letter-spacing:-0.01em;margin:0 0 10px;">
-            Thanks for trying CallMagnet, ${bizSafe}.
-          </h1>
-          <p style="font-size:15px;line-height:1.6;color:${BRAND.secondaryText};margin:0 0 28px;">
-            Your subscription has ended. Here's a look back at what CallMagnet did for you.
-          </p>
-
-          <div style="background:${BRAND.pageBackground};border:1px solid ${BRAND.borderColor};border-radius:12px;padding:20px 24px;margin:0 0 28px;">
-            <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${BRAND.accent};margin-bottom:16px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">
-              Your lifetime stats
-            </div>
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-              ${statRow('SMS replies sent', totalSms.toLocaleString())}
-              ${statRow('Confirmed delivered', deliveredSms.toLocaleString())}
-              ${statRow('Bookings logged', bookings.toLocaleString())}
-              ${statRow('Days as a client', daysAsClient.toLocaleString())}
-              <tr>
-                <td style="padding:8px 0;font-size:14px;color:${BRAND.secondaryText};">Member since</td>
-                <td style="padding:8px 0;font-size:14px;font-weight:700;color:${BRAND.primaryText};text-align:right;">${joinedLabel}</td>
-              </tr>
-            </table>
-          </div>
-
-          <p style="font-size:15px;line-height:1.6;color:${BRAND.secondaryText};margin:0 0 24px;">
-            If there's anything we could have done better, or if you'd like to come back,
-            we'd love to hear from you.
-          </p>
-
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-            <tr><td style="padding:0 0 24px;">
-              <a href="mailto:hello@callmagnet.com.au"
-                 style="display:inline-block;background:transparent;color:${BRAND.accent};text-decoration:none;font-weight:600;font-size:14px;padding:11px 22px;border-radius:8px;letter-spacing:0.01em;border:1px solid ${BRAND.accent};">
-                Send us feedback →
-              </a>
-            </td></tr>
-          </table>
-
-          <p style="font-size:13px;line-height:1.55;color:${BRAND.mutedText};margin:0;">
-            Wishing you and ${bizSafe} all the best. 🙏
-          </p>
-        `;
+        const byeCopy = await getEmailParts('farewell', { BUSINESS_NAME: client.business_name });
+        const emailContent =
+          byeCopy.top +
+          ui.panel(
+            ui.label('Your lifetime stats') +
+            ui.rows([
+              ['SMS replies sent', totalSms.toLocaleString()],
+              ['Confirmed delivered', deliveredSms.toLocaleString()],
+              ['Bookings logged', bookings.toLocaleString()],
+              ['Days as a client', daysAsClient.toLocaleString()],
+              ['Member since', escapeHtml(joinedLabel)],
+            ])
+          ) +
+          (byeCopy.buttonLabel ? ui.outlineButton('mailto:hello@callmagnet.com.au', escapeHtml(byeCopy.buttonLabel)) : '') +
+          byeCopy.footnoteHtml;
 
         fetch('https://api.resend.com/emails', {
           method:  'POST',
@@ -237,8 +204,8 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             from:    'CallMagnet <hello@callmagnet.com.au>',
             to:      client.email,
-            subject: `Your CallMagnet subscription has ended — thanks for being with us`,
-            html:    renderEmailShell(emailContent, `Thanks for being a CallMagnet client, ${client.business_name}.`),
+            subject: byeCopy.subject,
+            html:    renderEmailShell(emailContent, byeCopy.preheader),
           }),
         }).catch((e) => console.warn(`stripe-subscription-deleted: farewell email failed (non-fatal): ${e}`));
       }
@@ -269,14 +236,16 @@ Deno.serve(async (req) => {
 
     // Alert email to Carl (fire-and-forget)
     if (RESEND_API_KEY) {
-      const alertContent = `
-        <h1 style="font-size:22px;font-weight:700;color:${BRAND.primaryText};margin:0 0 4px;letter-spacing:-0.01em;">⚠️ stripe-subscription-deleted failed</h1>
-        <p style="font-size:14px;color:${BRAND.secondaryText};margin:0 0 16px;">A subscription-cancellation webhook errored before completing.</p>
-        <p style="font-size:13px;color:${BRAND.primaryText};margin:0 0 8px;"><strong>Function:</strong> stripe-subscription-deleted</p>
-        <p style="font-size:13px;color:${BRAND.primaryText};margin:0 0 8px;"><strong>Error:</strong> ${errSafe}</p>
-        <p style="font-size:13px;color:${BRAND.primaryText};margin:0 0 16px;"><strong>Time:</strong> ${new Date().toISOString()}</p>
-        <p style="font-size:13px;color:${BRAND.mutedText};margin:0;">Log in to Supabase to investigate.</p>
-      `;
+      const alertCopy = await getEmailParts('error_alert', { FUNCTION_NAME: 'stripe-subscription-deleted' });
+      const alertContent =
+        alertCopy.top +
+        ui.sub('A subscription-cancellation webhook errored before completing.') +
+        ui.panel(ui.rows([
+          ['Function', 'stripe-subscription-deleted'],
+          ['Error', errSafe],
+          ['Time', new Date().toISOString()],
+        ])) +
+        ui.small('Log in to Supabase to investigate.');
       fetch('https://api.resend.com/emails', {
         method:  'POST',
         headers: {
@@ -286,8 +255,8 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           from:    'CallMagnet Alerts <hello@callmagnet.com.au>',
           to:      ALERT_TO,
-          subject: '⚠️ CallMagnet — stripe-subscription-deleted failed',
-          html:    renderEmailShell(alertContent, 'stripe-subscription-deleted failed'),
+          subject: alertCopy.subject,
+          html:    renderEmailShell(alertContent, alertCopy.preheader),
         }),
       }).catch(() => {});
     }
