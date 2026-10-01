@@ -1,5 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { renderEmailShell, BRAND, escapeHtml } from '../_shared/emailStyles.ts';
+import { ui } from '../_shared/emailUi.ts';
+import { getEmailParts } from '../_shared/emailCopy.ts';
 
 
 
@@ -175,13 +177,26 @@ Deno.serve(async (req) => {
       } else {
         // Alert email to Carl
         if (resendKey) {
+          const carlCopy = await getEmailParts('carl_new_client_alert', { BUSINESS_NAME: clientGuardRows[0].business_name });
+          const carlHtml = renderEmailShell(
+            carlCopy.top +
+            ui.panel(ui.rows([
+              ['Business', escapeHtml(clientGuardRows[0].business_name ?? '')],
+              ['Email', escapeHtml(clientGuardRows[0].email ?? '')],
+              ['Package', escapeHtml(pricingPackage || '(not set)')],
+            ])) +
+            (carlCopy.buttonLabel ? ui.button('https://callmagnet.com.au', escapeHtml(carlCopy.buttonLabel)) : '') +
+            carlCopy.footnoteHtml,
+            carlCopy.preheader,
+          );
           fetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
               from:    'CallMagnet <hello@callmagnet.com.au>',
               to:      'hello@callmagnet.com.au',
-              subject: 'New client paid — ready to build',
+              subject: carlCopy.subject,
+              html:    carlHtml,
               text:    `Business: ${clientGuardRows[0].business_name}\nEmail: ${clientGuardRows[0].email}\nPackage: ${pricingPackage || '(not set)'}`,
             }),
           }).catch((e: Error) => console.warn(`checkout carl alert email failed — ${e?.message}`))
@@ -192,23 +207,22 @@ Deno.serve(async (req) => {
         if (resendKey) {
           const clientName = clientGuardRows[0].business_name;
           const amount = session.amount_total ? (session.amount_total / 100).toFixed(0) : '0';
-          const paymentHtml = renderEmailShell(`
-  <h1 class="em-heading" style="font-size:26px;font-weight:700;color:${BRAND.primaryText};margin:0 0 8px;letter-spacing:-0.02em;">Payment confirmed. We're on it.</h1>
-  <p style="font-size:14px;color:${BRAND.secondaryText};margin:0 0 24px;">${escapeHtml(clientName)} — Setup fee</p>
-  <div style="background:${BRAND.successBg};border:1px solid ${BRAND.accent};border-radius:8px;padding:20px;margin:0 0 24px;">
-    <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:${BRAND.accent};margin-bottom:8px;">Amount paid</div>
-    <div style="font-size:32px;font-weight:300;color:${BRAND.primaryText};">$${amount} AUD</div>
-  </div>
-  <p style="font-size:14px;color:${BRAND.primaryText};line-height:1.6;margin:0 0 16px;">We're now setting up your Middle Man page and getting everything ready. We'll be in touch shortly with your login details and next steps.</p>
-  <p style="margin:0;font-size:12px;color:${BRAND.mutedText};">Questions? Contact hello@callmagnet.com.au</p>
-`, 'Payment received — we are setting up your account');
+          const payCopy = await getEmailParts('payment_received', { BUSINESS_NAME: clientName });
+          const paymentHtml = renderEmailShell(
+            payCopy.top +
+            ui.panel(ui.label('Amount paid') + `<div style="font-family:${BRAND.fontStack};font-size:32px;font-weight:300;color:${BRAND.primaryText};">$${amount} AUD</div>`) +
+            (payCopy.buttonLabel ? ui.button('https://callmagnet.com.au', escapeHtml(payCopy.buttonLabel)) : '') +
+            payCopy.footnoteHtml +
+            ui.contact(),
+            payCopy.preheader,
+          );
           await fetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
               from:    'CallMagnet <hello@callmagnet.com.au>',
               to:      clientGuardRows[0].email,
-              subject: 'Payment received — we\'re setting up your account',
+              subject: payCopy.subject,
               html: paymentHtml,
               text: `Payment received.\n\nThanks for your payment, ${clientGuardRows[0].business_name}. We will be in touch within 24 hours to get your account configured and live.\n\nQuestions? hello@callmagnet.com.au\n\ncallmagnet.com.au\n`,
             }),
@@ -299,13 +313,14 @@ Deno.serve(async (req) => {
       const emailsSent = client.emails_sent || []
       if (!emailsSent.includes('welcome') && resendKey) {
         const dashboardUrl = await getDashboardUrl(client.email);
-        const liveHtml = renderEmailShell(`
-  <h1 class="em-heading" style="font-size:26px;font-weight:700;color:${BRAND.primaryText};margin:0 0 8px;letter-spacing:-0.02em;">You're live, ${escapeHtml(client.business_name)}.</h1>
-  <p style="font-size:14px;color:${BRAND.secondaryText};margin:0 0 24px;">Your CallMagnet system is active.</p>
-  <p style="font-size:14px;color:${BRAND.primaryText};line-height:1.6;margin:0 0 24px;">From this moment, every missed call to your number triggers an automatic SMS to the caller. Your Middle Man page is live and your dashboard is ready.</p>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px;"><tr><td align="center"><a href="${dashboardUrl}" style="display:inline-block;background:${BRAND.accent};color:#000000;padding:14px 32px;border-radius:8px;font-weight:700;text-decoration:none;font-size:15px;font-family:${BRAND.fontStack};letter-spacing:0.02em;">View your dashboard →</a></td></tr></table>
-  <p style="margin:0;font-size:12px;color:${BRAND.mutedText};">Questions? Contact hello@callmagnet.com.au</p>
-`, 'Your CallMagnet system is live');
+        const liveCopy = await getEmailParts('you_are_live', { BUSINESS_NAME: client.business_name });
+        const liveHtml = renderEmailShell(
+          liveCopy.top +
+          (liveCopy.buttonLabel ? ui.button(dashboardUrl, escapeHtml(liveCopy.buttonLabel)) : '') +
+          liveCopy.footnoteHtml +
+          ui.contact(),
+          liveCopy.preheader,
+        );
         const text =
           `You're live, ${client.business_name}.\n\n` +
           `Your CallMagnet system is active right now.\n\n` +
@@ -324,7 +339,7 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             from: 'CallMagnet <hello@callmagnet.com.au>',
             to: client.email,
-            subject: `You're live, ${client.business_name}.`,
+            subject: liveCopy.subject,
             html: liveHtml,
             text
           })
@@ -363,22 +378,18 @@ Deno.serve(async (req) => {
 
 
   } catch (error) {
-    const errSafe = String(error.message ?? error).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c])
-    const alertHtml = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#0E1419;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#FFFFFF;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0E1419;"><tr><td align="center" style="padding:32px 16px;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;background:#161D24;border:1px solid rgba(6,214,160,0.15);border-left:3px solid #CC5500;border-radius:14px;">
-<tr><td style="padding:36px 30px;color:#FFFFFF;">
-<div style="font-size:14px;letter-spacing:0.16em;color:#06D6A0;text-transform:uppercase;font-weight:700;margin-bottom:24px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">★ CallMagnet</div>
-<h1 style="margin:0 0 8px;font-size:20px;font-weight:600;color:#FFFFFF;">⚠️ stripe-payment-succeeded failed</h1>
-<p style="margin:0 0 18px;font-size:13px;color:#B0B8C1;">A payment webhook errored before completing — client account may still be suspended despite successful payment.</p>
-<p style="margin:0 0 6px;font-size:13px;color:#FFFFFF;"><strong>Function:</strong> stripe-payment-succeeded</p>
-<p style="margin:0 0 6px;font-size:13px;color:#FFFFFF;"><strong>Error:</strong> ${errSafe}</p>
-<p style="margin:0 0 16px;font-size:13px;color:#FFFFFF;"><strong>Time:</strong> ${new Date().toISOString()}</p>
-<p style="margin:0;font-size:12px;color:#6B7480;">Log in to Supabase and manually set account_status = active for the affected client.</p>
-</td></tr></table>
-<div style="font-size:12px;color:#6B7480;margin-top:18px;letter-spacing:0.06em;">CallMagnet</div>
-</td></tr></table></body></html>`
+    const alertCopy = await getEmailParts('error_alert', { FUNCTION_NAME: 'stripe-payment-succeeded' });
+    const alertHtml = renderEmailShell(
+      alertCopy.top +
+      ui.sub('A payment webhook errored before completing — client account may still be suspended despite successful payment.') +
+      ui.panel(ui.rows([
+        ['Function', 'stripe-payment-succeeded'],
+        ['Error', escapeHtml(String(error?.message ?? error))],
+        ['Time', new Date().toISOString()],
+      ])) +
+      ui.small('Log in to Supabase and manually set account_status = active for the affected client.'),
+      alertCopy.preheader,
+    );
     await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -386,10 +397,10 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'CallMagnet Alerts <hello@callmagnet.com.au>',
-        to: 'car312@hotmail.com',
-        subject: '⚠️ ALERT: stripe-payment-succeeded failed — check client account status',
-        html: alertHtml
+        from:    'CallMagnet Alerts <hello@callmagnet.com.au>',
+        to:      'hello@callmagnet.com.au',
+        subject: alertCopy.subject,
+        html:    alertHtml
       })
     }).catch(() => {})
 
