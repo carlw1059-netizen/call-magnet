@@ -1,5 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { escapeHtml, renderEmailShell } from '../_shared/emailStyles.ts';
+import { ui } from '../_shared/emailUi.ts';
+import { getEmailParts } from '../_shared/emailCopy.ts';
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -125,6 +128,16 @@ Deno.serve(async (req) => {
 
     // ── 7. Send "account is live" email to client ──────────────────────────────
     if (RESEND_API_KEY && client.email) {
+      // Words come from the email_copy table (Carl edits them in Supabase); look is locked in emailUi.ts
+      const copy = await getEmailParts('account_live', { BUSINESS_NAME: client.business_name ?? 'there' });
+      const dashUrl = 'https://callmagnet.com.au';
+      const html = renderEmailShell(
+        copy.top +
+        (copy.buttonLabel ? ui.button(dashUrl, escapeHtml(copy.buttonLabel)) : '') +
+        copy.footnoteHtml +
+        ui.contact(),
+        copy.preheader,
+      );
       await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -132,15 +145,11 @@ Deno.serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'CallMagnet <hello@callmagnet.com.au>',
-          to: client.email,
-          subject: 'Your CallMagnet account is now live',
-          template: {
-            id: '74b89ec4-2850-4b22-bc50-346a15687b30',
-            variables: {
-              BUSINESS_NAME: client.business_name ?? 'there',
-            },
-          },
+          from:    'CallMagnet <hello@callmagnet.com.au>',
+          to:      client.email,
+          subject: copy.subject,
+          html,
+          text:    `${copy.subject}\n\nLog in at https://callmagnet.com.au\n\nQuestions? hello@callmagnet.com.au`,
         }),
       }).catch((e: Error) => console.warn(`activate-client: live email failed — ${e?.message}`));
       console.log(`activate-client: live email sent to ${client.email}`);
