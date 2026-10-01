@@ -10,6 +10,8 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { BRAND, escapeHtml, renderEmailShell } from "../_shared/emailStyles.ts";
+import { ui } from "../_shared/emailUi.ts";
+import { getEmailParts } from "../_shared/emailCopy.ts";
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -25,6 +27,7 @@ interface ClientRow {
   email:           string | null;
   sms_included:    number;
   free_period_ends_at: string | null;
+  emails_sent:     string[] | null;
 }
 
 Deno.serve(async (req) => {
@@ -65,7 +68,7 @@ Deno.serve(async (req) => {
     const clientsRes = await fetch(
       `${SUPABASE_URL}/rest/v1/clients` +
       `?account_status=eq.active&is_test_account=eq.false` +
-      `&select=id,business_name,email,sms_included,free_period_ends_at`,
+      `&select=id,business_name,email,sms_included,free_period_ends_at,emails_sent`,
       {
         headers: {
           apikey:        SUPABASE_SERVICE_ROLE_KEY,
@@ -94,23 +97,13 @@ Deno.serve(async (req) => {
 
             // Email to client
             if (client.email) {
-              const clientHtml = buildExpiryWarningEmail(client.business_name, endsDate, false);
-              await sendEmail(
-                RESEND_API_KEY,
-                client.email,
-                `Your CallMagnet free period ends in 3 days — ${client.business_name}`,
-                clientHtml,
-              );
+              const clientMail = await buildExpiryWarningEmail(client.business_name, endsDate, false);
+              await sendEmail(RESEND_API_KEY, client.email, clientMail.subject, clientMail.html);
             }
 
             // Email to admin
-            const adminHtml = buildExpiryWarningEmail(client.business_name, endsDate, true);
-            await sendEmail(
-              RESEND_API_KEY,
-              ALERT_TO,
-              `[CallMagnet] Free period ending soon — ${client.business_name}`,
-              adminHtml,
-            );
+            const adminMail = await buildExpiryWarningEmail(client.business_name, endsDate, true);
+            await sendEmail(RESEND_API_KEY, ALERT_TO, adminMail.subject, adminMail.html);
 
             expiryWarningsSent.push(client.id);
             console.log(`notify-expiry: free-period warning sent for client_id=${client.id} ends_at=${endsAt}`);
@@ -143,15 +136,26 @@ Deno.serve(async (req) => {
           const smsIncluded  = typeof client.sms_included === 'number' ? client.sms_included : 50;
           const smsThreshold = Math.floor(smsIncluded * 0.8);
           if (Number.isFinite(smsCount) && smsCount >= smsThreshold) {
-            const alertHtml   = buildSmsAlertEmail(client.business_name, smsCount, smsIncluded);
-            await sendEmail(
-              RESEND_API_KEY,
-              ALERT_TO,
-              `[CallMagnet] SMS usage alert — ${client.business_name} (${smsCount}/${smsIncluded} this month)`,
-              alertHtml,
-            );
-            smsAlertsSent.push(client.id);
-            console.log(`notify-expiry: SMS alert sent for client_id=${client.id} count=${smsCount}/${smsIncluded}`);
+            const smsAlertKey = `sms_alert_${monthStart.slice(0, 7)}`;
+            if (!(client.emails_sent ?? []).includes(smsAlertKey)) {
+              const alertMail = await buildSmsAlertEmail(client.business_name, smsCount, smsIncluded);
+              await sendEmail(RESEND_API_KEY, ALERT_TO, alertMail.subject, alertMail.html);
+              await fetch(
+                `${SUPABASE_URL}/rest/v1/clients?id=eq.${encodeURIComponent(client.id)}`,
+                {
+                  method: 'PATCH',
+                  headers: {
+                    apikey:         SUPABASE_SERVICE_ROLE_KEY,
+                    Authorization:  `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+                    'Content-Type': 'application/json',
+                    Prefer:         'return=minimal',
+                  },
+                  body: JSON.stringify({ emails_sent: [...(client.emails_sent ?? []), smsAlertKey] }),
+                }
+              );
+              smsAlertsSent.push(client.id);
+              console.log(`notify-expiry: SMS alert sent for client_id=${client.id} count=${smsCount}/${smsIncluded}`);
+            }
           }
         }
       } catch (e) {
@@ -192,48 +196,40 @@ async function sendEmail(
   }
 }
 
-function buildExpiryWarningEmail(businessName: string, endsDate: string, isAdmin: boolean): string {
-  const safe = escapeHtml(businessName);
-  const safeDate = escapeHtml(endsDate);
-
-  const heading = `<h1 style="font-size:24px;font-weight:700;color:${BRAND.primaryText};margin:0 0 16px;">
-    ${isAdmin ? `Free period ending — ${safe}` : `Your free period ends soon, ${safe}`}
-  </h1>`;
-
-  const body = isAdmin
-    ? `<p style="color:${BRAND.secondaryText};font-size:15px;line-height:1.6;margin:0 0 20px;">
-        <strong style="color:${BRAND.primaryText};">${safe}</strong> has a free period ending on
-        <strong style="color:${BRAND.accent};">${safeDate}</strong> (3 days from now).
-        Consider reaching out to confirm their subscription continues.
-      </p>`
-    : `<p style="color:${BRAND.secondaryText};font-size:15px;line-height:1.6;margin:0 0 20px;">
-        Your CallMagnet free period ends on
-        <strong style="color:${BRAND.accent};">${safeDate}</strong>.
-        After this date your subscription will continue automatically. If you have any questions,
-        reply to this email or contact <a href="mailto:hello@callmagnet.com.au" style="color:${BRAND.accent};">hello@callmagnet.com.au</a>.
-      </p>`;
-
-  return renderEmailShell(heading + body, isAdmin
-    ? `${businessName} free period ends in 3 days`
-    : `Your CallMagnet free period ends on ${endsDate}`
+async function buildExpiryWarningEmail(businessName: string, endsDate: string, isAdmin: boolean): Promise<{ subject: string; html: string }> {
+  const vars = { BUSINESS_NAME: businessName, END_DATE: endsDate };
+  if (isAdmin) {
+    const c = await getEmailParts('expiry_admin_alert', vars);
+    const html = renderEmailShell(
+      c.top +
+      ui.panel(ui.rows([['Business', escapeHtml(businessName)], ['Free period ends', escapeHtml(endsDate)]])) +
+      c.footnoteHtml,
+      c.preheader,
+    );
+    return { subject: c.subject, html };
+  }
+  const c = await getEmailParts('expiry_warning', vars);
+  const html = renderEmailShell(
+    c.top +
+    (c.buttonLabel ? ui.button('https://callmagnet.com.au', escapeHtml(c.buttonLabel)) : '') +
+    c.footnoteHtml +
+    ui.contact(),
+    c.preheader,
   );
+  return { subject: c.subject, html };
 }
 
-function buildSmsAlertEmail(businessName: string, smsCount: number, smsIncluded: number): string {
-  const safe = escapeHtml(businessName);
-
-  const heading = `<h1 style="font-size:24px;font-weight:700;color:${BRAND.primaryText};margin:0 0 16px;">
-    SMS usage alert — ${safe}
-  </h1>`;
-
-  const body = `<p style="color:${BRAND.secondaryText};font-size:15px;line-height:1.6;margin:0 0 20px;">
-    <strong style="color:${BRAND.primaryText};">${safe}</strong> has sent
-    <strong style="color:${BRAND.accent};">${smsCount}</strong> SMS this month
-    (plan includes <strong style="color:${BRAND.primaryText};">${smsIncluded}</strong>).
-    They are approaching or have reached their monthly limit.
-  </p>`;
-
-  return renderEmailShell(heading + body, `${businessName} has used ${smsCount}/${smsIncluded} SMS this month`);
+async function buildSmsAlertEmail(businessName: string, smsCount: number, smsIncluded: number): Promise<{ subject: string; html: string }> {
+  const c = await getEmailParts('sms_usage_alert', {
+    BUSINESS_NAME: businessName, SMS_COUNT: String(smsCount), SMS_INCLUDED: String(smsIncluded),
+  });
+  const html = renderEmailShell(
+    c.top +
+    ui.panel(ui.rows([['SMS sent this month', smsCount], ['Plan includes', smsIncluded]])) +
+    c.footnoteHtml,
+    c.preheader,
+  );
+  return { subject: c.subject, html };
 }
 
 function json(status: number, body: unknown): Response {
