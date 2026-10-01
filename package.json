@@ -2,8 +2,6 @@
   "name": "callmagnet",
   "version": "1.0.0",
   "dependencies": {
-    "ffmpeg-static": "^5.2.0",
-    "fluent-ffmpeg": "^2.1.3",
     "@supabase/supabase-js": "^2.49.4"
   }
 }
