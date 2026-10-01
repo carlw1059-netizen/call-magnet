@@ -1,7 +1,10 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { getPreviousWeekRange } from '../_shared/weekly-utils.ts';
 import { fetchActiveClients, ClientRow } from '../_shared/weekly-db.ts';
-import { calcClientStats, buildWeeklyEmailHtml, ClientStats } from '../_shared/weekly-email.ts';
+import { calcClientStats, buildWeeklyEmail, ClientStats } from '../_shared/weekly-email.ts';
+import { renderEmailShell } from '../_shared/emailStyles.ts';
+import { ui } from '../_shared/emailUi.ts';
+import { getEmailParts } from '../_shared/emailCopy.ts';
 
 const INTERNAL_SECRET           = Deno.env.get('INTERNAL_SECRET');
 const RESEND_API_KEY            = Deno.env.get('RESEND_API_KEY');
@@ -39,13 +42,26 @@ async function sendCarlSummary(): Promise<void> {
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const dateRange = `${fmt(weekAgo)} – ${fmt(now)}`;
 
+  const dCopy = await getEmailParts('weekly_digest', { DATE_RANGE: dateRange });
+  const digestHtml = renderEmailShell(
+    dCopy.top +
+    ui.panel(ui.rows([
+      ['Active clients', activeClients],
+      ['Missed calls caught', missedCalls],
+      ['SMS sent', smsSent],
+      ['Link clicks', linkClicks],
+    ])) +
+    dCopy.footnoteHtml,
+    dCopy.preheader,
+  );
   const res = await fetch('https://api.resend.com/emails', {
     method:  'POST',
     headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       from:    'CallMagnet <hello@callmagnet.com.au>',
       to:      'hello@callmagnet.com.au',
-      subject: `CallMagnet Weekly — ${dateRange}`,
+      subject: dCopy.subject,
+      html:    digestHtml,
       text: [
         `CallMagnet Weekly — ${dateRange}`,
         '',
@@ -86,11 +102,11 @@ async function sendWeeklySummaries(): Promise<{ sent: number; skipped: number; f
     if (!client.email) { skipped++; continue; }
     try {
       const stats = await calcClientStats(client, weekStart, weekEnd);
-      const html  = await buildWeeklyEmailHtml(client, stats, monLabel, sunLabel);
+      const mail  = await buildWeeklyEmail(client, stats, monLabel, sunLabel);
       const res   = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from: 'CallMagnet <hello@callmagnet.com.au>', to: [client.email], subject: 'CallMagnet Weekly Summary', html }),
+        body: JSON.stringify({ from: 'CallMagnet <hello@callmagnet.com.au>', to: [client.email], subject: mail.subject, html: mail.html }),
       });
       if (!res.ok) { console.error(`weekly-summary: failed for ${client.id}: ${res.status} ${await res.text()}`); failed++; }
       else { console.log(`weekly-summary: sent to ${client.id}`); sent++; }
@@ -109,13 +125,15 @@ Deno.serve(async (req) => {
     const { monLabel, sunLabel, weekStart, weekEnd } = getPreviousWeekRange();
     const testClient: ClientRow = { id: 'test', business_name: 'Test Business', email: 'hello@callmagnet.com.au', sms_included: 500, reset_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), last_renewal_date: new Date(Date.now() - 16 * 24 * 60 * 60 * 1000).toISOString() };
     const testStats: ClientStats = { smsSent: 47, optOuts: 0, linkClicks: 23, bookingsLogged: 8, conversionRate: '48.9%', daysUntilRenewal: 14, overage: 0, buttonClicks: [], heatmapData: [], socialTaps: [{ platform: 'Instagram', count: 14 }, { platform: 'Facebook', count: 6 }, { platform: 'TikTok', count: 3 }] };
-    const html = await buildWeeklyEmailHtml(testClient, testStats, monLabel, sunLabel);
+    const mail = await buildWeeklyEmail(testClient, testStats, monLabel, sunLabel);
     const res  = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: 'CallMagnet <hello@callmagnet.com.au>', to: ['hello@callmagnet.com.au'], subject: 'CallMagnet Weekly Summary — TEST', html }),
+      body: JSON.stringify({ from: 'CallMagnet <hello@callmagnet.com.au>', to: ['hello@callmagnet.com.au'], subject: `${mail.subject} — TEST`, html: mail.html }),
     });
-    return json(res.ok ? 200 : 500, await res.json());
+    if (!res.ok) return json(500, await res.json());
+    await sendCarlSummary();
+    return json(200, await res.json());
   }
   if (req.method !== 'POST') return json(405, { error: 'method_not_allowed' });
   if (!INTERNAL_SECRET) return json(500, { error: 'config_error' });
