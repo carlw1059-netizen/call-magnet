@@ -1,4 +1,6 @@
 import { BRAND, escapeHtml as sharedEscapeHtml, renderEmailShell } from './emailStyles.ts';
+import { ui } from './emailUi.ts';
+import { getEmailParts } from './emailCopy.ts';
 import { countRows, ClientRow } from './weekly-db.ts';
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
@@ -151,6 +153,7 @@ export async function calcClientStats(client: ClientRow, weekStart: string, week
 
 function buildHeatmapTable(heatmapData: Array<{ day_of_week: number; hour_of_day: number; call_count: number }>): string {
   if (heatmapData.length === 0) return '';
+  const F = BRAND.fontStack;
   const DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const HOUR_LABELS = ['12am','1am','2am','3am','4am','5am','6am','7am','8am','9am','10am','11am','12pm','1pm','2pm','3pm','4pm','5pm','6pm','7pm','8pm','9pm','10pm','11pm'];
   const DAYS  = [0,1,2,3,4,5,6];
@@ -166,71 +169,63 @@ function buildHeatmapTable(heatmapData: Array<{ day_of_week: number; hour_of_day
     if (row.call_count === maxCount) { peakDay = row.day_of_week; peakHour = row.hour_of_day; }
   }
   function cellBg(count: number): string {
-    if (count === 0 || maxCount === 0) return '#f5f5f5';
+    if (count === 0 || maxCount === 0) return BRAND.pageBackground;
     const intensity = count / maxCount;
-    if (intensity < 0.25) return '#d1fae5';
-    if (intensity < 0.5)  return '#6ee7b7';
-    if (intensity < 0.75) return '#10b981';
-    return '#047857';
+    if (intensity < 0.25) return 'rgba(6,214,160,0.25)';
+    if (intensity < 0.5)  return 'rgba(6,214,160,0.5)';
+    if (intensity < 0.75) return 'rgba(6,214,160,0.75)';
+    return BRAND.accent;
   }
   function cellColor(count: number): string {
-    if (count === 0 || maxCount === 0) return '#cccccc';
-    const intensity = count / maxCount;
-    return intensity >= 0.5 ? '#ffffff' : '#000000';
+    if (count === 0 || maxCount === 0) return BRAND.secondaryText;
+    return count / maxCount >= 0.5 ? BRAND.pageBackground : BRAND.primaryText;
   }
-  const headerCells = SHOW_HOURS.map(h => `<td style="padding:3px 4px;font-size:10px;color:#888888;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${HOUR_LABELS[h]}</td>`).join('');
+  const headerCells = SHOW_HOURS.map(h => `<td style="padding:3px 2px;font-size:9px;color:${BRAND.secondaryText};text-align:center;font-family:${F};">${HOUR_LABELS[h]}</td>`).join('');
   const bodyRows = DAYS.map(d => {
     const cells = SHOW_HOURS.map(h => {
       const count = lookup[`${d}-${h}`] ?? 0;
-      const bg    = cellBg(count);
-      const color = cellColor(count);
-      const text  = count > 0 ? String(count) : '';
-      return `<td style="padding:4px 2px;background:${bg};text-align:center;font-size:10px;font-weight:700;color:${color};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;border-radius:2px;">${text}</td>`;
+      return `<td style="padding:4px 2px;height:18px;background:${cellBg(count)};border:1px solid ${BRAND.borderColor};border-radius:2px;text-align:center;font-size:10px;font-weight:700;color:${cellColor(count)};font-family:${F};">${count > 0 ? String(count) : ''}</td>`;
     }).join('');
-    return `<tr><td style="padding:4px 6px 4px 0;font-size:11px;color:#FFFFFF;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;white-space:nowrap;">${DAY_LABELS[d]}</td>${cells}</tr>`;
+    return `<tr><td style="padding:4px 6px 4px 0;font-size:11px;color:${BRAND.secondaryText};font-family:${F};white-space:nowrap;">${DAY_LABELS[d]}</td>${cells}</tr>`;
   }).join('');
   const peakSentence = `Peak: ${DAY_LABELS[peakDay]} ${HOUR_LABELS[peakHour]} (${maxCount} missed call${maxCount === 1 ? '' : 's'})`;
-  return `<p style="margin:24px 0 12px;font-size:13px;font-weight:700;color:#10b981;letter-spacing:0.04em;text-transform:uppercase;">When they called <span style="font-weight:400;color:#888888;font-size:11px;text-transform:none;">(last 90 days, 8am–10pm)</span></p><div style="overflow-x:auto;"><table role="presentation" cellpadding="0" cellspacing="2" border="0" style="min-width:320px;"><tr><td></td>${headerCells}</tr>${bodyRows}</table></div><p style="margin:8px 0 0;font-size:12px;color:#888888;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${sharedEscapeHtml(peakSentence)}</p>`;
+  return ui.panel(
+    ui.label('When they called · last 90 days, 8am–10pm') +
+    `<div style="overflow-x:auto;"><table role="presentation" cellpadding="0" cellspacing="2" border="0" style="width:100%;min-width:320px;"><tr><td></td>${headerCells}</tr>${bodyRows}</table></div>` +
+    `<div style="margin-top:10px;">${ui.small(sharedEscapeHtml(peakSentence))}</div>`
+  );
 }
 
 function buildStatsRows(stats: ClientStats): string {
-  const rows = [
-    { label: 'Missed callers who got your message', value: String(stats.smsSent) },
-    ...(stats.optOuts > 0 ? [{ label: 'Opt-Outs', value: String(stats.optOuts) }] : []),
-    { label: 'People who opened your page',         value: String(stats.linkClicks) },
-    { label: 'Bookings logged via your page',       value: String(stats.bookingsLogged) },
-    { label: 'Page open rate',                      value: stats.conversionRate },
-    { label: 'Days until renewal',                  value: stats.daysUntilRenewal !== null ? String(stats.daysUntilRenewal) : '—' },
-    { label: 'Overage',                             value: stats.overage > 0 ? `+${stats.overage}` : '0' },
+  const rows: Array<[string, string]> = [
+    ['Missed callers who got your message', String(stats.smsSent)],
+    ...(stats.optOuts > 0 ? [['Opt-Outs', String(stats.optOuts)] as [string, string]] : []),
+    ['People who opened your page', String(stats.linkClicks)],
+    ['Bookings logged via your page', String(stats.bookingsLogged)],
+    ['Page open rate', stats.conversionRate],
+    ['Days until renewal', stats.daysUntilRenewal !== null ? String(stats.daysUntilRenewal) : '—'],
+    ['Overage', stats.overage > 0 ? `+${stats.overage}` : '0'],
   ];
-  const rowsHtml = rows.map((row, i) => {
-    const top = i === 0 ? '' : 'border-top:1px solid #000000;';
-    return `<tr><td style="${top}padding:14px 0;font-size:14px;color:#FFFFFF;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${sharedEscapeHtml(row.label)}</td><td style="${top}padding:14px 0;font-size:16px;font-weight:700;color:#10b981;text-align:right;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${sharedEscapeHtml(row.value)}</td></tr>`;
-  }).join('\n');
+  const mainSection = ui.panel(ui.rows(rows.map(([l, v]) => [sharedEscapeHtml(l), sharedEscapeHtml(v)] as [string, string])));
+
   let buttonSection = '';
   if (stats.buttonClicks.length > 0) {
     const HOUR_LABELS = ['12am','1am','2am','3am','4am','5am','6am','7am','8am','9am','10am','11am','12pm','1pm','2pm','3pm','4pm','5pm','6pm','7pm','8pm','9pm','10pm','11pm'];
-    const buttonRows = stats.buttonClicks.map(b => {
-      const peakStr = b.peakHours.length > 0
-        ? '↳ Peak: ' + b.peakHours.map(p => `${HOUR_LABELS[p.hour]} (${p.count})`).join(', ')
+    buttonSection = ui.panel(ui.label('Button clicks') + ui.rows(stats.buttonClicks.map(b => {
+      const peak = b.peakHours.length > 0
+        ? ` <span style="font-size:12px;color:${BRAND.secondaryText};">· peak ${sharedEscapeHtml(b.peakHours.map(p => `${HOUR_LABELS[p.hour]} (${p.count})`).join(', '))}</span>`
         : '';
-      const peakRow = peakStr
-        ? `<tr><td colspan="2" style="padding:0 0 10px 0;font-size:11px;color:#888888;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${sharedEscapeHtml(peakStr)}</td></tr>`
-        : '';
-      return `<tr><td style="border-top:1px solid #eeeeee;padding:10px 0 4px 0;font-size:13px;color:#FFFFFF;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${sharedEscapeHtml(b.intent)}</td><td style="border-top:1px solid #eeeeee;padding:10px 0 4px 0;font-size:14px;font-weight:700;color:#10b981;text-align:right;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${b.count}</td></tr>${peakRow}`;
-    }).join('\n');
-    buttonSection = `<p style="margin:24px 0 12px;font-size:13px;font-weight:700;color:#10b981;letter-spacing:0.04em;text-transform:uppercase;">Button clicks</p><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${buttonRows}</table>`;
+      return [sharedEscapeHtml(b.intent) + peak, b.count] as [string, number];
+    })));
   }
+
   let socialSection = '';
   if (stats.socialTaps.length > 0) {
-    const socialRows = stats.socialTaps.map((s, i) => {
-      const top = i === 0 ? '' : 'border-top:1px solid #eeeeee;';
-      return `<tr><td style="${top}padding:10px 0 4px 0;font-size:13px;color:#FFFFFF;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${sharedEscapeHtml(s.platform)}</td><td style="${top}padding:10px 0 4px 0;font-size:14px;font-weight:700;color:#10b981;text-align:right;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${s.count} tap${s.count === 1 ? '' : 's'}</td></tr>`;
-    }).join('\n');
-    socialSection = `<p style="margin:24px 0 12px;font-size:13px;font-weight:700;color:#10b981;letter-spacing:0.04em;text-transform:uppercase;">Social taps</p><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${socialRows}</table>`;
+    socialSection = ui.panel(ui.label('Social taps') + ui.rows(stats.socialTaps.map(s =>
+      [sharedEscapeHtml(s.platform), `${s.count} tap${s.count === 1 ? '' : 's'}`] as [string, string])));
   }
-  const heatmapSection = buildHeatmapTable(stats.heatmapData);
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rowsHtml}</table>${buttonSection}${socialSection}${heatmapSection}`;
+
+  return mainSection + buttonSection + socialSection + buildHeatmapTable(stats.heatmapData);
 }
 
 async function getDashboardUrl(email: string): Promise<string> {
@@ -250,16 +245,24 @@ async function getDashboardUrl(email: string): Promise<string> {
   }
 }
 
-export async function buildWeeklyEmailHtml(client: ClientRow, stats: ClientStats, monLabel: string, sunLabel: string): Promise<string> {
-  const weekLabel = sharedEscapeHtml(`Week of ${monLabel} — ${sunLabel}`);
-  const preheader = sharedEscapeHtml(`Your CallMagnet weekly summary — ${monLabel} to ${sunLabel}`);
+// Words come from the email_copy table (Carl edits them in Supabase); look is locked in emailUi.ts
+export async function buildWeeklyEmail(client: ClientRow, stats: ClientStats, monLabel: string, sunLabel: string): Promise<{ subject: string; html: string }> {
+  const copy = await getEmailParts('weekly_summary', {
+    BUSINESS_NAME: client.business_name,
+    MISSED_CALLS:  String(stats.smsSent),
+    WEEK_LABEL:    `${monLabel} — ${sunLabel}`,
+  });
   const dashboardUrl = await getDashboardUrl(client.email);
-  const cta = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:32px 0 8px;"><tr><td align="center"><a href="${dashboardUrl}" style="display:inline-block;background:${BRAND.accent};color:#000000;padding:14px 32px;border-radius:8px;font-weight:700;text-decoration:none;font-size:15px;font-family:${BRAND.fontStack};letter-spacing:0.02em;">View your dashboard →</a></td></tr></table>`;
-  const content = `
-    <p style="margin:0 0 16px;font-size:22px;font-weight:700;color:${BRAND.primaryText};">${stats.smsSent} people tried to reach ${sharedEscapeHtml(client.business_name)} last week</p>
-    <p style="margin:0 0 24px;font-size:13px;color:${BRAND.secondaryText};">${weekLabel}</p>
-    ${buildStatsRows(stats)}
-    ${cta}
-  `;
-  return renderEmailShell(content, preheader);
+  const html = renderEmailShell(
+    copy.top +
+    buildStatsRows(stats) +
+    (copy.buttonLabel ? ui.button(dashboardUrl, sharedEscapeHtml(copy.buttonLabel)) : '') +
+    copy.footnoteHtml,
+    copy.preheader,
+  );
+  return { subject: copy.subject, html };
+}
+
+export async function buildWeeklyEmailHtml(client: ClientRow, stats: ClientStats, monLabel: string, sunLabel: string): Promise<string> {
+  return (await buildWeeklyEmail(client, stats, monLabel, sunLabel)).html;
 }
