@@ -61,3 +61,5 @@
 | 26 Sep 2026 | `1437905` | Bump `dashboard.js` to `v=20260926c` after revert | Cache-bust after revert chain | No |
 | 26 Sep 2026 | `e4e9117` | Add Progressier fallback to `missed_call` and `booking_logged` paths | Same VapidPkHashMismatch failure was silently dropping missed call and booking notifications | No |
 | 26 Sep 2026 | `762cd3d` | Pushover alert to Carl when push fails completely (VAPID failed + Progressier fallback also failed or skipped) — all three event paths | Silent complete failures were invisible; Carl had no way to know an owner received nothing | No |
+| 30 Sep 2026 | `844d31a` | `send-client-notification`: remove Resend email block for missed_call and booking_logged — push, Progressier fallback, Pushover alert, and link_tapped path all untouched | Push and weekly report cover notification; emails to client were redundant and noisy | No |
+| 30 Sep 2026 | `0c06a6d` | `send-client-notification`: add guard so no email or push is sent to the client (caller) on missed calls; no emails on bookings — owner push for taps and bookings unchanged | Carl's explicit instruction: clients must never receive email from this function | No |
