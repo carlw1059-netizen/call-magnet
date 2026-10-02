@@ -30,11 +30,12 @@ async function sendCarlSummary(): Promise<void> {
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-  const [activeClients, missedCalls, smsSent, linkClicks] = await Promise.all([
+  const [activeClients, missedCalls, smsSent, linkClicks, socialTaps] = await Promise.all([
     countRest('clients', 'account_status=eq.active&is_demo_account=eq.false&is_test_account=eq.false'),
     countRest('sms_events', `received_at=gte.${sevenDaysAgo}`),
     countRest('sms_events', `received_at=gte.${sevenDaysAgo}&twilio_message_sid=not.is.null`),
-    countRest('link_clicks', `clicked_at=gte.${sevenDaysAgo}`),
+    countRest('link_clicks', `clicked_at=gte.${sevenDaysAgo}&or=(intent.is.null,intent.not.like.social_%25)`),
+    countRest('link_clicks', `clicked_at=gte.${sevenDaysAgo}&intent=like.social_%25`),
   ]);
 
   const fmt = (d: Date) => d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -50,6 +51,7 @@ async function sendCarlSummary(): Promise<void> {
       ['Missed calls caught', missedCalls],
       ['SMS sent', smsSent],
       ['Link clicks', linkClicks],
+      ['Social taps', socialTaps],
     ])) +
     dCopy.footnoteHtml,
     dCopy.preheader,
@@ -69,13 +71,14 @@ async function sendCarlSummary(): Promise<void> {
         `Missed calls caught: ${missedCalls}`,
         `SMS sent:            ${smsSent}`,
         `Link clicks:         ${linkClicks}`,
+        `Social taps:         ${socialTaps}`,
       ].join('\n'),
     }),
   });
   if (!res.ok) {
     console.error(`weekly-summary: carl summary email failed: ${res.status} ${await res.text()}`);
   } else {
-    console.log(`weekly-summary: carl summary sent (${dateRange}) — clients=${activeClients} calls=${missedCalls} sms=${smsSent} clicks=${linkClicks}`);
+    console.log(`weekly-summary: carl summary sent (${dateRange}) — clients=${activeClients} calls=${missedCalls} sms=${smsSent} clicks=${linkClicks} social=${socialTaps}`);
   }
 }
 
