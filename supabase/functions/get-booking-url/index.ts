@@ -180,7 +180,7 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'CallMagnet Alerts <hello@callmagnet.com.au>',
+        from: 'CallMagnet Alerts <alerts@callmagnet.com.au>',
         to: 'hello@callmagnet.com.au',
         subject: alertCopy.subject,
         html: renderEmailShell(alertContent, alertCopy.preheader)

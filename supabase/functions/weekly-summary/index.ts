@@ -58,7 +58,7 @@ async function sendCarlSummary(): Promise<void> {
     method:  'POST',
     headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      from:    'CallMagnet <hello@callmagnet.com.au>',
+      from:    'CallMagnet Alerts <alerts@callmagnet.com.au>',
       to:      'hello@callmagnet.com.au',
       subject: dCopy.subject,
       html:    digestHtml,
@@ -129,7 +129,7 @@ Deno.serve(async (req) => {
     const res  = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: 'CallMagnet <hello@callmagnet.com.au>', to: ['hello@callmagnet.com.au'], subject: `${mail.subject} — TEST`, html: mail.html }),
+      body: JSON.stringify({ from: 'CallMagnet Alerts <alerts@callmagnet.com.au>', to: ['hello@callmagnet.com.au'], subject: `${mail.subject} — TEST`, html: mail.html }),
     });
     if (!res.ok) return json(500, await res.json());
     await sendCarlSummary();

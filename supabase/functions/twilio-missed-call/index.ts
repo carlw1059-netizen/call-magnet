@@ -289,7 +289,7 @@ Deno.serve(async (req) => {
         method:  'POST',
         headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          from:    'CallMagnet Alerts <hello@callmagnet.com.au>',
+          from:    'CallMagnet Alerts <alerts@callmagnet.com.au>',
           to:      ALERT_TO,
           subject: alertCopy.subject,
           html:    renderEmailShell(alertContent, alertCopy.preheader),

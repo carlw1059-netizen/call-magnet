@@ -275,7 +275,7 @@ async function sendViaResend(args: { to: string; subject: string; html: string; 
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: RESEND_FROM,
+        from: args.to === ALERT_TO ? 'CallMagnet Alerts <alerts@callmagnet.com.au>' : RESEND_FROM,
         to: [args.to],
         subject: args.subject,
         html: args.html,

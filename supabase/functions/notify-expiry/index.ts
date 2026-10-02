@@ -189,7 +189,7 @@ async function sendEmail(
       Authorization:  `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ from: RESEND_FROM, to, subject, html }),
+    body: JSON.stringify({ from: to === ALERT_TO ? 'CallMagnet Alerts <alerts@callmagnet.com.au>' : RESEND_FROM, to, subject, html }),
   });
   if (!res.ok) {
     throw new Error(`resend_failed to=${to}: ${res.status} ${await res.text()}`);
