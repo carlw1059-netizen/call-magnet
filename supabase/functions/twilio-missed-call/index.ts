@@ -29,12 +29,14 @@
 // AT TIME ZONE 'Australia/Melbourne' to avoid Deno runtime timezone drift.
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { BRAND, escapeHtml, renderEmailShell } from "../_shared/emailStyles.ts";
+import { escapeHtml, renderEmailShell } from "../_shared/emailStyles.ts";
+import { ui } from "../_shared/emailUi.ts";
+import { getEmailParts } from "../_shared/emailCopy.ts";
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const RESEND_API_KEY            = Deno.env.get('RESEND_API_KEY');
-const ALERT_TO                  = 'car312@hotmail.com';
+const ALERT_TO                  = 'hello@callmagnet.com.au';
 
 // ── Helper: convert HH:MM:SS time string to minutes since midnight ────────────
 function timeToMins(t: string): number {
@@ -273,22 +275,24 @@ Deno.serve(async (req) => {
     console.error(`twilio-missed-call fatal: ${errMsg}`);
 
     if (RESEND_API_KEY) {
-      const alertContent = `
-        <h1 style="font-size:22px;font-weight:700;color:${BRAND.primaryText};margin:0 0 4px;letter-spacing:-0.01em;">⚠️ twilio-missed-call failed</h1>
-        <p style="font-size:14px;color:${BRAND.secondaryText};margin:0 0 16px;">A missed-call webhook errored — Twilio will retry, but investigate.</p>
-        <p style="font-size:13px;color:${BRAND.primaryText};margin:0 0 8px;"><strong>Function:</strong> twilio-missed-call</p>
-        <p style="font-size:13px;color:${BRAND.primaryText};margin:0 0 8px;"><strong>Error:</strong> ${escapeHtml(errMsg)}</p>
-        <p style="font-size:13px;color:${BRAND.primaryText};margin:0 0 16px;"><strong>Time:</strong> ${new Date().toISOString()}</p>
-        <p style="font-size:13px;color:${BRAND.secondaryText};margin:0;">Twilio will retry — investigate in Supabase logs.</p>
-      `;
+      const alertCopy = await getEmailParts('error_alert', { FUNCTION_NAME: 'twilio-missed-call' });
+      const alertContent =
+        alertCopy.top +
+        ui.sub('A missed-call webhook errored — Twilio will retry, but investigate.') +
+        ui.panel(ui.rows([
+          ['Function', 'twilio-missed-call'],
+          ['Error', escapeHtml(String(errMsg))],
+          ['Time', new Date().toISOString()],
+        ])) +
+        ui.small('Twilio will retry — investigate in Supabase logs.');
       fetch('https://api.resend.com/emails', {
         method:  'POST',
         headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           from:    'CallMagnet Alerts <hello@callmagnet.com.au>',
           to:      ALERT_TO,
-          subject: '⚠️ CallMagnet — twilio-missed-call failed',
-          html:    renderEmailShell(alertContent, 'twilio-missed-call failed — Twilio will retry'),
+          subject: alertCopy.subject,
+          html:    renderEmailShell(alertContent, alertCopy.preheader),
         }),
       }).catch(() => {});
     }
