@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
     // ── Fetch all active clients ──────────────────────────────────────────────
     const clientsRes = await fetch(
       `${SUPABASE_URL}/rest/v1/clients` +
-      `?account_status=eq.active&is_test_account=eq.false` +
+      `?account_status=eq.active&is_test_account=eq.false&is_demo_account=not.is.true` +
       `&select=id,business_name,email,sms_included,free_period_ends_at,emails_sent`,
       {
         headers: {
