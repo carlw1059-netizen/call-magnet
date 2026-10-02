@@ -6,7 +6,9 @@
 // now uses _shared/emailStyles.ts so it matches the login palette.
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
-import { BRAND, escapeHtml, renderEmailShell } from "../_shared/emailStyles.ts";
+import { escapeHtml, renderEmailShell } from "../_shared/emailStyles.ts";
+import { ui } from "../_shared/emailUi.ts";
+import { getEmailParts } from "../_shared/emailCopy.ts";
 
 
 const corsHeaders = {
@@ -160,14 +162,16 @@ Deno.serve(async (req) => {
 
 
   } catch (error) {
-    const alertContent = `
-      <h1 style="font-size:22px;font-weight:700;color:${BRAND.primaryText};margin:0 0 4px;letter-spacing:-0.01em;">⚠️ get-booking-url failed</h1>
-      <p style="font-size:14px;color:${BRAND.secondaryText};margin:0 0 16px;">A booking-link tap couldn't be served — the customer may have seen an error page.</p>
-      <p style="font-size:13px;color:${BRAND.primaryText};margin:0 0 8px;"><strong>Function:</strong> get-booking-url</p>
-      <p style="font-size:13px;color:${BRAND.primaryText};margin:0 0 8px;"><strong>Error:</strong> ${escapeHtml(String(error.message ?? error))}</p>
-      <p style="font-size:13px;color:${BRAND.primaryText};margin:0 0 16px;"><strong>Time:</strong> ${new Date().toISOString()}</p>
-      <p style="font-size:13px;color:${BRAND.secondaryText};margin:0;">Log in to Supabase to investigate.</p>
-    `;
+    const alertCopy = await getEmailParts('error_alert', { FUNCTION_NAME: 'get-booking-url' });
+    const alertContent =
+      alertCopy.top +
+      ui.sub("A booking-link tap couldn't be served — the customer may have seen an error page.") +
+      ui.panel(ui.rows([
+        ['Function', 'get-booking-url'],
+        ['Error', escapeHtml(String(error?.message ?? error))],
+        ['Time', new Date().toISOString()],
+      ])) +
+      ui.small('Log in to Supabase to investigate.');
 
     await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -177,9 +181,9 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         from: 'CallMagnet Alerts <hello@callmagnet.com.au>',
-        to: 'car312@hotmail.com',
-        subject: '⚠️ CallMagnet — get-booking-url failed',
-        html: renderEmailShell(alertContent, 'get-booking-url failed — customer may have seen an error')
+        to: 'hello@callmagnet.com.au',
+        subject: alertCopy.subject,
+        html: renderEmailShell(alertContent, alertCopy.preheader)
       })
     }).catch(() => {})
 
