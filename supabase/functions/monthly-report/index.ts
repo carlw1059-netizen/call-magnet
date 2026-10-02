@@ -21,6 +21,8 @@
 
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import { BRAND, escapeHtml, renderEmailShell } from '../_shared/emailStyles.ts';
+import { ui } from '../_shared/emailUi.ts';
+import { getEmailParts } from '../_shared/emailCopy.ts';
 
 // ─── env ──────────────────────────────────────────────────────────────────
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
@@ -223,91 +225,44 @@ function fmtMoney(n: number): string {
   return '$' + n.toLocaleString('en-AU');
 }
 
-function renderEmailHTML(c: ClientRow, p: ClientReportPayload, period: Period, dashboardUrl: string): string {
-  const biz = escapeHtml(c.business_name);
-  const month = escapeHtml(period.label);
+// Words come from the email_copy table (Carl edits them in Supabase); look is locked in emailUi.ts
+async function renderEmail(c: ClientRow, p: ClientReportPayload, period: Period, dashboardUrl: string): Promise<{ subject: string; html: string }> {
+  const copy = await getEmailParts('monthly_recap', { BUSINESS_NAME: c.business_name, MONTH: period.label });
+  const tile = (label: string, value: string | number) =>
+    `<td width="50%" style="padding:6px;vertical-align:top;"><div style="background:${BRAND.pageBackground};border:1px solid ${BRAND.borderColor};border-radius:10px;padding:14px 16px;">` +
+    ui.label(label).replace('margin:0 0 14px', 'margin:0 0 6px') +
+    `<div style="font-family:${BRAND.fontStack};font-size:26px;font-weight:300;color:${BRAND.primaryText};">${value}</div></div></td>`;
   const busiestLine = (p.busiest_day_dow !== null && p.busiest_day_calls !== null && p.busiest_day_calls > 0)
-    ? `<p style="margin:0 0 12px;">Across the last 90 days, your busiest day for missed calls is <strong>${escapeHtml(DOW_NAMES[p.busiest_day_dow])}</strong> (${p.busiest_day_calls} calls).</p>`
+    ? ui.p(`Across the last 90 days, your busiest day for missed calls is <strong>${escapeHtml(DOW_NAMES[p.busiest_day_dow])}</strong> (${p.busiest_day_calls} calls).`)
     : '';
   const benchLine = (p.benchmark_cohort_size !== null && p.benchmark_median_tap_rate_pct !== null && p.tap_rate_pct !== null)
-    ? `<p style="margin:0 0 12px;">Compared to ${p.benchmark_cohort_size} similar businesses in your area: their median tap rate is ${p.benchmark_median_tap_rate_pct}% — yours is ${p.tap_rate_pct}%.</p>`
+    ? ui.p(`Compared to ${p.benchmark_cohort_size} similar businesses in your area: their median tap rate is ${p.benchmark_median_tap_rate_pct}% — yours is ${p.tap_rate_pct}%.`)
     : '';
-
-  const content = `
-    <h1 style="margin:0 0 8px;font-size:22px;color:${BRAND.primaryText};letter-spacing:-0.01em;">Hi ${biz},</h1>
-    <p style="margin:0 0 20px;font-size:15px;color:${BRAND.secondaryText};">Here's how ${month} went.</p>
-
-    <div style="background:${BRAND.successBg};border:1px solid ${BRAND.accent};border-radius:8px;padding:18px 20px;margin-bottom:18px;">
-      <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:${BRAND.accent};font-weight:700;margin-bottom:6px;">Missed calls captured</div>
-      <div style="font-size:36px;color:${BRAND.accent};font-weight:300;letter-spacing:-0.02em;">${p.sms_count}</div>
-    </div>
-
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
-      <tr>
-        <td width="50%" style="padding:6px 6px 6px 0;vertical-align:top;">
-          <div style="border:1px solid ${BRAND.accent};border-radius:6px;padding:10px 14px;">
-            <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${BRAND.accent};font-weight:700;margin-bottom:4px;">SMS sent</div>
-            <div style="font-size:24px;color:${BRAND.primaryText};font-weight:300;">${p.sms_count}</div>
-          </div>
-        </td>
-        <td width="50%" style="padding:6px 0 6px 6px;vertical-align:top;">
-          <div style="border:1px solid ${BRAND.accent};border-radius:6px;padding:10px 14px;">
-            <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${BRAND.accent};font-weight:700;margin-bottom:4px;">Link taps</div>
-            <div style="font-size:24px;color:${BRAND.primaryText};font-weight:300;">${p.click_count}</div>
-          </div>
-        </td>
-      </tr>
-      <tr>
-        <td width="50%" style="padding:6px 6px 6px 0;vertical-align:top;">
-          <div style="border:1px solid ${BRAND.accent};border-radius:6px;padding:10px 14px;">
-            <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${BRAND.accent};font-weight:700;margin-bottom:4px;">Bookings</div>
-            <div style="font-size:24px;color:${BRAND.primaryText};font-weight:300;">${p.booking_count}</div>
-          </div>
-        </td>
-        <td width="50%" style="padding:6px 0 6px 6px;vertical-align:top;">
-          <div style="border:1px solid ${BRAND.accent};border-radius:6px;padding:10px 14px;">
-            <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${BRAND.accent};font-weight:700;margin-bottom:4px;">Tap rate</div>
-            <div style="font-size:24px;color:${BRAND.primaryText};font-weight:300;">${p.tap_rate_pct ?? 0}%</div>
-          </div>
-        </td>
-      </tr>
-    </table>
-
-    <p style="margin:0 0 12px;font-size:14px;color:${BRAND.primaryText};">You've now had <strong>${p.repeat_caller_count}</strong> ${p.repeat_caller_count === 1 ? 'customer' : 'customers'} call you back twice or more.</p>
-    ${busiestLine}
-    ${benchLine}
-
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:32px 0 8px;"><tr><td align="center"><a href="${dashboardUrl}" style="display:inline-block;background:${BRAND.accent};color:#000000;padding:14px 32px;border-radius:8px;font-weight:700;text-decoration:none;font-size:15px;font-family:${BRAND.fontStack};letter-spacing:0.02em;">View your dashboard →</a></td></tr></table>
-  `;
-
-  return renderEmailShell(content, `Your ${period.label} CallMagnet recap`);
+  const html = renderEmailShell(
+    copy.top +
+    ui.panel(ui.label('Missed calls captured') + ui.bigStat(p.sms_count, 'callers got your text')) +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 18px;"><tr>${tile('Link taps', p.click_count)}${tile('Bookings', p.booking_count)}</tr><tr>${tile('Tap rate', `${p.tap_rate_pct ?? 0}%`)}${tile('Repeat callers', p.repeat_caller_count)}</tr></table>` +
+    busiestLine +
+    benchLine +
+    (copy.buttonLabel ? ui.button(dashboardUrl, escapeHtml(copy.buttonLabel)) : '') +
+    copy.footnoteHtml,
+    copy.preheader,
+  );
+  return { subject: copy.subject, html };
 }
 
-// Run-summary alert email — fired at the end of each cron run with sent /
-// skipped / failed totals. Uses the standard renderEmailShell since it's
-// a simple internal alert, not a customer-facing email.
-function renderAlertEmailHTML(period: Period, sent: SentEntry[], skipped: SkippedEntry[], failed: FailedEntry[]): string {
-  const failedRows = failed.length === 0
-    ? `<li style="color:${BRAND.secondaryText};"><em>None.</em></li>`
-    : failed.map(f => `<li><code>${escapeHtml(f.client_id)}</code> — ${escapeHtml(f.business_name)} — ${escapeHtml(f.error)}</li>`).join('');
-  const skippedRows = skipped.length === 0
-    ? `<li style="color:${BRAND.secondaryText};"><em>None.</em></li>`
-    : skipped.map(s => `<li><code>${escapeHtml(s.client_id)}</code> — ${escapeHtml(s.business_name)} — ${escapeHtml(s.reason)}</li>`).join('');
-
-  const content = `
-    <h1 style="font-size:22px;font-weight:700;color:${BRAND.primaryText};margin:0 0 4px;letter-spacing:-0.01em;">Monthly report run — ${escapeHtml(period.label)}</h1>
-    <p style="font-size:14px;color:${BRAND.secondaryText};margin:0 0 20px;">
-      <strong>Sent:</strong> ${sent.length} &middot;
-      <strong>Skipped:</strong> ${skipped.length} &middot;
-      <strong>Failed:</strong> ${failed.length}
-    </p>
-    <h2 style="font-size:14px;font-weight:700;color:${BRAND.primaryText};margin:16px 0 8px;">Failed</h2>
-    <ul style="margin:0 0 16px;padding-left:20px;font-size:13px;color:${BRAND.primaryText};line-height:1.6;">${failedRows}</ul>
-    <h2 style="font-size:14px;font-weight:700;color:${BRAND.primaryText};margin:16px 0 8px;">Skipped</h2>
-    <ul style="margin:0;padding-left:20px;font-size:13px;color:${BRAND.primaryText};line-height:1.6;">${skippedRows}</ul>
-  `;
-
-  return renderEmailShell(content, `Monthly report ${period.label}: ${sent.length} sent / ${skipped.length} skipped / ${failed.length} failed`);
+async function renderAlertEmail(period: Period, sent: SentEntry[], skipped: SkippedEntry[], failed: FailedEntry[]): Promise<{ subject: string; html: string }> {
+  const copy = await getEmailParts('monthly_report_summary', {
+    PERIOD: period.label, SENT: String(sent.length), SKIPPED: String(skipped.length), FAILED: String(failed.length),
+  });
+  const failedPanel = ui.panel(ui.label('Failed') + (failed.length === 0
+    ? ui.small('None.')
+    : ui.rows(failed.map(f => [escapeHtml(f.business_name), escapeHtml(f.error)] as [string, string]))));
+  const skippedPanel = ui.panel(ui.label('Skipped') + (skipped.length === 0
+    ? ui.small('None.')
+    : ui.rows(skipped.map(s => [escapeHtml(s.business_name), escapeHtml(s.reason)] as [string, string]))));
+  const html = renderEmailShell(copy.top + failedPanel + skippedPanel + copy.footnoteHtml, copy.preheader);
+  return { subject: copy.subject, html };
 }
 
 // ─── Resend dispatch ──────────────────────────────────────────────────────
@@ -431,9 +386,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
       try {
         const payload = await gatherClientReport(sb, c, period);
         const dashboardUrl = await getDashboardUrl(c.email!);
-        const html = renderEmailHTML(c, payload, period, dashboardUrl);
+        const preview = await renderEmail(c, payload, period, dashboardUrl);
         sent.push({ client_id: c.id, business_name: c.business_name });
-        if (!dryRunPreviewHtml) dryRunPreviewHtml = html;
+        if (!dryRunPreviewHtml) dryRunPreviewHtml = preview.html;
       } catch (err) {
         failed.push({ client_id: c.id, business_name: c.business_name, error: `dry_run_gather: ${(err as Error).message}` });
       }
@@ -464,9 +419,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
     try {
       payload = await gatherClientReport(sb, c, period);
       const dashboardUrl = await getDashboardUrl(c.email!);
-      const html = renderEmailHTML(c, payload, period, dashboardUrl);
+      const mail = await renderEmail(c, payload, period, dashboardUrl);
       const send = await sendViaResend({
-        to: c.email!, subject: `Your ${period.label} CallMagnet recap`, html,
+        to: c.email!, subject: mail.subject, html: mail.html,
       });
       if (!send.ok) throw new Error(send.error ?? 'unknown resend error');
       await sb.from('monthly_reports')
@@ -489,10 +444,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   if (!dryRun) {
     try {
+      const alertMail = await renderAlertEmail(period, sent, skipped, failed);
       const alert = await sendViaResend({
         to: ALERT_TO,
-        subject: `[monthly-report] ${period.label}: ${sent.length} sent, ${skipped.length} skipped, ${failed.length} failed`,
-        html: renderAlertEmailHTML(period, sent, skipped, failed),
+        subject: alertMail.subject,
+        html: alertMail.html,
       });
       if (!alert.ok) console.error('[monthly-report] alert email failed:', alert.error);
     } catch (err) {
