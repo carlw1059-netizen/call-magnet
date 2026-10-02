@@ -183,6 +183,18 @@ Never remove the Progressier fallback unless a replacement has been tested live 
 
 ---
 
+## EMAIL SYSTEM — RULES (set 3 Oct 2026)
+
+- Every email = renderEmailShell() (_shared/emailStyles.ts) + building blocks from _shared/emailUi.ts only. No hand-written inline-styled HTML in any function.
+- Words live in the email_copy table (subject, preheader, heading, subheading, body_text, button_label, footnote). Code reads them with getEmailParts(key, vars) from _shared/emailCopy.ts. Carl edits wording in Supabase Table Editor — never hard-code email wording.
+- Look is locked: dark card, orange left strip, "★ CallMagnet" header, "CallMagnet — Pull every customer back." footer, emerald #06D6A0 only, buttons emerald with dark text. Never use #10b981 in emails.
+- All internal/alert emails go TO hello@callmagnet.com.au and are sent FROM 'CallMagnet Alerts <alerts@callmagnet.com.au>' (if sent from hello@ to hello@, Gmail hides them as self-sent). Client emails are sent from 'CallMagnet <hello@callmagnet.com.au>'.
+- car312@hotmail.com is ONLY the admin login check — never an email recipient.
+- No estimated revenue / dollar figures in any email.
+- Switched off (code kept, do not re-enable without Carl): daily summary, Day 14 / Day 30, client emails on missed calls and bookings. Missed calls send the client no push or email.
+- Resend templates are NOT used (link variables break in Resend templates). Resend is the sender only.
+- Testing: weekly-summary?test=1 sends the client summary + Carl's digest to hello@ only.
+
 ## Deployment
 
 All changes go directly to main. Staging branch is not used.
