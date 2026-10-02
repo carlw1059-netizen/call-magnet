@@ -10,7 +10,9 @@
 // pattern as the other alert paths in this codebase.
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
-import { BRAND, escapeHtml, renderEmailShell } from "../_shared/emailStyles.ts";
+import { escapeHtml, renderEmailShell } from "../_shared/emailStyles.ts";
+import { ui } from "../_shared/emailUi.ts";
+import { getEmailParts } from "../_shared/emailCopy.ts";
 
 const INTERNAL_SECRET = Deno.env.get('INTERNAL_SECRET');
 
@@ -187,14 +189,16 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.log(`Fatal error: ${error.message}`);
 
-    const alertContent = `
-      <h1 style="font-size:22px;font-weight:700;color:${BRAND.primaryText};margin:0 0 4px;letter-spacing:-0.01em;">⚠️ sms-overage failed</h1>
-      <p style="font-size:14px;color:${BRAND.secondaryText};margin:0 0 16px;">A nightly run errored before completing.</p>
-      <p style="font-size:13px;color:${BRAND.primaryText};margin:0 0 8px;"><strong>Function:</strong> sms-overage (slug: quick-responder)</p>
-      <p style="font-size:13px;color:${BRAND.primaryText};margin:0 0 8px;"><strong>Error:</strong> ${escapeHtml(String(error.message ?? error))}</p>
-      <p style="font-size:13px;color:${BRAND.primaryText};margin:0 0 16px;"><strong>Time:</strong> ${new Date().toISOString()}</p>
-      <p style="font-size:13px;color:${BRAND.secondaryText};margin:0;">Investigate in Supabase logs.</p>
-    `;
+    const alertCopy = await getEmailParts('error_alert', { FUNCTION_NAME: 'sms-overage' });
+    const alertContent =
+      alertCopy.top +
+      ui.sub('A nightly SMS overage run errored before completing.') +
+      ui.panel(ui.rows([
+        ['Function', 'sms-overage (quick-responder)'],
+        ['Error', escapeHtml(String(error?.message ?? error))],
+        ['Time', new Date().toISOString()],
+      ])) +
+      ui.small('Investigate in Supabase logs.');
 
     await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -204,9 +208,9 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         from: 'CallMagnet Alerts <hello@callmagnet.com.au>',
-        to: 'car312@hotmail.com',
-        subject: '⚠️ CallMagnet — sms-overage failed',
-        html: renderEmailShell(alertContent, 'sms-overage run errored — check Supabase logs')
+        to: 'hello@callmagnet.com.au',
+        subject: alertCopy.subject,
+        html: renderEmailShell(alertContent, alertCopy.preheader)
       })
     }).catch(() => {})
 
