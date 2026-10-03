@@ -462,6 +462,19 @@
     if (infopackUrl) {
       successEl.innerHTML +=
         '<a class="infopack-link" href="' + esc(infopackUrl) + '" target="_blank" rel="noopener">View Info Pack →</a>';
+      var infopackLink = successEl.querySelector('.infopack-link');
+      if (infopackLink) {
+        infopackLink.addEventListener('click', function() {
+          try {
+            navigator.sendBeacon(CLICK_LOG_URL, new Blob([JSON.stringify({
+              slug:       slug,
+              intent:     'infopack',
+              user_agent: navigator.userAgent || '',
+              referrer:   document.referrer || ''
+            })], { type: 'text/plain' }));
+          } catch (e) {}
+        });
+      }
     }
 
     formWrap.appendChild(successEl);
