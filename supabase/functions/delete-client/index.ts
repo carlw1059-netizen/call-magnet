@@ -1,7 +1,9 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const ADMIN_EMAIL               = 'car312@hotmail.com';
 const CORS = {
   'Access-Control-Allow-Origin':  'https://callmagnet.com.au',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -19,6 +21,23 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST') return json(405, { error: 'method_not_allowed' });
 
+  // ── 1. Verify admin JWT ──────────────────────────────────────────────────────
+  const authHeader = req.headers.get('Authorization') ?? '';
+  const userJwt    = authHeader.replace(/^Bearer\s+/i, '').trim();
+  if (!userJwt) return json(401, { error: 'missing_authorization' });
+
+  const supa = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+
+  const { data: userData, error: userErr } = await supa.auth.getUser(userJwt);
+  if (userErr || !userData?.user) return json(401, { error: 'invalid_token', detail: userErr?.message });
+
+  const isAdmin = (userData.user.app_metadata as Record<string, unknown> | undefined)?.is_admin === true;
+  if (!isAdmin) return json(403, { error: 'not_admin' });
+  if ((userData.user.email ?? '').toLowerCase() !== ADMIN_EMAIL) return json(403, { error: 'forbidden', detail: 'admin email mismatch' });
+
+  // ── 2. Parse body ────────────────────────────────────────────────────────────
   let client_id: string;
   try {
     const body = await req.json() as { client_id?: string };

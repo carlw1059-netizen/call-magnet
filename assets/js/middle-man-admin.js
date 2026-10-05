@@ -189,9 +189,11 @@ function _showDeleteOverlay(card, clientId, clientName) {
     errMsg.style.display = 'none';
 
     try {
+      var sessResult = await mmaSb.auth.getSession();
+      var token = sessResult.data && sessResult.data.session && sessResult.data.session.access_token;
       var res = await fetch(MMA_SUPABASE_URL + '/functions/v1/delete-client', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ client_id: clientId }),
       });
       var data = await res.json().catch(function() { return {}; });
