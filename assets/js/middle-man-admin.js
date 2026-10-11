@@ -1843,6 +1843,10 @@ function _pollMuxStatus(clientId) {
         statusBar.style.background = '#10b981';
         statusText.textContent = '✅ Video is live';
         setTimeout(function() { statusEl.style.display = 'none'; }, 4000);
+      } else if (data && data[0] && data[0].video_processing_status === 'processing') {
+        statusBar.style.width = '60%';
+        statusBar.style.background = '#10b981';
+        statusText.textContent = '⏳ Processing — will be live in a few minutes';
       } else if (attempts >= maxAttempts) {
         clearInterval(interval);
         statusBar.style.width = '100%';
