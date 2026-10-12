@@ -94,7 +94,7 @@
     grid-template-columns: 1.1fr 1fr;
     gap: 40px;
     align-items: center;
-    padding: 120px 48px 60px;
+    padding: 120px 48px 30px;
     position: relative;
     z-index: 2;
   }
@@ -384,14 +384,21 @@
     left: 50%;
     transform: translateX(-50%);
     font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.2em;
+    font-size: 12px;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--ink-mute);
+    color: var(--ink);
     text-align: center;
     z-index: 3;
+    white-space: nowrap;
   }
-  .scene-caption span { color: var(--emerald); }
+  .cap-word {
+    animation: capFlash 1.8s ease-in-out infinite;
+  }
+  @keyframes capFlash {
+    0%, 100% { color: var(--ink-mute); }
+    50% { color: #fff; text-shadow: 0 0 12px rgba(255,255,255,0.7); }
+  }
 
   /* ============================================== */
   /* SECTION: Live counter                          */
@@ -839,7 +846,7 @@
         </div>
       </div>
     </div>
-    <div class="scene-caption">Call → <span>SMS</span> → Booking · in under 5 seconds</div>
+    <div class="scene-caption"><span class="cap-word" style="animation-delay:0s">Call</span> → <span class="cap-word" style="animation-delay:0.6s">SMS</span> → <span class="cap-word" style="animation-delay:1.2s">Booking</span> · in under 5 seconds</div>
   </div>
 </section>
 
