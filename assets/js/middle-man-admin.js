@@ -431,13 +431,17 @@ function renderEditBody(client) {
     '</div>';
 
   // ── 3. Slug (FIX 1: 13px, FIX 2: #000)
+  // Slug is locked once set — changing it breaks every existing link for that client.
   var slugSection =
     '<div class="mma-section">' +
       '<div class="mma-section-label">Slug (URL)</div>' +
       '<div style="display:flex;gap:8px;align-items:center;">' +
         '<span style="font-size:13px;color:#000000;white-space:nowrap;font-family:monospace;">callmagnet.com.au/b/</span>' +
-        '<input id="mmaSlugInput" class="mma-field-input" value="' + _e(slug) + '" placeholder="your-slug" maxlength="50" style="font-family:monospace;" />' +
-        '<button id="mmaSlugSaveBtn" class="mma-save-btn">Save</button>' +
+        (slug
+          ? '<span id="mmaSlugInput" style="font-family:monospace;font-size:13px;color:#000000;">' + _e(slug) + '</span>' +
+            '<span style="font-size:11px;color:#9ca3af;margin-left:4px;">🔒 locked</span>'
+          : '<input id="mmaSlugInput" class="mma-field-input" value="" placeholder="your-slug" maxlength="50" style="font-family:monospace;" />' +
+            '<button id="mmaSlugSaveBtn" class="mma-save-btn">Save</button>') +
       '</div>' +
       '<div id="mmaSlugMsg" class="mma-saved-msg" style="margin-left:0;margin-top:6px;"></div>' +
     '</div>';
@@ -712,7 +716,8 @@ function renderEditBody(client) {
   if (mmaLogoRemoveBtn) mmaLogoRemoveBtn.addEventListener('click', removeLogo);
 
   document.getElementById('mmaToggleBtn').addEventListener('click', toggleEnabled);
-  document.getElementById('mmaSlugSaveBtn').addEventListener('click', saveSlug);
+  var mmaSlugSaveBtn = document.getElementById('mmaSlugSaveBtn');
+  if (mmaSlugSaveBtn) mmaSlugSaveBtn.addEventListener('click', saveSlug);
 
   // Client Login — show/hide toggle + save password
   document.getElementById('mmaPwShowBtn').addEventListener('click', function() {
