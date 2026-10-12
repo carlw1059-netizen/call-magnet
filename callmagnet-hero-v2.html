@@ -806,15 +806,15 @@
     <div class="stats">
       <div>
         <div class="stat-num" data-target="5" data-suffix="s" data-prefix="&lt; ">&lt; 5s</div>
-        <div class="stat-label">SMS delivered</div>
+        <div class="stat-label">SMS delivered*</div>
       </div>
       <div>
-        <div class="stat-num" data-target="38" data-suffix="%">38%</div>
-        <div class="stat-label">Avg calls missed</div>
+        <div class="stat-num">1 in 3*</div>
+        <div class="stat-label">Calls go unanswered</div>
       </div>
       <div>
         <div class="stat-num" data-target="85" data-suffix="%">85%</div>
-        <div class="stat-label">Never call back</div>
+        <div class="stat-label">Never call back*</div>
       </div>
     </div>
   </div>
@@ -1118,6 +1118,12 @@ const statObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.5 });
 document.querySelectorAll('.stat-num').forEach(el => statObserver.observe(el));
 </script>
+
+<footer style="padding: 32px 48px; border-top: 1px solid rgba(232,238,242,0.08); position: relative; z-index: 2;">
+  <p style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: rgba(232,238,242,0.3); line-height: 1.8; max-width: 900px; margin: 0 auto; text-align: center; letter-spacing: 0.04em;">
+    * SMS delivered in under 5 seconds: MobileMessage AU platform data. · 1 in 3 calls go unanswered: AIIMS Group analysis of 207,000+ calls to Australian SMEs across 858 businesses. · 85% never call back: PATLive Missed Call Report, corroborated by CloudTalk and MIT/InsideSales.com research.
+  </p>
+</footer>
 
 </body>
 </html>
