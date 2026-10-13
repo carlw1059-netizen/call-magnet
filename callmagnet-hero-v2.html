@@ -401,118 +401,6 @@
   }
 
   /* ============================================== */
-  /* SECTION: Live counter                          */
-  /* ============================================== */
-  .counter-section {
-    padding: 100px 48px;
-    position: relative;
-    z-index: 2;
-    border-top: 1px solid var(--border);
-    background: linear-gradient(180deg, transparent, rgba(6, 214, 160, 0.02));
-  }
-  .counter-inner {
-    max-width: 1100px;
-    margin: 0 auto;
-    text-align: center;
-  }
-  .counter-eyebrow {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--burnt);
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-  }
-  .counter-eyebrow::before, .counter-eyebrow::after {
-    content: '';
-    width: 32px; height: 1px;
-    background: var(--burnt);
-  }
-  .live-dot {
-    display: inline-block;
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--burnt);
-    margin-right: 8px;
-    box-shadow: 0 0 12px var(--burnt);
-    animation: blink 1.2s infinite;
-  }
-  .counter-title {
-    font-family: 'Fraunces', serif;
-    font-size: clamp(28px, 3.6vw, 44px);
-    font-weight: 400;
-    line-height: 1.15;
-    max-width: 800px;
-    margin: 0 auto 48px;
-    letter-spacing: -0.02em;
-  }
-  .counter-title em {
-    font-style: italic;
-    color: var(--burnt);
-  }
-  .counter-display {
-    font-family: 'Fraunces', serif;
-    font-size: clamp(56px, 9vw, 128px);
-    font-weight: 500;
-    color: var(--burnt);
-    letter-spacing: -0.04em;
-    line-height: 1;
-    margin-bottom: 12px;
-    font-variant-numeric: tabular-nums;
-    text-shadow: 0 0 60px rgba(204, 85, 0, 0.4);
-  }
-  .counter-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--ink-mute);
-    margin-bottom: 48px;
-  }
-  .counter-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-    max-width: 800px;
-    margin: 0 auto;
-  }
-  .counter-cell {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 24px 20px;
-    text-align: left;
-  }
-  .counter-cell-num {
-    font-family: 'Fraunces', serif;
-    font-size: 32px;
-    font-weight: 500;
-    color: var(--emerald);
-    letter-spacing: -0.02em;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-  }
-  .counter-cell-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ink-mute);
-    margin-top: 10px;
-  }
-  .counter-footnote {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--ink-faint);
-    margin-top: 36px;
-    letter-spacing: 0.05em;
-  }
-
-  /* ============================================== */
   /* SECTION: ROI calculator                        */
   /* ============================================== */
   .calc-section {
@@ -767,8 +655,7 @@
     .stats { gap: 28px; }
     .stat-num { font-size: 26px; }
     h1 { font-size: clamp(40px, 11vw, 60px); }
-    .counter-section, .calc-section { padding: 60px 24px; }
-    .counter-grid { grid-template-columns: 1fr; }
+    .calc-section { padding: 60px 24px; }
     .calc-inner { grid-template-columns: 1fr; gap: 36px; }
     .activity { left: 12px; right: 12px; max-width: none; bottom: 12px; }
   }
@@ -783,7 +670,7 @@
   </div>
   <div class="nav-links">
     <a href="#how">How it works</a>
-    <a href="#counter">Live counter</a>
+
     <a href="#calc">Your losses</a>
     <a href="#">Sign in</a>
   </div>
@@ -847,38 +734,6 @@
       </div>
     </div>
     <div class="scene-caption"><span class="cap-word" style="animation-delay:0s">Call</span> → <span class="cap-word" style="animation-delay:0.6s">SMS</span> → <span class="cap-word" style="animation-delay:1.2s">Booking</span> · <span class="cap-word" style="animation-delay:1.8s">in under 5 seconds</span></div>
-  </div>
-</section>
-
-<!-- LIVE COUNTER -->
-<section class="counter-section" id="counter">
-  <div class="counter-inner">
-    <div class="counter-eyebrow"><span class="live-dot"></span>Live · Australia · Right now</div>
-    <h2 class="counter-title">
-      Right now, Australian businesses are losing <em>$253 per second</em><br>
-      to phones nobody can answer.
-    </h2>
-    <div class="counter-display" id="liveCounter">$0</div>
-    <div class="counter-label">Lost by AU venues since you opened this page</div>
-
-    <div class="counter-grid">
-      <div class="counter-cell">
-        <div class="counter-cell-num" id="callsToday">0</div>
-        <div class="counter-cell-label">Calls missed in AU today</div>
-      </div>
-      <div class="counter-cell">
-        <div class="counter-cell-num" id="lostToday">$0</div>
-        <div class="counter-cell-label">Revenue lost in AU today</div>
-      </div>
-      <div class="counter-cell">
-        <div class="counter-cell-num" id="recoverable">$0</div>
-        <div class="counter-cell-label">Recoverable with SMS</div>
-      </div>
-    </div>
-    <div class="counter-footnote">
-      Industry estimates based on $8B annual AU missed-call losses (Source: AU business publications, verified 2026).
-      Per-second figures projected. Replaced with CallMagnet client data as the platform grows.
-    </div>
   </div>
 </section>
 
@@ -1001,44 +856,6 @@ function tick(now) {
   requestAnimationFrame(tick);
 }
 requestAnimationFrame(tick);
-
-// ============================================
-// LIVE COUNTER ($253/sec since page open)
-// ============================================
-const PER_SECOND = 253; // $8B / 365 / 86400 ≈ $253.67
-const liveCounter = document.getElementById('liveCounter');
-const callsToday = document.getElementById('callsToday');
-const lostToday = document.getElementById('lostToday');
-const recoverable = document.getElementById('recoverable');
-
-const pageOpenTime = Date.now();
-// Seed today's running totals - calculated since midnight AEST
-const now = new Date();
-const midnight = new Date(now);
-midnight.setHours(0, 0, 0, 0);
-const secondsToday = Math.floor((now - midnight) / 1000);
-let runningLostToday = secondsToday * PER_SECOND;
-let runningCallsToday = Math.floor(secondsToday * 0.42); // approx calls/sec rate
-
-function formatMoney(n) {
-  return '$' + Math.floor(n).toLocaleString('en-AU');
-}
-function formatNumber(n) {
-  return Math.floor(n).toLocaleString('en-AU');
-}
-
-function updateCounter() {
-  const secsSinceLoad = (Date.now() - pageOpenTime) / 1000;
-  const sinceLoad = secsSinceLoad * PER_SECOND;
-  liveCounter.textContent = formatMoney(sinceLoad);
-
-  runningLostToday += PER_SECOND / 10;  // 10 updates per second
-  runningCallsToday += 0.042;
-  lostToday.textContent = formatMoney(runningLostToday);
-  callsToday.textContent = formatNumber(runningCallsToday);
-  recoverable.textContent = formatMoney(runningLostToday * 0.6);
-}
-setInterval(updateCounter, 100);
 
 // ============================================
 // ROI CALCULATOR
