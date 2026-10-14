@@ -88,7 +88,8 @@
 
   .hero {
     min-height: 88vh;
-    overflow: hidden;
+    overflow-x: clip;
+    overflow-y: visible;
     display: grid;
     grid-template-columns: 1.1fr 1fr;
     gap: 40px;
@@ -339,7 +340,7 @@
   .push-pill {
     position: absolute;
     top: 32px;
-    right: -180px;
+    right: -160px;
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -347,7 +348,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    width: 220px;
+    width: 200px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.4);
     animation: pillArrive 4s ease-in-out infinite;
   }
@@ -1151,7 +1152,7 @@
     .hero { grid-template-columns: 1fr; padding: 100px 24px 40px; gap: 40px; }
     .scene-wrap { height: 440px; }
     .phone { width: 180px; height: 360px; }
-    .push-pill { right: -120px; width: 160px; font-size: 9px; }
+    .push-pill { display: none; }
     .stats { gap: 24px; }
     .stat-num { font-size: 26px; }
     h1 { font-size: clamp(40px, 11vw, 64px); }
