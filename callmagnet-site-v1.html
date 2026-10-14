@@ -338,36 +338,8 @@
     color: var(--ink-mute);
     text-transform: uppercase;
   }
-  .push-pill {
-    position: absolute;
-    top: 32px;
-    right: -160px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 200px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-    animation: pillArrive 4s ease-in-out infinite;
-  }
-  .push-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--emerald);
-    flex-shrink: 0;
-    box-shadow: 0 0 8px var(--emerald);
-    animation: blink 1.4s infinite;
-  }
-  .push-text {
-    font-size: 11px;
-    line-height: 1.4;
-    color: var(--ink);
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .push-text strong { color: var(--emerald); font-weight: 500; }
+
+
   .scene-caption {
     position: absolute;
     bottom: 12px;
@@ -394,11 +366,7 @@
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-10px); }
   }
-  @keyframes pillArrive {
-    0%, 20% { opacity: 0; transform: translateX(12px); }
-    35%, 85% { opacity: 1; transform: translateX(0); }
-    100% { opacity: 0; transform: translateX(0); }
-  }
+
   @keyframes capFlash {
     0%, 100% { color: var(--ink-mute); }
     50% { color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.6); }
@@ -1245,10 +1213,7 @@
             </div>
           </div>
         </div>
-        <div class="push-pill">
-          <div class="push-dot"></div>
-          <div class="push-text"><strong>Book a table</strong> tapped · Marco's Pizzeria</div>
-        </div>
+
       </div>
       <div class="scene-caption"><span class="cap-word" style="animation-delay:0s">Call</span> → <span class="cap-word" style="animation-delay:0.6s">SMS</span> → <span class="cap-word" style="animation-delay:1.2s">Branded page</span> → <span class="cap-word" style="animation-delay:1.8s">You're notified</span></div>
     </div>
