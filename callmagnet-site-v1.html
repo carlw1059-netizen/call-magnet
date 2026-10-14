@@ -1567,6 +1567,7 @@ recalc();
 (function() {
   const stickyCta = document.getElementById('sticky-cta');
   const hero = document.querySelector('.hero');
+  if (!stickyCta || !hero) return;
   const heroObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (!entry.isIntersecting) {
