@@ -1546,7 +1546,7 @@ function recalc() {
 [callsSlider, valueSlider, convSlider].forEach(s => s.addEventListener('input', recalc));
 recalc();
 
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
   const cards = document.querySelectorAll('.feature-card, .step, .pricing-card');
   cards.forEach(el => el.classList.add('card-reveal'));
   const cardObserver = new IntersectionObserver((entries) => {
@@ -1562,7 +1562,7 @@ recalc();
     });
   }, { threshold: 0.15 });
   cards.forEach(el => cardObserver.observe(el));
-})();
+});
 
 (function() {
   const stickyCta = document.getElementById('sticky-cta');
