@@ -1038,6 +1038,17 @@
   .sect-reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.7s ease, transform 0.7s ease; }
   .sect-reveal.sect-visible { opacity: 1; transform: translateY(0); }
 
+  #scroll-progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 2px;
+    width: 0%;
+    background: var(--emerald);
+    box-shadow: 0 0 8px rgba(6,214,160,0.6);
+    z-index: 999;
+    transition: width 0.1s linear;
+  }
+
   @media (max-width: 900px) {
     nav { padding: 18px 24px; }
     .nav-links { display: none; }
@@ -1067,6 +1078,8 @@
 </style>
 </head>
 <body>
+
+<div id="scroll-progress"></div>
 
 <nav>
   <a class="logo" href="#">
@@ -1417,6 +1430,14 @@ function recalc() {
 }
 [callsSlider, valueSlider, convSlider].forEach(s => s.addEventListener('input', recalc));
 recalc();
+
+// scroll progress bar
+window.addEventListener('scroll', () => {
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+  document.getElementById('scroll-progress').style.width = pct + '%';
+});
 
 // scroll-triggered h2 reveal
 const sectionH2s = document.querySelectorAll('h2.section-title, h2.calc-title');
