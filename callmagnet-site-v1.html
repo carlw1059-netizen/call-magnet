@@ -88,6 +88,7 @@
 
   .hero {
     min-height: 88vh;
+    overflow: hidden;
     display: grid;
     grid-template-columns: 1.1fr 1fr;
     gap: 40px;
@@ -226,8 +227,10 @@
     position: relative;
     height: 600px;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
+    padding-top: 40px;
+    overflow: visible;
   }
   .glow-orb {
     position: absolute;
@@ -1038,6 +1041,54 @@
   .sect-reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.7s ease, transform 0.7s ease; }
   .sect-reveal.sect-visible { opacity: 1; transform: translateY(0); }
 
+  .ticker-wrap {
+    width: 100%;
+    overflow: hidden;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 0;
+    position: relative;
+    z-index: 2;
+    background: var(--bg);
+  }
+  .ticker-wrap::before,
+  .ticker-wrap::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 80px;
+    z-index: 2;
+  }
+  .ticker-wrap::before {
+    left: 0;
+    background: linear-gradient(90deg, var(--bg), transparent);
+  }
+  .ticker-wrap::after {
+    right: 0;
+    background: linear-gradient(270deg, var(--bg), transparent);
+  }
+  .ticker {
+    display: flex;
+    gap: 32px;
+    width: max-content;
+    animation: tickerScroll 18s linear infinite;
+  }
+  .ticker span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    white-space: nowrap;
+  }
+  .ticker-dot {
+    color: var(--emerald) !important;
+  }
+  @keyframes tickerScroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
   #sticky-cta {
     position: fixed;
     bottom: 28px;
@@ -1150,7 +1201,7 @@
       <span class="line-3">conversation.</span>
     </h1>
     <p class="sub">
-      When your phone goes unanswered, CallMagnet sends your caller a <strong>branded mobile page</strong> — your logo, your video, your buttons. They tap. You get notified instantly.
+      When your phone goes unanswered, CallMagnet sends your caller a <strong>branded mobile page</strong> — your logo, your video, your buttons. They tap. You get notified instantly. <em style="color:var(--emerald); font-style:italic;">Here's what they actually see.</em>
     </p>
     <div class="hero-ctas">
       <a href="#how" class="btn-primary">See how it works →</a>
@@ -1205,6 +1256,25 @@
     <div class="scroll-hint-arrow">↓</div>
   </div>
 </section>
+
+<div class="ticker-wrap">
+  <div class="ticker">
+    <span>Restaurants</span><span class="ticker-dot">·</span>
+    <span>Bars</span><span class="ticker-dot">·</span>
+    <span>Cafés</span><span class="ticker-dot">·</span>
+    <span>Barbers</span><span class="ticker-dot">·</span>
+    <span>Hairdressers</span><span class="ticker-dot">·</span>
+    <span>Tradies</span><span class="ticker-dot">·</span>
+    <span>Clinics</span><span class="ticker-dot">·</span>
+    <span>Restaurants</span><span class="ticker-dot">·</span>
+    <span>Bars</span><span class="ticker-dot">·</span>
+    <span>Cafés</span><span class="ticker-dot">·</span>
+    <span>Barbers</span><span class="ticker-dot">·</span>
+    <span>Hairdressers</span><span class="ticker-dot">·</span>
+    <span>Tradies</span><span class="ticker-dot">·</span>
+    <span>Clinics</span><span class="ticker-dot">·</span>
+  </div>
+</div>
 
 <section class="how" id="how">
   <div class="how-inner">
