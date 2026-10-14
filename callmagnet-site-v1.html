@@ -1038,6 +1038,41 @@
   .sect-reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.7s ease, transform 0.7s ease; }
   .sect-reveal.sect-visible { opacity: 1; transform: translateY(0); }
 
+  #sticky-cta {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    background: var(--bg-card);
+    border: 1px solid rgba(6,214,160,0.3);
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 90;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+  }
+  #sticky-cta.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  #sticky-cta span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-mute);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  @media (max-width: 900px) {
+    #sticky-cta span { display: none; }
+    #sticky-cta { bottom: 16px; right: 16px; }
+  }
+
   .card-reveal {
     opacity: 0;
     transform: translateY(24px);
@@ -1459,6 +1494,21 @@ recalc();
   cards.forEach(el => cardObserver.observe(el));
 })();
 
+(function() {
+  const stickyCta = document.getElementById('sticky-cta');
+  const hero = document.querySelector('.hero');
+  const heroObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) {
+        stickyCta.classList.add('visible');
+      } else {
+        stickyCta.classList.remove('visible');
+      }
+    });
+  }, { threshold: 0.1 });
+  heroObserver.observe(hero);
+})();
+
 // scroll progress bar
 window.addEventListener('scroll', () => {
   const scrollTop = window.scrollY;
@@ -1475,6 +1525,11 @@ const revealIO = new IntersectionObserver((entries) => {
 }, { threshold: 0.2 });
 sectionH2s.forEach(el => revealIO.observe(el));
 </script>
+
+<div id="sticky-cta">
+  <span>Ready to stop losing calls?</span>
+  <a href="#pricing" class="btn-primary" style="padding:10px 20px; font-size:11px;">Get started →</a>
+</div>
 
 </body>
 </html>
