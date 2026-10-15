@@ -101,7 +101,7 @@
     overflow-x: clip;
     overflow-y: visible;
     display: grid;
-    grid-template-columns: 1.1fr 1fr;
+    grid-template-columns: 1.1fr 0.5fr 0.55fr;
     gap: 40px;
     align-items: center;
     padding: 120px 48px 24px;
@@ -226,6 +226,25 @@
     margin-top: 8px;
   }
   .asterisk { font-size: 0.5em; vertical-align: super; }
+  .hero-phone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .phone--sm {
+    width: 180px;
+    height: 360px;
+    border-radius: 30px;
+  }
+  .phone--sm .phone-screen {
+    inset: 10px;
+    border-radius: 22px;
+    padding: 36px 12px 15px;
+  }
+  .phone--sm .notch {
+    width: 60px;
+    height: 16px;
+  }
   .hero-scene {
     min-height: 400px;
     display: flex;
@@ -1205,6 +1224,7 @@
     .nav-links.open { display: flex; }
     .nav-links a { padding: 10px 0; font-size: 13px; color: #E8EEF2; }
     .hero { grid-template-columns: 1fr; padding: 100px 24px 40px; gap: 40px; }
+    .hero-phone { display: none; }
     .scene-wrap { height: 440px; }
     .phone { width: 180px; height: 360px; }
     .push-pill { display: none; }
@@ -1286,6 +1306,27 @@
         <div>
           <div class="stat-num">85%<sup class="asterisk">*</sup></div>
           <div class="stat-label">Never call back</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-phone">
+    <div class="scene">
+      <div class="phone phone--sm">
+        <div class="notch"></div>
+        <div class="phone-screen">
+          <div class="mm-logo">★ Venue Name</div>
+          <div class="mm-buttons">
+            <div class="mm-btn mm-btn--1">📅 Book a table</div>
+            <div class="mm-btn mm-btn--2">🎉 Function enquiry</div>
+            <div class="mm-btn mm-btn--3">💬 Send a message</div>
+            <div class="mm-btn mm-btn--4">📋 View menu</div>
+          </div>
+          <div class="mm-socials">
+            <div class="mm-social-icon">ig</div>
+            <div class="mm-social-icon">fb</div>
+            <div class="mm-social-icon">tt</div>
+          </div>
         </div>
       </div>
     </div>
