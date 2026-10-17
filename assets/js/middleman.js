@@ -913,6 +913,16 @@
       // Apply neon colour — uses btn.color if set, else falls back to NEON[idx]
       applyNeon(btnEl, idx, btn.color || null);
 
+      // Background style: 'opaque' (default), 'clear', or 'solid'
+      if (btn.bg === 'clear') {
+        btnEl.style.background = 'transparent';
+        btnEl.style.backdropFilter = 'none';
+        btnEl.style.webkitBackdropFilter = 'none';
+      } else if (btn.bg === 'solid') {
+        btnEl.style.background = btn.color || NEON[Math.min(idx, NEON.length - 1)];
+        btnEl.style.color = '#0E1419';
+      }
+
       // Glow toggle: animate=false → hide glow. Default (true/undefined) → glow shows normally.
       if (btn.animate === false) {
         btnEl.classList.add('glow-off');

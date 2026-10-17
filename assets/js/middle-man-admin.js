@@ -1014,6 +1014,11 @@ function buildBtnRowHtml(btn, idx) {
           '<option value="">No effect</option>' +
           '<option value="shake"' + (btn.effect === 'shake' ? ' selected' : '') + '>Shake</option>' +
         '</select>' +
+        '<select class="mma-btn-bg" style="border-radius:6px;border:1px solid #ccc;font-size:12px;padding:0 4px;background:#fff;color:#000;cursor:pointer;">' +
+          '<option value="opaque"' + ((!btn.bg || btn.bg === 'opaque') ? ' selected' : '') + '>Opaque</option>' +
+          '<option value="clear"' + (btn.bg === 'clear' ? ' selected' : '') + '>Clear</option>' +
+          '<option value="solid"' + (btn.bg === 'solid' ? ' selected' : '') + '>Solid</option>' +
+        '</select>' +
       '</div>' +
     '</div>' +
     '<div class="btn-right-col">' +
@@ -1260,6 +1265,7 @@ async function saveButtons() {
       animate:      animate,
       sparkles:     sparklesBtn ? sparklesBtn.classList.contains('mma-btn-sparkles-on') : false,
       effect:       (row.querySelector('.mma-btn-effect') || {value:''}).value || '',
+      bg:           (row.querySelector('.mma-btn-bg')     || {value:'opaque'}).value || 'opaque',
       url:          (function(v) { return v && !/^(https?:|mailto:|tel:)/i.test(v) ? 'https://' + v : v; })((row.querySelector('.mma-btn-url') || { value: '' }).value.trim()),
       emoji:        (row.querySelector('.mma-btn-emoji-pick') || {}).dataset && row.querySelector('.mma-btn-emoji-pick').dataset.emoji || '',
       push_title:   uiTitle || (typeof existing.push_title   === 'string' ? existing.push_title   : ''),
@@ -2059,8 +2065,12 @@ function renderPreview() {
           var animate     = pulseBtn ? pulseBtn.classList.contains('mma-btn-pulse-on') : true;
           var sparklesBtn = row.querySelector('.mma-btn-sparkles');
           var hasSparkles = sparklesBtn ? sparklesBtn.classList.contains('mma-btn-sparkles-on') : false;
+          var bgSel       = row.querySelector('.mma-btn-bg');
+          var bgVal       = bgSel ? bgSel.value : 'opaque';
+          var bgStyle     = bgVal === 'clear' ? 'background:transparent;backdrop-filter:none;' :
+                            bgVal === 'solid' ? 'background:' + color + ';color:#0E1419;' : '';
           if (!label || !enabled) return;
-          html += '<div class="mma-preview-btn' + (!animate ? ' glow-off' : '') + '" style="--prev-neon:' + color + ';position:relative;">' +
+          html += '<div class="mma-preview-btn' + (!animate ? ' glow-off' : '') + '" style="--prev-neon:' + color + ';position:relative;' + bgStyle + '">' +
             _e(label) +
             (hasSparkles ? '<span style="position:absolute;top:1px;right:3px;font-size:6px;line-height:1;opacity:0.7;pointer-events:none;">✨</span>' : '') +
             '</div>';
@@ -2081,6 +2091,9 @@ function wirePreview() {
   });
   document.querySelectorAll('.mma-btn-pulse').forEach(function(el) {
     el.addEventListener('click', function() { setTimeout(renderPreview, 10); });
+  });
+  document.querySelectorAll('.mma-btn-bg').forEach(function(el) {
+    el.addEventListener('change', renderPreview);
   });
 }
 
