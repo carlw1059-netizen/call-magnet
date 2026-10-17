@@ -316,6 +316,8 @@
     user-select: none;
     text-decoration: none;
     touch-action: manipulation;
+    appearance: none;
+    -webkit-appearance: none;
   }
   .tap-btn:active, .tap-btn.pressed {
     opacity: 0.72;
