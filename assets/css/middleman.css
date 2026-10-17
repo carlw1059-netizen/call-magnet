@@ -240,10 +240,10 @@
     position: relative;
     width: calc(100% - 48px);
     max-width: 440px;
-    margin: 0 auto 14px;
+    margin: 0 auto;
     transition: transform 0.3s ease;
   }
-  .btn-unit:last-child { margin-bottom: 2px; }
+  .btn-unit:last-child { margin-bottom: 20px; }
 
   /* Tapped unit: single compositor layer, neon border driven by --neon var */
   .btn-unit.form-open {
