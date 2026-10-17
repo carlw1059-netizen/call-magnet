@@ -937,6 +937,12 @@
 
     if (enabled.length === 0) wrap.style.display = 'none';
 
+    if (typeof gsap !== 'undefined' && enabled.length > 0) {
+      gsap.from(wrap.querySelectorAll('.btn-unit'), {
+        opacity: 0, y: 20, duration: 0.5, stagger: 0.1, ease: 'power2.out'
+      });
+    }
+
     // ── "See what's on" ───────────────────────────────────────────────────
     if (showWhatsOn) {
       document.getElementById('whatsOnSection').style.display = 'block';
