@@ -147,6 +147,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   // URL buttons → notify here. Form buttons → skip (submit-middle-man-form fires its own).
   let notifyTitle:   string | null = null;
   let notifyMessage: string | null = null;
+  let pushNotify = true;
 
   try {
     const btns: Array<Record<string, unknown>> = Array.isArray(clientRow.middle_man_buttons)
@@ -161,6 +162,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     );
 
     if (match) {
+      if (match.push_notify === false) pushNotify = false;
       const hasUrl = typeof match.url === 'string' && (match.url as string).trim() !== '';
       if (!hasUrl) {
         // Form button — submit-middle-man-form will fire the push on submission
@@ -185,7 +187,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   if (!INTERNAL_SECRET) {
     console.warn('log-middle-man-tap: INTERNAL_SECRET not configured — skipping send-client-notification');
-  } else if (notifyTitle && notifyMessage) {
+  } else if (pushNotify && notifyTitle && notifyMessage) {
     fetch(`${SUPABASE_URL}/functions/v1/send-client-notification`, {
       method:  'POST',
       headers: {
