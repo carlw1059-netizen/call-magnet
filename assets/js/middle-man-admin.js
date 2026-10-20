@@ -1024,6 +1024,8 @@ function buildBtnRowHtml(btn, idx) {
     '<div class="btn-right-col">' +
       '<input type="url" class="mma-btn-infopack" value="' + _e(btn.infopack_url || '') + '" placeholder="Info pack URL (optional)…" />' +
       '<input type="text" class="mma-btn-confirmation" value="' + _e(btn.confirmation_message || '') + '" maxlength="160" placeholder="Success message (optional)…" />' +
+      '<label class="mma-field-row"><span>Push notification</span>' +
+      '<input type="checkbox" class="mma-btn-push-notify"' + (btn.push_notify === false ? '' : ' checked') + ' title="Send push notification when this button is tapped" /></label>' +
     '</div>' +
     '<button type="button" class="mma-btn-remove" title="Remove">×</button>' +
   '</div>';
@@ -1272,6 +1274,7 @@ async function saveButtons() {
       push_message: uiMsg   || (typeof existing.push_message === 'string' ? existing.push_message : ''),
       infopack_url:         (row.querySelector('.mma-btn-infopack')     || { value: '' }).value.trim(),
       confirmation_message: (row.querySelector('.mma-btn-confirmation') || { value: '' }).value.trim() || (typeof existing.confirmation_message === 'string' ? existing.confirmation_message : ''),
+      push_notify: row.querySelector('.mma-btn-push-notify') ? row.querySelector('.mma-btn-push-notify').checked : true,
     });
   });
   try {
@@ -1558,6 +1561,7 @@ async function saveNotifications() {
       push_message:       msgEl   ? msgEl.value.trim()   : '',
       infopack_url:         (row.querySelector('.mma-btn-infopack')     || { value: '' }).value.trim(),
       confirmation_message: (row.querySelector('.mma-btn-confirmation') || { value: '' }).value.trim(),
+      push_notify: row.querySelector('.mma-btn-push-notify') ? row.querySelector('.mma-btn-push-notify').checked : true,
     });
   });
   try {
