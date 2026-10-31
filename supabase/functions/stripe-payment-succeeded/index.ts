@@ -18,11 +18,11 @@ async function getDashboardUrl(email: string): Promise<string> {
 		const { data } = await supa.auth.admin.generateLink({
 			type: "magiclink",
 			email,
-			options: { redirectTo: "https://callmagnet.com.au" },
+			options: { redirectTo: "https://app.callmagnet.com.au" },
 		});
-		return data?.properties?.action_link ?? "https://callmagnet.com.au";
+		return data?.properties?.action_link ?? "https://app.callmagnet.com.au";
 	} catch {
-		return "https://callmagnet.com.au";
+		return "https://app.callmagnet.com.au";
 	}
 }
 
@@ -225,7 +225,7 @@ Deno.serve(async (req) => {
 							) +
 							(carlCopy.buttonLabel
 								? ui.button(
-										"https://callmagnet.com.au",
+										"https://app.callmagnet.com.au",
 										escapeHtml(carlCopy.buttonLabel),
 									)
 								: "") +
@@ -270,7 +270,7 @@ Deno.serve(async (req) => {
 							) +
 							(payCopy.buttonLabel
 								? ui.button(
-										"https://callmagnet.com.au",
+										"https://app.callmagnet.com.au",
 										escapeHtml(payCopy.buttonLabel),
 									)
 								: "") +
@@ -289,7 +289,7 @@ Deno.serve(async (req) => {
 							to: clientGuardRows[0].email,
 							subject: payCopy.subject,
 							html: paymentHtml,
-							text: `Payment received.\n\nThanks for your payment, ${clientGuardRows[0].business_name}. We will be in touch within 24 hours to get your account configured and live.\n\nQuestions? hello@callmagnet.com.au\n\ncallmagnet.com.au\n`,
+							text: `Payment received.\n\nThanks for your payment, ${clientGuardRows[0].business_name}. We will be in touch within 24 hours to get your account configured and live.\n\nQuestions? hello@callmagnet.com.au\n\napp.callmagnet.com.au\n`,
 						}),
 					}).catch((e: Error) =>
 						console.warn(`checkout confirmation email failed — ${e?.message}`),
@@ -401,7 +401,7 @@ Deno.serve(async (req) => {
 					`From this moment — every time someone calls your business number and can't get through, they'll automatically receive an SMS with your booking link within seconds.\n\n` +
 					`You don't need to do anything. No app to monitor. No calls to return.\n\n` +
 					`One thing to do now: when a missed caller books with you, tap "+ Log a booking" in your dashboard. It takes two seconds and tracks exactly how much revenue CallMagnet is recovering for you.\n\n` +
-					`View your dashboard: https://callmagnet.com.au\n\n` +
+					`View your dashboard: https://app.callmagnet.com.au\n\n` +
 					`Questions? Reply to this email or contact hello@callmagnet.com.au\n` +
 					`We will never sell your data. Ever.\n`;
 				const emailRes = await fetch("https://api.resend.com/emails", {
