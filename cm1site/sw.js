@@ -1,5 +1,5 @@
 var CACHE = 'cm-v1';
-var ASSETS = ['/b.html'];
+var ASSETS = ['/index.html'];
 
 self.addEventListener('install', function(e) {
   e.waitUntil(
