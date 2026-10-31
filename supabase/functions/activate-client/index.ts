@@ -160,7 +160,7 @@ Deno.serve(async (req) => {
 			const copy = await getEmailParts("account_live", {
 				BUSINESS_NAME: client.business_name ?? "there",
 			});
-			const dashUrl = "https://callmagnet.com.au";
+			const dashUrl = "https://app.callmagnet.com.au";
 			const html = renderEmailShell(
 				copy.top +
 					(copy.buttonLabel
@@ -181,7 +181,7 @@ Deno.serve(async (req) => {
 					to: client.email,
 					subject: copy.subject,
 					html,
-					text: `${copy.subject}\n\nLog in at https://callmagnet.com.au\n\nQuestions? hello@callmagnet.com.au`,
+					text: `${copy.subject}\n\nLog in at https://app.callmagnet.com.au\n\nQuestions? hello@callmagnet.com.au`,
 				}),
 			}).catch((e: Error) =>
 				console.warn(`activate-client: live email failed — ${e?.message}`),
