@@ -33,277 +33,331 @@ import { escapeHtml, renderEmailShell } from "../_shared/emailStyles.ts";
 import { ui } from "../_shared/emailUi.ts";
 import { getEmailParts } from "../_shared/emailCopy.ts";
 
-const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const RESEND_API_KEY            = Deno.env.get('RESEND_API_KEY');
-const ALERT_TO                  = 'hello@callmagnet.com.au';
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const ALERT_TO = "hello@callmagnet.com.au";
 
 // ── Helper: convert HH:MM:SS time string to minutes since midnight ────────────
 function timeToMins(t: string): number {
-  const [h, m] = t.substring(0, 5).split(':').map(Number);
-  return h * 60 + m;
+	const [h, m] = t.substring(0, 5).split(":").map(Number);
+	return h * 60 + m;
 }
 
 // ── Helper: check if nowMins falls within a time window ──────────────────────
 // Handles midnight-spanning windows (e.g. 22:00 → 02:00)
-function inWindow(nowMins: number, startMins: number, endMins: number): boolean {
-  if (endMins > startMins) {
-    // Normal window (e.g. 09:00 → 17:00)
-    return nowMins >= startMins && nowMins < endMins;
-  } else {
-    // Midnight-spanning window (e.g. 22:00 → 02:00)
-    return nowMins >= startMins || nowMins < endMins;
-  }
+function inWindow(
+	nowMins: number,
+	startMins: number,
+	endMins: number,
+): boolean {
+	if (endMins > startMins) {
+		// Normal window (e.g. 09:00 → 17:00)
+		return nowMins >= startMins && nowMins < endMins;
+	} else {
+		// Midnight-spanning window (e.g. 22:00 → 02:00)
+		return nowMins >= startMins || nowMins < endMins;
+	}
 }
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://callmagnet.com.au',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+	"Access-Control-Allow-Origin": "https://callmagnet.com.au",
+	"Access-Control-Allow-Methods": "POST, OPTIONS",
+	"Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
 Deno.serve(async (req) => {
-  if (new URL(req.url).searchParams.get('warmup') === '1') {
-    return new Response(JSON.stringify({ warmup: 'ok' }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-    });
-  }
+	if (new URL(req.url).searchParams.get("warmup") === "1") {
+		return new Response(JSON.stringify({ warmup: "ok" }), {
+			status: 200,
+			headers: { "Content-Type": "application/json", ...corsHeaders },
+		});
+	}
 
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: corsHeaders });
-  }
+	if (req.method === "OPTIONS") {
+		return new Response(null, { status: 204, headers: corsHeaders });
+	}
 
-  if (req.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405, headers: corsHeaders });
-  }
+	if (req.method !== "POST") {
+		return new Response("Method Not Allowed", {
+			status: 405,
+			headers: corsHeaders,
+		});
+	}
 
-  try {
-    // ── Parse Twilio's form-encoded body ──────────────────────────────────
-    const form    = await req.formData();
-    const callSid = (form.get('CallSid') ?? '').toString().trim();
-    const from    = (form.get('From')    ?? '').toString().trim();
-    const to      = (form.get('To')      ?? '').toString().trim();
-    const bodyRaw = (form.get('Body')    ?? '').toString().trim();
-    const body    = bodyRaw.length > 0 ? bodyRaw : null;
+	try {
+		// ── Parse Twilio's form-encoded body ──────────────────────────────────
+		const form = await req.formData();
+		const callSid = (form.get("CallSid") ?? "").toString().trim();
+		const from = (form.get("From") ?? "").toString().trim();
+		const to = (form.get("To") ?? "").toString().trim();
+		const bodyRaw = (form.get("Body") ?? "").toString().trim();
+		const body = bodyRaw.length > 0 ? bodyRaw : null;
 
-    if (!callSid || !from || !to) {
-      return json(400, { error: 'missing_required_field', detail: 'CallSid, From, and To are all required' });
-    }
+		if (!callSid || !from || !to) {
+			return json(400, {
+				error: "missing_required_field",
+				detail: "CallSid, From, and To are all required",
+			});
+		}
 
-    // ── Look up client ────────────────────────────────────────────────────
-    // First fetch client by twilio_number only (works for all clients).
-    // If schedule_enabled, we also check twilio_number_2.
-    // We do a single broad fetch and filter in code to avoid two round trips.
-    const lookupRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/clients` +
-      `?or=(twilio_number.eq.${encodeURIComponent(to)},twilio_number_2.eq.${encodeURIComponent(to)})` +
-      `&is_test_account=eq.false&account_status=eq.active` +
-      `&select=id,business_name,schedule_enabled,twilio_number,twilio_number_2,manual_line_override`,
-      {
-        headers: {
-          apikey:        SUPABASE_SERVICE_ROLE_KEY,
-          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        },
-      },
-    );
-    if (!lookupRes.ok) {
-      throw new Error(`client_lookup_failed: ${lookupRes.status} ${await lookupRes.text()}`);
-    }
-    const allMatches = await lookupRes.json() as {
-      id:                   string;
-      business_name:        string;
-      schedule_enabled:     boolean;
-      twilio_number:        string | null;
-      twilio_number_2:      string | null;
-      manual_line_override: number | null;
-    }[];
+		// ── Look up client ────────────────────────────────────────────────────
+		// First fetch client by twilio_number only (works for all clients).
+		// If schedule_enabled, we also check twilio_number_2.
+		// We do a single broad fetch and filter in code to avoid two round trips.
+		const lookupRes = await fetch(
+			`${SUPABASE_URL}/rest/v1/clients` +
+				`?or=(twilio_number.eq.${encodeURIComponent(to)},twilio_number_2.eq.${encodeURIComponent(to)})` +
+				`&is_test_account=eq.false&account_status=eq.active` +
+				`&select=id,business_name,schedule_enabled,twilio_number,twilio_number_2,manual_line_override`,
+			{
+				headers: {
+					apikey: SUPABASE_SERVICE_ROLE_KEY,
+					Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+				},
+			},
+		);
+		if (!lookupRes.ok) {
+			throw new Error(
+				`client_lookup_failed: ${lookupRes.status} ${await lookupRes.text()}`,
+			);
+		}
+		const allMatches = (await lookupRes.json()) as {
+			id: string;
+			business_name: string;
+			schedule_enabled: boolean;
+			twilio_number: string | null;
+			twilio_number_2: string | null;
+			manual_line_override: number | null;
+		}[];
 
-    // Filter: if schedule_enabled=false, only match on twilio_number (Line 1).
-    // If schedule_enabled=true, match on either number.
-    const clients = allMatches.filter(c =>
-      c.twilio_number === to ||
-      (c.schedule_enabled && c.twilio_number_2 === to)
-    );
+		// Filter: if schedule_enabled=false, only match on twilio_number (Line 1).
+		// If schedule_enabled=true, match on either number.
+		const clients = allMatches.filter(
+			(c) =>
+				c.twilio_number === to ||
+				(c.schedule_enabled && c.twilio_number_2 === to),
+		);
 
-    // ── Orphaned call ─────────────────────────────────────────────────────
-    if (clients.length === 0) {
-      console.warn(`orphaned_call: no client found for To=${to} CallSid=${callSid}`);
-      return json(200, { ok: true, skipped: 'no_client_for_to_number' });
-    }
+		// ── Orphaned call ─────────────────────────────────────────────────────
+		if (clients.length === 0) {
+			console.warn(
+				`orphaned_call: no client found for To=${to} CallSid=${callSid}`,
+			);
+			return json(200, { ok: true, skipped: "no_client_for_to_number" });
+		}
 
-    const client       = clients[0];
-    const clientId     = client.id;
-    const businessName = client.business_name;
+		const client = clients[0];
+		const clientId = client.id;
+		const businessName = client.business_name;
 
-    // ── Blocked client check ──────────────────────────────────────────────
-    const blockedIds = (Deno.env.get('BLOCKED_CLIENT_IDS') ?? '')
-      .split(',').map((s: string) => s.trim()).filter(Boolean);
-    if (blockedIds.includes(clientId)) {
-      console.warn(`blocked_client: skipping all actions for client_id=${clientId} business=${businessName}`);
-      return json(200, { ok: true, skipped: 'blocked_client' });
-    }
+		// ── Blocked client check ──────────────────────────────────────────────
+		const blockedIds = (Deno.env.get("BLOCKED_CLIENT_IDS") ?? "")
+			.split(",")
+			.map((s: string) => s.trim())
+			.filter(Boolean);
+		if (blockedIds.includes(clientId)) {
+			console.warn(
+				`blocked_client: skipping all actions for client_id=${clientId} business=${businessName}`,
+			);
+			return json(200, { ok: true, skipped: "blocked_client" });
+		}
 
-    // ── Manual line override log ──────────────────────────────────────────
-    // Observation only — does not block SMS or change behaviour.
-    if (client.manual_line_override !== null && client.manual_line_override !== undefined) {
-      const onLine1  = to === client.twilio_number;
-      const onLine2  = to === client.twilio_number_2;
-      const expected = (client.manual_line_override === 1 && onLine1) || (client.manual_line_override === 2 && onLine2);
-      console.log(`manual_override: client=${clientId} to=${to} override=Line${client.manual_line_override} onLine1=${onLine1} onLine2=${onLine2} expected=${expected}`);
-    }
+		// ── Manual line override log ──────────────────────────────────────────
+		// Observation only — does not block SMS or change behaviour.
+		if (
+			client.manual_line_override !== null &&
+			client.manual_line_override !== undefined
+		) {
+			const onLine1 = to === client.twilio_number;
+			const onLine2 = to === client.twilio_number_2;
+			const expected =
+				(client.manual_line_override === 1 && onLine1) ||
+				(client.manual_line_override === 2 && onLine2);
+			console.log(
+				`manual_override: client=${clientId} to=${to} override=Line${client.manual_line_override} onLine1=${onLine1} onLine2=${onLine2} expected=${expected}`,
+			);
+		}
 
-    // ── Schedule gate-check ───────────────────────────────────────────────
-    // Only runs when schedule_enabled=true.
-    // Uses Postgres for timezone resolution — zero Deno timezone risk.
-    // SMS ALWAYS fires regardless of schedule state.
-    if (client.schedule_enabled) {
-      try {
-        const melbRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/rpc/get_melbourne_day_and_time`,
-          {
-            method:  'POST',
-            headers: {
-              apikey:         SUPABASE_SERVICE_ROLE_KEY,
-              Authorization:  `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({}),
-          },
-        );
-        if (!melbRes.ok) {
-          return json(500, { ok: false, error: 'Failed to get Melbourne time' });
-        }
-        const melb = await melbRes.json() as { day_name: string; time_mins: number };
-        const dayName = melb.day_name;
-        const nowMins = melb.time_mins;
+		// ── Schedule gate-check ───────────────────────────────────────────────
+		// Only runs when schedule_enabled=true.
+		// Uses Postgres for timezone resolution — zero Deno timezone risk.
+		// SMS ALWAYS fires regardless of schedule state.
+		if (client.schedule_enabled) {
+			try {
+				const melbRes = await fetch(
+					`${SUPABASE_URL}/rest/v1/rpc/get_melbourne_day_and_time`,
+					{
+						method: "POST",
+						headers: {
+							apikey: SUPABASE_SERVICE_ROLE_KEY,
+							Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({}),
+					},
+				);
+				if (!melbRes.ok) {
+					return json(500, {
+						ok: false,
+						error: "Failed to get Melbourne time",
+					});
+				}
+				const melb = (await melbRes.json()) as {
+					day_name: string;
+					time_mins: number;
+				};
+				const dayName = melb.day_name;
+				const nowMins = melb.time_mins;
 
-        // Fetch today's schedule row
-        const todayRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/client_schedules` +
-          `?client_id=eq.${encodeURIComponent(clientId)}` +
-          `&day_of_week=eq.${encodeURIComponent(dayName)}` +
-          `&is_active=eq.true&select=*&limit=1`,
-          {
-            headers: {
-              apikey:        SUPABASE_SERVICE_ROLE_KEY,
-              Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-            },
-          },
-        );
+				// Fetch today's schedule row
+				const todayRes = await fetch(
+					`${SUPABASE_URL}/rest/v1/client_schedules` +
+						`?client_id=eq.${encodeURIComponent(clientId)}` +
+						`&day_of_week=eq.${encodeURIComponent(dayName)}` +
+						`&is_active=eq.true&select=*&limit=1`,
+					{
+						headers: {
+							apikey: SUPABASE_SERVICE_ROLE_KEY,
+							Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+						},
+					},
+				);
 
-        if (todayRes.ok) {
-          const rows = await todayRes.json() as {
-            line1_start: string | null;
-            line1_end:   string | null;
-            line2_start: string | null;
-            line2_end:   string | null;
-          }[];
+				if (todayRes.ok) {
+					const rows = (await todayRes.json()) as {
+						line1_start: string | null;
+						line1_end: string | null;
+						line2_start: string | null;
+						line2_end: string | null;
+					}[];
 
-          if (rows.length === 0) {
-            // No schedule for today — fallback to Line 1
-            const onLine1  = to === client.twilio_number;
-            console.log(`schedule_check: client=${clientId} to=${to} day=${dayName} no_schedule_fallback=line1 onLine1=${onLine1} expected=${onLine1}`);
-          } else {
-            const row = rows[0];
-            let expectedLine: 1 | 2 | null = null;
+					if (rows.length === 0) {
+						// No schedule for today — fallback to Line 1
+						const onLine1 = to === client.twilio_number;
+						console.log(
+							`schedule_check: client=${clientId} to=${to} day=${dayName} no_schedule_fallback=line1 onLine1=${onLine1} expected=${onLine1}`,
+						);
+					} else {
+						const row = rows[0];
+						let expectedLine: 1 | 2 | null = null;
 
-            if (row.line1_start && row.line1_end) {
-              const l1Start = timeToMins(row.line1_start);
-              const l1End   = timeToMins(row.line1_end);
-              if (inWindow(nowMins, l1Start, l1End)) expectedLine = 1;
-            }
+						if (row.line1_start && row.line1_end) {
+							const l1Start = timeToMins(row.line1_start);
+							const l1End = timeToMins(row.line1_end);
+							if (inWindow(nowMins, l1Start, l1End)) expectedLine = 1;
+						}
 
-            if (expectedLine === null && row.line2_start && row.line2_end) {
-              const l2Start = timeToMins(row.line2_start);
-              const l2End   = timeToMins(row.line2_end);
-              if (inWindow(nowMins, l2Start, l2End)) expectedLine = 2;
-            }
+						if (expectedLine === null && row.line2_start && row.line2_end) {
+							const l2Start = timeToMins(row.line2_start);
+							const l2End = timeToMins(row.line2_end);
+							if (inWindow(nowMins, l2Start, l2End)) expectedLine = 2;
+						}
 
-            // Outside all windows — fallback to Line 1
-            if (expectedLine === null) expectedLine = 1;
+						// Outside all windows — fallback to Line 1
+						if (expectedLine === null) expectedLine = 1;
 
-            const onLine1    = to === client.twilio_number;
-            const onLine2    = to === client.twilio_number_2;
-            const expected   = (expectedLine === 1 && onLine1) || (expectedLine === 2 && onLine2);
+						const onLine1 = to === client.twilio_number;
+						const onLine2 = to === client.twilio_number_2;
+						const expected =
+							(expectedLine === 1 && onLine1) ||
+							(expectedLine === 2 && onLine2);
 
-            console.log(`schedule_check: client=${clientId} to=${to} day=${dayName} nowMins=${nowMins} expectedLine=${expectedLine} onLine1=${onLine1} onLine2=${onLine2} expected=${expected}`);
-          }
-        }
-      } catch (schedErr) {
-        // Schedule check is non-fatal — log and continue to SMS send
-        console.warn(`schedule_check_error: ${schedErr instanceof Error ? schedErr.message : String(schedErr)}`);
-      }
-    }
+						console.log(
+							`schedule_check: client=${clientId} to=${to} day=${dayName} nowMins=${nowMins} expectedLine=${expectedLine} onLine1=${onLine1} onLine2=${onLine2} expected=${expected}`,
+						);
+					}
+				}
+			} catch (schedErr) {
+				// Schedule check is non-fatal — log and continue to SMS send
+				console.warn(
+					`schedule_check_error: ${schedErr instanceof Error ? schedErr.message : String(schedErr)}`,
+				);
+			}
+		}
 
-    // ── Insert sms_events row ─────────────────────────────────────────────
-    const insertRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/sms_events`,
-      {
-        method: 'POST',
-        headers: {
-          apikey:         SUPABASE_SERVICE_ROLE_KEY,
-          Authorization:  `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-          'Content-Type': 'application/json',
-          Prefer:         'return=representation',
-        },
-        body: JSON.stringify({
-          client_id:       clientId,
-          customer_number: from,
-          client_number:   to,
-          twilio_call_sid: callSid,
-          message_body:    body,
-        }),
-      },
-    );
+		// ── Insert sms_events row ─────────────────────────────────────────────
+		const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/sms_events`, {
+			method: "POST",
+			headers: {
+				apikey: SUPABASE_SERVICE_ROLE_KEY,
+				Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+				"Content-Type": "application/json",
+				Prefer: "return=representation",
+			},
+			body: JSON.stringify({
+				client_id: clientId,
+				customer_number: from,
+				client_number: to,
+				twilio_call_sid: callSid,
+				message_body: body,
+			}),
+		});
 
-    if (insertRes.status === 409) {
-      console.log(`duplicate_call_sid: ${callSid} already logged for ${businessName}, returning 200`);
-      return json(200, { ok: true, duplicate: true });
-    }
+		if (insertRes.status === 409) {
+			console.log(
+				`duplicate_call_sid: ${callSid} already logged for ${businessName}, returning 200`,
+			);
+			return json(200, { ok: true, duplicate: true });
+		}
 
-    if (!insertRes.ok) {
-      throw new Error(`insert_failed: ${insertRes.status} ${await insertRes.text()}`);
-    }
+		if (!insertRes.ok) {
+			throw new Error(
+				`insert_failed: ${insertRes.status} ${await insertRes.text()}`,
+			);
+		}
 
-    const inserted   = await insertRes.json() as { id: string }[];
-    const smsEventId = inserted[0]?.id ?? null;
-    return json(200, { ok: true, id: smsEventId, sms_event_id: smsEventId, client_id: clientId });
+		const inserted = (await insertRes.json()) as { id: string }[];
+		const smsEventId = inserted[0]?.id ?? null;
+		return json(200, {
+			ok: true,
+			id: smsEventId,
+			sms_event_id: smsEventId,
+			client_id: clientId,
+		});
+	} catch (err) {
+		const errMsg = err instanceof Error ? err.message : String(err);
+		console.error(`twilio-missed-call fatal: ${errMsg}`);
 
-  } catch (err) {
-    const errMsg = err instanceof Error ? err.message : String(err);
-    console.error(`twilio-missed-call fatal: ${errMsg}`);
+		if (RESEND_API_KEY) {
+			const alertCopy = await getEmailParts("error_alert", {
+				FUNCTION_NAME: "twilio-missed-call",
+			});
+			const alertContent =
+				alertCopy.top +
+				ui.sub(
+					"A missed-call webhook errored — Twilio will retry, but investigate.",
+				) +
+				ui.panel(
+					ui.rows([
+						["Function", "twilio-missed-call"],
+						["Error", escapeHtml(String(errMsg))],
+						["Time", new Date().toISOString()],
+					]),
+				) +
+				ui.small("Twilio will retry — investigate in Supabase logs.");
+			fetch("https://api.resend.com/emails", {
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${RESEND_API_KEY}`,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					from: "CallMagnet Alerts <alerts@callmagnet.com.au>",
+					to: ALERT_TO,
+					subject: alertCopy.subject,
+					html: renderEmailShell(alertContent, alertCopy.preheader),
+				}),
+			}).catch(() => {});
+		}
 
-    if (RESEND_API_KEY) {
-      const alertCopy = await getEmailParts('error_alert', { FUNCTION_NAME: 'twilio-missed-call' });
-      const alertContent =
-        alertCopy.top +
-        ui.sub('A missed-call webhook errored — Twilio will retry, but investigate.') +
-        ui.panel(ui.rows([
-          ['Function', 'twilio-missed-call'],
-          ['Error', escapeHtml(String(errMsg))],
-          ['Time', new Date().toISOString()],
-        ])) +
-        ui.small('Twilio will retry — investigate in Supabase logs.');
-      fetch('https://api.resend.com/emails', {
-        method:  'POST',
-        headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          from:    'CallMagnet Alerts <alerts@callmagnet.com.au>',
-          to:      ALERT_TO,
-          subject: alertCopy.subject,
-          html:    renderEmailShell(alertContent, alertCopy.preheader),
-        }),
-      }).catch(() => {});
-    }
-
-    return json(500, { error: 'internal_error', detail: errMsg });
-  }
+		return json(500, { error: "internal_error", detail: errMsg });
+	}
 });
 
 function json(status: number, body: unknown): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json', ...corsHeaders },
-  });
+	return new Response(JSON.stringify(body), {
+		status,
+		headers: { "Content-Type": "application/json", ...corsHeaders },
+	});
 }

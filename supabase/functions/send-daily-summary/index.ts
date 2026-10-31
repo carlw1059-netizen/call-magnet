@@ -46,410 +46,490 @@
 // straightforward if we ever need historical 7d/30d).
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from 'npm:@supabase/supabase-js@2';
+import { createClient } from "npm:@supabase/supabase-js@2";
 import { BRAND, escapeHtml, renderEmailShell } from "../_shared/emailStyles.ts";
 
-const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const INTERNAL_SECRET           = Deno.env.get('INTERNAL_SECRET');
-const RESEND_API_KEY            = Deno.env.get('RESEND_API_KEY');
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const INTERNAL_SECRET = Deno.env.get("INTERNAL_SECRET");
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 const REVENUE_PER_BOOKING: Record<string, number> = {
-  restaurant:  75,
-  hairdresser: 100,
-  barber:      45,
-  tradie:      400,
+	restaurant: 75,
+	hairdresser: 100,
+	barber: 45,
+	tradie: 400,
 };
 const DEFAULT_REVENUE_PER_BOOKING = 75;
 
 const CONVERSION_RATE = 0.62;
 
 async function getDashboardUrl(email: string): Promise<string> {
-  const supa = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-  const { data, error } = await supa.auth.admin.generateLink({
-    type: 'magiclink',
-    email,
-    options: { redirectTo: 'https://callmagnet.com.au/?source=email' },
-  });
-  if (error || !data?.properties?.action_link) {
-    return 'https://callmagnet.com.au/?source=email';
-  }
-  return data.properties.action_link;
+	const supa = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+		auth: { autoRefreshToken: false, persistSession: false },
+	});
+	const { data, error } = await supa.auth.admin.generateLink({
+		type: "magiclink",
+		email,
+		options: { redirectTo: "https://callmagnet.com.au/?source=email" },
+	});
+	if (error || !data?.properties?.action_link) {
+		return "https://callmagnet.com.au/?source=email";
+	}
+	return data.properties.action_link;
 }
 
 interface ClientRow {
-  id:            string;
-  business_name: string;
-  email:         string;
-  vertical:      string | null;
+	id: string;
+	business_name: string;
+	email: string;
+	vertical: string | null;
 }
 
 interface ClientResult {
-  client_id:     string;
-  business_name: string;
-  email_sent:    boolean;
-  reason?:       string;
+	client_id: string;
+	business_name: string;
+	email_sent: boolean;
+	reason?: string;
 }
 
 Deno.serve(async (req) => {
-  if (new URL(req.url).searchParams.get('warmup') === '1') {
-    return new Response(JSON.stringify({ warmup: 'ok' }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+	if (new URL(req.url).searchParams.get("warmup") === "1") {
+		return new Response(JSON.stringify({ warmup: "ok" }), {
+			status: 200,
+			headers: { "Content-Type": "application/json" },
+		});
+	}
 
-  if (req.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 });
-  }
+	if (req.method !== "POST") {
+		return new Response("Method Not Allowed", { status: 405 });
+	}
 
-  try {
-    if (!INTERNAL_SECRET) {
-      console.error('send-daily-summary: INTERNAL_SECRET missing from env');
-      return json(500, { error: 'config_error', detail: 'shared secret not configured in Vault' });
-    }
+	try {
+		if (!INTERNAL_SECRET) {
+			console.error("send-daily-summary: INTERNAL_SECRET missing from env");
+			return json(500, {
+				error: "config_error",
+				detail: "shared secret not configured in Vault",
+			});
+		}
 
-    if (req.headers.get('X-Internal-Secret') !== INTERNAL_SECRET) {
-      return json(401, { error: 'unauthorized' });
-    }
+		if (req.headers.get("X-Internal-Secret") !== INTERNAL_SECRET) {
+			return json(401, { error: "unauthorized" });
+		}
 
-    if (!RESEND_API_KEY) {
-      console.error('send-daily-summary: RESEND_API_KEY missing from env');
-      return json(500, { error: 'config_error', detail: 'RESEND_API_KEY not configured' });
-    }
+		if (!RESEND_API_KEY) {
+			console.error("send-daily-summary: RESEND_API_KEY missing from env");
+			return json(500, {
+				error: "config_error",
+				detail: "RESEND_API_KEY not configured",
+			});
+		}
 
-    // DST self-gate: two cron entries fire this function (13:00 UTC for AEST
-    // winter, 12:00 UTC for AEDT summer). Only the one landing on Melbourne
-    // hour 23 should proceed; the other returns immediately without touching
-    // the DB or sending emails.
-    const melbourneHour = parseInt(
-      new Intl.DateTimeFormat('en-AU', {
-        hour:     'numeric',
-        hour12:   false,
-        timeZone: 'Australia/Melbourne',
-      }).format(new Date()),
-      10,
-    );
-    if (melbourneHour !== 23) {
-      console.log(`send-daily-summary: skipping — Melbourne hour=${melbourneHour}, expected 23`);
-      return json(200, { skipped: true, reason: 'not 23:00 Melbourne time' });
-    }
+		// DST self-gate: two cron entries fire this function (13:00 UTC for AEST
+		// winter, 12:00 UTC for AEDT summer). Only the one landing on Melbourne
+		// hour 23 should proceed; the other returns immediately without touching
+		// the DB or sending emails.
+		const melbourneHour = parseInt(
+			new Intl.DateTimeFormat("en-AU", {
+				hour: "numeric",
+				hour12: false,
+				timeZone: "Australia/Melbourne",
+			}).format(new Date()),
+			10,
+		);
+		if (melbourneHour !== 23) {
+			console.log(
+				`send-daily-summary: skipping — Melbourne hour=${melbourneHour}, expected 23`,
+			);
+			return json(200, { skipped: true, reason: "not 23:00 Melbourne time" });
+		}
 
-    // Compute today's date in Melbourne calendar terms — used as the
-    // summary_date key for daily_summary_runs and in the email subject.
-    const now            = new Date();
-    const melbDateString = formatMelbourneDate(now);                            // e.g. "Monday 4 May"
-    const melbIsoDate    = formatMelbourneIsoDate(now);                         // e.g. "2026-05-04"
+		// Compute today's date in Melbourne calendar terms — used as the
+		// summary_date key for daily_summary_runs and in the email subject.
+		const now = new Date();
+		const melbDateString = formatMelbourneDate(now); // e.g. "Monday 4 May"
+		const melbIsoDate = formatMelbourneIsoDate(now); // e.g. "2026-05-04"
 
-    // Three trailing windows, all cumulative (each includes "now" and runs
-    // backward). "Last 7 days" includes today; "Last 30 days" includes the
-    // past week and today. Matches natural-language reading.
-    const windowStartToday = new Date(now.getTime() - 24       * 60 * 60 * 1000).toISOString();
-    const windowStart7d    = new Date(now.getTime() - 7  * 24  * 60 * 60 * 1000).toISOString();
-    const windowStart30d   = new Date(now.getTime() - 30 * 24  * 60 * 60 * 1000).toISOString();
+		// Three trailing windows, all cumulative (each includes "now" and runs
+		// backward). "Last 7 days" includes today; "Last 30 days" includes the
+		// past week and today. Matches natural-language reading.
+		const windowStartToday = new Date(
+			now.getTime() - 24 * 60 * 60 * 1000,
+		).toISOString();
+		const windowStart7d = new Date(
+			now.getTime() - 7 * 24 * 60 * 60 * 1000,
+		).toISOString();
+		const windowStart30d = new Date(
+			now.getTime() - 30 * 24 * 60 * 60 * 1000,
+		).toISOString();
 
-    // ── fetch all active clients ───────────────────────────────────────────
-    // NOTE: spec said `subscription_status = 'active'` but the actual column
-    // is `account_status` (subscription_status doesn't exist on clients).
-    // Filtering on account_status as the only correct interpretation.
-    const clientsRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/clients?account_status=eq.active&cancellation_scheduled=eq.false&select=id,business_name,email,vertical`,
-      {
-        headers: {
-          apikey:        SUPABASE_SERVICE_ROLE_KEY,
-          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        },
-      },
-    );
-    if (!clientsRes.ok) {
-      throw new Error(`clients_lookup_failed: ${clientsRes.status} ${await clientsRes.text()}`);
-    }
-    const clients = await clientsRes.json() as ClientRow[];
+		// ── fetch all active clients ───────────────────────────────────────────
+		// NOTE: spec said `subscription_status = 'active'` but the actual column
+		// is `account_status` (subscription_status doesn't exist on clients).
+		// Filtering on account_status as the only correct interpretation.
+		const clientsRes = await fetch(
+			`${SUPABASE_URL}/rest/v1/clients?account_status=eq.active&cancellation_scheduled=eq.false&select=id,business_name,email,vertical`,
+			{
+				headers: {
+					apikey: SUPABASE_SERVICE_ROLE_KEY,
+					Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+				},
+			},
+		);
+		if (!clientsRes.ok) {
+			throw new Error(
+				`clients_lookup_failed: ${clientsRes.status} ${await clientsRes.text()}`,
+			);
+		}
+		const clients = (await clientsRes.json()) as ClientRow[];
 
-    const results: ClientResult[] = [];
+		const results: ClientResult[] = [];
 
-    for (const client of clients) {
-      try {
-        // Four count queries in parallel — three SMS windows + today's link taps.
-        const [missedCallsCount, missed7d, missed30d, linkTapsToday] = await Promise.all([
-          countSmsEventsForClient(client.id, windowStartToday),
-          countSmsEventsForClient(client.id, windowStart7d),
-          countSmsEventsForClient(client.id, windowStart30d),
-          countLinkClicksForClient(client.id, windowStartToday),
-        ]);
-        const smsSentCount = missedCallsCount;                                  // 1:1 today (see header note)
+		for (const client of clients) {
+			try {
+				// Four count queries in parallel — three SMS windows + today's link taps.
+				const [missedCallsCount, missed7d, missed30d, linkTapsToday] =
+					await Promise.all([
+						countSmsEventsForClient(client.id, windowStartToday),
+						countSmsEventsForClient(client.id, windowStart7d),
+						countSmsEventsForClient(client.id, windowStart30d),
+						countLinkClicksForClient(client.id, windowStartToday),
+					]);
+				const smsSentCount = missedCallsCount; // 1:1 today (see header note)
 
-        const revPerBooking =
-          (client.vertical && REVENUE_PER_BOOKING[client.vertical]) ?? DEFAULT_REVENUE_PER_BOOKING;
+				const revPerBooking =
+					(client.vertical && REVENUE_PER_BOOKING[client.vertical]) ??
+					DEFAULT_REVENUE_PER_BOOKING;
 
-        // Bookings round first because they display as an integer count
-        // ("Approximately N bookings recovered"). Revenue rounds the final
-        // product (count × rate × $/booking) instead of (rounded bookings ×
-        // $/booking) so it matches the dashboard tiles, which compute
-        // Math.round(count × multiplier × 0.62) directly. Single brand-
-        // consistent figure across both surfaces — no off-by-rounding skew.
+				// Bookings round first because they display as an integer count
+				// ("Approximately N bookings recovered"). Revenue rounds the final
+				// product (count × rate × $/booking) instead of (rounded bookings ×
+				// $/booking) so it matches the dashboard tiles, which compute
+				// Math.round(count × multiplier × 0.62) directly. Single brand-
+				// consistent figure across both surfaces — no off-by-rounding skew.
 
-        // Today
-        const estBookings   = Math.round(missedCallsCount * CONVERSION_RATE);
-        const estRevenue    = Math.round(missedCallsCount * CONVERSION_RATE * revPerBooking);
+				// Today
+				const estBookings = Math.round(missedCallsCount * CONVERSION_RATE);
+				const estRevenue = Math.round(
+					missedCallsCount * CONVERSION_RATE * revPerBooking,
+				);
 
-        // Last 7 days (cumulative — includes today)
-        const estBookings7d = Math.round(missed7d * CONVERSION_RATE);
-        const estRevenue7d  = Math.round(missed7d * CONVERSION_RATE * revPerBooking);
+				// Last 7 days (cumulative — includes today)
+				const estBookings7d = Math.round(missed7d * CONVERSION_RATE);
+				const estRevenue7d = Math.round(
+					missed7d * CONVERSION_RATE * revPerBooking,
+				);
 
-        // Last 30 days (cumulative — includes today)
-        const estBookings30d = Math.round(missed30d * CONVERSION_RATE);
-        const estRevenue30d  = Math.round(missed30d * CONVERSION_RATE * revPerBooking);
+				// Last 30 days (cumulative — includes today)
+				const estBookings30d = Math.round(missed30d * CONVERSION_RATE);
+				const estRevenue30d = Math.round(
+					missed30d * CONVERSION_RATE * revPerBooking,
+				);
 
-        // ── UPSERT daily_summary_runs row (today only — 7d/30d not persisted) ──
-        const upsertRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/daily_summary_runs?on_conflict=client_id,summary_date`,
-          {
-            method: 'POST',
-            headers: {
-              apikey:        SUPABASE_SERVICE_ROLE_KEY,
-              Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-              'Content-Type': 'application/json',
-              Prefer:        'resolution=merge-duplicates,return=representation',
-            },
-            // The conversion-rate switch from 55–70% range to single 62% means
-            // there is no longer a low/high pair. Persist the same value into
-            // both legacy columns so the schema stays untouched and any
-            // downstream readers continue to work; clamp on a future migration.
-            body: JSON.stringify({
-              client_id:               client.id,
-              summary_date:            melbIsoDate,
-              missed_calls_count:      missedCallsCount,
-              sms_sent_count:          smsSentCount,
-              estimated_bookings_low:  estBookings,
-              estimated_bookings_high: estBookings,
-              estimated_revenue_low:   estRevenue,
-              estimated_revenue_high:  estRevenue,
-              email_sent:              false,
-            }),
-          },
-        );
-        if (!upsertRes.ok) {
-          throw new Error(`daily_summary_runs_upsert_failed: ${upsertRes.status} ${await upsertRes.text()}`);
-        }
-        const upserted = await upsertRes.json() as { id: string }[];
-        const runId    = upserted[0]?.id;
+				// ── UPSERT daily_summary_runs row (today only — 7d/30d not persisted) ──
+				const upsertRes = await fetch(
+					`${SUPABASE_URL}/rest/v1/daily_summary_runs?on_conflict=client_id,summary_date`,
+					{
+						method: "POST",
+						headers: {
+							apikey: SUPABASE_SERVICE_ROLE_KEY,
+							Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+							"Content-Type": "application/json",
+							Prefer: "resolution=merge-duplicates,return=representation",
+						},
+						// The conversion-rate switch from 55–70% range to single 62% means
+						// there is no longer a low/high pair. Persist the same value into
+						// both legacy columns so the schema stays untouched and any
+						// downstream readers continue to work; clamp on a future migration.
+						body: JSON.stringify({
+							client_id: client.id,
+							summary_date: melbIsoDate,
+							missed_calls_count: missedCallsCount,
+							sms_sent_count: smsSentCount,
+							estimated_bookings_low: estBookings,
+							estimated_bookings_high: estBookings,
+							estimated_revenue_low: estRevenue,
+							estimated_revenue_high: estRevenue,
+							email_sent: false,
+						}),
+					},
+				);
+				if (!upsertRes.ok) {
+					throw new Error(
+						`daily_summary_runs_upsert_failed: ${upsertRes.status} ${await upsertRes.text()}`,
+					);
+				}
+				const upserted = (await upsertRes.json()) as { id: string }[];
+				const runId = upserted[0]?.id;
 
-        // ── send email ──────────────────────────────────────────────────────
-        if (!client.email) {
-          results.push({ client_id: client.id, business_name: client.business_name, email_sent: false, reason: 'no_email_on_record' });
-          continue;
-        }
+				// ── send email ──────────────────────────────────────────────────────
+				if (!client.email) {
+					results.push({
+						client_id: client.id,
+						business_name: client.business_name,
+						email_sent: false,
+						reason: "no_email_on_record",
+					});
+					continue;
+				}
 
-        const emailHtml = await buildSummaryEmail({
-          businessName:    client.business_name,
-          dateString:      melbDateString,
-          email:           client.email,
-          // Today
-          missedCalls:     missedCallsCount,
-          smsSent:         smsSentCount,
-          linkTaps:        linkTapsToday,
-          bookings:        estBookings,
-          revenue:         estRevenue,
-          // Last 7 days
-          missedCalls7d:   missed7d,
-          bookings7d:      estBookings7d,
-          revenue7d:       estRevenue7d,
-          // Last 30 days
-          missedCalls30d:  missed30d,
-          bookings30d:     estBookings30d,
-          revenue30d:      estRevenue30d,
-        });
+				const emailHtml = await buildSummaryEmail({
+					businessName: client.business_name,
+					dateString: melbDateString,
+					email: client.email,
+					// Today
+					missedCalls: missedCallsCount,
+					smsSent: smsSentCount,
+					linkTaps: linkTapsToday,
+					bookings: estBookings,
+					revenue: estRevenue,
+					// Last 7 days
+					missedCalls7d: missed7d,
+					bookings7d: estBookings7d,
+					revenue7d: estRevenue7d,
+					// Last 30 days
+					missedCalls30d: missed30d,
+					bookings30d: estBookings30d,
+					revenue30d: estRevenue30d,
+				});
 
-        const subject = buildSummarySubject(client.business_name, missedCallsCount);
+				const subject = buildSummarySubject(
+					client.business_name,
+					missedCallsCount,
+				);
 
-        const text =
-          `${subject}\n\n` +
-          `Hi ${client.business_name},\n\n` +
-          `Today: ${missedCallsCount} missed calls captured, ${smsSentCount} SMS sent, ${linkTapsToday} link taps, ~${estBookings} estimated bookings (~$${estRevenue} estimated revenue).\n` +
-          `Last 7 days: ${missed7d} missed calls, ~${estBookings7d} bookings (~$${estRevenue7d}).\n` +
-          `Last 30 days: ${missed30d} missed calls, ~${estBookings30d} bookings (~$${estRevenue30d}).\n\n` +
-          `Open your dashboard: https://callmagnet.com.au\n\n` +
-          `CallMagnet — callmagnet.com.au\n`;
-        const resendRes = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            Authorization:  `Bearer ${RESEND_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            from:    'CallMagnet <hello@callmagnet.com.au>',
-            to:      client.email,
-            subject,
-            html:    emailHtml,
-            text,
-          }),
-        });
+				const text =
+					`${subject}\n\n` +
+					`Hi ${client.business_name},\n\n` +
+					`Today: ${missedCallsCount} missed calls captured, ${smsSentCount} SMS sent, ${linkTapsToday} link taps, ~${estBookings} estimated bookings (~$${estRevenue} estimated revenue).\n` +
+					`Last 7 days: ${missed7d} missed calls, ~${estBookings7d} bookings (~$${estRevenue7d}).\n` +
+					`Last 30 days: ${missed30d} missed calls, ~${estBookings30d} bookings (~$${estRevenue30d}).\n\n` +
+					`Open your dashboard: https://callmagnet.com.au\n\n` +
+					`CallMagnet — callmagnet.com.au\n`;
+				const resendRes = await fetch("https://api.resend.com/emails", {
+					method: "POST",
+					headers: {
+						Authorization: `Bearer ${RESEND_API_KEY}`,
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						from: "CallMagnet <hello@callmagnet.com.au>",
+						to: client.email,
+						subject,
+						html: emailHtml,
+						text,
+					}),
+				});
 
-        if (!resendRes.ok) {
-          const errBody = await resendRes.text();
-          console.warn(`resend_failed for client_id=${client.id}: ${resendRes.status} ${errBody}`);
-          results.push({ client_id: client.id, business_name: client.business_name, email_sent: false, reason: `resend_${resendRes.status}` });
-          continue;
-        }
+				if (!resendRes.ok) {
+					const errBody = await resendRes.text();
+					console.warn(
+						`resend_failed for client_id=${client.id}: ${resendRes.status} ${errBody}`,
+					);
+					results.push({
+						client_id: client.id,
+						business_name: client.business_name,
+						email_sent: false,
+						reason: `resend_${resendRes.status}`,
+					});
+					continue;
+				}
 
-        // ── mark email_sent = true ──────────────────────────────────────────
-        if (runId) {
-          fetch(
-            `${SUPABASE_URL}/rest/v1/daily_summary_runs?id=eq.${encodeURIComponent(runId)}`,
-            {
-              method: 'PATCH',
-              headers: {
-                apikey:        SUPABASE_SERVICE_ROLE_KEY,
-                Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-                'Content-Type': 'application/json',
-                Prefer:        'return=minimal',
-              },
-              body: JSON.stringify({ email_sent: true, sent_at: new Date().toISOString() }),
-            },
-          ).catch((err) => console.warn(`mark_sent_failed for run_id=${runId}: ${err}`));
-        }
+				// ── mark email_sent = true ──────────────────────────────────────────
+				if (runId) {
+					fetch(
+						`${SUPABASE_URL}/rest/v1/daily_summary_runs?id=eq.${encodeURIComponent(runId)}`,
+						{
+							method: "PATCH",
+							headers: {
+								apikey: SUPABASE_SERVICE_ROLE_KEY,
+								Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+								"Content-Type": "application/json",
+								Prefer: "return=minimal",
+							},
+							body: JSON.stringify({
+								email_sent: true,
+								sent_at: new Date().toISOString(),
+							}),
+						},
+					).catch((err) =>
+						console.warn(`mark_sent_failed for run_id=${runId}: ${err}`),
+					);
+				}
 
-        results.push({ client_id: client.id, business_name: client.business_name, email_sent: true });
+				results.push({
+					client_id: client.id,
+					business_name: client.business_name,
+					email_sent: true,
+				});
+			} catch (clientErr) {
+				const errMsg =
+					clientErr instanceof Error ? clientErr.message : String(clientErr);
+				console.error(`per_client_error for client_id=${client.id}: ${errMsg}`);
+				results.push({
+					client_id: client.id,
+					business_name: client.business_name,
+					email_sent: false,
+					reason: errMsg,
+				});
+			}
+		}
 
-      } catch (clientErr) {
-        const errMsg = clientErr instanceof Error ? clientErr.message : String(clientErr);
-        console.error(`per_client_error for client_id=${client.id}: ${errMsg}`);
-        results.push({ client_id: client.id, business_name: client.business_name, email_sent: false, reason: errMsg });
-      }
-    }
-
-    return json(200, {
-      ok:             true,
-      summary_date:   melbIsoDate,
-      clients_count:  clients.length,
-      emails_sent:    results.filter(r => r.email_sent).length,
-      emails_failed:  results.filter(r => !r.email_sent).length,
-      results,
-    });
-
-  } catch (err) {
-    const errMsg = err instanceof Error ? err.message : String(err);
-    console.error(`send-daily-summary fatal: ${errMsg}`);
-    return json(500, { error: 'internal_error', detail: errMsg });
-  }
+		return json(200, {
+			ok: true,
+			summary_date: melbIsoDate,
+			clients_count: clients.length,
+			emails_sent: results.filter((r) => r.email_sent).length,
+			emails_failed: results.filter((r) => !r.email_sent).length,
+			results,
+		});
+	} catch (err) {
+		const errMsg = err instanceof Error ? err.message : String(err);
+		console.error(`send-daily-summary fatal: ${errMsg}`);
+		return json(500, { error: "internal_error", detail: errMsg });
+	}
 });
 
 // ── helpers ─────────────────────────────────────────────────────────────────
 
-async function countSmsEventsForClient(clientId: string, windowStartIso: string): Promise<number> {
-  return await countTableForClient('sms_events', 'received_at', clientId, windowStartIso);
+async function countSmsEventsForClient(
+	clientId: string,
+	windowStartIso: string,
+): Promise<number> {
+	return await countTableForClient(
+		"sms_events",
+		"received_at",
+		clientId,
+		windowStartIso,
+	);
 }
 
-async function countLinkClicksForClient(clientId: string, windowStartIso: string): Promise<number> {
-  // link_clicks is fed by both V1 (get-booking-url tap tracker, on
-  // clicked_at fallback to created_at) and V2 (rebrand.ly webhook, on
-  // clicked_at). We index on clicked_at, so the dashboard query also uses
-  // clicked_at — keeping one consistent timeline column for "tapped today".
-  return await countTableForClient('link_clicks', 'clicked_at', clientId, windowStartIso);
+async function countLinkClicksForClient(
+	clientId: string,
+	windowStartIso: string,
+): Promise<number> {
+	// link_clicks is fed by both V1 (get-booking-url tap tracker, on
+	// clicked_at fallback to created_at) and V2 (rebrand.ly webhook, on
+	// clicked_at). We index on clicked_at, so the dashboard query also uses
+	// clicked_at — keeping one consistent timeline column for "tapped today".
+	return await countTableForClient(
+		"link_clicks",
+		"clicked_at",
+		clientId,
+		windowStartIso,
+	);
 }
 
 async function countTableForClient(
-  table:       string,
-  tsColumn:    string,
-  clientId:    string,
-  windowStart: string,
+	table: string,
+	tsColumn: string,
+	clientId: string,
+	windowStart: string,
 ): Promise<number> {
-  // PostgREST count via Prefer: count=exact + HEAD-style empty body.
-  // Returns 0 when no rows match.
-  const url =
-    `${SUPABASE_URL}/rest/v1/${table}` +
-    `?client_id=eq.${encodeURIComponent(clientId)}` +
-    `&${tsColumn}=gte.${encodeURIComponent(windowStart)}` +
-    `&select=id`;
+	// PostgREST count via Prefer: count=exact + HEAD-style empty body.
+	// Returns 0 when no rows match.
+	const url =
+		`${SUPABASE_URL}/rest/v1/${table}` +
+		`?client_id=eq.${encodeURIComponent(clientId)}` +
+		`&${tsColumn}=gte.${encodeURIComponent(windowStart)}` +
+		`&select=id`;
 
-  const res = await fetch(url, {
-    method: 'HEAD',
-    headers: {
-      apikey:        SUPABASE_SERVICE_ROLE_KEY,
-      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-      Prefer:        'count=exact',
-    },
-  });
-  if (!res.ok) {
-    throw new Error(`count_${table}_failed: ${res.status} ${await res.text()}`);
-  }
-  // Content-Range header looks like "0-0/<total>" or "*/0" when empty.
-  const contentRange = res.headers.get('content-range') || '*/0';
-  const slash        = contentRange.lastIndexOf('/');
-  const totalStr     = slash >= 0 ? contentRange.slice(slash + 1) : '0';
-  const total        = parseInt(totalStr, 10);
-  return Number.isFinite(total) ? total : 0;
+	const res = await fetch(url, {
+		method: "HEAD",
+		headers: {
+			apikey: SUPABASE_SERVICE_ROLE_KEY,
+			Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+			Prefer: "count=exact",
+		},
+	});
+	if (!res.ok) {
+		throw new Error(`count_${table}_failed: ${res.status} ${await res.text()}`);
+	}
+	// Content-Range header looks like "0-0/<total>" or "*/0" when empty.
+	const contentRange = res.headers.get("content-range") || "*/0";
+	const slash = contentRange.lastIndexOf("/");
+	const totalStr = slash >= 0 ? contentRange.slice(slash + 1) : "0";
+	const total = parseInt(totalStr, 10);
+	return Number.isFinite(total) ? total : 0;
 }
 
 function formatMelbourneDate(d: Date): string {
-  // Produces e.g. "Monday 4 May" — weekday, day-of-month (no leading zero), month name.
-  const weekday = new Intl.DateTimeFormat('en-AU', { weekday: 'long', timeZone: 'Australia/Melbourne' }).format(d);
-  const day     = new Intl.DateTimeFormat('en-AU', { day:     'numeric', timeZone: 'Australia/Melbourne' }).format(d);
-  const month   = new Intl.DateTimeFormat('en-AU', { month:   'long',    timeZone: 'Australia/Melbourne' }).format(d);
-  return `${weekday} ${day} ${month}`;
+	// Produces e.g. "Monday 4 May" — weekday, day-of-month (no leading zero), month name.
+	const weekday = new Intl.DateTimeFormat("en-AU", {
+		weekday: "long",
+		timeZone: "Australia/Melbourne",
+	}).format(d);
+	const day = new Intl.DateTimeFormat("en-AU", {
+		day: "numeric",
+		timeZone: "Australia/Melbourne",
+	}).format(d);
+	const month = new Intl.DateTimeFormat("en-AU", {
+		month: "long",
+		timeZone: "Australia/Melbourne",
+	}).format(d);
+	return `${weekday} ${day} ${month}`;
 }
 
 function formatMelbourneIsoDate(d: Date): string {
-  // Produces YYYY-MM-DD in Melbourne calendar terms — used as the
-  // summary_date key.
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    year:     'numeric',
-    month:    '2-digit',
-    day:      '2-digit',
-    timeZone: 'Australia/Melbourne',
-  }).format(d);
-  return parts; // en-CA returns YYYY-MM-DD natively
+	// Produces YYYY-MM-DD in Melbourne calendar terms — used as the
+	// summary_date key.
+	const parts = new Intl.DateTimeFormat("en-CA", {
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+		timeZone: "Australia/Melbourne",
+	}).format(d);
+	return parts; // en-CA returns YYYY-MM-DD natively
 }
 
 function formatMoney(n: number): string {
-  return n.toLocaleString('en-AU');
+	return n.toLocaleString("en-AU");
 }
 
 // ── email building ──────────────────────────────────────────────────────────
 
 interface SummaryEmailParams {
-  businessName: string;
-  dateString:   string;
-  email:        string;
-  // Today
-  missedCalls:  number;
-  smsSent:      number;
-  linkTaps:     number;
-  bookings:     number;
-  revenue:      number;
-  // Last 7 days (cumulative — includes today)
-  missedCalls7d:  number;
-  bookings7d:     number;
-  revenue7d:      number;
-  // Last 30 days (cumulative — includes today)
-  missedCalls30d:  number;
-  bookings30d:     number;
-  revenue30d:      number;
+	businessName: string;
+	dateString: string;
+	email: string;
+	// Today
+	missedCalls: number;
+	smsSent: number;
+	linkTaps: number;
+	bookings: number;
+	revenue: number;
+	// Last 7 days (cumulative — includes today)
+	missedCalls7d: number;
+	bookings7d: number;
+	revenue7d: number;
+	// Last 30 days (cumulative — includes today)
+	missedCalls30d: number;
+	bookings30d: number;
+	revenue30d: number;
 }
 
-function buildSummarySubject(businessName: string, missedCallsCount: number): string {
-  if (missedCallsCount > 0) {
-    const noun = missedCallsCount === 1 ? 'missed call' : 'missed calls';
-    return `${businessName} — ${missedCallsCount} ${noun} recovered today`;
-  }
-  return `${businessName} — quiet day today`;
+function buildSummarySubject(
+	businessName: string,
+	missedCallsCount: number,
+): string {
+	if (missedCallsCount > 0) {
+		const noun = missedCallsCount === 1 ? "missed call" : "missed calls";
+		return `${businessName} — ${missedCallsCount} ${noun} recovered today`;
+	}
+	return `${businessName} — quiet day today`;
 }
 
 // Compact secondary-hierarchy stat card. Shared by both quiet and active
 // branches for the "Last 7 days" and "Last 30 days" sections.
-function renderTrailingWindow(
-  label: string,
-  missed: number,
-): string {
-  const noun = missed === 1 ? 'missed call' : 'missed calls';
-  const activityLine = missed > 0
-    ? `<div style="font-size:24px;font-weight:300;color:${BRAND.primaryText};letter-spacing:-0.01em;line-height:1.1;">${missed} ${noun}</div>`
-    : `<div style="font-size:14px;color:${BRAND.secondaryText};">No activity in this window</div>`;
+function renderTrailingWindow(label: string, missed: number): string {
+	const noun = missed === 1 ? "missed call" : "missed calls";
+	const activityLine =
+		missed > 0
+			? `<div style="font-size:24px;font-weight:300;color:${BRAND.primaryText};letter-spacing:-0.01em;line-height:1.1;">${missed} ${noun}</div>`
+			: `<div style="font-size:14px;color:${BRAND.secondaryText};">No activity in this window</div>`;
 
-  return `<div style="margin-bottom:14px;">
+	return `<div style="margin-bottom:14px;">
     <div style="font-size:11px;color:${BRAND.secondaryText};font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;">${label}</div>
     <div style="background:${BRAND.pageBackground};border:1px solid ${BRAND.borderColor};border-radius:8px;padding:18px 20px;">
       ${activityLine}
@@ -460,7 +540,7 @@ function renderTrailingWindow(
 // Email-safe centered button. Wrapped in <table align="center"> because
 // Outlook can't centre with flexbox.
 function renderCtaButton(url: string, label: string): string {
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:32px 0 24px;">
+	return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:32px 0 24px;">
     <tr>
       <td align="center">
         <a href="${url}" style="display:inline-block;background:${BRAND.accent};color:#ffffff;padding:14px 32px;border-radius:8px;font-weight:700;text-decoration:none;font-size:15px;font-family:${BRAND.fontStack};letter-spacing:0.02em;">${label}</a>
@@ -470,64 +550,68 @@ function renderCtaButton(url: string, label: string): string {
 }
 
 async function buildSummaryEmail(p: SummaryEmailParams): Promise<string> {
-  const safeBusiness = escapeHtml(p.businessName);
-  const safeDate     = escapeHtml(p.dateString);
-  const hasActivity  = p.missedCalls > 0;
+	const safeBusiness = escapeHtml(p.businessName);
+	const safeDate = escapeHtml(p.dateString);
+	const hasActivity = p.missedCalls > 0;
 
-  const heading = `<h1 class="em-heading" style="font-size:26px;font-weight:700;color:${BRAND.primaryText};margin:0 0 4px;letter-spacing:-0.02em;">Today at ${safeBusiness}</h1>
+	const heading = `<h1 class="em-heading" style="font-size:26px;font-weight:700;color:${BRAND.primaryText};margin:0 0 4px;letter-spacing:-0.02em;">Today at ${safeBusiness}</h1>
     <p style="font-size:13px;color:${BRAND.secondaryText};margin:0 0 28px;font-weight:600;">${safeDate}</p>`;
 
-  // Branch-specific today content (existing layouts, qualified label on
-  // active-branch ROI block to disambiguate from 7d/30d).
-  let todayContent: string;
-  let footnote:     string;
-  let preheader:    string;
+	// Branch-specific today content (existing layouts, qualified label on
+	// active-branch ROI block to disambiguate from 7d/30d).
+	let todayContent: string;
+	let footnote: string;
+	let preheader: string;
 
-  // Optional link-taps tile — rendered only when count > 0. Until rebrand.ly
-  // Pro is configured this tile won't appear for V2 clients, keeping the
-  // email visually unchanged from before for them.
-  const linkTapsTile = p.linkTaps > 0
-    ? `<div style="background:${BRAND.pageBackground};border:1px solid ${BRAND.borderColor};border-radius:8px;padding:20px;margin-bottom:24px;text-align:center;">
+	// Optional link-taps tile — rendered only when count > 0. Until rebrand.ly
+	// Pro is configured this tile won't appear for V2 clients, keeping the
+	// email visually unchanged from before for them.
+	const linkTapsTile =
+		p.linkTaps > 0
+			? `<div style="background:${BRAND.pageBackground};border:1px solid ${BRAND.borderColor};border-radius:8px;padding:20px;margin-bottom:24px;text-align:center;">
         <div style="font-size:12px;color:${BRAND.secondaryText};font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px;">Link taps today</div>
         <div style="font-size:28px;font-weight:300;color:${BRAND.primaryText};letter-spacing:-0.02em;line-height:1;">${p.linkTaps}</div>
       </div>`
-    : '';
+			: "";
 
-  if (hasActivity) {
-    todayContent = `<div style="background:${BRAND.pageBackground};border:1px solid ${BRAND.borderColor};border-radius:8px;padding:24px;margin-bottom:14px;text-align:center;">
+	if (hasActivity) {
+		todayContent = `<div style="background:${BRAND.pageBackground};border:1px solid ${BRAND.borderColor};border-radius:8px;padding:24px;margin-bottom:14px;text-align:center;">
         <div style="font-size:13px;color:${BRAND.secondaryText};font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:8px;">Missed calls captured</div>
         <div class="em-bigstat" style="font-size:48px;font-weight:300;color:${BRAND.accent};letter-spacing:-0.02em;line-height:1;">${p.missedCalls}</div>
       </div>
-      <div style="background:${BRAND.pageBackground};border:1px solid ${BRAND.borderColor};border-radius:8px;padding:20px;margin-bottom:${linkTapsTile ? '14' : '24'}px;text-align:center;">
+      <div style="background:${BRAND.pageBackground};border:1px solid ${BRAND.borderColor};border-radius:8px;padding:20px;margin-bottom:${linkTapsTile ? "14" : "24"}px;text-align:center;">
         <div style="font-size:12px;color:${BRAND.secondaryText};font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px;">Auto-SMS sent</div>
         <div style="font-size:28px;font-weight:300;color:${BRAND.primaryText};letter-spacing:-0.02em;line-height:1;">${p.smsSent}</div>
       </div>
       ${linkTapsTile}`;
-    footnote  = '';
-    preheader = `${p.missedCalls} missed call${p.missedCalls === 1 ? '' : 's'} captured today at ${p.businessName}`;
-  } else {
-    todayContent = `<div style="background:${BRAND.pageBackground};border:1px solid ${BRAND.borderColor};border-radius:8px;padding:24px;margin-bottom:${linkTapsTile ? '14' : '24'}px;text-align:center;">
+		footnote = "";
+		preheader = `${p.missedCalls} missed call${p.missedCalls === 1 ? "" : "s"} captured today at ${p.businessName}`;
+	} else {
+		todayContent = `<div style="background:${BRAND.pageBackground};border:1px solid ${BRAND.borderColor};border-radius:8px;padding:24px;margin-bottom:${linkTapsTile ? "14" : "24"}px;text-align:center;">
         <div style="font-size:13px;color:${BRAND.secondaryText};font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:8px;">Today</div>
         <div class="em-bigstat" style="font-size:48px;font-weight:300;color:${BRAND.primaryText};letter-spacing:-0.02em;line-height:1;">0</div>
         <div style="font-size:13px;color:${BRAND.secondaryText};margin-top:8px;">missed calls — a quiet day</div>
       </div>
       ${linkTapsTile}`;
-    footnote  = `<p style="font-size:12px;color:${BRAND.secondaryText};margin:0;line-height:1.5;">CallMagnet is on the line — every missed call still gets your booking link within seconds.</p>`;
-    preheader = `Quiet day at ${p.businessName} — past performance below`;
-  }
+		footnote = `<p style="font-size:12px;color:${BRAND.secondaryText};margin:0;line-height:1.5;">CallMagnet is on the line — every missed call still gets your booking link within seconds.</p>`;
+		preheader = `Quiet day at ${p.businessName} — past performance below`;
+	}
 
-  // Shared trailing-window sections + CTA — same in both branches.
-  const last7  = renderTrailingWindow('Last 7 days',  p.missedCalls7d);
-  const last30 = renderTrailingWindow('Last 30 days', p.missedCalls30d);
-  const ctaUrl = await getDashboardUrl(p.email);
-  const cta    = renderCtaButton(ctaUrl, 'View dashboard →');
+	// Shared trailing-window sections + CTA — same in both branches.
+	const last7 = renderTrailingWindow("Last 7 days", p.missedCalls7d);
+	const last30 = renderTrailingWindow("Last 30 days", p.missedCalls30d);
+	const ctaUrl = await getDashboardUrl(p.email);
+	const cta = renderCtaButton(ctaUrl, "View dashboard →");
 
-  return renderEmailShell(heading + todayContent + last7 + last30 + cta + footnote, preheader);
+	return renderEmailShell(
+		heading + todayContent + last7 + last30 + cta + footnote,
+		preheader,
+	);
 }
 
 function json(status: number, body: unknown): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
+	return new Response(JSON.stringify(body), {
+		status,
+		headers: { "Content-Type": "application/json" },
+	});
 }

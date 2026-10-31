@@ -13,228 +13,317 @@ import { BRAND, escapeHtml, renderEmailShell } from "../_shared/emailStyles.ts";
 import { ui } from "../_shared/emailUi.ts";
 import { getEmailParts } from "../_shared/emailCopy.ts";
 
-const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const INTERNAL_SECRET           = Deno.env.get('INTERNAL_SECRET');
-const RESEND_API_KEY            = Deno.env.get('RESEND_API_KEY');
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const INTERNAL_SECRET = Deno.env.get("INTERNAL_SECRET");
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
-const RESEND_FROM = 'CallMagnet <hello@callmagnet.com.au>';
-const ALERT_TO    = 'hello@callmagnet.com.au';
+const RESEND_FROM = "CallMagnet <hello@callmagnet.com.au>";
+const ALERT_TO = "hello@callmagnet.com.au";
 
 interface ClientRow {
-  id:              string;
-  business_name:   string;
-  email:           string | null;
-  sms_included:    number;
-  free_period_ends_at: string | null;
-  emails_sent:     string[] | null;
+	id: string;
+	business_name: string;
+	email: string | null;
+	sms_included: number;
+	free_period_ends_at: string | null;
+	emails_sent: string[] | null;
 }
 
 Deno.serve(async (req) => {
-  if (new URL(req.url).searchParams.get('warmup') === '1') {
-    return new Response(JSON.stringify({ warmup: 'ok' }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+	if (new URL(req.url).searchParams.get("warmup") === "1") {
+		return new Response(JSON.stringify({ warmup: "ok" }), {
+			status: 200,
+			headers: { "Content-Type": "application/json" },
+		});
+	}
 
-  if (req.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 });
-  }
+	if (req.method !== "POST") {
+		return new Response("Method Not Allowed", { status: 405 });
+	}
 
-  try {
-    if (!INTERNAL_SECRET) {
-      console.error('notify-expiry: INTERNAL_SECRET missing from env');
-      return json(500, { error: 'config_error', detail: 'shared secret not configured' });
-    }
-    if (req.headers.get('X-Internal-Secret') !== INTERNAL_SECRET) {
-      return json(401, { error: 'unauthorized' });
-    }
-    if (!RESEND_API_KEY) {
-      console.error('notify-expiry: RESEND_API_KEY missing from env');
-      return json(500, { error: 'config_error', detail: 'RESEND_API_KEY not configured' });
-    }
+	try {
+		if (!INTERNAL_SECRET) {
+			console.error("notify-expiry: INTERNAL_SECRET missing from env");
+			return json(500, {
+				error: "config_error",
+				detail: "shared secret not configured",
+			});
+		}
+		if (req.headers.get("X-Internal-Secret") !== INTERNAL_SECRET) {
+			return json(401, { error: "unauthorized" });
+		}
+		if (!RESEND_API_KEY) {
+			console.error("notify-expiry: RESEND_API_KEY missing from env");
+			return json(500, {
+				error: "config_error",
+				detail: "RESEND_API_KEY not configured",
+			});
+		}
 
-    const now = new Date();
+		const now = new Date();
 
-    // ── Window: 3 days from now (the full 24-hour UTC day, 3 days out) ───────
-    const threeDaysStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 3)).toISOString();
-    const threeDaysEnd   = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 4)).toISOString();
+		// ── Window: 3 days from now (the full 24-hour UTC day, 3 days out) ───────
+		const threeDaysStart = new Date(
+			Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 3),
+		).toISOString();
+		const threeDaysEnd = new Date(
+			Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 4),
+		).toISOString();
 
-    // ── Month start for SMS count ─────────────────────────────────────────────
-    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+		// ── Month start for SMS count ─────────────────────────────────────────────
+		const monthStart = new Date(
+			Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
+		).toISOString();
 
-    // ── Fetch all active clients ──────────────────────────────────────────────
-    const clientsRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/clients` +
-      `?account_status=eq.active&is_test_account=eq.false&is_demo_account=not.is.true` +
-      `&select=id,business_name,email,sms_included,free_period_ends_at,emails_sent`,
-      {
-        headers: {
-          apikey:        SUPABASE_SERVICE_ROLE_KEY,
-          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        },
-      }
-    );
-    if (!clientsRes.ok) {
-      throw new Error(`clients_lookup_failed: ${clientsRes.status} ${await clientsRes.text()}`);
-    }
-    const clients = await clientsRes.json() as ClientRow[];
+		// ── Fetch all active clients ──────────────────────────────────────────────
+		const clientsRes = await fetch(
+			`${SUPABASE_URL}/rest/v1/clients` +
+				`?account_status=eq.active&is_test_account=eq.false&is_demo_account=not.is.true` +
+				`&select=id,business_name,email,sms_included,free_period_ends_at,emails_sent`,
+			{
+				headers: {
+					apikey: SUPABASE_SERVICE_ROLE_KEY,
+					Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+				},
+			},
+		);
+		if (!clientsRes.ok) {
+			throw new Error(
+				`clients_lookup_failed: ${clientsRes.status} ${await clientsRes.text()}`,
+			);
+		}
+		const clients = (await clientsRes.json()) as ClientRow[];
 
-    const expiryWarningsSent: string[] = [];
-    const smsAlertsSent:      string[] = [];
+		const expiryWarningsSent: string[] = [];
+		const smsAlertsSent: string[] = [];
 
-    for (const client of clients) {
-      // ── Check 1: free period ends in ~3 days ────────────────────────────────
-      if (client.free_period_ends_at) {
-        const endsAt = client.free_period_ends_at;
-        if (endsAt >= threeDaysStart && endsAt < threeDaysEnd) {
-          try {
-            const endsDate = new Date(endsAt).toLocaleDateString('en-AU', {
-              weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-              timeZone: 'Australia/Melbourne',
-            });
+		for (const client of clients) {
+			// ── Check 1: free period ends in ~3 days ────────────────────────────────
+			if (client.free_period_ends_at) {
+				const endsAt = client.free_period_ends_at;
+				if (endsAt >= threeDaysStart && endsAt < threeDaysEnd) {
+					try {
+						const endsDate = new Date(endsAt).toLocaleDateString("en-AU", {
+							weekday: "long",
+							day: "numeric",
+							month: "long",
+							year: "numeric",
+							timeZone: "Australia/Melbourne",
+						});
 
-            // Email to client
-            if (client.email) {
-              const clientMail = await buildExpiryWarningEmail(client.business_name, endsDate, false);
-              await sendEmail(RESEND_API_KEY, client.email, clientMail.subject, clientMail.html);
-            }
+						// Email to client
+						if (client.email) {
+							const clientMail = await buildExpiryWarningEmail(
+								client.business_name,
+								endsDate,
+								false,
+							);
+							await sendEmail(
+								RESEND_API_KEY,
+								client.email,
+								clientMail.subject,
+								clientMail.html,
+							);
+						}
 
-            // Email to admin
-            const adminMail = await buildExpiryWarningEmail(client.business_name, endsDate, true);
-            await sendEmail(RESEND_API_KEY, ALERT_TO, adminMail.subject, adminMail.html);
+						// Email to admin
+						const adminMail = await buildExpiryWarningEmail(
+							client.business_name,
+							endsDate,
+							true,
+						);
+						await sendEmail(
+							RESEND_API_KEY,
+							ALERT_TO,
+							adminMail.subject,
+							adminMail.html,
+						);
 
-            expiryWarningsSent.push(client.id);
-            console.log(`notify-expiry: free-period warning sent for client_id=${client.id} ends_at=${endsAt}`);
-          } catch (e) {
-            console.error(`notify-expiry: expiry warning failed for client_id=${client.id}: ${e instanceof Error ? e.message : String(e)}`);
-          }
-        }
-      }
+						expiryWarningsSent.push(client.id);
+						console.log(
+							`notify-expiry: free-period warning sent for client_id=${client.id} ends_at=${endsAt}`,
+						);
+					} catch (e) {
+						console.error(
+							`notify-expiry: expiry warning failed for client_id=${client.id}: ${e instanceof Error ? e.message : String(e)}`,
+						);
+					}
+				}
+			}
 
-      // ── Check 2: SMS count this month >= 20 ─────────────────────────────────
-      try {
-        const countRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/sms_events` +
-          `?client_id=eq.${encodeURIComponent(client.id)}` +
-          `&received_at=gte.${encodeURIComponent(monthStart)}` +
-          `&select=id`,
-          {
-            method: 'HEAD',
-            headers: {
-              apikey:        SUPABASE_SERVICE_ROLE_KEY,
-              Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-              Prefer:        'count=exact',
-            },
-          }
-        );
-        if (countRes.ok) {
-          const contentRange = countRes.headers.get('content-range') || '*/0';
-          const slash        = contentRange.lastIndexOf('/');
-          const smsCount     = parseInt(slash >= 0 ? contentRange.slice(slash + 1) : '0', 10);
-          const smsIncluded  = typeof client.sms_included === 'number' ? client.sms_included : 50;
-          const smsThreshold = Math.floor(smsIncluded * 0.8);
-          if (Number.isFinite(smsCount) && smsCount >= smsThreshold) {
-            const smsAlertKey = `sms_alert_${monthStart.slice(0, 7)}`;
-            if (!(client.emails_sent ?? []).includes(smsAlertKey)) {
-              const alertMail = await buildSmsAlertEmail(client.business_name, smsCount, smsIncluded);
-              await sendEmail(RESEND_API_KEY, ALERT_TO, alertMail.subject, alertMail.html);
-              await fetch(
-                `${SUPABASE_URL}/rest/v1/clients?id=eq.${encodeURIComponent(client.id)}`,
-                {
-                  method: 'PATCH',
-                  headers: {
-                    apikey:         SUPABASE_SERVICE_ROLE_KEY,
-                    Authorization:  `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-                    'Content-Type': 'application/json',
-                    Prefer:         'return=minimal',
-                  },
-                  body: JSON.stringify({ emails_sent: [...(client.emails_sent ?? []), smsAlertKey] }),
-                }
-              );
-              smsAlertsSent.push(client.id);
-              console.log(`notify-expiry: SMS alert sent for client_id=${client.id} count=${smsCount}/${smsIncluded}`);
-            }
-          }
-        }
-      } catch (e) {
-        console.error(`notify-expiry: SMS count check failed for client_id=${client.id}: ${e instanceof Error ? e.message : String(e)}`);
-      }
-    }
+			// ── Check 2: SMS count this month >= 20 ─────────────────────────────────
+			try {
+				const countRes = await fetch(
+					`${SUPABASE_URL}/rest/v1/sms_events` +
+						`?client_id=eq.${encodeURIComponent(client.id)}` +
+						`&received_at=gte.${encodeURIComponent(monthStart)}` +
+						`&select=id`,
+					{
+						method: "HEAD",
+						headers: {
+							apikey: SUPABASE_SERVICE_ROLE_KEY,
+							Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+							Prefer: "count=exact",
+						},
+					},
+				);
+				if (countRes.ok) {
+					const contentRange = countRes.headers.get("content-range") || "*/0";
+					const slash = contentRange.lastIndexOf("/");
+					const smsCount = parseInt(
+						slash >= 0 ? contentRange.slice(slash + 1) : "0",
+						10,
+					);
+					const smsIncluded =
+						typeof client.sms_included === "number" ? client.sms_included : 50;
+					const smsThreshold = Math.floor(smsIncluded * 0.8);
+					if (Number.isFinite(smsCount) && smsCount >= smsThreshold) {
+						const smsAlertKey = `sms_alert_${monthStart.slice(0, 7)}`;
+						if (!(client.emails_sent ?? []).includes(smsAlertKey)) {
+							const alertMail = await buildSmsAlertEmail(
+								client.business_name,
+								smsCount,
+								smsIncluded,
+							);
+							await sendEmail(
+								RESEND_API_KEY,
+								ALERT_TO,
+								alertMail.subject,
+								alertMail.html,
+							);
+							await fetch(
+								`${SUPABASE_URL}/rest/v1/clients?id=eq.${encodeURIComponent(client.id)}`,
+								{
+									method: "PATCH",
+									headers: {
+										apikey: SUPABASE_SERVICE_ROLE_KEY,
+										Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+										"Content-Type": "application/json",
+										Prefer: "return=minimal",
+									},
+									body: JSON.stringify({
+										emails_sent: [...(client.emails_sent ?? []), smsAlertKey],
+									}),
+								},
+							);
+							smsAlertsSent.push(client.id);
+							console.log(
+								`notify-expiry: SMS alert sent for client_id=${client.id} count=${smsCount}/${smsIncluded}`,
+							);
+						}
+					}
+				}
+			} catch (e) {
+				console.error(
+					`notify-expiry: SMS count check failed for client_id=${client.id}: ${e instanceof Error ? e.message : String(e)}`,
+				);
+			}
+		}
 
-    return json(200, {
-      ok:                    true,
-      clients_checked:       clients.length,
-      expiry_warnings_sent:  expiryWarningsSent.length,
-      sms_alerts_sent:       smsAlertsSent.length,
-    });
-
-  } catch (err) {
-    const errMsg = err instanceof Error ? err.message : String(err);
-    console.error(`notify-expiry fatal: ${errMsg}`);
-    return json(500, { error: 'internal_error', detail: errMsg });
-  }
+		return json(200, {
+			ok: true,
+			clients_checked: clients.length,
+			expiry_warnings_sent: expiryWarningsSent.length,
+			sms_alerts_sent: smsAlertsSent.length,
+		});
+	} catch (err) {
+		const errMsg = err instanceof Error ? err.message : String(err);
+		console.error(`notify-expiry fatal: ${errMsg}`);
+		return json(500, { error: "internal_error", detail: errMsg });
+	}
 });
 
 async function sendEmail(
-  apiKey: string,
-  to: string,
-  subject: string,
-  html: string,
+	apiKey: string,
+	to: string,
+	subject: string,
+	html: string,
 ): Promise<void> {
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization:  `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ from: to === ALERT_TO ? 'CallMagnet Alerts <alerts@callmagnet.com.au>' : RESEND_FROM, to, subject, html }),
-  });
-  if (!res.ok) {
-    throw new Error(`resend_failed to=${to}: ${res.status} ${await res.text()}`);
-  }
+	const res = await fetch("https://api.resend.com/emails", {
+		method: "POST",
+		headers: {
+			Authorization: `Bearer ${apiKey}`,
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({
+			from:
+				to === ALERT_TO
+					? "CallMagnet Alerts <alerts@callmagnet.com.au>"
+					: RESEND_FROM,
+			to,
+			subject,
+			html,
+		}),
+	});
+	if (!res.ok) {
+		throw new Error(
+			`resend_failed to=${to}: ${res.status} ${await res.text()}`,
+		);
+	}
 }
 
-async function buildExpiryWarningEmail(businessName: string, endsDate: string, isAdmin: boolean): Promise<{ subject: string; html: string }> {
-  const vars = { BUSINESS_NAME: businessName, END_DATE: endsDate };
-  if (isAdmin) {
-    const c = await getEmailParts('expiry_admin_alert', vars);
-    const html = renderEmailShell(
-      c.top +
-      ui.panel(ui.rows([['Business', escapeHtml(businessName)], ['Free period ends', escapeHtml(endsDate)]])) +
-      c.footnoteHtml,
-      c.preheader,
-    );
-    return { subject: c.subject, html };
-  }
-  const c = await getEmailParts('expiry_warning', vars);
-  const html = renderEmailShell(
-    c.top +
-    (c.buttonLabel ? ui.button('https://callmagnet.com.au', escapeHtml(c.buttonLabel)) : '') +
-    c.footnoteHtml +
-    ui.contact(),
-    c.preheader,
-  );
-  return { subject: c.subject, html };
+async function buildExpiryWarningEmail(
+	businessName: string,
+	endsDate: string,
+	isAdmin: boolean,
+): Promise<{ subject: string; html: string }> {
+	const vars = { BUSINESS_NAME: businessName, END_DATE: endsDate };
+	if (isAdmin) {
+		const c = await getEmailParts("expiry_admin_alert", vars);
+		const html = renderEmailShell(
+			c.top +
+				ui.panel(
+					ui.rows([
+						["Business", escapeHtml(businessName)],
+						["Free period ends", escapeHtml(endsDate)],
+					]),
+				) +
+				c.footnoteHtml,
+			c.preheader,
+		);
+		return { subject: c.subject, html };
+	}
+	const c = await getEmailParts("expiry_warning", vars);
+	const html = renderEmailShell(
+		c.top +
+			(c.buttonLabel
+				? ui.button("https://callmagnet.com.au", escapeHtml(c.buttonLabel))
+				: "") +
+			c.footnoteHtml +
+			ui.contact(),
+		c.preheader,
+	);
+	return { subject: c.subject, html };
 }
 
-async function buildSmsAlertEmail(businessName: string, smsCount: number, smsIncluded: number): Promise<{ subject: string; html: string }> {
-  const c = await getEmailParts('sms_usage_alert', {
-    BUSINESS_NAME: businessName, SMS_COUNT: String(smsCount), SMS_INCLUDED: String(smsIncluded),
-  });
-  const html = renderEmailShell(
-    c.top +
-    ui.panel(ui.rows([['SMS sent this month', smsCount], ['Plan includes', smsIncluded]])) +
-    c.footnoteHtml,
-    c.preheader,
-  );
-  return { subject: c.subject, html };
+async function buildSmsAlertEmail(
+	businessName: string,
+	smsCount: number,
+	smsIncluded: number,
+): Promise<{ subject: string; html: string }> {
+	const c = await getEmailParts("sms_usage_alert", {
+		BUSINESS_NAME: businessName,
+		SMS_COUNT: String(smsCount),
+		SMS_INCLUDED: String(smsIncluded),
+	});
+	const html = renderEmailShell(
+		c.top +
+			ui.panel(
+				ui.rows([
+					["SMS sent this month", smsCount],
+					["Plan includes", smsIncluded],
+				]),
+			) +
+			c.footnoteHtml,
+		c.preheader,
+	);
+	return { subject: c.subject, html };
 }
 
 function json(status: number, body: unknown): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
+	return new Response(JSON.stringify(body), {
+		status,
+		headers: { "Content-Type": "application/json" },
+	});
 }

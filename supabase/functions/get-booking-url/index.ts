@@ -5,192 +5,190 @@
 // Email rebrand (Session 4 D2): the alert email block in the catch handler
 // now uses _shared/emailStyles.ts so it matches the login palette.
 
-import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { escapeHtml, renderEmailShell } from "../_shared/emailStyles.ts";
 import { ui } from "../_shared/emailUi.ts";
 import { getEmailParts } from "../_shared/emailCopy.ts";
 
-
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-}
-
+	"Access-Control-Allow-Origin": "*",
+	"Access-Control-Allow-Headers":
+		"authorization, x-client-info, apikey, content-type",
+	"Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+};
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+	if (req.method === "OPTIONS") {
+		return new Response("ok", { headers: corsHeaders });
+	}
 
+	try {
+		const supabaseUrl = Deno.env.get("SUPABASE_URL");
+		const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+		const INTERNAL_SECRET = Deno.env.get("INTERNAL_SECRET");
 
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-    const INTERNAL_SECRET = Deno.env.get('INTERNAL_SECRET')
+		const url = new URL(req.url);
+		const clientId = url.searchParams.get("id");
 
+		if (!clientId) {
+			return new Response(JSON.stringify({ error: "No client ID" }), {
+				status: 400,
+				headers: { ...corsHeaders, "Content-Type": "application/json" },
+			});
+		}
 
-    const url = new URL(req.url)
-    const clientId = url.searchParams.get('id')
+		const clientRes = await fetch(
+			`${supabaseUrl}/rest/v1/clients?id=eq.${clientId}&select=booking_url,business_name`,
+			{
+				headers: {
+					apikey: supabaseKey,
+					Authorization: `Bearer ${supabaseKey}`,
+				},
+			},
+		);
 
+		const clients = await clientRes.json();
 
-    if (!clientId) {
-      return new Response(JSON.stringify({ error: 'No client ID' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
+		if (!clients || clients.length === 0 || !clients[0].booking_url) {
+			return new Response(JSON.stringify({ error: "Booking URL not found" }), {
+				status: 404,
+				headers: { ...corsHeaders, "Content-Type": "application/json" },
+			});
+		}
 
+		const now = new Date();
 
-    const clientRes = await fetch(
-      `${supabaseUrl}/rest/v1/clients?id=eq.${clientId}&select=booking_url,business_name`,
-      {
-        headers: {
-          apikey: supabaseKey,
-          Authorization: `Bearer ${supabaseKey}`
-        }
-      }
-    )
+		const melbRes = await fetch(
+			`${supabaseUrl}/rest/v1/rpc/get_melbourne_day_and_time`,
+			{
+				method: "POST",
+				headers: {
+					apikey: supabaseKey,
+					Authorization: `Bearer ${supabaseKey}`,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({}),
+			},
+		);
+		if (!melbRes.ok) {
+			throw new Error(`get_melbourne_day_and_time failed: ${melbRes.status}`);
+		}
+		const melb = (await melbRes.json()) as {
+			day_name: string;
+			time_mins: number;
+		};
+		const dayOfWeek = melb.day_name;
+		const hourOfDay = Math.floor(melb.time_mins / 60);
+		const minutes = (melb.time_mins % 60).toString().padStart(2, "0");
+		const clickedTime = `${hourOfDay}:${minutes}`;
 
+		await fetch(`${supabaseUrl}/rest/v1/link_clicks`, {
+			method: "POST",
+			headers: {
+				apikey: supabaseKey,
+				Authorization: `Bearer ${supabaseKey}`,
+				"Content-Type": "application/json",
+				Prefer: "return=minimal",
+			},
+			body: JSON.stringify({
+				client_id: clientId,
+				clicked_at: now.toISOString(),
+				day_of_week: dayOfWeek,
+				hour_of_day: hourOfDay,
+				clicked_time: clickedTime,
+				converted: false,
+			}),
+		});
 
-    const clients = await clientRes.json()
+		// ── Best-effort Pushover alert ────────────────────────────────────────────
+		if (INTERNAL_SECRET) {
+			try {
+				fetch(`${supabaseUrl}/functions/v1/send-pushover-alert`, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"X-Internal-Secret": INTERNAL_SECRET,
+					},
+					body: JSON.stringify({
+						title: "★ Link Tapped",
+						message: `${clients[0].business_name || ""} — direct link`,
+					}),
+				}).catch(() => {});
+			} catch {
+				// silent
+			}
+		}
 
+		// Fire-and-forget push notification — never block redirect
+		if (INTERNAL_SECRET) {
+			fetch(`${supabaseUrl}/functions/v1/send-client-notification`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					"X-Internal-Secret": INTERNAL_SECRET,
+					Authorization: `Bearer ${supabaseKey}`,
+				},
+				body: JSON.stringify({
+					event: "link_tapped",
+					client_id: clientId,
+					timestamp: now.toISOString(),
+					metadata: {
+						user_agent: req.headers.get("user-agent") || null,
+						click_id: null,
+					},
+				}),
+			}).catch((err) => {
+				console.warn(
+					"get-booking-url: push fire-and-forget failed:",
+					err?.message ?? err,
+				);
+			});
+		} else {
+			console.warn("get-booking-url: INTERNAL_SECRET missing, skipping push");
+		}
 
-    if (!clients || clients.length === 0 || !clients[0].booking_url) {
-      return new Response(JSON.stringify({ error: 'Booking URL not found' }), {
-        status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
+		return new Response(
+			JSON.stringify({ booking_url: clients[0].booking_url }),
+			{
+				status: 200,
+				headers: { ...corsHeaders, "Content-Type": "application/json" },
+			},
+		);
+	} catch (error) {
+		const alertCopy = await getEmailParts("error_alert", {
+			FUNCTION_NAME: "get-booking-url",
+		});
+		const alertContent =
+			alertCopy.top +
+			ui.sub(
+				"A booking-link tap couldn't be served — the customer may have seen an error page.",
+			) +
+			ui.panel(
+				ui.rows([
+					["Function", "get-booking-url"],
+					["Error", escapeHtml(String(error?.message ?? error))],
+					["Time", new Date().toISOString()],
+				]),
+			) +
+			ui.small("Log in to Supabase to investigate.");
 
+		await fetch("https://api.resend.com/emails", {
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${Deno.env.get("RESEND_API_KEY")}`,
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				from: "CallMagnet Alerts <alerts@callmagnet.com.au>",
+				to: "hello@callmagnet.com.au",
+				subject: alertCopy.subject,
+				html: renderEmailShell(alertContent, alertCopy.preheader),
+			}),
+		}).catch(() => {});
 
-    const now = new Date()
-
-    const melbRes = await fetch(
-      `${supabaseUrl}/rest/v1/rpc/get_melbourne_day_and_time`,
-      {
-        method:  'POST',
-        headers: {
-          apikey:         supabaseKey,
-          Authorization:  `Bearer ${supabaseKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({}),
-      },
-    )
-    if (!melbRes.ok) {
-      throw new Error(`get_melbourne_day_and_time failed: ${melbRes.status}`)
-    }
-    const melb = await melbRes.json() as { day_name: string; time_mins: number }
-    const dayOfWeek   = melb.day_name
-    const hourOfDay   = Math.floor(melb.time_mins / 60)
-    const minutes     = (melb.time_mins % 60).toString().padStart(2, '0')
-    const clickedTime = `${hourOfDay}:${minutes}`
-
-
-    await fetch(
-      `${supabaseUrl}/rest/v1/link_clicks`,
-      {
-        method: 'POST',
-        headers: {
-          apikey: supabaseKey,
-          Authorization: `Bearer ${supabaseKey}`,
-          'Content-Type': 'application/json',
-          Prefer: 'return=minimal'
-        },
-        body: JSON.stringify({
-          client_id: clientId,
-          clicked_at: now.toISOString(),
-          day_of_week: dayOfWeek,
-          hour_of_day: hourOfDay,
-          clicked_time: clickedTime,
-          converted: false
-        })
-      }
-    )
-
-
-    // ── Best-effort Pushover alert ────────────────────────────────────────────
-    if (INTERNAL_SECRET) {
-      try {
-        fetch(`${supabaseUrl}/functions/v1/send-pushover-alert`, {
-          method:  'POST',
-          headers: {
-            'Content-Type':      'application/json',
-            'X-Internal-Secret': INTERNAL_SECRET,
-          },
-          body: JSON.stringify({
-            title:   '★ Link Tapped',
-            message: `${clients[0].business_name || ''} — direct link`,
-          }),
-        }).catch(() => {});
-      } catch {
-        // silent
-      }
-    }
-
-    // Fire-and-forget push notification — never block redirect
-    if (INTERNAL_SECRET) {
-      fetch(`${supabaseUrl}/functions/v1/send-client-notification`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Internal-Secret': INTERNAL_SECRET,
-          'Authorization': `Bearer ${supabaseKey}`
-        },
-        body: JSON.stringify({
-          event: 'link_tapped',
-          client_id: clientId,
-          timestamp: now.toISOString(),
-          metadata: {
-            user_agent: req.headers.get('user-agent') || null,
-            click_id: null
-          }
-        })
-      }).catch((err) => {
-        console.warn('get-booking-url: push fire-and-forget failed:', err?.message ?? err);
-      });
-    } else {
-      console.warn('get-booking-url: INTERNAL_SECRET missing, skipping push');
-    }
-
-
-    return new Response(JSON.stringify({ booking_url: clients[0].booking_url }), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
-
-
-  } catch (error) {
-    const alertCopy = await getEmailParts('error_alert', { FUNCTION_NAME: 'get-booking-url' });
-    const alertContent =
-      alertCopy.top +
-      ui.sub("A booking-link tap couldn't be served — the customer may have seen an error page.") +
-      ui.panel(ui.rows([
-        ['Function', 'get-booking-url'],
-        ['Error', escapeHtml(String(error?.message ?? error))],
-        ['Time', new Date().toISOString()],
-      ])) +
-      ui.small('Log in to Supabase to investigate.');
-
-    await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('RESEND_API_KEY')}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: 'CallMagnet Alerts <alerts@callmagnet.com.au>',
-        to: 'hello@callmagnet.com.au',
-        subject: alertCopy.subject,
-        html: renderEmailShell(alertContent, alertCopy.preheader)
-      })
-    }).catch(() => {})
-
-
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
-  }
-})
+		return new Response(JSON.stringify({ error: error.message }), {
+			status: 500,
+			headers: { ...corsHeaders, "Content-Type": "application/json" },
+		});
+	}
+});

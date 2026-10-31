@@ -38,108 +38,119 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-const PUSHOVER_USER_KEY  = Deno.env.get('PUSHOVER_USER_KEY');
-const PUSHOVER_APP_TOKEN = Deno.env.get('PUSHOVER_APP_TOKEN');
+const PUSHOVER_USER_KEY = Deno.env.get("PUSHOVER_USER_KEY");
+const PUSHOVER_APP_TOKEN = Deno.env.get("PUSHOVER_APP_TOKEN");
 // Prefer the canonical INTERNAL_SECRET; fall back to the legacy
 // PUSHOVER_INTERNAL_SECRET while both Vault entries coexist. Drop the
 // fallback after the cleanup pass removes the legacy entry.
-const INTERNAL_SECRET    = Deno.env.get('INTERNAL_SECRET') ?? Deno.env.get('PUSHOVER_INTERNAL_SECRET');
+const INTERNAL_SECRET =
+	Deno.env.get("INTERNAL_SECRET") ?? Deno.env.get("PUSHOVER_INTERNAL_SECRET");
 
 Deno.serve(async (req) => {
-  if (new URL(req.url).searchParams.get('warmup') === '1') {
-    return new Response(JSON.stringify({ warmup: 'ok' }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+	if (new URL(req.url).searchParams.get("warmup") === "1") {
+		return new Response(JSON.stringify({ warmup: "ok" }), {
+			status: 200,
+			headers: { "Content-Type": "application/json" },
+		});
+	}
 
-  if (req.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 });
-  }
+	if (req.method !== "POST") {
+		return new Response("Method Not Allowed", { status: 405 });
+	}
 
-  try {
-    if (!PUSHOVER_USER_KEY || !PUSHOVER_APP_TOKEN || !INTERNAL_SECRET) {
-      console.error(
-        'send-pushover-alert: missing required Vault secrets ' +
-        '(PUSHOVER_USER_KEY, PUSHOVER_APP_TOKEN, or INTERNAL_SECRET / PUSHOVER_INTERNAL_SECRET)',
-      );
-      return json(500, {
-        error: 'config_error',
-        detail: 'Required Vault secrets not configured',
-      });
-    }
+	try {
+		if (!PUSHOVER_USER_KEY || !PUSHOVER_APP_TOKEN || !INTERNAL_SECRET) {
+			console.error(
+				"send-pushover-alert: missing required Vault secrets " +
+					"(PUSHOVER_USER_KEY, PUSHOVER_APP_TOKEN, or INTERNAL_SECRET / PUSHOVER_INTERNAL_SECRET)",
+			);
+			return json(500, {
+				error: "config_error",
+				detail: "Required Vault secrets not configured",
+			});
+		}
 
-    // Shared-secret guard: blocks anyone who guesses the function URL from
-    // triggering Pushover notifications. All internal callers (cron, db
-    // triggers, other edge functions) must include this header.
-    if (req.headers.get('X-Internal-Secret') !== INTERNAL_SECRET) {
-      return json(401, { error: 'unauthorized' });
-    }
+		// Shared-secret guard: blocks anyone who guesses the function URL from
+		// triggering Pushover notifications. All internal callers (cron, db
+		// triggers, other edge functions) must include this header.
+		if (req.headers.get("X-Internal-Secret") !== INTERNAL_SECRET) {
+			return json(401, { error: "unauthorized" });
+		}
 
-    const body = await req.json().catch(() => null) as
-      | { title?: unknown; message?: unknown; priority?: unknown }
-      | null;
-    if (!body || typeof body !== 'object') {
-      return json(400, {
-        error: 'invalid_body',
-        detail: 'JSON body with title and message is required',
-      });
-    }
+		const body = (await req.json().catch(() => null)) as {
+			title?: unknown;
+			message?: unknown;
+			priority?: unknown;
+		} | null;
+		if (!body || typeof body !== "object") {
+			return json(400, {
+				error: "invalid_body",
+				detail: "JSON body with title and message is required",
+			});
+		}
 
-    const title    = typeof body.title   === 'string' ? body.title.trim()   : '';
-    const message  = typeof body.message === 'string' ? body.message.trim() : '';
-    const priority = typeof body.priority === 'number' ? body.priority : null;
+		const title = typeof body.title === "string" ? body.title.trim() : "";
+		const message = typeof body.message === "string" ? body.message.trim() : "";
+		const priority = typeof body.priority === "number" ? body.priority : null;
 
-    if (!title || !message) {
-      return json(400, {
-        error: 'missing_required_field',
-        detail: 'title and message are both required and must be non-empty strings',
-      });
-    }
+		if (!title || !message) {
+			return json(400, {
+				error: "missing_required_field",
+				detail:
+					"title and message are both required and must be non-empty strings",
+			});
+		}
 
-    if (priority !== null && (!Number.isInteger(priority) || priority < -2 || priority > 2)) {
-      return json(400, {
-        error: 'invalid_priority',
-        detail: 'priority must be an integer between -2 and 2 inclusive',
-      });
-    }
+		if (
+			priority !== null &&
+			(!Number.isInteger(priority) || priority < -2 || priority > 2)
+		) {
+			return json(400, {
+				error: "invalid_priority",
+				detail: "priority must be an integer between -2 and 2 inclusive",
+			});
+		}
 
-    const params = new URLSearchParams({
-      token: PUSHOVER_APP_TOKEN,
-      user:  PUSHOVER_USER_KEY,
-      title,
-      message,
-    });
-    if (priority !== null) params.set('priority', String(priority));
+		const params = new URLSearchParams({
+			token: PUSHOVER_APP_TOKEN,
+			user: PUSHOVER_USER_KEY,
+			title,
+			message,
+		});
+		if (priority !== null) params.set("priority", String(priority));
 
-    const pushoverRes = await fetch('https://api.pushover.net/1/messages.json', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body:    params,
-    });
+		const pushoverRes = await fetch(
+			"https://api.pushover.net/1/messages.json",
+			{
+				method: "POST",
+				headers: { "Content-Type": "application/x-www-form-urlencoded" },
+				body: params,
+			},
+		);
 
-    if (!pushoverRes.ok) {
-      const errBody = await pushoverRes.text();
-      console.error(`pushover_api_failed: status=${pushoverRes.status} body=${errBody}`);
-      return json(500, {
-        error:  'pushover_api_failed',
-        status: pushoverRes.status,
-        detail: errBody,
-      });
-    }
+		if (!pushoverRes.ok) {
+			const errBody = await pushoverRes.text();
+			console.error(
+				`pushover_api_failed: status=${pushoverRes.status} body=${errBody}`,
+			);
+			return json(500, {
+				error: "pushover_api_failed",
+				status: pushoverRes.status,
+				detail: errBody,
+			});
+		}
 
-    return json(200, { ok: true });
-
-  } catch (err) {
-    const errMsg = err instanceof Error ? err.message : String(err);
-    console.error(`send-pushover-alert fatal: ${errMsg}`);
-    return json(500, { error: 'internal_error', detail: errMsg });
-  }
+		return json(200, { ok: true });
+	} catch (err) {
+		const errMsg = err instanceof Error ? err.message : String(err);
+		console.error(`send-pushover-alert fatal: ${errMsg}`);
+		return json(500, { error: "internal_error", detail: errMsg });
+	}
 });
 
 function json(status: number, body: unknown): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
+	return new Response(JSON.stringify(body), {
+		status,
+		headers: { "Content-Type": "application/json" },
+	});
 }

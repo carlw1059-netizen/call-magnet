@@ -16,20 +16,21 @@
 // Do NOT add new hex values. Future colour changes are one-file edits here.
 
 export const BRAND = {
-  accent:         '#06D6A0',                                                   // emerald accent — buttons, links, headings
-  accentHover:    '#06D6A0',                                                   // same colour, no separate hover hue
-  pageBackground: '#0E1419',                                                   // outer body background
-  cardBackground: '#161D24',                                                   // inner card background
-  primaryText:    '#FFFFFF',                                                   // body text on dark
-  secondaryText:  '#B0B8C1',                                                   // softer body text
-  mutedText:      '#6B7480',                                                   // footer / fine print
-  borderColor:    'rgba(6, 214, 160, 0.15)',                                   // faint emerald border
-  edge:           '#CC5500',                                                   // burnt orange edge (errors, warnings — tiny borders only)
-  successBg:      '#161D24',                                                   // card-shade panel for highlighted content
-  errorBg:        '#161D24',                                                   // same card shade; differentiation via border colour
-  errorText:      '#FFFFFF',                                                   // white text on dark
-  errorBorder:    '#CC5500',                                                   // burnt orange border on error blocks
-  fontStack:      "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+	accent: "#06D6A0", // emerald accent — buttons, links, headings
+	accentHover: "#06D6A0", // same colour, no separate hover hue
+	pageBackground: "#0E1419", // outer body background
+	cardBackground: "#161D24", // inner card background
+	primaryText: "#FFFFFF", // body text on dark
+	secondaryText: "#B0B8C1", // softer body text
+	mutedText: "#6B7480", // footer / fine print
+	borderColor: "rgba(6, 214, 160, 0.15)", // faint emerald border
+	edge: "#CC5500", // burnt orange edge (errors, warnings — tiny borders only)
+	successBg: "#161D24", // card-shade panel for highlighted content
+	errorBg: "#161D24", // same card shade; differentiation via border colour
+	errorText: "#FFFFFF", // white text on dark
+	errorBorder: "#CC5500", // burnt orange border on error blocks
+	fontStack:
+		"-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
 } as const;
 
 // Wraps body content in a CallMagnet-branded HTML email shell. Mobile-
@@ -42,11 +43,11 @@ export const BRAND = {
 // preheader — optional ~80-char inbox preview text shown next to the subject
 //             in most inbox lists. Hidden in the rendered email.
 export function renderEmailShell(content: string, preheader?: string): string {
-  const preheaderBlock = preheader
-    ? `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:transparent;">${escapeHtml(preheader)}</div>`
-    : '';
+	const preheaderBlock = preheader
+		? `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:transparent;">${escapeHtml(preheader)}</div>`
+		: "";
 
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -90,10 +91,10 @@ export function renderEmailShell(content: string, preheader?: string): string {
 // Use this for any value that could come from the database (business name,
 // customer name, error messages, etc.).
 export function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+	return s
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#39;");
 }
