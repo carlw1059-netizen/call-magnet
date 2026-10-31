@@ -12,6 +12,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Inject credentials
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+        run: |
+          sed -i "s|%%SUPABASE_URL%%|$SUPABASE_URL|g" assets/js/dashboard.js
+          sed -i "s|%%SUPABASE_ANON_KEY%%|$SUPABASE_ANON_KEY|g" assets/js/dashboard.js
+          sed -i "s|%%VAPID_PUBLIC_KEY%%|$VAPID_PUBLIC_KEY|g" index.html
+
       - uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
