@@ -25,7 +25,7 @@ const PROGRESSIER_API_KEY = Deno.env.get("PROGRESSIER_API_KEY");
 const PUSH_TITLE = "CallMagnet — Test Alert";
 const PUSH_BODY =
 	"📱 Test — missed call from 0412 000 000. SMS sent to caller.";
-const PUSH_URL = "https://callmagnet.com.au";
+const PUSH_URL = "https://app.callmagnet.com.au";
 
 Deno.serve(async (req) => {
 	if (req.method === "OPTIONS") {
