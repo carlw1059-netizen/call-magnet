@@ -1,3 +1,19 @@
+## NETLIFY DEPLOY WARNING — NEVER SKIP
+
+These two files deploy to production the moment they are pushed to main. Do NOT change them until DNS cutover day:
+- `dashboard.js`
+- `cm1site/b.html`
+
+All Supabase edge functions are safe to commit at any time — they do not auto-deploy.
+
+On cutover day only, in this order:
+1. Update `cm1site/b.html` asset URLs → push → confirm Netlify deployed
+2. Update `dashboard.js` redirectTo URLs → push → confirm Netlify deployed
+3. Update Supabase Auth Site URL in dashboard
+4. Flip DNS
+
+---
+
 ## Known Bugs & Fix History
 
 ### Auth screen architecture — password reset flow
