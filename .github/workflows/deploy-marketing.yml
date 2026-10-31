@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - cf-marketing
+  workflow_dispatch:
 
 jobs:
   deploy:
