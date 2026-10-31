@@ -14,7 +14,7 @@
 // Progressier push:
 //   title:  'CallMagnet — Test Alert'
 //   body:   '📱 Test — missed call from 0412 000 000. SMS sent to caller.'
-//   url:    'https://callmagnet.com.au'
+//   url:    'https://app.callmagnet.com.au'
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
