@@ -102,7 +102,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 					recipients: { id: client_id },
 					title,
 					body: message,
-					url: "https://callmagnet.com.au",
+					url: "https://app.callmagnet.com.au",
 				}),
 			},
 		);
