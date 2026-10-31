@@ -44,11 +44,11 @@ async function getDashboardUrl(email: string): Promise<string> {
 		const { data } = await supa.auth.admin.generateLink({
 			type: "magiclink",
 			email,
-			options: { redirectTo: "https://callmagnet.com.au" },
+			options: { redirectTo: "https://app.callmagnet.com.au" },
 		});
-		return data?.properties?.action_link ?? "https://callmagnet.com.au";
+		return data?.properties?.action_link ?? "https://app.callmagnet.com.au";
 	} catch {
-		return "https://callmagnet.com.au";
+		return "https://app.callmagnet.com.au";
 	}
 }
 
@@ -500,8 +500,8 @@ Deno.serve(async (req) => {
 					"metadata[client_id]": client_id,
 					"metadata[slug]": slug,
 					"metadata[pricing_package]": pricing_package,
-					success_url: "https://callmagnet.com.au/payment-success",
-					cancel_url: "https://callmagnet.com.au",
+					success_url: "https://app.callmagnet.com.au/payment-success",
+					cancel_url: "https://app.callmagnet.com.au",
 				});
 				const csRes = await fetch(
 					"https://api.stripe.com/v1/checkout/sessions",
@@ -638,7 +638,7 @@ Deno.serve(async (req) => {
 				const installBox = ui.panel(
 					ui.label("Install the app on your phone") +
 						ui.steps([
-							"Go to <strong>callmagnet.com.au</strong> on your phone",
+							"Go to <strong>app.callmagnet.com.au</strong> on your phone",
 							`Tap the <strong style="color:${BRAND.accent};">emerald star ★</strong> in the bottom right corner for instructions on how to add CallMagnet to your home screen`,
 							"Login once installed and <strong>allow notifications</strong> when prompted",
 							"Go to <strong>app settings</strong> on your device, find CallMagnet — turn on <strong>notifications and sounds</strong>",
@@ -661,7 +661,7 @@ Deno.serve(async (req) => {
 					? `Your login details:\n  Business: ${business_name}\n  Email:    ${owner_email}\n  Temporary password: ${initial_password}\n\nSave your password — you'll need it if you log out and come back.\n\n`
 					: `Use your existing password to sign in. If you've forgotten it, use "Forgot password?" on the login page.\n\n`;
 
-				const text = `${copy.subject}\n\n${credentialText}Log in at https://callmagnet.com.au\n\nQuestions? hello@callmagnet.com.au`;
+				const text = `${copy.subject}\n\n${credentialText}Log in at https://app.callmagnet.com.au\n\nQuestions? hello@callmagnet.com.au`;
 				console.log(
 					`create-client: email send — checkoutUrl=${checkoutUrl}, pricing_package=${pricing_package}`,
 				);
