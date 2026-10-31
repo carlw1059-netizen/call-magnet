@@ -196,7 +196,7 @@ Deno.serve(async (req) => {
 				type: "magiclink",
 				email,
 				options: {
-					redirectTo: "https://callmagnet.com.au/",
+					redirectTo: "https://app.callmagnet.com.au/",
 				},
 			});
 		if (linkErr || !linkData?.properties?.action_link) {
