@@ -288,7 +288,7 @@ async function buildExpiryWarningEmail(
 	const html = renderEmailShell(
 		c.top +
 			(c.buttonLabel
-				? ui.button("https://callmagnet.com.au", escapeHtml(c.buttonLabel))
+				? ui.button("https://app.callmagnet.com.au", escapeHtml(c.buttonLabel))
 				: "") +
 			c.footnoteHtml +
 			ui.contact(),
