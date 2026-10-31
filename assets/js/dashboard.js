@@ -164,7 +164,7 @@ async function handleReset() {
   btn.textContent = 'Sending...';
   try {
     const { error: resetErr } = await sb.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://app.callmagnet.com.au/reset-password',
+      redirectTo: 'https://callmagnet.com.au/reset-password',
     });
     if (resetErr) {
       errDiv.textContent = 'Could not send reset email. Try again.';
@@ -300,7 +300,7 @@ async function loadDashboard(user, opts = {}) {
 
   if (currentClient.must_change_password) {
     await sb.auth.resetPasswordForEmail(currentClient.email, {
-      redirectTo: 'https://app.callmagnet.com.au/reset-password',
+      redirectTo: 'https://callmagnet.com.au/reset-password',
     });
     document.getElementById('errorMsg').textContent =
       'Welcome! You need to set up your password before logging in. Check your email for a setup link — it expires in 60 minutes.';
