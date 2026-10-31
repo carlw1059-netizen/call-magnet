@@ -274,7 +274,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
-					cors_origin: "https://callmagnet.com.au",
+					cors_origin: "https://app.callmagnet.com.au",
 					new_asset_settings: {
 						playback_policy: ["public"],
 					},
