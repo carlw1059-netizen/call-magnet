@@ -18,6 +18,7 @@ jobs:
           cp cm1site/b.html cm1site/index.html
           cp cm1site/b.html cm1site/404.html
           sed -i 's|https://callmagnet.com.au/assets/js/middleman.js|/assets/js/middleman.js|g' cm1site/index.html cm1site/404.html
+          sed -i 's|https://callmagnet.com.au/assets/css/middleman.css[^"]*|/assets/css/middleman.css|g' cm1site/index.html cm1site/404.html
 
       - name: Inject credentials into middleman.js
         env:
