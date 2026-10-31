@@ -49,6 +49,6 @@ self.addEventListener('fetch', function(e) {
 
   // Everything else — network first
   e.respondWith(fetch(e.request).catch(function() {
-    return caches.match('/b.html');
+    return caches.match('/index.html');
   }));
 });
