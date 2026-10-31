@@ -408,7 +408,7 @@ async function sendViaResend(args: {
 				html: args.html,
 				text:
 					args.text ??
-					`${args.subject}\n\nOpen your full monthly recap in CallMagnet: https://callmagnet.com.au\n\nReply to this email if anything looks wrong.\n\nCallMagnet — callmagnet.com.au\n`,
+					`${args.subject}\n\nOpen your full monthly recap in CallMagnet: https://app.callmagnet.com.au\n\nReply to this email if anything looks wrong.\n\nCallMagnet — app.callmagnet.com.au\n`,
 			}),
 		});
 		if (!res.ok) {
@@ -440,11 +440,11 @@ async function getDashboardUrl(email: string): Promise<string> {
 		const { data } = await supa.auth.admin.generateLink({
 			type: "magiclink",
 			email,
-			options: { redirectTo: "https://callmagnet.com.au" },
+			options: { redirectTo: "https://app.callmagnet.com.au" },
 		});
-		return data?.properties?.action_link ?? "https://callmagnet.com.au";
+		return data?.properties?.action_link ?? "https://app.callmagnet.com.au";
 	} catch {
-		return "https://callmagnet.com.au";
+		return "https://app.callmagnet.com.au";
 	}
 }
 
