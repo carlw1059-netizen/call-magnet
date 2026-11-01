@@ -1158,6 +1158,10 @@ async function removeLogo() {
 // ─── Save slug ────────────────────────────────────────────────────────────────
 async function saveSlug() {
   if (!_editClientId) return;
+  if (_editClientData && _editClientData.middle_man_slug) {
+    _flash('mmaSlugMsg', '✗ Slug is locked and cannot be changed', true);
+    return;
+  }
   var input = document.getElementById('mmaSlugInput');
   var raw   = (input.value || '').trim().toLowerCase();
   var slug  = raw.replace(/[^a-z0-9-]/g, '').replace(/-{2,}/g, '-').replace(/^-+|-+$/g, '');
