@@ -892,6 +892,120 @@
     100% { left: 100%; }
   }
 
+  /* ============ VISUAL UPGRADE ============ */
+
+  /* Scroll-reveal base */
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* Nav underline on hover */
+  .nav-links a { position: relative; }
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -3px; left: 0; right: 0;
+    height: 1px;
+    background: var(--emerald);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .nav-links a:hover::after { transform: scaleX(1); }
+
+  /* Counter section — burnt orange ambient */
+  .counter-section {
+    background:
+      radial-gradient(ellipse at 50% 35%, rgba(204, 85, 0, 0.07) 0%, transparent 60%),
+      linear-gradient(180deg, transparent, rgba(6, 214, 160, 0.02));
+  }
+
+  /* Counter display — deeper glow */
+  .counter-display {
+    text-shadow:
+      0 0 40px rgba(204, 85, 0, 0.65),
+      0 0 100px rgba(204, 85, 0, 0.3),
+      0 0 200px rgba(204, 85, 0, 0.12);
+  }
+
+  /* Counter cells — emerald top accent + hover */
+  .counter-cell {
+    border-top: 2px solid rgba(6, 214, 160, 0.2);
+    transition: border-color 0.35s, box-shadow 0.35s, transform 0.35s;
+  }
+  .counter-cell:hover {
+    border-top-color: rgba(6, 214, 160, 0.55);
+    box-shadow: 0 4px 28px rgba(6, 214, 160, 0.09);
+    transform: translateY(-2px);
+  }
+
+  /* Slider track fill via CSS custom property */
+  input[type="range"] {
+    background: linear-gradient(
+      to right,
+      var(--emerald) 0%,
+      var(--emerald) var(--fill, 23%),
+      rgba(18, 26, 33, 0.8) var(--fill, 23%),
+      rgba(18, 26, 33, 0.8) 100%
+    );
+  }
+
+  /* Calc section — emerald ambient from right */
+  .calc-section {
+    background:
+      radial-gradient(ellipse at 75% 50%, rgba(6, 214, 160, 0.05) 0%, transparent 55%);
+  }
+
+  /* Calc result card — stronger emerald border, flash animation */
+  .calc-result {
+    border-color: rgba(6, 214, 160, 0.18);
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  @keyframes resultFlash {
+    0%   { border-color: rgba(6, 214, 160, 0.7); box-shadow: 0 0 40px rgba(6, 214, 160, 0.18); }
+    100% { border-color: rgba(6, 214, 160, 0.18); box-shadow: none; }
+  }
+  .calc-result.flash { animation: resultFlash 0.5s ease-out forwards; }
+
+  /* Result amount — stronger glow */
+  .result-amount {
+    text-shadow:
+      0 0 40px rgba(6, 214, 160, 0.55),
+      0 0 100px rgba(6, 214, 160, 0.22);
+  }
+
+  /* Breakdown row hover */
+  .breakdown-row { border-radius: 4px; transition: background 0.2s; }
+  .breakdown-row:hover { background: rgba(232, 238, 242, 0.04); }
+
+  /* Activity feed — premium shadow + emerald border tint */
+  .activity {
+    border-color: rgba(6, 214, 160, 0.18);
+    box-shadow:
+      0 16px 40px rgba(0, 0, 0, 0.55),
+      0 0 0 1px rgba(6, 214, 160, 0.07);
+  }
+
+  /* Audit widget button — subtle glow on hover */
+  .audit-btn:hover {
+    box-shadow: 0 6px 24px rgba(6, 214, 160, 0.35);
+    transform: translateY(-1px);
+  }
+  .audit-btn { transition: transform 0.2s, box-shadow 0.3s; }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+    .audit-widget::before { animation: none; }
+    .ring-icon, .live-dot, .activity-dot, .status-line, .sms-bubble { animation: none !important; }
+    h1 .line-1, h1 .line-2, h1 .line-3,
+    .eyebrow, .sub, .audit-widget, .stats { opacity: 1 !important; animation: none !important; }
+  }
+
   /* mobile */
   @media (max-width: 900px) {
     nav { padding: 18px 24px; }
@@ -1308,6 +1422,54 @@ const statObserver = new IntersectionObserver((entries) => {
   });
 }, { threshold: 0.5 });
 document.querySelectorAll('.stat-num').forEach(el => statObserver.observe(el));
+
+// ============================================
+// SCROLL REVEAL
+// ============================================
+const revealObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      revealObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.12 });
+
+const revealTargets = [
+  '.counter-eyebrow', '.counter-title', '.counter-display',
+  '.counter-label', '.counter-grid', '.counter-footnote',
+  '.calc-eyebrow', '.calc-title', '.calc-sub',
+  '.slider-group', '.calc-result'
+];
+revealTargets.forEach((sel, si) => {
+  document.querySelectorAll(sel).forEach((el, i) => {
+    el.classList.add('reveal');
+    el.style.transitionDelay = ((si + i) * 0.06) + 's';
+    revealObs.observe(el);
+  });
+});
+
+// ============================================
+// SLIDER TRACK FILL
+// ============================================
+function updateFill(slider) {
+  const pct = ((slider.value - slider.min) / (slider.max - slider.min) * 100).toFixed(1) + '%';
+  slider.style.setProperty('--fill', pct);
+}
+[callsSlider, valueSlider, convSlider].forEach(s => {
+  updateFill(s);
+  s.addEventListener('input', () => updateFill(s));
+});
+
+// ============================================
+// CALC RESULT FLASH ON CHANGE
+// ============================================
+const calcResultCard = document.querySelector('.calc-result');
+[callsSlider, valueSlider, convSlider].forEach(s => s.addEventListener('input', () => {
+  calcResultCard.classList.remove('flash');
+  void calcResultCard.offsetWidth;
+  calcResultCard.classList.add('flash');
+}));
 </script>
 
 </body>
