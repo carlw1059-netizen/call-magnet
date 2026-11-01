@@ -101,6 +101,23 @@ Deno.serve(async (req: Request): Promise<Response> => {
 			return json(400, { ok: false, error: "unknown_slug" });
 		}
 
+		// Verify the phone number has received an SMS from this client before
+		// allowing an opt-out. Prevents opting out numbers with no history.
+		const { data: smsRow, error: smsErr } = await supa
+			.from("sms_events")
+			.select("id")
+			.eq("client_id", clientRow.id)
+			.eq("customer_number", phone)
+			.maybeSingle();
+
+		if (smsErr) {
+			console.error("opt-out-by-phone: sms_events lookup error:", smsErr);
+			return json(500, { ok: false, error: "server_error" });
+		}
+		if (!smsRow) {
+			return json(400, { ok: false, error: "not eligible" });
+		}
+
 		const now = new Date().toISOString();
 
 		// Upsert opt_out — same schema as process-unsubscribe
