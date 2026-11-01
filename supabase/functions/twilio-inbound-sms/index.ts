@@ -7,8 +7,8 @@
 //   1. Look up the client by twilio_number = To
 //   2. Upsert into opt_outs (client_id, phone_number = From, permanence = 'forever')
 //
-// Auth: verify_jwt = false — Twilio carries no Bearer token. The function
-// URL itself is the secret (same posture as twilio-missed-call).
+// Auth: verify_jwt = false — Twilio carries no Bearer token. Requests are
+// authenticated via Twilio HMAC-SHA1 signature validation (X-Twilio-Signature).
 //
 // Always returns 200 — Twilio retries on any non-2xx response.
 //
@@ -22,14 +22,45 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN")!;
 
 Deno.serve(async (req) => {
 	if (req.method !== "POST") {
 		return ok();
 	}
 
+	// ── Twilio HMAC-SHA1 signature validation ────────────────────────────────
+	// Read body once here for both signature check and later form parsing.
+	// Form-encoded: HMAC-SHA1(authToken, url + params_sorted_by_key_concatenated).
+	const rawBody = await req.text();
+	const twilioSig = req.headers.get("X-Twilio-Signature") ?? "";
+	const sigUrl = Deno.env.get("REQUEST_URL") ?? req.url;
+	const sigParams = new URLSearchParams(rawBody);
+	const sortedParamStr = [...sigParams.keys()]
+		.sort()
+		.map((k) => k + (sigParams.get(k) ?? ""))
+		.join("");
+	const keyBytes = new TextEncoder().encode(TWILIO_AUTH_TOKEN);
+	const msgBytes = new TextEncoder().encode(sigUrl + sortedParamStr);
+	const cryptoKey = await crypto.subtle.importKey(
+		"raw",
+		keyBytes,
+		{ name: "HMAC", hash: "SHA-1" },
+		false,
+		["sign"],
+	);
+	const sigBuffer = await crypto.subtle.sign("HMAC", cryptoKey, msgBytes);
+	const expectedSig = btoa(String.fromCharCode(...new Uint8Array(sigBuffer)));
+	if (expectedSig !== twilioSig) {
+		console.warn("twilio-inbound-sms: invalid Twilio signature");
+		return new Response(JSON.stringify({ error: "unauthorized" }), {
+			status: 401,
+			headers: { "Content-Type": "application/json" },
+		});
+	}
+
 	try {
-		const form = await req.formData();
+		const form = new URLSearchParams(rawBody);
 		const from = (form.get("From") ?? "").toString().trim();
 		const to = (form.get("To") ?? "").toString().trim();
 		const body = (form.get("Body") ?? "").toString().trim().toUpperCase();

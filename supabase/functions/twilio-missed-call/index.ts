@@ -7,8 +7,8 @@
 // violation (PostgREST 409), which we catch and return 200 OK so Twilio stops.
 //
 // Auth: deployed with --no-verify-jwt (Twilio doesn't send Bearer tokens).
-// The function URL itself is the secret. A future hardening pass can add
-// Twilio signature verification.
+// Requests are authenticated via Twilio HMAC-SHA1 signature validation
+// (X-Twilio-Signature header, signed with TWILIO_AUTH_TOKEN).
 //
 // Payload (Twilio standard, application/x-www-form-urlencoded):
 //   From      caller's E.164 number          → sms_events.customer_number
@@ -35,6 +35,7 @@ import { getEmailParts } from "../_shared/emailCopy.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN")!;
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const ALERT_TO = "hello@callmagnet.com.au";
 
@@ -85,9 +86,36 @@ Deno.serve(async (req) => {
 		});
 	}
 
+	// ── Twilio HMAC-SHA1 signature validation ────────────────────────────────
+	// Read body once here for both signature check and later form parsing.
+	// Form-encoded: HMAC-SHA1(authToken, url + params_sorted_by_key_concatenated).
+	const rawBody = await req.text();
+	const twilioSig = req.headers.get("X-Twilio-Signature") ?? "";
+	const sigUrl = Deno.env.get("REQUEST_URL") ?? req.url;
+	const sigParams = new URLSearchParams(rawBody);
+	const sortedParamStr = [...sigParams.keys()]
+		.sort()
+		.map((k) => k + (sigParams.get(k) ?? ""))
+		.join("");
+	const keyBytes = new TextEncoder().encode(TWILIO_AUTH_TOKEN);
+	const msgBytes = new TextEncoder().encode(sigUrl + sortedParamStr);
+	const cryptoKey = await crypto.subtle.importKey(
+		"raw",
+		keyBytes,
+		{ name: "HMAC", hash: "SHA-1" },
+		false,
+		["sign"],
+	);
+	const sigBuffer = await crypto.subtle.sign("HMAC", cryptoKey, msgBytes);
+	const expectedSig = btoa(String.fromCharCode(...new Uint8Array(sigBuffer)));
+	if (expectedSig !== twilioSig) {
+		console.warn("twilio-missed-call: invalid Twilio signature");
+		return json(401, { error: "unauthorized" });
+	}
+
 	try {
 		// ── Parse Twilio's form-encoded body ──────────────────────────────────
-		const form = await req.formData();
+		const form = new URLSearchParams(rawBody);
 		const callSid = (form.get("CallSid") ?? "").toString().trim();
 		const from = (form.get("From") ?? "").toString().trim();
 		const to = (form.get("To") ?? "").toString().trim();
