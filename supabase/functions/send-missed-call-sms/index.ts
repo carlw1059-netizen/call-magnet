@@ -11,9 +11,10 @@
 //   - send-twilio-sms is guarded by INTERNAL_SECRET; this function is called
 //     directly by Twilio Studio which carries no shared secret.
 //
-// Auth: no verify_jwt (Twilio Studio calls this directly — URL is the secret).
-// verify_jwt = false is set in config.toml. A future hardening pass can add
-// Twilio request-signature verification.
+// Auth: no verify_jwt (Twilio Studio calls this directly). Requests are
+// authenticated via Twilio HMAC-SHA1 signature validation (X-Twilio-Signature
+// header, signed with TWILIO_AUTH_TOKEN). Twilio signs JSON requests as
+// HMAC-SHA1(authToken, url + rawBody) — URL-only validation always fails.
 //
 // Studio widget order (IMPORTANT):
 //   fetch_client → http_1 (twilio-missed-call) → send_sms (this function)
@@ -35,7 +36,6 @@ const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID")!;
 const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const INTERNAL_SECRET = Deno.env.get("INTERNAL_SECRET");
 
 const STATUS_CALLBACK_URL =
 	"https://iskvvnhacqdxybpmwuni.supabase.co/functions/v1/twilio-sms-status";
@@ -53,7 +53,25 @@ Deno.serve(async (req) => {
 		return new Response("Method Not Allowed", { status: 405 });
 	}
 
-	if (req.headers.get("X-Internal-Secret") !== INTERNAL_SECRET) {
+	// ── Twilio HMAC-SHA1 signature validation ────────────────────────────────
+	// Read body once here for both signature check and later JSON parsing.
+	// Twilio signs JSON requests as HMAC-SHA1(authToken, url + rawBody).
+	const rawBody = await req.text();
+	const twilioSig = req.headers.get("X-Twilio-Signature") ?? "";
+	const sigUrl = Deno.env.get("REQUEST_URL") ?? req.url;
+	const keyBytes = new TextEncoder().encode(TWILIO_AUTH_TOKEN);
+	const msgBytes = new TextEncoder().encode(sigUrl + rawBody);
+	const cryptoKey = await crypto.subtle.importKey(
+		"raw",
+		keyBytes,
+		{ name: "HMAC", hash: "SHA-1" },
+		false,
+		["sign"],
+	);
+	const sigBuffer = await crypto.subtle.sign("HMAC", cryptoKey, msgBytes);
+	const expectedSig = btoa(String.fromCharCode(...new Uint8Array(sigBuffer)));
+	if (expectedSig !== twilioSig) {
+		console.warn("send-missed-call-sms: invalid Twilio signature");
 		return new Response(JSON.stringify({ error: "unauthorized" }), {
 			status: 401,
 			headers: { "Content-Type": "application/json" },
@@ -73,12 +91,18 @@ Deno.serve(async (req) => {
 		}
 
 		// ── Parse body ────────────────────────────────────────────────────────────
-		const body = (await req.json().catch(() => null)) as {
+		// rawBody was already read above for signature validation
+		let body: {
 			customer_number?: unknown;
 			client_twilio_number?: unknown;
 			customer_sms_template?: unknown;
 			sms_event_id?: unknown;
-		} | null;
+		} | null = null;
+		try {
+			body = JSON.parse(rawBody);
+		} catch {
+			// stays null
+		}
 
 		if (!body) {
 			return json(400, { error: "invalid_body", detail: "JSON body required" });
