@@ -463,7 +463,7 @@ Deno.serve(async (req) => {
 		await fetch("https://api.resend.com/emails", {
 			method: "POST",
 			headers: {
-				Authorization: `Bearer ${Deno.env.get("RESEND_API_KEY")}`,
+				Authorization: `Bearer ${resendKey}`,
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
@@ -472,7 +472,9 @@ Deno.serve(async (req) => {
 				subject: alertCopy.subject,
 				html: alertHtml,
 			}),
-		}).catch(() => {});
+		}).catch((alertErr) =>
+			console.error("[stripe-payment-succeeded] alert email failed:", alertErr),
+		);
 
 		return new Response(JSON.stringify({ error: error.message }), {
 			status: 500,
