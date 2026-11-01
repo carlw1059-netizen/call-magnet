@@ -29,6 +29,15 @@ Deno.serve(async (req) => {
 
 		const timestamp = timestampMatch[1];
 		const expectedSig = sigMatch[1];
+
+		const timestampAge = Math.abs(Date.now() / 1000 - parseInt(timestamp, 10));
+		if (timestampAge > 300) {
+			return new Response(JSON.stringify({ error: "webhook expired" }), {
+				status: 400,
+				headers: { "Content-Type": "application/json" },
+			});
+		}
+
 		const signedPayload = `${timestamp}.${body}`;
 		const encoder = new TextEncoder();
 		const keyData = encoder.encode(webhookSecret);
