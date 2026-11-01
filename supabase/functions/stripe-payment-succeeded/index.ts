@@ -421,17 +421,23 @@ Deno.serve(async (req) => {
 				const emailData = await emailRes.json();
 				console.log(`Welcome email response: ${JSON.stringify(emailData)}`);
 
-				await fetch(`${supabaseUrl}/rest/v1/clients?id=eq.${client.id}`, {
-					method: "PATCH",
-					headers: {
-						apikey: supabaseKey,
-						Authorization: `Bearer ${supabaseKey}`,
-						"Content-Type": "application/json",
-						Prefer: "return=minimal",
-					},
-					body: JSON.stringify({ emails_sent: [...emailsSent, "welcome"] }),
-				});
-				console.log(`Welcome email sent to ${client.business_name}`);
+				if (!emailRes.ok) {
+					console.error(
+						`[stripe-payment-succeeded] Resend ${emailRes.status} — welcome email NOT delivered to ${client.business_name}, NOT marking as sent`,
+					);
+				} else {
+					await fetch(`${supabaseUrl}/rest/v1/clients?id=eq.${client.id}`, {
+						method: "PATCH",
+						headers: {
+							apikey: supabaseKey,
+							Authorization: `Bearer ${supabaseKey}`,
+							"Content-Type": "application/json",
+							Prefer: "return=minimal",
+						},
+						body: JSON.stringify({ emails_sent: [...emailsSent, "welcome"] }),
+					});
+					console.log(`Welcome email sent to ${client.business_name}`);
+				}
 			}
 		}
 
