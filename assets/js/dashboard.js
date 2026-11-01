@@ -1558,7 +1558,7 @@ function buildMmCard(record, formType, neonColor, isUrlButton, displayLabel) {
 function mmRow(key, val) {
   return '<div class="mm-card-row">' +
     '<span class="mm-card-key">' + key + '</span>' +
-    '<span class="mm-card-val">' + (val || '—') + '</span>' +
+    '<span class="mm-card-val">' + _escMgr(val || '—') + '</span>' +
     '</div>';
 }
 
