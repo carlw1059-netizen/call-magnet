@@ -40,13 +40,33 @@ Deno.serve(async (req) => {
 		const authHeader = req.headers.get("Authorization");
 
 		let authed = false;
+		let authedClientId: string | null = null;
 		if (internalSecret) {
 			authed = !!INTERNAL_SECRET && internalSecret === INTERNAL_SECRET;
 		} else if (authHeader?.startsWith("Bearer ")) {
 			const authRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
 				headers: { apikey: SUPABASE_ANON_KEY, Authorization: authHeader },
 			});
-			authed = authRes.ok;
+			if (!authRes.ok) return json(401, { ok: false, error: "unauthorized" });
+			const userData = (await authRes.json()) as { email?: string };
+			const userEmail = userData?.email;
+			if (!userEmail) return json(401, { ok: false, error: "unauthorized" });
+			const clientLookup = await fetch(
+				`${SUPABASE_URL}/rest/v1/clients?email=eq.${encodeURIComponent(userEmail)}&select=id&limit=1`,
+				{
+					headers: {
+						apikey: SUPABASE_SERVICE_ROLE_KEY,
+						Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+					},
+				},
+			);
+			if (!clientLookup.ok)
+				return json(401, { ok: false, error: "unauthorized" });
+			const clientData = (await clientLookup.json()) as { id: string }[];
+			if (!clientData[0])
+				return json(401, { ok: false, error: "unauthorized" });
+			authedClientId = clientData[0].id;
+			authed = true;
 		}
 		if (!authed) return json(401, { error: "unauthorized" });
 
@@ -75,6 +95,11 @@ Deno.serve(async (req) => {
 				error: "missing_required_field",
 				detail: "client_id, endpoint, p256dh, and auth are all required",
 			});
+		}
+
+		// JWT path: enforce that the authenticated user owns the client_id in the body
+		if (authedClientId !== null && authedClientId !== clientId) {
+			return json(403, { ok: false, error: "forbidden" });
 		}
 
 		// ── verify the client_id exists ─────────────────────────────────────────
