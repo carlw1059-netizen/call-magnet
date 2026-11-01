@@ -35,6 +35,7 @@ const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID")!;
 const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const INTERNAL_SECRET = Deno.env.get("INTERNAL_SECRET");
 
 const STATUS_CALLBACK_URL =
 	"https://iskvvnhacqdxybpmwuni.supabase.co/functions/v1/twilio-sms-status";
@@ -50,6 +51,13 @@ Deno.serve(async (req) => {
 
 	if (req.method !== "POST") {
 		return new Response("Method Not Allowed", { status: 405 });
+	}
+
+	if (req.headers.get("X-Internal-Secret") !== INTERNAL_SECRET) {
+		return new Response(JSON.stringify({ error: "unauthorized" }), {
+			status: 401,
+			headers: { "Content-Type": "application/json" },
+		});
 	}
 
 	try {
