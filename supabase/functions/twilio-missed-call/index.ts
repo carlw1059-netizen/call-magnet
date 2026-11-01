@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
 	// Form-encoded: HMAC-SHA1(authToken, url + params_sorted_by_key_concatenated).
 	const rawBody = await req.text();
 	const twilioSig = req.headers.get("X-Twilio-Signature") ?? "";
-	const sigUrl = Deno.env.get("REQUEST_URL") ?? req.url;
+	const sigUrl = req.url;
 	const sigParams = new URLSearchParams(rawBody);
 	const sortedParamStr = [...sigParams.keys()]
 		.sort()
