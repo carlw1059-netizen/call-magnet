@@ -188,8 +188,7 @@ Admin selects MP4 in admin panel
 ## CRITICAL INCIDENT — 22-23 August 2026
 
 ### What Broke
-1. `cm1site/b.html` and `b.html` loaded CSS from `callmagnet-staging.netlify.app` instead of `callmagnet.com.au` — caused by staging work being merged to main without checking URLs
-2. Logo `max-height` changed from `90px` to `160px` directly on main — broke Arcane Fairies layout
+1. Logo `max-height` changed from `90px` to `160px` directly on main — broke Arcane Fairies layout
 3. Page stopped scrolling correctly on mobile for all clients
 
 ### Root Cause

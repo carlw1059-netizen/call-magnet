@@ -41,8 +41,7 @@ CallMagnet is a B2B missed-call recovery SaaS for Australian service businesses 
 
 | Service | What it does | Identifier |
 |---|---|---|
-| Netlify | Hosts frontend (callmagnet.com.au) and Middle Man pages (cm1.au) | Site: jocular-mooncake-c48f5c |
-| Netlify (staging) | Staging environment | callmagnet-staging.netlify.app |
+| Cloudflare Pages | Hosts callmagnet.com.au (callmagnet-app), marketing (callmagnet-marketing), cm1.au Middle Man pages (callmagnet-cm1) | Deployed via GitHub Actions + wrangler |
 | Supabase (production) | PostgreSQL database + edge functions + file storage | Project ref: iskvvnhacqdxybpmwuni |
 | Supabase (staging) | Staging database | Project ref: knupnihccvdsnoxnaqwo |
 | Twilio | Phone numbers, Studio call flows, SMS API | Account SID in Supabase vault |
@@ -51,7 +50,7 @@ CallMagnet is a B2B missed-call recovery SaaS for Australian service businesses 
 | Pushover | Push alerts to Carl's phone only | Admin alerts |
 | Progressier | PWA install + push notifications to clients | App ID: 9kXZoGF2Dlfeqec880My |
 | GitHub | Source code | carlw1059-netizen/call-magnet |
-| ffmpeg | Video processing (Linux x64 static binary in repo) | netlify/functions/ffmpeg |
+| ffmpeg | Video processing (faststart encoding before upload) | Run locally via CLAUDE.md command |
 
 **Twilio numbers:**
 - +61468083169 — demo and test clients only
@@ -282,26 +281,14 @@ The Middle Man page (b.html / cm1site/b.html) is the customer-facing page caller
 
 ---
 
-## 10. THE STAGING ENVIRONMENT
+## 10. DEPLOYMENT
 
-**Purpose:** Test all changes before they hit the live system with real clients.
+**Frontend:** Cloudflare Pages, deployed automatically on push to main via GitHub Actions.
+- callmagnet.com.au → callmagnet-app CF Pages project
+- callmagnet-marketing → callmagnet-marketing CF Pages project
+- cm1.au → callmagnet-cm1 CF Pages project
 
-**Staging details:**
-- URL: https://callmagnet-staging.netlify.app
-- Netlify site: callmagnet-staging
-- GitHub branch: staging
-- Supabase project: knupnihccvdsnoxnaqwo (separate database, separate storage)
-
-**Workflow — always follow this:**
-1. git checkout staging
-2. Make changes and commit
-3. git push origin staging — Netlify auto-deploys to staging URL
-4. Test on staging
-5. git checkout main && git merge staging && git push origin main
-6. For edge functions: deploy to staging ref first (knupnihccvdsnoxnaqwo), test, then production ref (iskvvnhacqdxybpmwuni)
-7. For migrations: apply to staging Supabase first, test, then production
-
-**Golden rule:** Nothing goes to production without being tested on staging first. Never use production Supabase ref iskvvnhacqdxybpmwuni in a test prompt.
+**All changes go directly to main.** The Netlify staging environment (callmagnet-staging.netlify.app) is decommissioned as of November 2026.
 
 ---
 
@@ -397,8 +384,7 @@ These are areas where things have broken before and are likely to break again if
 
 ### Deploying a change
 1. Make and test the change locally (or on staging if the change is risky)
-2. For staging: `git checkout staging`, commit, `git push origin staging`, test on callmagnet-staging.netlify.app
-3. For production: `git checkout main`, merge or cherry-pick, `git push origin main`
+2. For production: `git checkout main`, commit, `git push origin main`
 4. For edge functions: `npx supabase functions deploy [fn] --project-ref iskvvnhacqdxybpmwuni --no-verify-jwt`
 5. For DB migrations: apply via Supabase MCP with the correct project_id
 
