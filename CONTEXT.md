@@ -65,9 +65,10 @@ CallMagnet is a B2B missed-call recovery SaaS for Australian service businesses 
 - Restaurant monthly: price_1Ti51u3MTu8r2rLhBNxFra0k ($249/month)
 - SMS overage: price_1TMmTG3MTu8r2rLhYSWnqheS (metered)
 
-**Two Netlify sites:**
-1. callmagnet.com.au — main site, admin panel, client dashboard (PWA)
-2. cm1.au — Middle Man pages only, catch-all redirect to b.html via _redirects
+**Three Cloudflare Pages projects:**
+1. callmagnet-app → app.callmagnet.com.au — dashboard and admin panel (PWA)
+2. callmagnet-marketing → callmagnet.com.au — marketing site
+3. callmagnet-cm1 → cm1.au — Middle Man pages, catch-all redirect to b.html via _redirects
 
 ---
 
@@ -84,7 +85,7 @@ CallMagnet is a B2B missed-call recovery SaaS for Australian service businesses 
 - PUSHOVER_USER_KEY — Pushover user key for Carl
 - PUSHOVER_APP_TOKEN — Pushover app token
 
-**Netlify environment variables:**
+**Cloudflare Pages environment variables (injected at build time via GitHub Actions):**
 - SUPABASE_URL — https://iskvvnhacqdxybpmwuni.supabase.co (NOT marked as secret)
 - SUPABASE_SERVICE_ROLE_KEY — Supabase service role key (secret)
 - SECRETS_SCAN_SMART_DETECTION_ENABLED — false (prevents false positive secret scan failures)
@@ -235,17 +236,11 @@ CallMagnet is a B2B missed-call recovery SaaS for Australian service businesses 
 
 ---
 
-## 8. EVERY NETLIFY FUNCTION
+## 8. VIDEO PROCESSING
 
-**process-video** — POST only
-- Location: netlify/functions/process-video.js
-- Triggered by: Admin panel video upload (middle-man-admin.js)
-- Flow: Admin JS uploads raw MP4 directly to Supabase Storage, then calls this function with { client_id, storage_path }
-- Does: Downloads raw MP4 from Supabase Storage, runs ffmpeg faststart re-encode (-movflags faststart -an -vcodec copy), overwrites same storage_path, returns public URL
-- ffmpeg binary: netlify/functions/ffmpeg (75MB Linux x64 static binary, mode 100755)
-- Result: Faststart-encoded MP4 that autoplays on iOS Safari without user gesture
-- After success: Admin JS calls mmaSb.from('clients').update({ middle_man_background_url, middle_man_background_type: 'video' })
-- Requires: Authorization header with valid Supabase JWT
+Video processing is done locally before upload. The Netlify process-video function is decommissioned.
+
+**Workflow:** Admin runs ffmpeg locally (faststart re-encode per CLAUDE.md command), then uploads via admin panel Background Media section → `upload-middle-man-background` edge fn → Supabase Storage → URL persisted to `clients.middle_man_background_url`.
 
 ---
 
@@ -262,7 +257,7 @@ The Middle Man page (b.html / cm1site/b.html) is the customer-facing page caller
 
 **How it works:**
 - URL: cm1.au/<middle_man_slug> (e.g. cm1.au/arcane-fairies)
-- cm1.au is a separate Netlify site (callmag) with catch-all _redirects to b.html
+- cm1.au is served by Cloudflare Pages (callmagnet-cm1 project) with catch-all _redirects to b.html
 - b.html loads middleman.js which fetches client config from Supabase and renders the page
 - Button taps call log-middle-man-tap edge function
 
@@ -305,9 +300,9 @@ The Middle Man page (b.html / cm1site/b.html) is the customer-facing page caller
 | cm1site/b.html must always match root b.html exactly | Both files serve the same page on different paths. Drift causes split-brain bugs. |
 | Never change middleman.js, b.html, or service-worker.js to fix iOS autoplay | Autoplay failures are always caused by non-faststart video encoding, never by code. |
 | Every middleman.js change must bump version string in BOTH b.html files | Service worker caches aggressively on iOS. Version bump forces cache invalidation. |
-| Short.io cancelled and gone — never re-add | Replaced by Netlify catch-all redirect. Re-adding creates duplicate link infrastructure. |
+| Short.io cancelled and gone — never re-add | Replaced by Cloudflare Pages catch-all redirect. Re-adding creates duplicate link infrastructure. |
 | Rebrandly cancelled and gone — never re-add | Same reason. |
-| Stripe key always from Vault — never plain env var | Prevents key exposure in Netlify build logs or GitHub history. |
+| Stripe key always from Vault — never plain env var | Prevents key exposure in CF Pages build logs or GitHub history. |
 | All Claude Code prompts begin with "Read CLAUDE.md first" | Ensures every session inherits all architecture rules and bug history. |
 | Every commit includes git push origin main | Prevents local-only commits that don't deploy. |
 | Change one file at a time | Prevents merge conflicts and makes rollback trivial. |
@@ -328,10 +323,6 @@ These are areas where things have broken before and are likely to break again if
 - CSS/JS changes may not appear on iOS Safari after deploy
 - Fix: bump `CACHE_VERSION` in `service-worker.js` AND bump version strings in `index.html` for `dashboard.css` and `dashboard.js`
 - Do NOT tell users it's an iPhone problem
-
-### netlify.toml TOML syntax
-- `included_files` for the ffmpeg binary must be in the global `[functions]` block, NOT nested inside a function-specific block
-- If ffmpeg stops being bundled (process-video returns ffmpegExists: false), check netlify.toml first
 
 ### cm1site/b.html sync
 - It's easy to update root `b.html` and forget `cm1site/b.html`
@@ -438,7 +429,7 @@ These items are known, intentional, and not started. Ordered roughly by commerci
 - Should alert Carl if the page goes down or 404s
 
 ### LOW — Staging environment for Twilio Studio
-- Current staging only covers Netlify + Supabase
+- Current staging only covers Supabase
 - Twilio Studio flows still point to production edge functions during staging tests
 
 ---
@@ -478,7 +469,6 @@ Read this section first. It will save you time.
 
 ### Where to find things
 - All live edge functions: `supabase/functions/`
-- The video processing Netlify function: `netlify/functions/process-video.js`
 - The Middle Man page renderer: `middleman.js` (loaded by `b.html` and `cm1site/b.html`)
 - The client admin panel JS: `assets/js/middle-man-admin.js`
 - The client PWA dashboard JS: `assets/js/clients-admin.js`

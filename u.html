@@ -223,7 +223,7 @@ html, body {
   var OPT_BY_PHONE   = SUPABASE_URL + '/functions/v1/opt-out-by-phone';
 
   // ── Extract token or slug from /u/<token|slug> ────────────────────────────
-  // Netlify rewrites /u/* → /u.html. Pathname is still /u/<segment>.
+  // CF Pages serves /u/* → /u.html via _redirects. Pathname is still /u/<segment>.
   // UUID → it's a token. Anything else → it's a slug (no-token flow).
   var pathParts = window.location.pathname.replace(/\/+$/, '').split('/');
   var pathSeg   = pathParts[pathParts.length - 1] || '';

@@ -1,25 +1,10 @@
-## NETLIFY DEPLOY WARNING — NEVER SKIP
-
-These two files deploy to production the moment they are pushed to main. Do NOT change them until DNS cutover day:
-- `dashboard.js`
-- `cm1site/b.html`
-
-All Supabase edge functions are safe to commit at any time — they do not auto-deploy.
-
-On cutover day only, in this order:
-1. Update `cm1site/b.html` asset URLs → push → confirm Netlify deployed
-2. Update `dashboard.js` redirectTo URLs → push → confirm Netlify deployed
-3. Update Supabase Auth Site URL in dashboard
-4. Flip DNS
-
----
 
 ## Known Bugs & Fix History
 
 ### Auth screen architecture — password reset flow
 - **Rule**: callmagnet.com.au MUST only ever show the login screen. It must NEVER show a password reset form.
 - **How reset works**: `handleReset()` in dashboard.js calls `sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://callmagnet.com.au/reset-password' })`. The reset form lives exclusively at `reset-password.html`. Do not move it back to the main page under any circumstances.
-- **reset-password.html**: Standalone page. Gets Supabase credentials injected at build time by netlify.toml (the sed command). If you add any new HTML files that need Supabase credentials, they must be added to the netlify.toml build command in all three sed operations.
+- **reset-password.html**: Standalone page. Gets Supabase credentials injected at build time by the GitHub Actions `deploy-app.yml` workflow (sed command). If you add any new HTML files that need Supabase credentials, they must be added to the `deploy-app.yml` build step in all three sed operations.
 - **What NOT to do**: Never call `request-login-link` edge function from `handleReset()` — that function sends magic sign-in links, not recovery links. Never set `redirectTo` back to `'https://callmagnet.com.au/'` — recovery links must go to `/reset-password`.
 - **_isPasswordRecoveryFlow flag**: Set at parse time (before DOMContentLoaded) by checking `window.location.hash.includes('type=recovery')`. The `onAuthStateChange` PASSWORD_RECOVERY handler is gated behind this flag. Never remove this gate — without it, spurious PASSWORD_RECOVERY events show the recovery screen on the main page.
 - **Black screen**: Was caused by dead code in `crossFadeToDashboard` that hid both the dash and fromEl when `loadDashboard` returned `'must_change_password'`. That check and that return value are both gone. Never re-add a `must_change_password` branch to `loadDashboard` or `crossFadeToDashboard`.

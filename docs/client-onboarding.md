@@ -198,7 +198,7 @@ Owners do not customise their SMS body. The vertical (`restaurant` / `barber` / 
 
 ## SMS Link
 
-The SMS sent to missed callers contains `https://cm1.au/<slug>` as the booking link. The slug is set at onboarding (`clients.middle_man_slug`) and resolved at send time by `send-missed-call-sms`. The `cm1.au` domain is a Netlify site that rewrites all paths to `b.html` (the Middle Man landing page).
+The SMS sent to missed callers contains `https://cm1.au/<slug>` as the booking link. The slug is set at onboarding (`clients.middle_man_slug`) and resolved at send time by `send-missed-call-sms`. The `cm1.au` domain is served by Cloudflare Pages (callmagnet-cm1 project) and rewrites all paths to `b.html` via `_redirects` (the Middle Man landing page).
 
 ---
 

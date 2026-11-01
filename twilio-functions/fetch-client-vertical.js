@@ -101,7 +101,7 @@ exports.handler = async function (context, event, callback) {
   const { vertical, business_name, booking_url, customer_sms_template, middle_man_slug, middle_man_enabled } = rows[0];
 
   // Build the SMS link:
-  //   If Middle Man is ON → use cm1.au/<slug> (Netlify catch-all serves b.html).
+  //   If Middle Man is ON → use cm1.au/<slug> (CF Pages catch-all serves b.html).
   //   If Middle Man is OFF → go straight to booking_url (Fresha/OpenTable/etc.)
   //   so the caller is never sent to a dark page.
   // Substituted into the stored [LINK] placeholder so Twilio Studio stays trivial:

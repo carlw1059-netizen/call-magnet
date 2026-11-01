@@ -45,14 +45,14 @@ CallMagnet is a missed-call recovery SaaS for Australian small businesses. When 
 
 ## Tech stack
 
-- **Frontend:** Netlify — two sites: callmagnet.com.au (admin/client PWA) and callmag (cm1.au — customer Middle Man pages)
+- **Frontend:** Cloudflare Pages — three projects: callmagnet-app (app.callmagnet.com.au — admin/client PWA), callmagnet-marketing (callmagnet.com.au — marketing site), callmagnet-cm1 (cm1.au — customer Middle Man pages)
 - **Backend:** Supabase (PostgreSQL + Edge Functions + Storage)
 - **SMS:** Twilio (phone numbers + Studio flows + SMS API)
 - **Push notifications:** Progressier (PWA install + push)
-- **Link tracking:** Netlify (callmag site) — cm1.au serves b.html via catch-all _redirects. Click tracking via log-click Supabase edge function writing to link_clicks table.
+- **Link tracking:** Cloudflare Pages (callmagnet-cm1) — cm1.au serves b.html via catch-all _redirects. Click tracking via log-click Supabase edge function writing to link_clicks table.
 - **Payments:** Stripe (subscriptions, webhooks)
 - **Email:** Resend (welcome, monthly report, alerts)
-- **Video processing:** Netlify serverless function (process-video) with static Linux x64 ffmpeg binary — re-encodes uploaded MP4s with faststart, strips audio, overwrites in Supabase Storage
+- **Video processing:** Local ffmpeg (faststart re-encode per CLAUDE.md command before upload) — admin uploads pre-processed MP4 directly to Supabase Storage
 
 ## Data flow — missed call to recovery
 
@@ -75,13 +75,10 @@ Missed call
 ## Video upload flow
 
 ```
-Admin selects MP4 in admin panel
-→ Raw file uploaded direct to Supabase Storage (middle-man-backgrounds bucket)
-→ POST to /.netlify/functions/process-video with { client_id, storage_path }
-→ Netlify function downloads file from Storage
-→ ffmpeg re-encodes: -movflags faststart -an -vcodec copy
-→ Overwrites same storage_path with processed file
-→ Public URL returned → persisted to clients.middle_man_background_url
+Admin runs ffmpeg locally (faststart re-encode per CLAUDE.md command)
+→ Uploads processed MP4 via admin panel Background Media section
+→ upload-middle-man-background edge fn saves to Supabase Storage
+→ Public URL persisted to clients.middle_man_background_url
 → Live preview updates in admin panel
 → Middle Man page plays video on iOS without user gesture
 ```
@@ -130,12 +127,6 @@ Admin selects MP4 in admin panel
 | `hyper-endpoint` | Stripe webhook: handles invoice.payment_failed — suspends client account on failed payment | false |
 | `SEND-EMAIL-SEQUENCE` | Sends onboarding email sequences to new clients | false |
 
-## Netlify functions
-
-| Function | Description |
-|---|---|
-| `process-video` | Accepts { client_id, storage_path } — downloads raw MP4 from Supabase Storage, runs ffmpeg faststart re-encode, strips audio, overwrites file, returns public URL |
-
 ## Security model
 
 - **Admin dual gate:** All admin edge functions check both `app_metadata.is_admin === true` AND `email === car312@hotmail.com` — either check failing returns 403.
@@ -163,9 +154,6 @@ Admin selects MP4 in admin panel
 
 ## Recent changes (August 2026)
 
-- Video upload system fully operational — raw MP4 uploads to Supabase Storage, Netlify process-video function runs ffmpeg faststart re-encode, URL persisted to clients table, Middle Man page plays video on iOS
-- netlify.toml rewritten cleanly — correct TOML syntax, no conflicting blocks
-- ffmpeg static Linux x64 binary committed to netlify/functions/ffmpeg (75MB, mode 100755)
 - RLS enabled on `weekly_summaries` table — admin and service_role only
 - Fabricated estimated revenue stat removed from monthly report email — replaced with real `sms_count`
 - `BLOCKED_CLIENT_IDS` enforced in `twilio-missed-call` — emergency SMS block works end to end
