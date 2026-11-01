@@ -105,7 +105,7 @@ self.addEventListener('push', (event) => {
       body:  data.body || 'New notification',
       icon:  '/android-chrome-192x192.png',
       badge: '/favicon-32x32.png',
-      data:  { url: data.url || 'https://callmagnet.com.au' },
+      data:  { url: data.url || 'https://app.callmagnet.com.au' },
     })
   );
 });
@@ -115,11 +115,11 @@ self.addEventListener('notificationclick', (event) => {
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
-        if (client.url.startsWith('https://callmagnet.com.au') && 'focus' in client) {
+        if (client.url.startsWith('https://app.callmagnet.com.au') && 'focus' in client) {
           return client.focus();
         }
       }
-      return clients.openWindow('https://callmagnet.com.au');
+      return clients.openWindow('https://app.callmagnet.com.au');
     })
   );
 });
