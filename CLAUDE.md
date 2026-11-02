@@ -196,6 +196,10 @@ Never remove the Progressier fallback unless a replacement has been tested live 
 - Resend templates are NOT used (link variables break in Resend templates). Resend is the sender only.
 - Testing: weekly-summary?test=1 sends the client summary + Carl's digest to hello@ only.
 
+## Codebase Knowledge Graph
+
+At the start of every session, read graphify-out/GRAPH_REPORT.md and graphify-out/graph.json. Use this as your understanding of the codebase. Before making any change, check the graph to understand which community the affected node lives in and what edges it has, so you know what else might break.
+
 ## Deployment
 
 All changes go directly to main. Staging branch is not used.
