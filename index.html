@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>if(window.matchMedia('(display-mode:standalone)').matches){window.location.replace('https://app.callmagnet.com.au/');}</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CallMagnet — Never miss a booking again</title>
@@ -893,6 +892,120 @@
     100% { left: 100%; }
   }
 
+  /* ============ VISUAL UPGRADE ============ */
+
+  /* Scroll-reveal base */
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* Nav underline on hover */
+  .nav-links a { position: relative; }
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -3px; left: 0; right: 0;
+    height: 1px;
+    background: var(--emerald);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .nav-links a:hover::after { transform: scaleX(1); }
+
+  /* Counter section — burnt orange ambient */
+  .counter-section {
+    background:
+      radial-gradient(ellipse at 50% 35%, rgba(204, 85, 0, 0.07) 0%, transparent 60%),
+      linear-gradient(180deg, transparent, rgba(6, 214, 160, 0.02));
+  }
+
+  /* Counter display — deeper glow */
+  .counter-display {
+    text-shadow:
+      0 0 40px rgba(204, 85, 0, 0.65),
+      0 0 100px rgba(204, 85, 0, 0.3),
+      0 0 200px rgba(204, 85, 0, 0.12);
+  }
+
+  /* Counter cells — emerald top accent + hover */
+  .counter-cell {
+    border-top: 2px solid rgba(6, 214, 160, 0.2);
+    transition: border-color 0.35s, box-shadow 0.35s, transform 0.35s;
+  }
+  .counter-cell:hover {
+    border-top-color: rgba(6, 214, 160, 0.55);
+    box-shadow: 0 4px 28px rgba(6, 214, 160, 0.09);
+    transform: translateY(-2px);
+  }
+
+  /* Slider track fill via CSS custom property */
+  input[type="range"] {
+    background: linear-gradient(
+      to right,
+      var(--emerald) 0%,
+      var(--emerald) var(--fill, 23%),
+      rgba(18, 26, 33, 0.8) var(--fill, 23%),
+      rgba(18, 26, 33, 0.8) 100%
+    );
+  }
+
+  /* Calc section — emerald ambient from right */
+  .calc-section {
+    background:
+      radial-gradient(ellipse at 75% 50%, rgba(6, 214, 160, 0.05) 0%, transparent 55%);
+  }
+
+  /* Calc result card — stronger emerald border, flash animation */
+  .calc-result {
+    border-color: rgba(6, 214, 160, 0.18);
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  @keyframes resultFlash {
+    0%   { border-color: rgba(6, 214, 160, 0.7); box-shadow: 0 0 40px rgba(6, 214, 160, 0.18); }
+    100% { border-color: rgba(6, 214, 160, 0.18); box-shadow: none; }
+  }
+  .calc-result.flash { animation: resultFlash 0.5s ease-out forwards; }
+
+  /* Result amount — stronger glow */
+  .result-amount {
+    text-shadow:
+      0 0 40px rgba(6, 214, 160, 0.55),
+      0 0 100px rgba(6, 214, 160, 0.22);
+  }
+
+  /* Breakdown row hover */
+  .breakdown-row { border-radius: 4px; transition: background 0.2s; }
+  .breakdown-row:hover { background: rgba(232, 238, 242, 0.04); }
+
+  /* Activity feed — premium shadow + emerald border tint */
+  .activity {
+    border-color: rgba(6, 214, 160, 0.18);
+    box-shadow:
+      0 16px 40px rgba(0, 0, 0, 0.55),
+      0 0 0 1px rgba(6, 214, 160, 0.07);
+  }
+
+  /* Audit widget button — subtle glow on hover */
+  .audit-btn:hover {
+    box-shadow: 0 6px 24px rgba(6, 214, 160, 0.35);
+    transform: translateY(-1px);
+  }
+  .audit-btn { transition: transform 0.2s, box-shadow 0.3s; }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+    .audit-widget::before { animation: none; }
+    .ring-icon, .live-dot, .activity-dot, .status-line, .sms-bubble { animation: none !important; }
+    h1 .line-1, h1 .line-2, h1 .line-3,
+    .eyebrow, .sub, .audit-widget, .stats { opacity: 1 !important; animation: none !important; }
+  }
+
   /* mobile */
   @media (max-width: 900px) {
     nav { padding: 18px 24px; }
@@ -924,7 +1037,7 @@
   <div class="nav-links">
     <a href="#how">How it works</a>
     <a href="#counter">Live counter</a>
-    <a href="#calc">Your losses</a>
+    <a href="#calc">The cost</a>
     <a href="#">Sign in</a>
   </div>
 </nav>
@@ -939,13 +1052,13 @@
       <span class="line-3">Automatically.</span>
     </h1>
     <p class="sub">
-      Australian service businesses lose <strong>$8 billion a year</strong> to unanswered phones.
-      When your line goes silent, ours sends an SMS in under 5 seconds — with your booking link, in your voice.
+      38% of calls to service businesses go unanswered. Most of those customers don't call back.
+      CallMagnet sends them an SMS in under 5 seconds — with your booking link, ready to click.
     </p>
 
     <!-- CTA widget -->
     <div class="audit-widget">
-      <div class="audit-title">See exactly how CallMagnet works for your venue. Takes 15 minutes.</div>
+      <div class="audit-title">Book a 15-minute demo. We'll walk you through the setup for your type of business.</div>
       <a href="mailto:hello@callmagnet.com.au" class="audit-btn" style="display:inline-block;text-decoration:none;margin-top:8px;">Book a free demo →</a>
     </div>
 
@@ -956,7 +1069,7 @@
       </div>
       <div>
         <div class="stat-num" data-target="38" data-suffix="%">38%</div>
-        <div class="stat-label">Avg calls missed</div>
+        <div class="stat-label">of calls go unanswered</div>
       </div>
       <div>
         <div class="stat-num" data-target="85" data-suffix="%">85%</div>
@@ -1002,10 +1115,10 @@
     <div class="counter-eyebrow"><span class="live-dot"></span>Live · Australia · Right now</div>
     <h2 class="counter-title">
       Right now, Australian businesses are losing <em>$253 per second</em><br>
-      to phones nobody can answer.
+      to missed calls.
     </h2>
     <div class="counter-display" id="liveCounter">$0</div>
-    <div class="counter-label">Lost by AU venues since you opened this page</div>
+    <div class="counter-label">Lost since you opened this page</div>
 
     <div class="counter-grid">
       <div class="counter-cell">
@@ -1022,8 +1135,7 @@
       </div>
     </div>
     <div class="counter-footnote">
-      Industry estimates based on $8B annual AU missed-call losses (Source: AU business publications, verified 2026).
-      Per-second figures projected. Replaced with CallMagnet client data as the platform grows.
+      Based on $8B in estimated annual AU missed-call revenue (industry figures, 2026). Numbers are projections — we'll replace them with real CallMagnet data as clients go live.
     </div>
   </div>
 </section>
@@ -1035,8 +1147,7 @@
       <div class="calc-eyebrow">Your numbers</div>
       <h2 class="calc-title">Drag the sliders.<br>See what you're <em>actually</em> losing.</h2>
       <p class="calc-sub">
-        Pre-set for an average Melbourne venue. Adjust to match yours.
-        The math is per-week, per-year — no marketing fluff.
+        Set to Melbourne averages. Change the numbers to match your business.
       </p>
 
       <div class="slider-group">
@@ -1067,14 +1178,14 @@
     <div class="calc-result">
       <div class="result-label">You're losing approximately</div>
       <div class="result-amount" id="resultAmount">$58,500</div>
-      <div class="result-period">per year — recoverable with CallMagnet</div>
+      <div class="result-period">per year — that CallMagnet could recover</div>
       <div class="result-breakdown">
         <div class="breakdown-row"><span>Per week</span><span id="bdWeek">$1,125</span></div>
         <div class="breakdown-row"><span>Per month</span><span id="bdMonth">$4,875</span></div>
         <div class="breakdown-row"><span>CallMagnet cost / year</span><span id="bdCost">$1,188</span></div>
         <div class="breakdown-row"><span style="color: var(--emerald);">Net recovery</span><span id="bdNet" style="color: var(--emerald);">$57,312</span></div>
       </div>
-      <button class="result-cta">Get my free audit →</button>
+      <button class="result-cta">Book a free demo →</button>
     </div>
   </div>
 </section>
@@ -1256,14 +1367,14 @@ recalc();
 // LIVE ACTIVITY FEED
 // ============================================
 const activities = [
-  { text: '<strong>Fitzroy venue</strong> captured a $145 booking', time: 'just now' },
-  { text: '<strong>Brunswick café</strong> captured 3 missed calls', time: '2 min ago' },
+  { text: '<strong>Fitzroy venue</strong> got a $145 booking from a missed call', time: 'just now' },
+  { text: '<strong>Brunswick café</strong> recovered 3 missed calls', time: '2 min ago' },
   { text: '<strong>St Kilda barber</strong> booked a haircut from a missed call', time: '5 min ago' },
   { text: '<strong>Carlton trattoria</strong> recovered $220 in bookings', time: '8 min ago' },
-  { text: '<strong>South Yarra clinic</strong> captured 7 missed calls today', time: '12 min ago' },
+  { text: '<strong>South Yarra clinic</strong> recovered 7 missed calls today', time: '12 min ago' },
   { text: '<strong>Richmond bistro</strong> recovered $89 from a Friday miss', time: '15 min ago' },
   { text: '<strong>Geelong tradie</strong> booked a job from a missed call', time: '18 min ago' },
-  { text: '<strong>Footscray pizzeria</strong> captured 12 calls this week', time: '22 min ago' },
+  { text: '<strong>Footscray pizzeria</strong> recovered 12 calls this week', time: '22 min ago' },
 ];
 const activityEl = document.getElementById('activity');
 const activityText = document.getElementById('activityText');
@@ -1311,6 +1422,54 @@ const statObserver = new IntersectionObserver((entries) => {
   });
 }, { threshold: 0.5 });
 document.querySelectorAll('.stat-num').forEach(el => statObserver.observe(el));
+
+// ============================================
+// SCROLL REVEAL
+// ============================================
+const revealObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      revealObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.12 });
+
+const revealTargets = [
+  '.counter-eyebrow', '.counter-title', '.counter-display',
+  '.counter-label', '.counter-grid', '.counter-footnote',
+  '.calc-eyebrow', '.calc-title', '.calc-sub',
+  '.slider-group', '.calc-result'
+];
+revealTargets.forEach((sel, si) => {
+  document.querySelectorAll(sel).forEach((el, i) => {
+    el.classList.add('reveal');
+    el.style.transitionDelay = ((si + i) * 0.06) + 's';
+    revealObs.observe(el);
+  });
+});
+
+// ============================================
+// SLIDER TRACK FILL
+// ============================================
+function updateFill(slider) {
+  const pct = ((slider.value - slider.min) / (slider.max - slider.min) * 100).toFixed(1) + '%';
+  slider.style.setProperty('--fill', pct);
+}
+[callsSlider, valueSlider, convSlider].forEach(s => {
+  updateFill(s);
+  s.addEventListener('input', () => updateFill(s));
+});
+
+// ============================================
+// CALC RESULT FLASH ON CHANGE
+// ============================================
+const calcResultCard = document.querySelector('.calc-result');
+[callsSlider, valueSlider, convSlider].forEach(s => s.addEventListener('input', () => {
+  calcResultCard.classList.remove('flash');
+  void calcResultCard.offsetWidth;
+  calcResultCard.classList.add('flash');
+}));
 </script>
 
 </body>
