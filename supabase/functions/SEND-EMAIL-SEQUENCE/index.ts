@@ -311,7 +311,7 @@ Deno.serve(async (req) => {
 			},
 			body: JSON.stringify({
 				from: "CallMagnet Alerts <hello@callmagnet.com.au>",
-				to: ADMIN_EMAIL,
+				to: "hello@callmagnet.com.au",
 				subject: "⚠️ CallMagnet — send-email-sequence failed",
 				html: renderEmailShell(
 					alertContent,
