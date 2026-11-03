@@ -90,6 +90,7 @@ Deno.serve(async (req) => {
 		business_name: businessName,
 		email,
 		plan_type: "bronze",
+		pricing_package: "bronze",
 		sms_included: 50,
 		account_status: "active",
 		is_test_account: false,
@@ -103,7 +104,7 @@ Deno.serve(async (req) => {
 		terms_accepted: true,
 		terms_accepted_at: now,
 		customer_sms_template:
-			"Hi — we missed your call. Book online: {booking_url} Reply STOP to opt out",
+			"Hi — we missed your call. Book online: [LINK] Reply STOP to opt out.",
 	};
 	if (ownerName) row.owner_name = ownerName;
 	if (abn) row.abn = abn;
