@@ -29,10 +29,10 @@ async function getDashboardUrl(email: string): Promise<string> {
 	const { data, error } = await supa.auth.admin.generateLink({
 		type: "magiclink",
 		email,
-		options: { redirectTo: "https://callmagnet.com.au/?source=email" },
+		options: { redirectTo: "https://app.callmagnet.com.au/?source=email" },
 	});
 	if (error || !data?.properties?.action_link) {
-		return "https://callmagnet.com.au/?source=email";
+		return "https://app.callmagnet.com.au/?source=email";
 	}
 	return data.properties.action_link;
 }
@@ -239,7 +239,7 @@ Deno.serve(async (req) => {
 						from: "CallMagnet <hello@callmagnet.com.au>",
 						to: client.email,
 						subject: `Your first month, ${client.business_name}.`,
-						text: `Your first month, ${client.business_name}.\n\nMissed calls caught: ${smsCount}\nCustomers tapped your booking link: ${clickCount}\nBookings logged: ${bookCount}\n${recovered > 0 ? `Estimated revenue recovered: $${recovered}\n` : ""}\nThank you for being one of our first clients.\n\nView your dashboard: https://callmagnet.com.au\n\nCallMagnet — callmagnet.com.au\n`,
+						text: `Your first month, ${client.business_name}.\n\nMissed calls caught: ${smsCount}\nCustomers tapped your booking link: ${clickCount}\nBookings logged: ${bookCount}\n${recovered > 0 ? `Estimated revenue recovered: $${recovered}\n` : ""}\nThank you for being one of our first clients.\n\nView your dashboard: https://app.callmagnet.com.au\n\nCallMagnet — callmagnet.com.au\n`,
 						html: `<div style="font-family:${BRAND.fontStack};max-width:560px;margin:0 auto;background:${BRAND.cardBackground};color:${BRAND.primaryText};padding:40px 32px;border-radius:14px;border:1px solid ${BRAND.borderColor};">
               <div style="font-family:'DM Mono', ui-monospace, monospace;font-size:22px;letter-spacing:0.15em;color:${BRAND.accent};text-transform:uppercase;margin-bottom:32px;font-weight:700;">★ CallMagnet</div>
               <h1 style="font-size:28px;font-weight:700;color:${BRAND.primaryText};margin-bottom:8px;letter-spacing:-0.02em;">Your first month, ${client.business_name}.</h1>
