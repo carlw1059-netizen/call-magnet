@@ -20,6 +20,7 @@ import { BRAND, escapeHtml, renderEmailShell } from "../_shared/emailStyles.ts";
 const INTERNAL_SECRET = Deno.env.get("INTERNAL_SECRET");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const ADMIN_EMAIL = "car312@hotmail.com";
 
 async function getDashboardUrl(email: string): Promise<string> {
 	const supa = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
@@ -310,7 +311,7 @@ Deno.serve(async (req) => {
 			},
 			body: JSON.stringify({
 				from: "CallMagnet Alerts <hello@callmagnet.com.au>",
-				to: "car312@hotmail.com",
+				to: ADMIN_EMAIL,
 				subject: "⚠️ CallMagnet — send-email-sequence failed",
 				html: renderEmailShell(
 					alertContent,

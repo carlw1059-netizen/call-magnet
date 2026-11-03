@@ -3,6 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const ADMIN_EMAIL = "car312@hotmail.com";
 
 const corsHeaders = {
 	"Access-Control-Allow-Origin": "*",
@@ -44,7 +45,7 @@ Deno.serve(async (req) => {
 		if (!isAdmin) {
 			return json(403, { error: "not_admin" });
 		}
-		if ((userData.user.email ?? "").toLowerCase() !== "car312@hotmail.com") {
+		if ((userData.user.email ?? "").toLowerCase() !== ADMIN_EMAIL) {
 			return json(403, { error: "forbidden", detail: "admin email mismatch" });
 		}
 

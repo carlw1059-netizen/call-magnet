@@ -7,6 +7,7 @@ import { getEmailParts } from "../_shared/emailCopy.ts";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const ADMIN_EMAIL = "car312@hotmail.com";
 
 const corsHeaders = {
 	"Access-Control-Allow-Origin": "*",
@@ -48,7 +49,7 @@ Deno.serve(async (req) => {
 		if (!isAdmin) {
 			return json(403, { error: "not_admin" });
 		}
-		if ((userData.user.email ?? "").toLowerCase() !== "car312@hotmail.com") {
+		if ((userData.user.email ?? "").toLowerCase() !== ADMIN_EMAIL) {
 			return json(403, { error: "forbidden", detail: "admin email mismatch" });
 		}
 

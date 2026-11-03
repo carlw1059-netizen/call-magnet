@@ -19,6 +19,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const INTERNAL_SECRET = Deno.env.get("INTERNAL_SECRET");
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const ADMIN_EMAIL = "car312@hotmail.com";
 
 const corsHeaders = {
 	"Access-Control-Allow-Origin": "*",
@@ -162,7 +163,7 @@ Deno.serve(async (req) => {
 		// takeover vector. Return GENERIC_OK (identical to the "no account found"
 		// response) so an attacker cannot tell from the response whether the admin
 		// email is blocked or simply doesn't exist.
-		if (email === "car312@hotmail.com") {
+		if (email === ADMIN_EMAIL) {
 			console.log(
 				"request-login-link: blocked magic link attempt for admin email",
 			);

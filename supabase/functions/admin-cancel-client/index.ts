@@ -21,6 +21,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const INTERNAL_SECRET = Deno.env.get("INTERNAL_SECRET");
+const ADMIN_EMAIL = "car312@hotmail.com";
 
 const VALID_REASONS = new Set([
 	"pricing",
@@ -66,7 +67,7 @@ Deno.serve(async (req) => {
 		if (userJson.app_metadata?.is_admin !== true) {
 			return json(403, { error: "forbidden", detail: "Admin access required" });
 		}
-		if ((userJson.email ?? "").toLowerCase() !== "car312@hotmail.com") {
+		if ((userJson.email ?? "").toLowerCase() !== ADMIN_EMAIL) {
 			return json(403, { error: "forbidden", detail: "admin email mismatch" });
 		}
 

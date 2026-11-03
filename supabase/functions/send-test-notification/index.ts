@@ -21,6 +21,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const PROGRESSIER_API_KEY = Deno.env.get("PROGRESSIER_API_KEY");
+const ADMIN_EMAIL = "car312@hotmail.com";
 
 const PUSH_TITLE = "CallMagnet — Test Alert";
 const PUSH_BODY =
@@ -82,7 +83,7 @@ Deno.serve(async (req) => {
 		}
 		const adminEmail =
 			typeof claims.email === "string" ? claims.email.trim() : "";
-		if (adminEmail.toLowerCase() !== "car312@hotmail.com") {
+		if (adminEmail.toLowerCase() !== ADMIN_EMAIL) {
 			return json(403, { error: "forbidden", detail: "admin email mismatch" });
 		}
 

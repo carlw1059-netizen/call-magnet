@@ -9,6 +9,7 @@ const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID")!;
 const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const ADMIN_EMAIL = "car312@hotmail.com";
 
 const cors = {
 	"Access-Control-Allow-Origin": "https://app.callmagnet.com.au",
@@ -53,7 +54,7 @@ Deno.serve(async (req) => {
 	if (!isAdmin) {
 		return json(403, { ok: false, error: "not_admin" });
 	}
-	if ((userData.user.email ?? "").toLowerCase() !== "car312@hotmail.com") {
+	if ((userData.user.email ?? "").toLowerCase() !== ADMIN_EMAIL) {
 		return json(403, { ok: false, error: "forbidden" });
 	}
 

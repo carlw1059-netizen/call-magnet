@@ -3,6 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const ADMIN_EMAIL = "car312@hotmail.com";
 
 const corsHeaders = {
 	"Access-Control-Allow-Origin": "https://app.callmagnet.com.au",
@@ -50,7 +51,7 @@ Deno.serve(async (req) => {
 				detail: "caller does not have is_admin flag in app_metadata",
 			});
 		}
-		if ((userData.user.email ?? "").toLowerCase() !== "car312@hotmail.com") {
+		if ((userData.user.email ?? "").toLowerCase() !== ADMIN_EMAIL) {
 			return json(403, { error: "forbidden", detail: "admin email mismatch" });
 		}
 
