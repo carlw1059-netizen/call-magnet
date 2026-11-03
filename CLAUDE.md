@@ -1,4 +1,7 @@
 
+## Core Rules
+- Be concise on all routine tasks — no explanations unless asked.
+
 ## Known Bugs & Fix History
 
 ### Auth screen architecture — password reset flow
