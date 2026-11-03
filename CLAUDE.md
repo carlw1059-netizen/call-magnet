@@ -200,6 +200,10 @@ Never remove the Progressier fallback unless a replacement has been tested live 
 
 At the start of every session, read graphify-out/GRAPH_REPORT.md and graphify-out/graph.json. Use this as your understanding of the codebase. Before making any change, check the graph to understand which community the affected node lives in and what edges it has, so you know what else might break.
 
+## UI Components & Animations
+
+For any new UI component, animation, or visual effect — check react-bits (reactbits.dev) first before building from scratch.
+
 ## Deployment
 
 All changes go directly to main. Staging branch is not used.
