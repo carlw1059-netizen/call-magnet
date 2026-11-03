@@ -3,13 +3,10 @@ import { MuxSync } from "npm:@mux/sync-engine@0.0.5";
 import { queueWorkflowsForEvent } from "npm:@mux/supabase@0.0.21";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const databaseUrl =
-	Deno.env.get("SUPABASE_DB_URL") || "postgresql://your-database-url";
-const muxWebhookSecret =
-	Deno.env.get("MUX_WEBHOOK_SECRET") || "your-mux-webhook-secret";
-const muxTokenId = Deno.env.get("MUX_TOKEN_ID") || "your-mux-token-id";
-const muxTokenSecret =
-	Deno.env.get("MUX_TOKEN_SECRET") || "your-mux-token-secret";
+const databaseUrl = Deno.env.get("SUPABASE_DB_URL")!;
+const muxWebhookSecret = Deno.env.get("MUX_WEBHOOK_SECRET")!;
+const muxTokenId = Deno.env.get("MUX_TOKEN_ID")!;
+const muxTokenSecret = Deno.env.get("MUX_TOKEN_SECRET")!;
 
 const muxSync = new MuxSync({
 	databaseUrl,
