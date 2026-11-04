@@ -30,27 +30,15 @@ async function caLoad() {
   if (!document.getElementById('cm-client-filter')) {
     var wrap = document.getElementById('caSearchWrap');
     if (wrap) {
-      var inp = document.createElement('input');
-      inp.type = 'search';
+      var inp = document.createElement('div');
       inp.id = 'cm-client-filter';
-      inp.name = 'cm-client-filter-x';
-      inp.setAttribute('autocomplete', 'off');
-      inp.setAttribute('data-form-type', 'other');
-      inp.setAttribute('data-lpignore', 'true');
-      inp.placeholder = 'Search clients...';
-      inp.style.cssText = 'width:100%;padding:10px;font-size:1rem;border:1px solid #000;border-radius:6px;box-sizing:border-box;';
-      inp.addEventListener('input', function() {
-        inp._userTyped = true;
-        caApplyFilters();
-      });
+      inp.contentEditable = 'true';
+      inp.setAttribute('role', 'searchbox');
+      inp.setAttribute('aria-label', 'Search clients');
+      inp.dataset.placeholder = 'Search clients...';
+      inp.style.cssText = 'width:100%;padding:10px;font-size:1rem;border:1px solid #000;border-radius:6px;box-sizing:border-box;min-height:40px;cursor:text;color:#111;background:#fff;';
+      inp.addEventListener('input', caApplyFilters);
       wrap.appendChild(inp);
-      inp.value = '';
-      setTimeout(function() {
-        if (!inp._userTyped && inp.value) {
-          inp.value = '';
-          caApplyFilters();
-        }
-      }, 600);
     }
   }
   var grid = document.getElementById('caGrid');
@@ -86,7 +74,7 @@ function caRender(list) {
 
   var q = '';
   var searchEl = document.getElementById('cm-client-filter');
-  if (searchEl) q = searchEl.value || '';
+  if (searchEl) q = searchEl.textContent ? searchEl.textContent.trim() : '';
 
   if (list.length === 0) {
     grid.innerHTML = q.trim()
@@ -338,7 +326,7 @@ function caCard(c) {
 function caApplyFilters() {
   var q = '';
   var searchEl = document.getElementById('cm-client-filter');
-  if (searchEl) q = searchEl.value.toLowerCase().trim();
+  if (searchEl) q = searchEl.textContent ? searchEl.textContent.toLowerCase().trim() : '';
   currentList = allClients.filter(function(c) {
     if (c.account_status === 'cancelled' && !showCancelled) return false;
     if (!q) return true;
