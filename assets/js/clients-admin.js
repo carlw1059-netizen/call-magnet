@@ -34,7 +34,7 @@ async function caLoad() {
       inp.type = 'text';
       inp.id = 'cm-client-filter';
       inp.name = 'cm-client-filter-x';
-      inp.setAttribute('autocomplete', 'off');
+      inp.setAttribute('autocomplete', 'new-password');
       inp.placeholder = 'Search clients...';
       inp.style.cssText = 'width:100%;padding:10px;font-size:1rem;border:1px solid #000;border-radius:6px;box-sizing:border-box;';
       inp.addEventListener('input', caApplyFilters);
@@ -330,7 +330,9 @@ function caApplyFilters() {
   currentList = allClients.filter(function(c) {
     if (c.account_status === 'cancelled' && !showCancelled) return false;
     if (!q) return true;
-    return (c.business_name || '').toLowerCase().includes(q);
+    return (c.business_name || '').toLowerCase().includes(q)
+        || (c.email || '').toLowerCase().includes(q)
+        || (c.owner_name || '').toLowerCase().includes(q);
   });
   caSetCount(currentList.length);
   caRender(currentList);
