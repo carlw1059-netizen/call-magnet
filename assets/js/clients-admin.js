@@ -39,8 +39,18 @@ async function caLoad() {
       inp.setAttribute('data-lpignore', 'true');
       inp.placeholder = 'Search clients...';
       inp.style.cssText = 'width:100%;padding:10px;font-size:1rem;border:1px solid #000;border-radius:6px;box-sizing:border-box;';
-      inp.addEventListener('input', caApplyFilters);
+      inp.addEventListener('input', function() {
+        inp._userTyped = true;
+        caApplyFilters();
+      });
       wrap.appendChild(inp);
+      inp.value = '';
+      setTimeout(function() {
+        if (!inp._userTyped && inp.value) {
+          inp.value = '';
+          caApplyFilters();
+        }
+      }, 600);
     }
   }
   var grid = document.getElementById('caGrid');
