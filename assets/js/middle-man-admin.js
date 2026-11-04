@@ -474,7 +474,7 @@ function renderEditBody(client) {
         '<div style="border-top:1px solid #e5e7eb;padding-top:20px;margin-top:20px;">' +
         '<div style="font-size:13px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#000;margin-bottom:12px;">Step 3: Send &amp; Save</div>' +
         '<div style="font-size:13px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#10b981;margin-bottom:4px;">Send to Number</div>' +
-        '<input type="text" id="mmaSmsTestTo" placeholder="+61412345678" style="width:100%;border:1px solid #ccc;border-radius:6px;padding:8px 10px;font-size:14px;color:#000;background:#fff;font-family:inherit;font-weight:600;box-sizing:border-box;" />' +
+        '<input type="tel" id="mmaSmsTestTo" autocomplete="off" data-lpignore="true" placeholder="+61412345678" style="width:100%;border:1px solid #ccc;border-radius:6px;padding:8px 10px;font-size:14px;color:#000;background:#fff;font-family:inherit;font-weight:600;box-sizing:border-box;" />' +
         '<button id="mmaSmsTestBtn" style="margin-top:12px;width:100%;background:#10b981;color:#fff;border:none;border-radius:6px;padding:9px;font-size:14px;font-weight:700;cursor:pointer;">Send Test SMS</button>' +
         '<div id="mmaSmsTestTag" style="margin-top:8px;font-size:12px;font-weight:700;"></div>' +
         '<button id="mmaSmsSaveBtn" disabled style="margin-top:8px;width:100%;background:#aaa;color:#fff;border:none;border-radius:6px;padding:9px;font-size:14px;font-weight:700;cursor:not-allowed;">Save to System</button>' +
