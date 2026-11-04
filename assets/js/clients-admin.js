@@ -31,10 +31,12 @@ async function caLoad() {
     var wrap = document.getElementById('caSearchWrap');
     if (wrap) {
       var inp = document.createElement('input');
-      inp.type = 'text';
+      inp.type = 'search';
       inp.id = 'cm-client-filter';
       inp.name = 'cm-client-filter-x';
-      inp.setAttribute('autocomplete', 'new-password');
+      inp.setAttribute('autocomplete', 'off');
+      inp.setAttribute('data-form-type', 'other');
+      inp.setAttribute('data-lpignore', 'true');
       inp.placeholder = 'Search clients...';
       inp.style.cssText = 'width:100%;padding:10px;font-size:1rem;border:1px solid #000;border-radius:6px;box-sizing:border-box;';
       inp.addEventListener('input', caApplyFilters);
