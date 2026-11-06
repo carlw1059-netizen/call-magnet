@@ -33,6 +33,11 @@ Deno.serve(async (req) => {
 		});
 	}
 
+	if (!muxWebhookSecret) {
+		console.error("mux-webhook: MUX_WEBHOOK_SECRET is not set");
+		return new Response("misconfigured", { status: 500 });
+	}
+
 	try {
 		const body = await req.text();
 		const headers = Object.fromEntries(req.headers.entries());
