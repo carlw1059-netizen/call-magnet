@@ -304,7 +304,7 @@ function caCard(c) {
         '<div class="ca-pw-row">' +
           '<div class="ca-pw-input-wrap">' +
             '<input class="ca-pw-input" type="password" minlength="8" placeholder="New password (min 8 chars)" ' +
-                   'id="ca-pw-input-' + _e(c.id) + '" />' +
+                   'id="ca-pw-input-' + _e(c.id) + '" autocomplete="new-password" data-lpignore="true" data-form-type="other" />' +
             '<button type="button" class="ca-pw-show" data-action="pw-show" data-id="' + _e(c.id) + '">Show</button>' +
           '</div>' +
           '<button class="ca-btn success" data-action="pw-confirm" data-id="' + _e(c.id) + '">Confirm</button>' +
