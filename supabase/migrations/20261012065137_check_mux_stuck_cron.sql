@@ -4,7 +4,7 @@
 --
 -- Auth: X-Internal-Secret header — same pattern as pushover_daily_summary_cron.
 -- Secret read from Vault at fire-time (never in git history).
--- PREREQUISITE: vault entry named 'PUSHOVER_INTERNAL_SECRET' must exist.
+-- PREREQUISITE: vault entry named 'INTERNAL_SECRET' must exist.
 --
 -- Idempotent: unschedules existing job if present, then reschedules.
 
@@ -29,7 +29,7 @@ BEGIN
           'X-Internal-Secret', (
             SELECT decrypted_secret
             FROM vault.decrypted_secrets
-            WHERE name = 'PUSHOVER_INTERNAL_SECRET'
+            WHERE name = 'INTERNAL_SECRET'
           )
         ),
         body    := '{}'::jsonb
