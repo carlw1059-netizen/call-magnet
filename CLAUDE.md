@@ -65,7 +65,7 @@ Owner: Carl (solo founder, no coding background). Company: Nextpak Pty Ltd.
 
 ### Stack
 
-- Frontend: Netlify — callmagnet.com.au (site ID jocular-mooncake-c48f5c)
+- Frontend: Cloudflare Pages — callmagnet.com.au (marketing), app.callmagnet.com.au (dashboard), cm1.au (Middle Man)
 - Backend: Supabase production ref iskvvnhacqdxybpmwuni
 - SMS/calls: Twilio
 - Payments: Stripe (live mode)
