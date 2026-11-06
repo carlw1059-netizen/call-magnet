@@ -84,55 +84,8 @@ Deno.serve(async (req) => {
 			detail: "email (q11) is required",
 		});
 
-	// ── Build row ──────────────────────────────────────────────────────────────
-	const now = new Date().toISOString();
-	const row: Record<string, unknown> = {
-		business_name: businessName,
-		email,
-		plan_type: "bronze",
-		pricing_package: "bronze",
-		sms_included: 50,
-		account_status: "active",
-		is_test_account: false,
-		must_change_password: true,
-		middle_man_enabled: false,
-		middle_man_buttons: [],
-		middle_man_show_whats_on: false,
-		palette_v2_reset: false,
-		theme_preference: "emerald",
-		vertical: "restaurant",
-		terms_accepted: true,
-		terms_accepted_at: now,
-		customer_sms_template:
-			"Hi — we missed your call. Book online: [LINK] Reply STOP to opt out.",
-	};
-	if (ownerName) row.owner_name = ownerName;
-	if (abn) row.abn = abn;
-	if (ownerPhone) row.owner_phone = ownerPhone;
-	if (bookingUrl) row.booking_url = bookingUrl;
-
-	// ── Insert into public.clients ─────────────────────────────────────────────
-	const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/clients`, {
-		method: "POST",
-		headers: {
-			apikey: SUPABASE_SERVICE_ROLE_KEY,
-			Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-			"Content-Type": "application/json",
-			Prefer: "return=minimal",
-		},
-		body: JSON.stringify(row),
-	});
-
-	if (!insertRes.ok) {
-		const detail = await insertRes.text();
-		console.error(
-			`jotform-webhook: insert failed ${insertRes.status}: ${detail}`,
-		);
-		return json(500, { error: "insert_failed", detail: detail.slice(0, 500) });
-	}
-
 	console.log(
-		`jotform-webhook: client created business_name="${businessName}" email="${email}"`,
+		`jotform-webhook: contract signed business_name="${businessName}" email="${email}"`,
 	);
 
 	// ── Pushover alert (fire-and-forget) ──────────────────────────────────────
@@ -145,10 +98,12 @@ Deno.serve(async (req) => {
 					"X-Internal-Secret": INTERNAL_SECRET,
 				},
 				body: JSON.stringify({
-					title: "★ New Client Signed",
-					message: `${businessName} — ${email}`,
+					title: "Contract signed 🖊️",
+					message: `${businessName} just signed — onboard them now: https://app.callmagnet.com.au/admin/onboard.html`,
 				}),
-			}).catch(() => {});
+			}).catch((err: Error) =>
+				console.error("jotform-webhook: Pushover failed:", err?.message ?? err),
+			);
 		} catch {
 			// silent
 		}
