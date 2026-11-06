@@ -1,9 +1,5 @@
 // process-unsubscribe: public endpoint that handles opt-out confirmation.
 //
-// DORMANT UNTIL PHASE 2. This function is deployed and reachable but no SMS
-// links point to it yet. It will go live when the unsubscribe SMS link
-// injection is wired into twilio-missed-call.
-//
 // Auth: verify_jwt = false (anon — caller is the missed-caller, not a client)
 //
 // Request: POST application/json
