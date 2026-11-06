@@ -565,3 +565,8 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 
 [functions.mux-webhook]
 verify_jwt = false
+
+# weekly-summary is triggered by pg_cron via net.http_post with X-Internal-Secret —
+# no Supabase JWT. verify_jwt = false so the gateway passes the cron call through.
+[functions.weekly-summary]
+verify_jwt = false
