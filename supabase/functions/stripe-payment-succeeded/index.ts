@@ -165,16 +165,23 @@ Deno.serve(async (req) => {
 			}
 
 			// Set account to pending_setup — Carl will manually activate after account configuration
-			await fetch(`${supabaseUrl}/rest/v1/clients?id=eq.${clientId}`, {
-				method: "PATCH",
-				headers: {
-					apikey: supabaseKey,
-					Authorization: `Bearer ${supabaseKey}`,
-					"Content-Type": "application/json",
-					Prefer: "return=minimal",
+			const pendingRes = await fetch(
+				`${supabaseUrl}/rest/v1/clients?id=eq.${clientId}`,
+				{
+					method: "PATCH",
+					headers: {
+						apikey: supabaseKey,
+						Authorization: `Bearer ${supabaseKey}`,
+						"Content-Type": "application/json",
+						Prefer: "return=minimal",
+					},
+					body: JSON.stringify({ account_status: "pending_setup" }),
 				},
-				body: JSON.stringify({ account_status: "pending_setup" }),
-			});
+			);
+			if (!pendingRes.ok)
+				throw new Error(
+					`stripe-payment-succeeded: pending_setup PATCH failed ${pendingRes.status}`,
+				);
 			console.log(
 				`checkout.session.completed: set client ${clientId} to pending_setup`,
 			);
@@ -278,7 +285,7 @@ Deno.serve(async (req) => {
 							ui.contact(),
 						payCopy.preheader,
 					);
-					await fetch("https://api.resend.com/emails", {
+					const confirmRes = await fetch("https://api.resend.com/emails", {
 						method: "POST",
 						headers: {
 							Authorization: `Bearer ${resendKey}`,
@@ -291,9 +298,14 @@ Deno.serve(async (req) => {
 							html: paymentHtml,
 							text: `Payment received.\n\nThanks for your payment, ${clientGuardRows[0].business_name}. We will be in touch within 24 hours to get your account configured and live.\n\nQuestions? hello@callmagnet.com.au\n\napp.callmagnet.com.au\n`,
 						}),
-					}).catch((e: Error) =>
-						console.warn(`checkout confirmation email failed — ${e?.message}`),
-					);
+					}).catch((e: Error) => {
+						console.warn(`checkout confirmation email failed — ${e?.message}`);
+						return null;
+					});
+					if (confirmRes && !confirmRes.ok)
+						console.error(
+							`stripe-payment-succeeded: confirmation email failed ${confirmRes.status}`,
+						);
 					console.log(
 						`checkout.session.completed: confirmation email sent to ${clientGuardRows[0].email}`,
 					);
@@ -362,21 +374,28 @@ Deno.serve(async (req) => {
 			}
 
 			// Reactivate account
-			await fetch(`${supabaseUrl}/rest/v1/clients?id=eq.${client.id}`, {
-				method: "PATCH",
-				headers: {
-					apikey: supabaseKey,
-					Authorization: `Bearer ${supabaseKey}`,
-					"Content-Type": "application/json",
-					Prefer: "return=minimal",
+			const activateRes = await fetch(
+				`${supabaseUrl}/rest/v1/clients?id=eq.${client.id}`,
+				{
+					method: "PATCH",
+					headers: {
+						apikey: supabaseKey,
+						Authorization: `Bearer ${supabaseKey}`,
+						"Content-Type": "application/json",
+						Prefer: "return=minimal",
+					},
+					body: JSON.stringify({
+						account_status: "active",
+						...(stripeSubscriptionId
+							? { stripe_subscription_id: stripeSubscriptionId }
+							: {}),
+					}),
 				},
-				body: JSON.stringify({
-					account_status: "active",
-					...(stripeSubscriptionId
-						? { stripe_subscription_id: stripeSubscriptionId }
-						: {}),
-				}),
-			});
+			);
+			if (!activateRes.ok)
+				throw new Error(
+					`stripe-payment-succeeded: activate PATCH failed ${activateRes.status}`,
+				);
 			console.log(`Reactivated account for ${client.business_name}`);
 
 			// Send welcome email if first payment
