@@ -570,3 +570,7 @@ verify_jwt = false
 # no Supabase JWT. verify_jwt = false so the gateway passes the cron call through.
 [functions.weekly-summary]
 verify_jwt = false
+
+# SEND-EMAIL-SEQUENCE is triggered by pg_cron with X-Internal-Secret — no JWT.
+[functions.SEND-EMAIL-SEQUENCE]
+verify_jwt = false
