@@ -105,11 +105,21 @@ async function handleRecovery() {
 
     const { data: { session: recoverySession } } = await sb.auth.getSession();
     okDiv.style.display = 'block';
+    let cleared = false;
     if (recoverySession?.access_token) {
-      await fetch(SUPABASE_URL + '/functions/v1/clear-must-change-password', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + recoverySession.access_token },
-      }).catch(() => {});
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const r = await fetch(SUPABASE_URL + '/functions/v1/clear-must-change-password', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + recoverySession.access_token },
+          });
+          if (r.ok) { cleared = true; break; }
+        } catch (_) {}
+      }
+    }
+    if (!cleared) {
+      okDiv.textContent = 'Password updated — if you have trouble logging in next time, please contact support.';
+      console.error('clear-must-change-password: failed after 2 attempts');
     }
     setTimeout(() => { window.location.href = '/'; }, 1500);
   } catch (e) {
