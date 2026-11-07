@@ -193,18 +193,25 @@ Deno.serve(async (req) => {
 						},
 					);
 
-					if (optRes.ok) {
-						const optOuts = (await optRes.json()) as { id: string }[];
-						if (optOuts.length > 0) {
-							console.log(
-								`send-missed-call-sms: SMS suppressed — to=${to} is opted out for client=${clientId}`,
-							);
-							return json(200, {
-								ok: true,
-								suppressed: true,
-								reason: "opted_out",
-							});
-						}
+					if (!optRes.ok) {
+						console.error(
+							`send-missed-call-sms: opt_out check failed (HTTP ${optRes.status}) — aborting to avoid texting opted-out number`,
+						);
+						return json(500, {
+							error: "opt_out_check_failed",
+							status: optRes.status,
+						});
+					}
+					const optOuts = (await optRes.json()) as { id: string }[];
+					if (optOuts.length > 0) {
+						console.log(
+							`send-missed-call-sms: SMS suppressed — to=${to} is opted out for client=${clientId}`,
+						);
+						return json(200, {
+							ok: true,
+							suppressed: true,
+							reason: "opted_out",
+						});
 					}
 
 					// ── SMS monthly cap check ────────────────────────────────────────────
@@ -297,10 +304,13 @@ Deno.serve(async (req) => {
 				);
 			}
 		} catch (preErr) {
-			// Non-fatal — SMS still sends even if opt-out / token logic errors
-			console.warn(
-				`send-missed-call-sms: pre-send processing error (non-fatal): ${preErr instanceof Error ? preErr.message : String(preErr)}`,
+			console.error(
+				`send-missed-call-sms: pre-send error — aborting: ${preErr instanceof Error ? preErr.message : String(preErr)}`,
 			);
+			return json(500, {
+				error: "pre_send_error",
+				detail: preErr instanceof Error ? preErr.message : String(preErr),
+			});
 		}
 
 		// ── Twilio Lookup: skip landlines ────────────────────────────────────────
