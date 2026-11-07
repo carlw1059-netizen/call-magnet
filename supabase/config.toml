@@ -574,3 +574,32 @@ verify_jwt = false
 # SEND-EMAIL-SEQUENCE is triggered by pg_cron with X-Internal-Secret — no JWT.
 [functions.SEND-EMAIL-SEQUENCE]
 verify_jwt = false
+
+# activate-client is called by the admin onboarding flow with no Supabase JWT.
+[functions.activate-client]
+verify_jwt = false
+
+# cancel-client is called by the client self-service cancel flow — JWT validated manually inside.
+[functions.cancel-client]
+verify_jwt = false
+
+# check-mux-stuck is triggered by pg_cron with X-Internal-Secret — no Supabase JWT.
+[functions.check-mux-stuck]
+verify_jwt = false
+
+# clear-must-change-password is called from dashboard.js with the user's access token.
+# verify_jwt = false so the function can validate the token manually and return tailored errors.
+[functions.clear-must-change-password]
+verify_jwt = false
+
+# send-test-notification is called from the admin UI — JWT validated inside.
+[functions.send-test-notification]
+verify_jwt = false
+
+# test-push-notification is called from the admin UI — JWT validated inside.
+[functions.test-push-notification]
+verify_jwt = false
+
+# upload-middle-man-logo accepts authenticated uploads — JWT validated inside the function.
+[functions.upload-middle-man-logo]
+verify_jwt = false
