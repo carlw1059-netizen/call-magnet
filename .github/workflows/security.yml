@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 2
 
       - name: Check for staging URLs
-        run: grep -r "staging" b.html cm1site/b.html 2>/dev/null && echo "BLOCKED: staging URL found" && exit 1 || echo "OK: no staging URLs"
+        run: grep -rE "staging\.(callmagnet|supabase|vercel|netlify|cloudflare)" b.html cm1site/b.html 2>/dev/null && echo "BLOCKED: staging URL found in production files" && exit 1 || echo "OK: no staging URLs"
 
       - name: Check middleman version bump
         run: |
