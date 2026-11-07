@@ -603,3 +603,7 @@ verify_jwt = false
 # upload-middle-man-logo accepts authenticated uploads — JWT validated inside the function.
 [functions.upload-middle-man-logo]
 verify_jwt = false
+
+# stripe-payment-failed receives Stripe webhooks — no Supabase JWT.
+[functions.stripe-payment-failed]
+verify_jwt = false
