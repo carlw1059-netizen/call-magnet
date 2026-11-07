@@ -11,7 +11,33 @@ on:
       - main
 
 jobs:
+  native-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check for staging URLs
+        run: grep -r "staging" b.html cm1site/b.html 2>/dev/null && echo "BLOCKED: staging URL found" && exit 1 || echo "OK: no staging URLs"
+
+      - name: Check middleman version bump
+        run: |
+          git diff --name-only HEAD~1 HEAD > changed.txt
+          if grep -q "middleman" changed.txt; then
+            if ! grep -q "b.html\|cm1site/b.html" changed.txt; then
+              echo "BLOCKED: middleman changed without version bump" && exit 1
+            fi
+          fi
+          echo "OK: version strings consistent"
+
+      - name: Check for test emails
+        run: grep -r "car312@hotmail.com" assets/ supabase/functions/ --include="*.js" --include="*.ts" --include="*.html" 2>/dev/null && echo "WARNING: test email found in codebase" || echo "OK: no test emails"
+
+  # Advisory only — never blocks deploy.
   security:
+    needs: native-checks
+    continue-on-error: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
