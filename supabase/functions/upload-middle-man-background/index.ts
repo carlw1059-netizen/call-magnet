@@ -292,6 +292,16 @@ Deno.serve(async (req: Request): Promise<Response> => {
 				// Fall back to R2 URL if Mux fails
 				urls = { video: r2BackupUrl };
 				bgType = "video";
+				await supa
+					.from("clients")
+					.update({
+						video_processing_status: "mux_failed",
+						middle_man_updated_at: new Date().toISOString(),
+					})
+					.eq("id", clientId);
+				console.error(
+					"[mux] upload creation failed — falling back to R2, status set to mux_failed",
+				);
 			} else {
 				const muxUpload = await muxUploadRes.json();
 				const uploadUrl = muxUpload.data.url;
@@ -308,6 +318,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
 					console.error("Mux PUT failed:", await putRes.text());
 					urls = { video: r2BackupUrl };
 					bgType = "video";
+					await supa
+						.from("clients")
+						.update({
+							video_processing_status: "mux_failed",
+							middle_man_updated_at: new Date().toISOString(),
+						})
+						.eq("id", clientId);
 				} else {
 					// 4. Get the asset ID from the upload
 					const assetRes = await fetch(

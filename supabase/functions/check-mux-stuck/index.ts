@@ -21,8 +21,8 @@ Deno.serve(async (req) => {
 
 	const { data: stuck, error } = await supabase
 		.from("clients")
-		.select("id, business_name")
-		.eq("video_processing_status", "processing")
+		.select("id, business_name, video_processing_status")
+		.in("video_processing_status", ["processing", "mux_failed"])
 		.lt(
 			"middle_man_updated_at",
 			new Date(Date.now() - 10 * 60 * 1000).toISOString(),
@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
 			},
 			body: JSON.stringify({
 				title: "⚠️ Mux stuck",
-				message: `⚠️ Mux stuck: ${client.business_name} has been processing for 10+ minutes`,
+				message: `⚠️ Mux issue: ${client.business_name} — status: ${client.video_processing_status}`,
 			}),
 		}).catch(() => {});
 	}
