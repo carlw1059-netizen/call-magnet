@@ -25,7 +25,7 @@ The following secrets must be set in the Supabase vault before deploying edge fu
 | `STRIPE_SECRET_KEY` | Stripe webhook handlers |
 | `STRIPE_WEBHOOK_SECRET` | `stripe-payment-succeeded`, `stripe-subscription-deleted` |
 | `RESEND_API_KEY` | All email functions |
-| `INTERNAL_SECRET` | Cron-triggered internal functions |
+| Internal cron authentication secret | Cron-triggered internal functions |
 | `PROGRESSIER_APP_ID` | `send-client-notification` |
 | `PUSHOVER_USER_KEY` | `send-pushover-alert` |
 | `PUSHOVER_API_TOKEN` | `send-pushover-alert` |
