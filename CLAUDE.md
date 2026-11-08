@@ -116,3 +116,14 @@ Full fee amounts:
 - restaurant: $499
 
 Commits: dd79c23 (feature), deployed to Supabase same session.
+
+## Diagnosing a failed flow — MANDATORY ORDER
+Before forming any theory (cache, deploy, browser), do these first:
+1. Query the clients row for the test client: pricing_package, is_test_account, account_status, stripe_customer_id, created_at.
+2. Pull the edge function logs for that exact timestamp (create-client logs every Stripe step: customer, coupon, checkout session, "Stripe skipped").
+3. Compare the event time against git commit times — was the fix live when the test ran?
+4. Fetch the live JS file from app.callmagnet.com.au and confirm the expected code is in it.
+Only after all four, state the root cause. Never guess.
+
+## Test account toggle
+is_test_account = true forces free_trial in create-client: Stripe is skipped entirely, account_status = active. To test the Stripe flow, the toggle MUST be OFF.
