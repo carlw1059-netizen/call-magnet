@@ -310,6 +310,11 @@ async function submitForm() {
   // ── Create mode: call create-client edge function ────────────────────────
   btn.textContent = 'Creating…';
 
+  if (isTestAccount && pricing_package !== 'free_trial') {
+    const ok = confirm('Test account is ON.\n\nThis skips Stripe completely. No payment page, no charge, client goes straight to active.\n\nPress OK to continue as a test account, or Cancel to go back and turn it off.');
+    if (!ok) { btn.disabled = false; btn.textContent = 'Create Client'; return; }
+  }
+
   try {
     const res = await fetch(SUPABASE_URL + '/functions/v1/create-client', {
       method: 'POST',
@@ -347,15 +352,19 @@ async function submitForm() {
       btn.textContent = 'Create Client';
       return;
     }
-    if (data.waived) {
-      // Fee was fully waived — no checkout needed
+    if (isTestAccount || pricing_package === 'free_trial') {
+      alert('Client created as FREE TRIAL / TEST. Stripe was skipped. No payment taken.');
+      window.location.href = '/admin/middle-man.html';
+    } else if (data.waived) {
+      alert('Client created. Setup fee fully waived. No payment page. Status: pending_setup.');
       window.location.href = '/admin/middle-man.html';
     } else if (data.checkout_url) {
-      // Redirect to Stripe checkout
       window.location.href = data.checkout_url;
     } else {
-      // Fallback — no checkout URL returned
-      window.location.href = '/admin/middle-man.html';
+      const reason = data.stripe_error || data.checkout_error || 'No checkout link was returned';
+      showError('CLIENT WAS CREATED BUT STRIPE FAILED. No payment link exists. Reason: ' + reason + '. Do not create this client again. Screenshot this and send it to Claude.');
+      btn.disabled = true;
+      btn.textContent = 'Created — Stripe failed';
     }
   } catch (e) {
     showError('Network error: ' + (e?.message || e));
