@@ -120,6 +120,15 @@ Deno.serve(async (req) => {
 					},
 				},
 			);
+			if (!clientGuardRes.ok) {
+				console.error(
+					`checkout.session.completed: client lookup failed ${clientGuardRes.status}`,
+				);
+				return new Response(JSON.stringify({ error: "client_lookup_failed" }), {
+					status: 500,
+					headers: { "Content-Type": "application/json" },
+				});
+			}
 			const clientGuardRows = await clientGuardRes.json();
 			if (!clientGuardRows || clientGuardRows.length === 0) {
 				console.log(
