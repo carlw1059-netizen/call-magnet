@@ -231,6 +231,7 @@ async function submitForm() {
   const customer_sms_template = (document.getElementById('smsTemplateInput')?.value || '').trim();
   const free_period_days = Math.max(0, parseInt(document.getElementById('freePeriodDaysInput').value || '0', 10) || 0);
   const sms_included = parseInt(document.getElementById('smsIncludedSelect').value, 10);
+  const setup_fee_discount = Math.max(0, parseInt(document.getElementById('setupFeeDiscountInput').value || '0', 10) || 0);
 
   if (!business_name)    return showError('Business name is required.');
   if (!vertical)         return showError('Pick a vertical.');
@@ -334,6 +335,7 @@ async function submitForm() {
         pricing_package,
         is_test_account:    isTestAccount,
         sms_included,
+        setup_fee_discount,
         // middle_man_slug and middle_man_buttons omitted — create-client auto-generates both
       })
     });

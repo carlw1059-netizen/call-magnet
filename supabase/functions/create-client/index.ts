@@ -142,6 +142,10 @@ Deno.serve(async (req) => {
 				? body.pricing_package.trim()
 				: "";
 		const is_test_account = body.is_test_account === true;
+		const setup_fee_discount =
+			typeof body.setup_fee_discount === "number" && body.setup_fee_discount > 0
+				? Math.floor(body.setup_fee_discount)
+				: 0;
 
 		if (!initial_password || initial_password.length < 8) {
 			return json(400, {
@@ -491,42 +495,107 @@ Deno.serve(async (req) => {
 					pricing_package === "restaurant"
 						? "price_1Ti51s3MTu8r2rLhmmtEk3Fb"
 						: "price_1TD0jm3MTu8r2rLhkXPpx0AH";
+				const fullFee = pricing_package === "restaurant" ? 499 : 249;
 
-				const csParams = new URLSearchParams({
-					customer: stripe_customer_id,
-					mode: "payment",
-					"line_items[0][price]": setupPriceId,
-					"line_items[0][quantity]": "1",
-					"payment_intent_data[setup_future_usage]": "off_session",
-					"metadata[client_id]": client_id,
-					"metadata[slug]": slug,
-					"metadata[pricing_package]": pricing_package,
-					success_url: "https://app.callmagnet.com.au/payment-success",
-					cancel_url: "https://app.callmagnet.com.au",
-				});
-				const csRes = await fetch(
-					"https://api.stripe.com/v1/checkout/sessions",
-					{
-						method: "POST",
+				if (setup_fee_discount >= fullFee) {
+					// Waive setup fee — skip checkout, go straight to pending_setup
+					await fetch(`${SUPABASE_URL}/rest/v1/clients?id=eq.${client_id}`, {
+						method: "PATCH",
 						headers: {
-							Authorization: `Basic ${btoa(stripeKey + ":")}`,
-							"Content-Type": "application/x-www-form-urlencoded",
-							"Stripe-Version": "2025-01-27.acacia",
+							apikey: SUPABASE_SERVICE_ROLE_KEY,
+							Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+							"Content-Type": "application/json",
+							Prefer: "return=minimal",
 						},
-						body: csParams.toString(),
-					},
-				);
-				const csData = (await csRes.json()) as Record<string, unknown>;
-				if (!csRes.ok) {
-					throw new Error(
-						`Stripe checkout session ${csRes.status}: ${JSON.stringify(csData)}`,
+						body: JSON.stringify({ account_status: "pending_setup" }),
+					});
+					console.log(
+						`create-client: setup fee waived for ${business_name} — set pending_setup`,
+					);
+					if (INTERNAL_SECRET) {
+						fetch(`${SUPABASE_URL}/functions/v1/send-pushover-alert`, {
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+								"X-Internal-Secret": INTERNAL_SECRET,
+							},
+							body: JSON.stringify({
+								title: "Fee waived — new client",
+								message: `New client onboarded (fee waived): ${business_name}`,
+							}),
+						}).catch(() => {});
+					}
+				} else {
+					// Partial discount: create a one-time coupon, then proceed with checkout
+					let couponId: string | undefined;
+					if (setup_fee_discount > 0) {
+						const couponRes = await fetch("https://api.stripe.com/v1/coupons", {
+							method: "POST",
+							headers: {
+								Authorization: `Basic ${btoa(stripeKey + ":")}`,
+								"Content-Type": "application/x-www-form-urlencoded",
+								"Stripe-Version": "2025-01-27.acacia",
+							},
+							body: new URLSearchParams({
+								amount_off: String(setup_fee_discount * 100),
+								currency: "aud",
+								duration: "once",
+							}).toString(),
+						});
+						const couponData = (await couponRes.json()) as Record<
+							string,
+							unknown
+						>;
+						if (!couponRes.ok) {
+							throw new Error(
+								`Stripe coupon ${couponRes.status}: ${JSON.stringify(couponData)}`,
+							);
+						}
+						couponId = couponData.id as string;
+						console.log(
+							`create-client: coupon created — ${couponId} ($${setup_fee_discount} off)`,
+						);
+					}
+
+					const csParams = new URLSearchParams({
+						customer: stripe_customer_id,
+						mode: "payment",
+						"line_items[0][price]": setupPriceId,
+						"line_items[0][quantity]": "1",
+						"payment_intent_data[setup_future_usage]": "off_session",
+						"metadata[client_id]": client_id,
+						"metadata[slug]": slug,
+						"metadata[pricing_package]": pricing_package,
+						success_url: "https://app.callmagnet.com.au/payment-success",
+						cancel_url: "https://app.callmagnet.com.au",
+					});
+					if (couponId) {
+						csParams.set("discounts[0][coupon]", couponId);
+					}
+					const csRes = await fetch(
+						"https://api.stripe.com/v1/checkout/sessions",
+						{
+							method: "POST",
+							headers: {
+								Authorization: `Basic ${btoa(stripeKey + ":")}`,
+								"Content-Type": "application/x-www-form-urlencoded",
+								"Stripe-Version": "2025-01-27.acacia",
+							},
+							body: csParams.toString(),
+						},
+					);
+					const csData = (await csRes.json()) as Record<string, unknown>;
+					if (!csRes.ok) {
+						throw new Error(
+							`Stripe checkout session ${csRes.status}: ${JSON.stringify(csData)}`,
+						);
+					}
+					checkoutUrl = csData.url as string;
+					checkout_session_id = csData.id as string;
+					console.log(
+						`create-client: ${pricing_package} checkout session created — ${checkout_session_id}`,
 					);
 				}
-				checkoutUrl = csData.url as string;
-				checkout_session_id = csData.id as string;
-				console.log(
-					`create-client: ${pricing_package} checkout session created — ${checkout_session_id}`,
-				);
 			} catch (e) {
 				stripe_error = (e as Error)?.message ?? String(e);
 				console.warn(
@@ -710,6 +779,8 @@ Deno.serve(async (req) => {
 			checkout_session_id,
 			checkout_url: checkoutUrl,
 			checkout_error,
+			waived:
+				setup_fee_discount >= (pricing_package === "restaurant" ? 499 : 249),
 		});
 	} catch (err) {
 		const errMsg = err instanceof Error ? err.message : String(err);
