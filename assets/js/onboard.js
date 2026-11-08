@@ -347,7 +347,16 @@ async function submitForm() {
       btn.textContent = 'Create Client';
       return;
     }
-    window.location.href = '/admin/middle-man.html';
+    if (data.waived) {
+      // Fee was fully waived — no checkout needed
+      window.location.href = '/admin/middle-man.html';
+    } else if (data.checkout_url) {
+      // Redirect to Stripe checkout
+      window.location.href = data.checkout_url;
+    } else {
+      // Fallback — no checkout URL returned
+      window.location.href = '/admin/middle-man.html';
+    }
   } catch (e) {
     showError('Network error: ' + (e?.message || e));
     btn.disabled = false;
