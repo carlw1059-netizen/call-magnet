@@ -59,12 +59,12 @@ async function loadManager() {
   try {
     var result = await mmaSb
       .from('clients')
-      .select('id,business_name,vertical,middle_man_enabled,middle_man_slug,is_demo_account,is_locked,demo_active,is_test_account')
+      .select('id,business_name,vertical,middle_man_enabled,middle_man_slug,is_demo_account,is_locked,demo_active,is_test_account,account_status')
       .order('business_name', { ascending: true });
     if (result.error) throw result.error;
 
     var clients = (result.data || []).filter(function(c) {
-      return (c.middle_man_enabled || c.middle_man_slug) && !c.is_test_account;
+      return (c.middle_man_enabled || c.middle_man_slug) && !c.is_test_account && c.account_status !== 'cancelled';
     });
 
     if (clients.length === 0) {
