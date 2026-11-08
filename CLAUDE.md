@@ -101,3 +101,18 @@ Fix these before onboarding the next client:
 3. Fix booking tap push notifications — log-middle-man-tap not passing push_title/push_message
 4. Test must_change_password flow end to end with a real client
 5. Test activate-client Resend template end to end
+
+## Setup Fee Discount (added 2026-11-08)
+
+The onboard form has a "Setup fee discount ($)" field (ID: setupFeeDiscountInput).
+
+Three paths in create-client:
+- 0 → full setup fee, normal Stripe checkout
+- > 0 but < full fee → one-time Stripe coupon created for the discount amount, applied to checkout session
+- >= full fee (249 for hairdresser, 499 for restaurant) → checkout skipped entirely, account_status set to pending_setup, Pushover fired to Carl
+
+Full fee amounts:
+- hairdresser/barber: $249
+- restaurant: $499
+
+Commits: dd79c23 (feature), deployed to Supabase same session.
