@@ -294,7 +294,14 @@ async function crossFadeToDashboard(user, fromEl) {
 
 async function loadDashboard(user, opts = {}) {
   if (user.email && user.email.toLowerCase() === REAL_ADMIN_EMAIL.toLowerCase()) {
-    window.location.href = '/admin/';
+    currentClient = null;
+    _isAdminCached = true;
+    _adminUserEmail = user.email;
+    refreshAdminFab();
+    if (!opts.skipScreenSwap) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dash').style.display = 'block';
+    }
     return true;
   }
   const demoQuery = user.email === 'demo@callmagnet.com.au'
