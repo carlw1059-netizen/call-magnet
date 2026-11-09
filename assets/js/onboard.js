@@ -344,7 +344,16 @@ async function submitForm() {
         // middle_man_slug and middle_man_buttons omitted — create-client auto-generates both
       })
     });
-    const data = await res.json().catch(() => ({}));
+    let data;
+    try {
+      data = await res.json();
+    } catch (parseErr) {
+      showError('Server response could not be read. Try again or contact support.');
+      btn.disabled = false;
+      btn.textContent = 'Create Client';
+      return;
+    }
+
     if (!res.ok || !data.success) {
       const msg = data.detail || data.error || ('Server returned ' + res.status);
       showError('Create failed: ' + msg);
@@ -352,19 +361,18 @@ async function submitForm() {
       btn.textContent = 'Create Client';
       return;
     }
-    if (isTestAccount || pricing_package === 'free_trial') {
-      alert('Client created as FREE TRIAL / TEST. Stripe was skipped. No payment taken.');
+
+    if (data.is_test_account) {
       window.location.href = '/admin/middle-man.html';
     } else if (data.waived) {
-      alert('Client created. Setup fee fully waived. No payment page. Status: pending_setup.');
       window.location.href = '/admin/middle-man.html';
     } else if (data.checkout_url) {
       window.location.href = data.checkout_url;
     } else {
-      const reason = data.stripe_error || data.checkout_error || 'No checkout link was returned';
-      showError('CLIENT WAS CREATED BUT STRIPE FAILED. No payment link exists. Reason: ' + reason + '. Do not create this client again. Screenshot this and send it to Claude.');
-      btn.disabled = true;
-      btn.textContent = 'Created — Stripe failed';
+      showError('Payment session could not be created. No checkout URL returned. Contact support.');
+      btn.disabled = false;
+      btn.textContent = 'Create Client';
+      return;
     }
   } catch (e) {
     showError('Network error: ' + (e?.message || e));
