@@ -5,6 +5,7 @@
 
 const SUPABASE_URL = '%%SUPABASE_URL%%';
 const SUPABASE_ANON_KEY = '%%SUPABASE_ANON_KEY%%';
+const REAL_ADMIN_EMAIL = 'car312@hotmail.com';
 
 
 let sb;
@@ -589,10 +590,9 @@ async function loadStats() {
 // etc.) can read it synchronously.
 let _isAdminCached = false;
 let _adminUserEmail = '';
-// Only this email address should see the admin FAB and sidebar.
+// Only REAL_ADMIN_EMAIL (declared at top of file) should see the admin FAB and sidebar.
 // car312@hotmail.com also has is_admin=true in app_metadata (test account)
 // but must NOT see admin UI elements.
-const REAL_ADMIN_EMAIL = 'car312@hotmail.com';
 
 function isAdminToggleUser() {
   return _isAdminCached === true;
