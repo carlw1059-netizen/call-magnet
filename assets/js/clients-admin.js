@@ -514,7 +514,7 @@ async function caActivate(btn) {
     }
   }
 
-  if (!confirm('Activate ' + name + '? This will start their ' + pkg + ' subscription and send them their account-live email.')) return;
+  if (!confirm('Start monthly subscription for ' + name + '? Their card will be charged $99/month.')) return;
 
   btn.disabled    = true;
   btn.textContent = 'Activating…';
