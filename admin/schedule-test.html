@@ -110,6 +110,13 @@ var _currentSchedule = [];
 var _currentClient = null;
 
 async function init() {
+  var sessionResult = await sb.auth.getSession();
+  var sess = sessionResult.data && sessionResult.data.session;
+  if (!sess) { window.location.href = '/'; return; }
+  var isAdmin = sess.user && sess.user.app_metadata && sess.user.app_metadata.is_admin === true;
+  var email   = ((sess.user && sess.user.email) || '').toLowerCase();
+  if (!isAdmin || email !== 'car312@hotmail.com') { window.location.href = '/'; return; }
+
   await loadMelbTime();
   await loadClients();
   document.getElementById('simCallSid').value = TEST_SID_PREFIX + Date.now();

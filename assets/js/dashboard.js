@@ -294,13 +294,8 @@ async function crossFadeToDashboard(user, fromEl) {
 
 async function loadDashboard(user, opts = {}) {
   if (user.email && user.email.toLowerCase() === REAL_ADMIN_EMAIL.toLowerCase()) {
-    currentClient = null;
-    _isAdminCached = true;
-    _adminUserEmail = user.email;
-    refreshAdminFab();
-    if (!opts.skipScreenSwap) {
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('dash').style.display = 'block';
+    if (!window.location.pathname.startsWith('/admin/')) {
+      window.location.href = '/admin/clients.html';
     }
     return true;
   }
@@ -1032,10 +1027,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     refreshAdminFab();
     if (event === 'PASSWORD_RECOVERY') {
       if (!window._isPasswordRecoveryFlow) {
-        console.warn('[CM DEBUG] PASSWORD_RECOVERY fired but URL had no type=recovery — ignoring spurious event');
         return;
       }
-      console.log('[CM DEBUG] PASSWORD_RECOVERY fired', { event, session: newSession, localStorageToken: localStorage.getItem('callmagnet-auth-token') });
       showRecovery();
     }
   });
