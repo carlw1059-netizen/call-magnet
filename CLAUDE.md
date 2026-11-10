@@ -84,6 +84,13 @@ Owner: Carl (solo founder, no coding background). Company: Nextpak Pty Ltd.
 - Before any merge to main: run grep "staging" b.html cm1site/b.html — output must be zero.
 - cm1site/b.html must always use absolute URLs.
 - Bump middleman.js version strings in BOTH b.html AND cm1site/b.html on every change.
+- Bump the ?v= version string on EVERY JS and CSS file that changed, in EVERY HTML file that loads it. Old version strings cause browsers to serve cached old code. This has caused hours of wasted debugging.
+- Admin user (car312@hotmail.com) has NO client row and never will. loadDashboard must return true for admin without querying the clients table.
+- onAuthStateChange must check email against REAL_ADMIN_EMAIL before checking app_metadata. Email check takes priority.
+- Unique constraints on the clients table must exclude cancelled rows (WHERE account_status != 'cancelled'). Cancelled rows must never block new clients.
+- schedule-test.html must have an auth gate — same pattern as clients.html.
+- Only the Activate button on client cards is green (emerald). All other action buttons are black, except Suspend (red) and Edit Client (blue).
+- All admin page back buttons go to / (the main dashboard with admin sidebar). Admin never redirects to a specific admin page on login.
 
 ### How to work with Carl
 
@@ -96,11 +103,13 @@ Owner: Carl (solo founder, no coding background). Company: Nextpak Pty Ltd.
 ### Current build priority
 
 Fix these before onboarding the next client:
-1. Password reset bug — onAuthStateChange fires PASSWORD_RECOVERY with no token check (dashboard.js line 998)
-2. Schedule pg_cron for Day 14 and Day 30 onboarding emails
-3. Fix booking tap push notifications — log-middle-man-tap not passing push_title/push_message
-4. Test must_change_password flow end to end with a real client
-5. Test activate-client Resend template end to end
+1. Schedule pg_cron for Day 14 and Day 30 onboarding emails
+2. Fix booking tap push notifications — log-middle-man-tap not passing push_title/push_message
+3. Test must_change_password flow end to end with a real client
+4. Test activate-client Resend template end to end
+5. BUG 4: clients.html and middle-man.html don't include admin-nav.js (no gear FAB on those pages)
+6. BUG 6: acceptTerms() reads currentClient.id without null check (not reachable for admin but fragile)
+7. BUG 7: Misleading comment at dashboard.js line ~600 says admin "must NOT see admin UI" — opposite of reality
 
 ## Setup Fee Discount (added 2026-11-08)
 
