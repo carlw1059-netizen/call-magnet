@@ -239,7 +239,7 @@ function caCard(c) {
               'data-pkg="' + _e(c.pricing_package || c.plan_type || '') + '">Activate</button>';
   } else if (c.account_status === 'suspended') {
     row2Left =
-      '<button style="' + BTN + 'background:#10b981;color:#fff;" data-action="toggle" ' +
+      '<button style="' + BTN + 'background:#000;color:#fff;" data-action="toggle" ' +
               'data-id="' + _e(c.id) + '" ' +
               'data-name="' + _e(c.business_name || '') + '" ' +
               'data-current="suspended">Reactivate</button>';
@@ -252,7 +252,7 @@ function caCard(c) {
   if (c.cancellation_scheduled) {
     row3Right = '<span class="ca-badge ca-status-cancelled" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;justify-content:center;">Cancellation scheduled</span>';
   } else if (c.account_status === 'active' || c.account_status === 'suspended') {
-    row3Right = '<button style="' + BTN + 'background:#10b981;color:#fff;" data-action="cancel-sub" data-id="' + _e(c.id) + '" data-name="' + _e(c.business_name || '') + '">Cancel subscription</button>';
+    row3Right = '<button style="' + BTN + 'background:#000;color:#fff;" data-action="cancel-sub" data-id="' + _e(c.id) + '" data-name="' + _e(c.business_name || '') + '">Cancel subscription</button>';
   } else {
     row3Right = '<span></span>';
   }
@@ -297,13 +297,13 @@ function caCard(c) {
       // Action buttons — fixed 2-column grid, 4 rows
       '<div class="ca-actions" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">' +
         // Row 1
-        '<a href="/admin/middle-man.html?client=' + _e(c.id) + '" style="display:flex;align-items:center;justify-content:center;text-decoration:none;' + BTN + 'background:#10b981;color:#fff;">Manage</a>' +
+        '<a href="/admin/middle-man.html?client=' + _e(c.id) + '" style="display:flex;align-items:center;justify-content:center;text-decoration:none;' + BTN + 'background:#000;color:#fff;">Manage</a>' +
         (c.twilio_number
           ? '<button style="' + BTN + 'background:#000;color:#fff;" data-action="copy" data-val="' + _e(c.twilio_number) + '">Copy Twilio</button>'
           : '<span></span>') +
         // Row 2
         row2Left +
-        '<button style="' + BTN + 'background:#10b981;color:#fff;" data-action="reset-pw" data-id="' + _e(c.id) + '">Reset password</button>' +
+        '<button style="' + BTN + 'background:#000;color:#fff;" data-action="reset-pw" data-id="' + _e(c.id) + '">Reset password</button>' +
         // Row 3
         '<button style="' + BTN + 'background:#000;color:#fff;" data-action="delete-mm" data-id="' + _e(c.id) + '" data-name="' + _e(c.business_name || '') + '">Delete MM config</button>' +
         row3Right +
