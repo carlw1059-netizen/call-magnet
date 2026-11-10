@@ -294,8 +294,13 @@ async function crossFadeToDashboard(user, fromEl) {
 
 async function loadDashboard(user, opts = {}) {
   if (user.email && user.email.toLowerCase() === REAL_ADMIN_EMAIL.toLowerCase()) {
-    if (!window.location.pathname.startsWith('/admin/')) {
-      window.location.href = '/admin/clients.html';
+    currentClient = null;
+    _isAdminCached = true;
+    _adminUserEmail = user.email;
+    refreshAdminFab();
+    if (!opts.skipScreenSwap) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dash').style.display = 'block';
     }
     return true;
   }

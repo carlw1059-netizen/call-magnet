@@ -2225,7 +2225,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   // Wire back button
   var backBtn = document.getElementById('mmaBackToDashboard');
-  if (backBtn) backBtn.addEventListener('click', function() { window.location.href = '/admin/clients.html'; });
+  if (backBtn) backBtn.addEventListener('click', function() { window.location.href = '/'; });
 
   // Deep-link: ?client=<uuid> opens edit directly
   var params   = new URLSearchParams(window.location.search);
