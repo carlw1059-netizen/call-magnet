@@ -287,13 +287,16 @@ async function crossFadeToDashboard(user, fromEl) {
     if (mainEl) mainEl.style.display = '';
     return true;
   } catch (err) {
+    console.log('[crossFadeToDashboard] caught error — reverting. Error:', err);
     revert();
     throw err;
   }
 }
 
 async function loadDashboard(user, opts = {}) {
+  console.log('[loadDashboard] user.email:', user.email, '| REAL_ADMIN_EMAIL:', REAL_ADMIN_EMAIL, '| match:', user.email && user.email.toLowerCase() === REAL_ADMIN_EMAIL.toLowerCase());
   if (user.email && user.email.toLowerCase() === REAL_ADMIN_EMAIL.toLowerCase()) {
+    console.log('[loadDashboard] admin path taken');
     currentClient = null;
     _isAdminCached = true;
     _adminUserEmail = user.email;
@@ -304,6 +307,7 @@ async function loadDashboard(user, opts = {}) {
     }
     return true;
   }
+  console.log('[loadDashboard] fell through admin check — continuing as regular user');
   const demoQuery = user.email === 'demo@callmagnet.com.au'
     ? sb.from('clients').select('*').eq('email', user.email).eq('demo_active', true).limit(1)
     : sb.from('clients').select('*').eq('email', user.email).limit(1);
