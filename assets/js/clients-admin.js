@@ -221,22 +221,40 @@ function caCard(c) {
   // ── SMS count ──
   var smsCount = smsCountMap[c.id] || 0;
 
-  var BTN = 'padding:8px 0;font-size:13px;font-weight:700;border:none;border-radius:6px;cursor:pointer;width:calc(50% - 4px);box-sizing:border-box;text-align:center;';
+  var BTN = 'padding:8px 0;font-size:13px;font-weight:700;border:none;border-radius:6px;cursor:pointer;width:100%;box-sizing:border-box;text-align:center;';
 
-  // ── Toggle action button ──
-  var toggleBtn = '';
+  // ── Row 2 left: Suspend / Activate / Reactivate ──
+  var row2Left = '';
   if (c.account_status === 'active') {
-    toggleBtn =
+    row2Left =
       '<button style="' + BTN + 'background:#DC2626;color:#fff;" data-action="toggle" ' +
               'data-id="' + _e(c.id) + '" ' +
               'data-name="' + _e(c.business_name || '') + '" ' +
-              'data-current="' + _e(c.account_status) + '">Suspend</button>';
+              'data-current="active">Suspend</button>';
+  } else if (c.account_status === 'pending_setup') {
+    row2Left =
+      '<button style="' + BTN + 'background:#10b981;color:#fff;" data-action="activate" ' +
+              'data-id="' + _e(c.id) + '" ' +
+              'data-name="' + _e(c.business_name || '') + '" ' +
+              'data-pkg="' + _e(c.pricing_package || c.plan_type || '') + '">Activate</button>';
   } else if (c.account_status === 'suspended') {
-    toggleBtn =
+    row2Left =
       '<button style="' + BTN + 'background:#10b981;color:#fff;" data-action="toggle" ' +
               'data-id="' + _e(c.id) + '" ' +
               'data-name="' + _e(c.business_name || '') + '" ' +
               'data-current="suspended">Reactivate</button>';
+  } else {
+    row2Left = '<span></span>';
+  }
+
+  // ── Row 3 right: Cancel subscription or badge ──
+  var row3Right = '';
+  if (c.cancellation_scheduled) {
+    row3Right = '<span class="ca-badge ca-status-cancelled" style="font-size:11px;padding:4px 10px;display:flex;align-items:center;justify-content:center;">Cancellation scheduled</span>';
+  } else if (c.account_status === 'active' || c.account_status === 'suspended') {
+    row3Right = '<button style="' + BTN + 'background:#10b981;color:#fff;" data-action="cancel-sub" data-id="' + _e(c.id) + '" data-name="' + _e(c.business_name || '') + '">Cancel subscription</button>';
+  } else {
+    row3Right = '<span></span>';
   }
 
   return (
@@ -276,27 +294,24 @@ function caCard(c) {
         '&nbsp;missed call SMSes sent' +
       '</div>' +
 
-      // Action buttons
-      '<div class="ca-actions" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">' +
-        '<a href="/admin/middle-man.html?client=' + _e(c.id) + '" style="display:block;text-decoration:none;' + BTN + 'background:#000;color:#fff;">Manage</a>' +
+      // Action buttons — fixed 2-column grid, 4 rows
+      '<div class="ca-actions" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">' +
+        // Row 1
+        '<a href="/admin/middle-man.html?client=' + _e(c.id) + '" style="display:flex;align-items:center;justify-content:center;text-decoration:none;' + BTN + 'background:#10b981;color:#fff;">Manage</a>' +
         (c.twilio_number
           ? '<button style="' + BTN + 'background:#000;color:#fff;" data-action="copy" data-val="' + _e(c.twilio_number) + '">Copy Twilio</button>'
-          : '') +
-        toggleBtn +
-        (c.account_status === 'pending_setup'
-          ? '<button style="' + BTN + 'background:#10b981;color:#0a1a14;" ' +
-              'data-action="activate" ' +
-              'data-id="' + _e(c.id) + '" ' +
-              'data-name="' + _e(c.business_name || '') + '" ' +
-              'data-pkg="' + _e(c.pricing_package || c.plan_type || '') + '">Activate</button>'
-          : '') +
-        '<button style="' + BTN + 'background:#000;color:#fff;" data-action="reset-pw" data-id="' + _e(c.id) + '">Reset password</button>' +
+          : '<span></span>') +
+        // Row 2
+        row2Left +
+        '<button style="' + BTN + 'background:#10b981;color:#fff;" data-action="reset-pw" data-id="' + _e(c.id) + '">Reset password</button>' +
+        // Row 3
         '<button style="' + BTN + 'background:#000;color:#fff;" data-action="delete-mm" data-id="' + _e(c.id) + '" data-name="' + _e(c.business_name || '') + '">Delete MM config</button>' +
-        (c.cancellation_scheduled
-          ? '<span class="ca-badge ca-status-cancelled" style="font-size:11px;padding:4px 10px;">Cancellation scheduled</span>'
-          : ((c.account_status === 'active' || c.account_status === 'suspended')
-              ? '<button style="' + BTN + 'background:#000;color:#fff;" data-action="cancel-sub" data-id="' + _e(c.id) + '" data-name="' + _e(c.business_name || '') + '">Cancel subscription</button>'
-              : '')) +
+        row3Right +
+        // Row 4 — full width
+        '<button onclick="window.location.href=\'/admin/onboard.html?client=' + _e(c.id) + '\'" ' +
+          'style="' + BTN + 'background:#1D4ED8;color:#fff;grid-column:1/-1;">' +
+          'Edit Client' +
+        '</button>' +
       '</div>' +
 
       // Inline reset-password form (hidden until button clicked)
@@ -312,11 +327,6 @@ function caCard(c) {
         '</div>' +
         '<div class="ca-pw-flash" id="ca-pw-flash-' + _e(c.id) + '"></div>' +
       '</div>' +
-
-      '<button onclick="window.location.href=\'/admin/onboard.html?client=' + _e(c.id) + '\'" ' +
-        'style="padding:8px 0;font-size:13px;font-weight:700;border:none;border-radius:6px;cursor:pointer;width:100%;box-sizing:border-box;background:#1D4ED8;color:#fff;margin-top:8px;">' +
-        'Edit Client' +
-      '</button>' +
 
     '</div>'
   );
