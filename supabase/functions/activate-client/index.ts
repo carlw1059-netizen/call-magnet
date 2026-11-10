@@ -114,11 +114,31 @@ Deno.serve(async (req) => {
 				: "price_1TD12P3MTu8r2rLhJYFPksVx";
 		const SMS_OVERAGE_PRICE = "price_1TMmTG3MTu8r2rLhYSWnqheS";
 
+		// Fetch the saved card so we can set it as default_payment_method.
+		const pmRes = await fetch(
+			`https://api.stripe.com/v1/customers/${client.stripe_customer_id}/payment_methods?type=card&limit=1`,
+			{
+				headers: {
+					Authorization: `Basic ${btoa(stripeKey + ":")}`,
+					"Stripe-Version": "2025-01-27.acacia",
+				},
+			},
+		);
+		const pmData = (await pmRes.json()) as { data?: Array<{ id: string }> };
+		const paymentMethodId = pmData.data?.[0]?.id;
+		if (!paymentMethodId) {
+			throw new Error(
+				`activate-client: no saved payment method found for customer ${client.stripe_customer_id}`,
+			);
+		}
+		console.log(`activate-client: using payment method ${paymentMethodId}`);
+
 		const subParams = new URLSearchParams({
 			customer: client.stripe_customer_id,
 			"items[0][price]": monthlyPriceId,
 			"items[1][price]": SMS_OVERAGE_PRICE,
 			collection_method: "charge_automatically",
+			default_payment_method: paymentMethodId,
 		});
 
 		const subRes = await fetch("https://api.stripe.com/v1/subscriptions", {
