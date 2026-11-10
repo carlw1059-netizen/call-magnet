@@ -645,7 +645,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   // Wire back button
   var backBtn = document.getElementById('caBackBtn');
-  if (backBtn) backBtn.addEventListener('click', function() { window.location.href = '/'; });
+  if (backBtn) backBtn.addEventListener('click', function() { window.location.href = '/admin/clients.html'; });
 
   // Wire search
   var searchEl = document.getElementById('cm-client-filter');

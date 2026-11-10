@@ -165,7 +165,7 @@
       <div class="admin-panel-body">
         <div class="admin-panel-section">
           <span class="admin-panel-section-label">Navigate</span>
-          <a href="/" class="admin-panel-link">← Back to Dashboard</a>
+          <a href="/admin/clients.html" class="admin-panel-link">← Back to Clients</a>
         </div>
         <div class="admin-panel-section">
           <span class="admin-panel-section-label">Clients</span>
