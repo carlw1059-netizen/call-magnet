@@ -211,6 +211,7 @@ function showTermsModal() { document.getElementById('termsModal').classList.add(
 function hideTermsModal() { document.getElementById('termsModal').classList.remove('open'); }
 
 async function acceptTerms() {
+  if (!currentClient) return;
   const btn = document.getElementById('acceptTermsBtn');
   const errDiv = document.getElementById('termsErrorMsg');
   errDiv.style.display = 'none';
