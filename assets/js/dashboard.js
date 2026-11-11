@@ -598,9 +598,6 @@ async function loadStats() {
 // etc.) can read it synchronously.
 let _isAdminCached = false;
 let _adminUserEmail = '';
-// Only REAL_ADMIN_EMAIL (declared at top of file) should see the admin FAB and sidebar.
-// car312@hotmail.com also has is_admin=true in app_metadata (test account)
-// but must NOT see admin UI elements.
 
 function isAdminToggleUser() {
   return _isAdminCached === true;
