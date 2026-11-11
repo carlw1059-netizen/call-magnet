@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
 
 		// Fetch the saved card so we can set it as default_payment_method.
 		const pmRes = await fetch(
-			`https://api.stripe.com/v1/customers/${client.stripe_customer_id}/payment_methods?type=card&limit=1`,
+			`https://api.stripe.com/v1/customers/${client.stripe_customer_id}/payment_methods?limit=1`,
 			{
 				headers: {
 					Authorization: `Basic ${btoa(stripeKey + ":")}`,
