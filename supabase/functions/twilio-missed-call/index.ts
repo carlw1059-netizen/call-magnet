@@ -68,6 +68,7 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req) => {
+	console.log("[DEBUG] req.url:", req.url);
 	if (new URL(req.url).searchParams.get("warmup") === "1") {
 		return new Response(JSON.stringify({ warmup: "ok" }), {
 			status: 200,
@@ -91,6 +92,14 @@ Deno.serve(async (req) => {
 	// Form-encoded: HMAC-SHA1(authToken, url + params_sorted_by_key_concatenated).
 	const rawBody = await req.text();
 	const twilioSig = req.headers.get("X-Twilio-Signature") ?? "";
+	console.log("DIAG-1 twilioSig header:", JSON.stringify(twilioSig));
+	console.log("DIAG-2 req.url:", req.url);
+	console.log(
+		"DIAG-3 all request headers:",
+		JSON.stringify(Object.fromEntries(req.headers.entries())),
+	);
+	console.log("DIAG-4 rawBody first 200 chars:", rawBody.substring(0, 200));
+	console.log("DIAG-5 content-type:", req.headers.get("content-type"));
 	const sigUrl = req.url;
 	const sigParams = new URLSearchParams(rawBody);
 	const sortedParamStr = [...sigParams.keys()]
