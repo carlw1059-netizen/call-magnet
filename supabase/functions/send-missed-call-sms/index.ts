@@ -112,6 +112,13 @@ Deno.serve(async (req) => {
 		"| match:",
 		bodyHashHex === claimedHash,
 	);
+	if (bodyHashHex !== claimedHash) {
+		console.warn("send-missed-call-sms: body hash mismatch — rejecting");
+		return new Response(JSON.stringify({ error: "unauthorized" }), {
+			status: 401,
+			headers: { "Content-Type": "application/json" },
+		});
+	}
 
 	try {
 		// ── Config check ─────────────────────────────────────────────────────────
