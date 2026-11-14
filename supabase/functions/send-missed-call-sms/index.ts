@@ -66,9 +66,9 @@ Deno.serve(async (req) => {
 	);
 	console.log("SMSDIAG-4 content-type:", req.headers.get("content-type"));
 	console.log("SMSDIAG-5 rawBody first 300:", rawBody.substring(0, 300));
-	const sigUrl = Deno.env.get("REQUEST_URL") ?? req.url;
+	const sigUrl = `${SUPABASE_URL}/functions/v1/send-missed-call-sms${new URL(req.url).search}`;
 	const keyBytes = new TextEncoder().encode(TWILIO_AUTH_TOKEN);
-	const msgBytes = new TextEncoder().encode(sigUrl + rawBody);
+	const msgBytes = new TextEncoder().encode(sigUrl);
 	const cryptoKey = await crypto.subtle.importKey(
 		"raw",
 		keyBytes,
@@ -78,6 +78,16 @@ Deno.serve(async (req) => {
 	);
 	const sigBuffer = await crypto.subtle.sign("HMAC", cryptoKey, msgBytes);
 	const expectedSig = btoa(String.fromCharCode(...new Uint8Array(sigBuffer)));
+	console.log(
+		"SMSDIAG-7 sigUrl:",
+		sigUrl,
+		"| expectedSig:",
+		expectedSig,
+		"| twilioSig:",
+		twilioSig,
+		"| match:",
+		expectedSig === twilioSig,
+	);
 	if (expectedSig !== twilioSig) {
 		console.warn("send-missed-call-sms: invalid Twilio signature");
 		return new Response(JSON.stringify({ error: "unauthorized" }), {
@@ -85,6 +95,23 @@ Deno.serve(async (req) => {
 			headers: { "Content-Type": "application/json" },
 		});
 	}
+
+	const bodyHashBuf = await crypto.subtle.digest(
+		"SHA-256",
+		new TextEncoder().encode(rawBody),
+	);
+	const bodyHashHex = [...new Uint8Array(bodyHashBuf)]
+		.map((b) => b.toString(16).padStart(2, "0"))
+		.join("");
+	const claimedHash = new URL(req.url).searchParams.get("bodySHA256") ?? "";
+	console.log(
+		"SMSDIAG-6 bodyHash computed:",
+		bodyHashHex,
+		"| claimed:",
+		claimedHash,
+		"| match:",
+		bodyHashHex === claimedHash,
+	);
 
 	try {
 		// ── Config check ─────────────────────────────────────────────────────────
