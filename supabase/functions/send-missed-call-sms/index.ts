@@ -58,6 +58,14 @@ Deno.serve(async (req) => {
 	// Twilio signs JSON requests as HMAC-SHA1(authToken, url + rawBody).
 	const rawBody = await req.text();
 	const twilioSig = req.headers.get("X-Twilio-Signature") ?? "";
+	console.log("SMSDIAG-1 twilioSig:", JSON.stringify(twilioSig));
+	console.log("SMSDIAG-2 req.url:", req.url);
+	console.log(
+		"SMSDIAG-3 REQUEST_URL env:",
+		Deno.env.get("REQUEST_URL") ?? "NOT_SET",
+	);
+	console.log("SMSDIAG-4 content-type:", req.headers.get("content-type"));
+	console.log("SMSDIAG-5 rawBody first 300:", rawBody.substring(0, 300));
 	const sigUrl = Deno.env.get("REQUEST_URL") ?? req.url;
 	const keyBytes = new TextEncoder().encode(TWILIO_AUTH_TOKEN);
 	const msgBytes = new TextEncoder().encode(sigUrl + rawBody);

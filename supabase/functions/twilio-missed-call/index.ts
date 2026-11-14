@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
 	);
 	console.log("DIAG-4 rawBody first 200 chars:", rawBody.substring(0, 200));
 	console.log("DIAG-5 content-type:", req.headers.get("content-type"));
-	const sigUrl = req.url;
+	const sigUrl = `${SUPABASE_URL}/functions/v1/twilio-missed-call${new URL(req.url).search}`;
 	const sigParams = new URLSearchParams(rawBody);
 	const sortedParamStr = [...sigParams.keys()]
 		.sort()
@@ -117,6 +117,16 @@ Deno.serve(async (req) => {
 	);
 	const sigBuffer = await crypto.subtle.sign("HMAC", cryptoKey, msgBytes);
 	const expectedSig = btoa(String.fromCharCode(...new Uint8Array(sigBuffer)));
+	console.log(
+		"DIAG-6 sigUrl:",
+		sigUrl,
+		"| expectedSig:",
+		expectedSig,
+		"| twilioSig:",
+		twilioSig,
+		"| match:",
+		expectedSig === twilioSig,
+	);
 	if (expectedSig !== twilioSig) {
 		console.warn("twilio-missed-call: invalid Twilio signature");
 		return json(401, { error: "unauthorized" });
