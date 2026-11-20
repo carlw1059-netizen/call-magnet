@@ -266,6 +266,7 @@ Deno.serve(async (req) => {
 						`${SUPABASE_URL}/rest/v1/sms_events` +
 							`?client_id=eq.${encodeURIComponent(clientId)}` +
 							`&received_at=gte.${encodeURIComponent(monthStart)}` +
+							`&line_type=is.null` +
 							`&select=id`,
 						{
 							method: "HEAD",
