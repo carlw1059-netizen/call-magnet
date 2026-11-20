@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="robots" content="noindex,nofollow">
+<title>Venue Router — CallMagnet Admin</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: #F5F5F5; min-height: 100vh; overscroll-behavior: none; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  color: #000000;
+  -webkit-font-smoothing: antialiased;
+}
+:root {
+  --accent: #10b981;
+  --accent-border: rgba(16, 185, 129, 0.4);
+  --red: #CC0000;
+}
+.mma-header {
+  background: #FFFFFF;
+  border-bottom: 2px solid rgba(16,185,129,0.35);
+  padding: 14px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 0 rgba(16,185,129,0.4);
+}
+.mma-header-title { font-size: 20px; font-weight: 700; color: #111111; letter-spacing: -0.01em; }
+.mma-back-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--red); color: #FFFFFF; border: none; border-radius: 8px;
+  padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit;
+}
+.mma-back-btn:hover { background: #AA0000; }
+.wrap { max-width: 960px; margin: 0 auto; padding: 1.5rem 1rem 5rem; }
+
+/* Gate states */
+.gate-state { text-align: center; padding: 3rem 1rem; display: none; }
+.gate-state.visible { display: block; }
+.gate-state h2 { font-size: 18px; color: #000000; margin-bottom: 0.5rem; }
+.gate-state p  { font-size: 14px; color: #555555; }
+.spinner {
+  display: inline-block; width: 32px; height: 32px;
+  border: 3px solid var(--accent-border); border-top-color: var(--accent);
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Page header */
+.page-title    { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 0.3rem; color: #000000; }
+.page-subtitle { font-size: 13px; color: #555555; margin-bottom: 1.5rem; }
+
+/* Error / warning banners */
+.page-error {
+  font-size: 13px; color: var(--red); background: rgba(204,0,0,0.06);
+  border: 1px solid rgba(204,0,0,0.3); border-radius: 8px;
+  padding: 10px 12px; margin-bottom: 1.25rem; display: none;
+}
+.page-error.visible { display: block; }
+.page-warn {
+  font-size: 13px; color: #92400e; background: #fef3c7;
+  border: 1px solid #f59e0b; border-radius: 8px;
+  padding: 10px 12px; margin-bottom: 1.25rem; display: none;
+}
+.page-warn.visible { display: block; }
+
+/* Section label */
+.section-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: #10b981; margin-bottom: 10px; display: block;
+}
+
+/* Section card */
+.section-card {
+  background: #FFFFFF; border: 1px solid #000000; border-radius: 10px;
+  padding: 1.25rem 1.25rem 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 0 rgba(6,214,160,0.4);
+  margin-bottom: 1.25rem; overflow: hidden;
+}
+
+/* Refresh bar */
+.refresh-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.refresh-label { font-size: 12px; color: #555555; }
+.refresh-label strong { color: #10b981; }
+
+/* Table */
+.tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -1px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 640px; }
+thead th {
+  text-align: left; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase; color: #10b981;
+  padding: 0 10px 8px; white-space: nowrap;
+}
+thead th:first-child { padding-left: 0; }
+tbody tr { border-top: 1px solid #E0E0E0; }
+tbody td { padding: 8px 10px; color: #000000; vertical-align: middle; white-space: nowrap; }
+tbody td:first-child { padding-left: 0; }
+
+/* Row color coding */
+tr.row-mobile   { background: #d1fae5; }
+tr.row-landline { background: #dbeafe; }
+tr.row-anon     { background: #f3f4f6; }
+
+/* Empty state */
+.empty-row td { text-align: center; color: #555555; padding: 2rem 0; font-size: 13px; font-style: italic; }
+
+/* Type pill */
+.type-pill {
+  display: inline-block; padding: 2px 8px; border-radius: 4px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
+}
+.pill-mobile   { background: #059669; color: #fff; }
+.pill-landline { background: #2563eb; color: #fff; }
+.pill-anon     { background: #6b7280; color: #fff; }
+.pill-other    { background: #000; color: #fff; }
+
+/* Monospace fields */
+.td-mono { font-family: ui-monospace, 'Cascadia Code', monospace; font-size: 12px; }
+.td-muted { color: #555555; }
+</style>
+</head>
+<body>
+
+<header class="mma-header">
+  <span class="mma-header-title">Venue Router Activity</span>
+  <button class="mma-back-btn" onclick="window.location.href='/'">← Dashboard</button>
+</header>
+
+<div class="wrap">
+
+  <!-- Gate states -->
+  <div class="gate-state visible" id="gateLoading">
+    <div class="spinner"></div>
+    <h2 style="margin-top:1rem">Checking access…</h2>
+  </div>
+  <div class="gate-state" id="gateLogin">
+    <h2>Sign in required</h2>
+    <p>Sign in as admin to use this page.</p>
+    <p style="margin-top:1rem"><a href="/" style="color:var(--accent)">Go to login →</a></p>
+  </div>
+  <div class="gate-state" id="gateForbidden">
+    <h2>Not authorized</h2>
+    <p>This page is for admin users only.</p>
+    <p style="margin-top:1rem"><a href="/" style="color:var(--accent)">Back to dashboard →</a></p>
+  </div>
+
+  <!-- Main content -->
+  <div id="mainContent" style="display:none">
+    <h1 class="page-title">Venue Router Activity</h1>
+    <p class="page-subtitle">Last 50 rows from sms_events where line_type is set — auto-refreshes every 10 seconds</p>
+
+    <div class="page-warn" id="pageWarn"></div>
+    <div class="page-error" id="pageError"></div>
+
+    <div class="section-card">
+      <div class="refresh-bar">
+        <span class="section-label" style="margin-bottom:0">Recent calls</span>
+        <span class="refresh-label">Last refreshed: <strong id="lastRefresh">—</strong></span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Received</th>
+              <th>Caller</th>
+              <th>Line type</th>
+              <th>Keypress</th>
+              <th>Dial status</th>
+              <th>Callback queued</th>
+              <th>Delivery status</th>
+            </tr>
+          </thead>
+          <tbody id="venueBody">
+            <tr class="empty-row"><td colspan="7">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- end mainContent -->
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/admin/admin-nav.js"></script>
+<script>
+const SUPABASE_URL      = 'https://iskvvnhacqdxybpmwuni.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlza3Z2bmhhY3FkeHlicG13dW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTAyOTYsImV4cCI6MjA5MDA4NjI5Nn0.c3uR-CSQXsgfYMnzK8KOxZjoqRPwaMsUuGpMPwvCsk8';
+
+let sb      = null;
+let session = null;
+let refreshTimer = null;
+
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
+  );
+}
+
+function maskPhone(phone) {
+  const s = String(phone || '');
+  if (!s) return '—';
+  return '••••••' + s.slice(-4);
+}
+
+function fmtTime(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  const time = d.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+  const date = d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
+  return time + ' · ' + date;
+}
+
+function typePill(lineType) {
+  if (!lineType) return '<span class="type-pill pill-other">—</span>';
+  const t = lineType.toLowerCase();
+  if (t === 'mobile')    return '<span class="type-pill pill-mobile">mobile</span>';
+  if (t === 'landline')  return '<span class="type-pill pill-landline">landline</span>';
+  if (t === 'anonymous') return '<span class="type-pill pill-anon">anonymous</span>';
+  return '<span class="type-pill pill-other">' + escHtml(lineType) + '</span>';
+}
+
+function rowClass(lineType) {
+  if (!lineType) return '';
+  const t = lineType.toLowerCase();
+  if (t === 'mobile')    return 'row-mobile';
+  if (t === 'landline')  return 'row-landline';
+  if (t === 'anonymous') return 'row-anon';
+  return '';
+}
+
+function showGate(id) {
+  ['gateLoading', 'gateLogin', 'gateForbidden'].forEach(g => {
+    document.getElementById(g).classList.toggle('visible', g === id);
+  });
+}
+
+async function loadData() {
+  const warnEl  = document.getElementById('pageWarn');
+  const errEl   = document.getElementById('pageError');
+  const tbody   = document.getElementById('venueBody');
+
+  const res = await fetch(
+    SUPABASE_URL + '/rest/v1/sms_events' +
+    '?line_type=not.is.null' +
+    '&select=received_at,customer_number,line_type,keypress,dial_status,callback_queued,delivery_status' +
+    '&order=received_at.desc' +
+    '&limit=50',
+    {
+      headers: {
+        apikey:        SUPABASE_ANON_KEY,
+        Authorization: 'Bearer ' + session.access_token,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    const msg  = body.message || body.details || ('HTTP ' + res.status);
+
+    // Detect "column does not exist" — migration not applied yet
+    if (res.status === 400 && (msg.includes('line_type') || msg.includes('keypress') || msg.includes('dial_status') || msg.includes('callback_queued'))) {
+      warnEl.textContent = '⚠ Migration not applied yet — venue-router columns (line_type, keypress, dial_status, callback_queued) do not exist in sms_events. Apply the migration first, then reload.';
+      warnEl.classList.add('visible');
+      errEl.classList.remove('visible');
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Migration required — see warning above.</td></tr>';
+    } else {
+      errEl.textContent = 'Failed to load data: ' + escHtml(msg);
+      errEl.classList.add('visible');
+      warnEl.classList.remove('visible');
+    }
+    return;
+  }
+
+  warnEl.classList.remove('visible');
+  errEl.classList.remove('visible');
+
+  const rows = await res.json();
+  document.getElementById('lastRefresh').textContent = new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+  if (!rows.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No venue router calls yet.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map(r => {
+    const cls         = rowClass(r.line_type);
+    const cbQueued    = r.callback_queued == null ? '—' : (r.callback_queued ? 'yes' : 'no');
+    const dialStatus  = escHtml(r.dial_status  || '—');
+    const keypress    = escHtml(r.keypress     || '—');
+    const delivery    = escHtml(r.delivery_status || '—');
+    return '<tr' + (cls ? ' class="' + cls + '"' : '') + '>' +
+      '<td class="td-mono">'   + escHtml(fmtTime(r.received_at))   + '</td>' +
+      '<td class="td-mono">'   + escHtml(maskPhone(r.customer_number)) + '</td>' +
+      '<td>'                   + typePill(r.line_type)              + '</td>' +
+      '<td class="td-muted">'  + keypress                          + '</td>' +
+      '<td class="td-muted">'  + dialStatus                        + '</td>' +
+      '<td class="td-muted">'  + escHtml(cbQueued)                 + '</td>' +
+      '<td class="td-muted">'  + delivery                          + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      persistSession:     true,
+      storage:            window.localStorage,
+      storageKey:         'callmagnet-auth-token',
+      autoRefreshToken:   true,
+      detectSessionInUrl: true,
+    },
+  });
+
+  const { data: { session: s } } = await sb.auth.getSession();
+  session = s;
+
+  if (!session) { showGate('gateLogin'); return; }
+
+  const isAdmin    = session.user?.app_metadata?.is_admin === true;
+  const adminEmail = (session.user?.email || '').toLowerCase();
+  if (!isAdmin || adminEmail !== 'car312@hotmail.com') {
+    showGate('gateForbidden');
+    return;
+  }
+
+  showGate(null);
+  window.refreshAdminFab(session);
+  document.getElementById('mainContent').style.display = 'block';
+
+  await loadData();
+  refreshTimer = setInterval(loadData, 10000);
+});
+</script>
+</body>
+</html>

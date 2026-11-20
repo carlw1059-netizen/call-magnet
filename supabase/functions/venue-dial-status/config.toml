@@ -1,0 +1,2 @@
+[functions.venue-dial-status]
+verify_jwt = false
