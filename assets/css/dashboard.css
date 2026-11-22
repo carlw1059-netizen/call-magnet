@@ -827,6 +827,7 @@ body.panel-open .main { pointer-events: none; }
 .mm-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
+  grid-auto-rows: 1fr;
   gap: 12px;
   margin-bottom: 0;
 }
@@ -840,6 +841,8 @@ body.panel-open .main { pointer-events: none; }
 /* ── Tile — neon colour via --mm-neon (hex) and --mm-neon-rgb (r,g,b) set per-tile by JS ── */
 .mm-tile {
   position: relative;
+  display: flex;
+  flex-direction: column;
   background: rgba(255,255,255,0.04);
   border-radius: 20px;
   padding: 20px 16px;
@@ -891,6 +894,7 @@ body.panel-open .main { pointer-events: none; }
   color: var(--mm-neon, #06D6A0);
   letter-spacing: -0.03em;
   line-height: 1;
+  margin-top: auto;
 }
 .mm-tile-sub {
   position: absolute;
