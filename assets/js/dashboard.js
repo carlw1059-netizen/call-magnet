@@ -511,7 +511,7 @@ async function loadStats() {
   try {
     [smsRes, clickRes, bookRes, monthSmsRes, tapsTodayRes] = await Promise.all([
       sb.from('sms_events').select('id', { count: 'exact' }).eq('client_id', clientId).gte('received_at', effectiveStart).lte('received_at', endIso),
-      sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).gte('created_at', effectiveStart).lte('created_at', endIso),
+      sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).gte('created_at', effectiveStart).lte('created_at', endIso).eq('dismissed', false),
       sb.from('bookings').select('id', { count: 'exact' }).eq('client_id', clientId).gte('booked_at', effectiveStart).lte('booked_at', endIso),
       sb.from('sms_events').select('id', { count: 'exact' }).eq('client_id', clientId).gte('received_at', monthStartIso),
       sb.from('link_clicks').select('id', { count: 'exact' }).eq('client_id', clientId).gte('clicked_at', tapsTodayStart)
@@ -1304,11 +1304,14 @@ async function loadMiddleManSection() {
       sb.from('middle_man_form_submissions')
         .select('form_type')
         .eq('client_id', currentClient.id)
+        .eq('done', false)
+        .eq('dismissed', false)
         .gte('submitted_at', mmEffectiveStart),
       sb.from('link_clicks')
         .select('intent')
         .eq('client_id', currentClient.id)
         .not('intent', 'is', null)
+        .eq('dismissed', false)
         .gte('clicked_at', mmEffectiveStart)
     ]);
     submissions = submissionsRes.data || [];
