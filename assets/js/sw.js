@@ -56,3 +56,36 @@ self.addEventListener('fetch', function(e) {
     return caches.match('/b.html');
   }));
 });
+
+self.addEventListener('push', function(e) {
+  var data = {};
+  try { data = e.data ? e.data.json() : {}; } catch(err) {}
+  var title = data.title || 'CallMagnet';
+  var body  = data.body  || '';
+  var url   = data.url   || 'https://app.callmagnet.com.au';
+  e.waitUntil(
+    self.registration.showNotification(title, {
+      body: body,
+      icon: '/assets/img/icon-192.png',
+      badge: '/assets/img/icon-192.png',
+      data: { url: url }
+    })
+  );
+});
+
+self.addEventListener('notificationclick', function(e) {
+  e.notification.close();
+  var target = (e.notification.data && e.notification.data.url)
+    ? e.notification.data.url
+    : 'https://app.callmagnet.com.au';
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(list) {
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].url === target && 'focus' in list[i]) {
+          return list[i].focus();
+        }
+      }
+      if (clients.openWindow) return clients.openWindow(target);
+    })
+  );
+});
