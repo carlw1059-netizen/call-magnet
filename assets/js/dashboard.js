@@ -392,12 +392,7 @@ async function loadDashboard(user, opts = {}) {
   setTimeout(maybeShowInstallBanner, 1500);
   refreshVerticalToggleVisibility();
   renderTilesForMode(getDashboardMode());
-  try {
-    await loadStats();
-  } catch (e) {
-    console.error('loadStats failed during login', e);
-    return false;
-  }
+  loadStats().catch(e => console.error('loadStats failed during login', e));
   startAutoRefresh();
   return true;
 }
