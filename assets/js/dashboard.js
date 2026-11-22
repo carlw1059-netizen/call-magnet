@@ -1788,6 +1788,20 @@ async function registerVapidPush(clientId) {
     let sub = await reg.pushManager.getSubscription();
 
     if (sub) {
+      // Check whether the existing subscription was made with our VAPID key.
+      // If it belongs to Progressier, saving it would cause send failures.
+      const existingKey = sub.options?.applicationServerKey;
+      const ourKey = urlBase64ToUint8Array(vapidKey);
+      let keyMatch = false;
+      if (existingKey) {
+        const existingArr = new Uint8Array(existingKey);
+        keyMatch = existingArr.length === ourKey.length &&
+          existingArr.every((b, i) => b === ourKey[i]);
+      }
+      if (!keyMatch) {
+        await vapidLog('key-mismatch', 'existing sub belongs to another provider — skipping save');
+        return;
+      }
       await vapidLog('existing-sub', sub.endpoint);
     } else {
       await vapidLog('no-sub', 'subscribing fresh');
