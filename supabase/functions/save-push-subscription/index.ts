@@ -30,7 +30,16 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const INTERNAL_SECRET = Deno.env.get("INTERNAL_SECRET");
 
+const CORS_HEADERS = {
+	"Access-Control-Allow-Origin": "https://app.callmagnet.com.au",
+	"Access-Control-Allow-Headers":
+		"Content-Type, Authorization, X-Internal-Secret, apikey",
+};
+
 Deno.serve(async (req) => {
+	if (req.method === "OPTIONS") {
+		return new Response(null, { status: 204, headers: CORS_HEADERS });
+	}
 	if (req.method !== "POST") {
 		return new Response("Method Not Allowed", { status: 405 });
 	}
@@ -127,11 +136,11 @@ Deno.serve(async (req) => {
 			});
 		}
 
-		// ── DELETE all existing rows for this client, then INSERT fresh ────────
-		// Each login generates a new APNs endpoint so upsert-on-endpoint always
-		// inserts. Delete first to keep exactly one row per client.
+		// ── DELETE existing row for this endpoint only ─────────────────────────
+		// Delete by endpoint so multiple phones can subscribe independently.
+		// A second login on a different phone no longer wipes the first phone.
 		const deleteRes = await fetch(
-			`${SUPABASE_URL}/rest/v1/push_subscriptions?client_id=eq.${encodeURIComponent(clientId)}`,
+			`${SUPABASE_URL}/rest/v1/push_subscriptions?client_id=eq.${encodeURIComponent(clientId)}&endpoint=eq.${encodeURIComponent(endpoint)}`,
 			{
 				method: "DELETE",
 				headers: {
@@ -183,6 +192,6 @@ Deno.serve(async (req) => {
 function json(status: number, body: unknown): Response {
 	return new Response(JSON.stringify(body), {
 		status,
-		headers: { "Content-Type": "application/json" },
+		headers: { "Content-Type": "application/json", ...CORS_HEADERS },
 	});
 }
