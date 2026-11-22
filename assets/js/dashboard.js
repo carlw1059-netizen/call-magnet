@@ -1260,7 +1260,7 @@ async function loadMiddleManSection() {
     const rawLabel  = (btn.label || '').trim();
     const btnId     = (btn.id || '').trim();
     const formType  = btnId || mmClassifyLabel(rawLabel);
-    const emoji     = mmLabelEmoji(rawLabel);
+    const emoji     = (btn.emoji && btn.emoji.trim()) ? btn.emoji.trim() : mmLabelEmoji(rawLabel);
     const display   = emoji + ' ' + rawLabel;
     const neonColor = MM_NEON[Math.min(idx, MM_NEON.length - 1)];
     const neonRgb   = MM_NEON_RGB[Math.min(idx, MM_NEON_RGB.length - 1)];
