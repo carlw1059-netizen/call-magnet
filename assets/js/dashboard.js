@@ -1508,7 +1508,7 @@ function buildMmCard(record, formType, neonColor, isUrlButton, displayLabel) {
         '<button class="mm-dismiss-btn" data-record-id="' + record.id + '" data-record-table="link_clicks" style="background:transparent;border:1px solid #CC5500;color:#CC5500;font-size:14px;width:26px;height:26px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>' +
       '</div>' +
       mmRow('Tapped at', mmFormatTime(record.clicked_at)) +
-      (record.customer_number ? mmRow('Phone', buildPhoneReveal(record.customer_number)) : '') +
+      (record.customer_number ? mmRow('Phone', buildPhoneReveal(record.customer_number), true) : '') +
       '</div>';
   }
 
@@ -1525,7 +1525,7 @@ function buildMmCard(record, formType, neonColor, isUrlButton, displayLabel) {
 
   // ── Primary rows (always visible): name + phone ──────────────────────────
   const primaryRows = mmRow('Name',  record.caller_name || '—')
-                    + mmRow('Phone', buildPhoneReveal(record.caller_phone));
+                    + mmRow('Phone', buildPhoneReveal(record.caller_phone), true);
 
   // ── Truncated note preview (shown when collapsed, hidden when expanded) ───
   let notePreviewRow = '';
@@ -1582,10 +1582,11 @@ function buildMmCard(record, formType, neonColor, isUrlButton, displayLabel) {
     '</div>';
 }
 
-function mmRow(key, val) {
+function mmRow(key, val, rawHtml) {
+  const safeVal = rawHtml ? (val || '—') : _escMgr(val || '—');
   return '<div class="mm-card-row">' +
     '<span class="mm-card-key">' + key + '</span>' +
-    '<span class="mm-card-val">' + _escMgr(val || '—') + '</span>' +
+    '<span class="mm-card-val">' + safeVal + '</span>' +
     '</div>';
 }
 
