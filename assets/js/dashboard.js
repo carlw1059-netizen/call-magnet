@@ -1285,7 +1285,7 @@ async function loadMiddleManSection() {
 
     const todayName = new Date().toLocaleDateString('en-AU', { weekday: 'long' });
 
-    tile.insertAdjacentHTML('beforeend', '<div class="mm-tile-label"><span class="tile-emoji">' + emoji + '</span><span class="tile-label">' + rawLabel + '</span></div>');
+    tile.insertAdjacentHTML('beforeend', '<div class="mm-tile-label">' + emoji + ' ' + rawLabel + '</div>');
     tile.appendChild(countEl);
     tile.insertAdjacentHTML('beforeend', '<div class="mm-tile-sub">' + todayName + '</div>');
 

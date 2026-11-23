@@ -826,8 +826,7 @@ body.panel-open .main { pointer-events: none; }
 /* ── Tile grid: 3 columns (up to 9 tiles); 2 columns on narrow screens ── */
 .mm-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-auto-rows: 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   margin-bottom: 0;
 }
@@ -836,7 +835,6 @@ body.panel-open .main { pointer-events: none; }
 .mm-tile {
   position: relative;
   display: flex;
-  flex-direction: column;
   background: rgba(255,255,255,0.04);
   border-radius: 20px;
   padding: 20px 16px;
@@ -882,24 +880,12 @@ body.panel-open .main { pointer-events: none; }
   font-style: italic;
   min-height: 2.8em;
 }
-.tile-emoji {
-  display: block;
-  font-size: 28px;
-  line-height: 1;
-  text-align: center;
-  margin-bottom: 4px;
-  font-style: normal;
-}
-.tile-label {
-  display: block;
-}
 .mm-tile-count {
   font-size: 42px;
   font-weight: 700;
   color: var(--mm-neon, #06D6A0);
   letter-spacing: -0.03em;
   line-height: 1;
-  margin-top: auto;
 }
 .mm-tile-sub {
   position: absolute;
