@@ -1819,13 +1819,11 @@ async function registerVapidPush(clientId) {
           existingArr.every((b, i) => b === ourKey[i]);
       }
       if (!keyMatch) {
-        await vapidLog('key-mismatch', 'unsubscribing existing sub, resubscribing with our VAPID key');
-        await sub.unsubscribe();
-        sub = null;
+        await vapidLog('key-mismatch', 'existing sub belongs to another provider — skipping save');
+        return;
       }
-      await vapidLog('existing-sub', sub ? sub.endpoint : 'cleared');
-    }
-    if (!sub) {
+      await vapidLog('existing-sub', sub.endpoint);
+    } else {
       await vapidLog('no-sub', 'subscribing fresh');
       sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
