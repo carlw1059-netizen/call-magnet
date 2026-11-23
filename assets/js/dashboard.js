@@ -243,6 +243,18 @@ async function acceptTerms() {
 async function crossFadeToDashboard(user, fromEl) {
   const dashEl = document.getElementById('dash');
   const skeletonEl = document.querySelector('.dashboard-skeleton');
+  // Try to show cached client data instantly so skeleton disappears before fetch
+  try {
+    const cached = localStorage.getItem('cm_client_cache');
+    if (cached) {
+      const c = JSON.parse(cached);
+      const bizEl = document.getElementById('bizNameLarge');
+      if (bizEl) bizEl.textContent = c.business_name || '';
+      if (skeletonEl) skeletonEl.style.display = 'none';
+      const mainEl2 = dashEl.querySelector('.main');
+      if (mainEl2) mainEl2.style.display = '';
+    }
+  } catch(e) {}
   const mainEl = dashEl.querySelector('.main');
   const fromHadActive = fromEl ? fromEl.classList.contains('active') : false;
   let hideFromTimer = null;
@@ -322,6 +334,7 @@ async function loadDashboard(user, opts = {}) {
   }
 
   currentClient = clients[0];
+  try { localStorage.setItem('cm_client_cache', JSON.stringify(clients[0])); } catch(e) {}
 
   if (currentClient.must_change_password) {
     await sb.auth.resetPasswordForEmail(currentClient.email, {
