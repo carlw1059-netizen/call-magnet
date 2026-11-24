@@ -1097,6 +1097,19 @@ function isMobileDevice() {
   return window.matchMedia('(max-width: 768px)').matches;
 }
 
+async function requestNotifyPermission() {
+  const btn = document.getElementById('notifyBtn');
+  if (btn) btn.style.display = 'none';
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted' && currentClient?.id) {
+      await registerVapidPush(currentClient.id);
+    }
+  } catch(e) {
+    console.warn('[notify] permission request failed:', e);
+  }
+}
+
 function maybeShowInstallBanner() {
   if (!isMobileDevice()) return;
   if (isAlreadyInstalled()) return;
@@ -1114,6 +1127,14 @@ function maybeShowInstallBanner() {
     banner.classList.add('ios-mode');
     document.querySelector('.install-banner-text').textContent = 'Tap Share → Add to Home Screen to install CallMagnet.';
     banner.style.display = 'flex';
+  }
+  const notifyBtn = document.getElementById('notifyBtn');
+  if (notifyBtn) {
+    if (typeof Notification !== 'undefined' && Notification.permission !== 'granted') {
+      notifyBtn.style.display = '';
+    } else {
+      notifyBtn.style.display = 'none';
+    }
   }
 }
 
