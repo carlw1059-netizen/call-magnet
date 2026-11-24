@@ -355,10 +355,9 @@ async function loadDashboard(user, opts = {}) {
     return false;
   }
 
-  if (typeof progressier !== 'undefined' && currentClient?.id) {
-    progressier.add({ id: currentClient.id });
+  if (typeof OneSignal !== 'undefined' && currentClient?.id) {
+    OneSignal.login(currentClient.id);
   }
-  registerVapidPush(currentClient.id);
 
   if (!opts.skipScreenSwap) {
     document.getElementById('loginScreen').style.display = 'none';
@@ -1113,8 +1112,9 @@ async function requestNotifyPermission() {
   if (btn) btn.style.display = 'none';
   try {
     const permission = await Notification.requestPermission();
-    if (permission === 'granted' && currentClient?.id) {
-      await registerVapidPush(currentClient.id);
+    if (currentClient?.id && typeof OneSignal !== 'undefined') {
+      await OneSignal.Notifications.requestPermission();
+      OneSignal.login(currentClient.id);
     }
   } catch(e) {
     console.warn('[notify] permission request failed:', e);
@@ -1829,75 +1829,9 @@ async function vapidLog(step, detail) {
   } catch(_) {}
 }
 
-async function registerVapidPush(clientId) {
-  if (!clientId) return;
-  await vapidLog('start', clientId);
-  try {
-    const vapidKey = document.querySelector('meta[name="vapid-public-key"]')?.content;
-    await vapidLog('meta', vapidKey || 'MISSING');
-    if (!vapidKey || vapidKey.includes('%%')) return;
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
-    await vapidLog('pushmanager', 'available');
-    const reg = await navigator.serviceWorker.ready;
-    await vapidLog('sw-ready', reg.active?.scriptURL || 'no-active');
-
-    let sub = await reg.pushManager.getSubscription();
-
-    if (sub) {
-      // Check whether the existing subscription was made with our VAPID key.
-      // If it belongs to Progressier, saving it would cause send failures.
-      const existingKey = sub.options?.applicationServerKey;
-      const ourKey = urlBase64ToUint8Array(vapidKey);
-      let keyMatch = false;
-      if (existingKey) {
-        const existingArr = new Uint8Array(existingKey);
-        keyMatch = existingArr.length === ourKey.length &&
-          existingArr.every((b, i) => b === ourKey[i]);
-      }
-      if (!keyMatch) {
-        await vapidLog('key-mismatch', 'existing sub belongs to another provider — skipping save');
-        return;
-      }
-      await vapidLog('existing-sub', sub.endpoint);
-    } else {
-      await vapidLog('no-sub', 'subscribing fresh');
-      sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidKey),
-      });
-      await vapidLog('subscribed', sub.endpoint);
-    }
-
-    const p256dh = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh'))));
-    const auth   = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth'))));
-    const { data: { session } } = await sb.auth.getSession();
-    await vapidLog('session', session ? 'ok' : 'MISSING');
-    if (!session) return;
-    const saveRes = await fetch(`${SUPABASE_URL}/functions/v1/save-push-subscription`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`,
-        'apikey': SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({
-        client_id:  clientId,
-        endpoint:   sub.endpoint,
-        p256dh,
-        auth,
-        user_agent: navigator.userAgent,
-      }),
-    });
-    await vapidLog('saved', saveRes.status);
-  } catch (err) {
-    await vapidLog('ERROR', err.message || String(err));
-    console.warn('[vapid] registerVapidPush failed:', err);
-  }
-}
-
 document.addEventListener('visibilitychange', function() {
   if (document.visibilityState === 'visible' && typeof currentClient !== 'undefined' && currentClient?.id) {
-    registerVapidPush(currentClient.id);
+    if (typeof OneSignal !== 'undefined') OneSignal.login(currentClient.id);
   }
 });
 
