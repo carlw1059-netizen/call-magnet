@@ -1,7 +1,7 @@
 // CACHE_VERSION must be bumped on every significant visual or functional change.
 // Format: callmagnet-v[N]-[short-description]
 // Last bumped: 01 Nov 2026 — fix stored XSS in mmRow, bump cache to v75
-const CACHE_VERSION = 'callmagnet-v75-20261101';
+const CACHE_VERSION = 'callmagnet-v76-20261125';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
 
