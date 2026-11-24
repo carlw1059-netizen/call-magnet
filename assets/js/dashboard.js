@@ -254,6 +254,7 @@ async function crossFadeToDashboard(user, fromEl) {
       if (skeletonEl) skeletonEl.style.display = 'none';
       const mainEl2 = dashEl.querySelector('.main');
       if (mainEl2) mainEl2.style.display = '';
+      try { renderTilesForMode(getDashboardMode()); } catch(e) {}
       loadMiddleManSection().catch(() => {});
     }
   } catch(e) {}
@@ -277,8 +278,11 @@ async function crossFadeToDashboard(user, fromEl) {
   if (fromEl) fromEl.classList.add('screen-fade-out');
 
   setTimeout(() => {
-    if (mainEl) mainEl.style.display = 'none';
-    if (skeletonEl) skeletonEl.style.display = 'block';
+    const hasCachedContent = !!localStorage.getItem('cm_client_cache');
+    if (!hasCachedContent) {
+      if (mainEl) mainEl.style.display = 'none';
+      if (skeletonEl) skeletonEl.style.display = 'block';
+    }
     dashEl.classList.add('screen-fade-in');
     dashEl.style.display = 'block';
   }, 50);
