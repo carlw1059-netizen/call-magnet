@@ -1012,16 +1012,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (recoveryPass)    recoveryPass.addEventListener('keydown',    e => { if (e.key === 'Enter') handleRecovery(); });
   if (recoveryConfirm) recoveryConfirm.addEventListener('keydown', e => { if (e.key === 'Enter') handleRecovery(); });
 
-  const { data: { session } } = await sb.auth.getSession();
-  if (session) {
-    const { error: verifyErr } = await sb.auth.getUser();
-    if (verifyErr) {
-      await sb.auth.signOut();
-      localStorage.removeItem('callmagnet-auth-token');
-      localStorage.removeItem('dashboardMode');
-      window.location.reload();
-      return;
+  let session = null;
+  try {
+    const withTimeout = (promise, ms) => Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
+    ]);
+    const { data: sessionData } = await withTimeout(sb.auth.getSession(), 8000);
+    session = sessionData?.session ?? null;
+    if (session) {
+      const { error: verifyErr } = await withTimeout(sb.auth.getUser(), 5000);
+      if (verifyErr) {
+        await sb.auth.signOut();
+        localStorage.removeItem('callmagnet-auth-token');
+        localStorage.removeItem('dashboardMode');
+        window.location.reload();
+        return;
+      }
     }
+  } catch (err) {
+    console.warn('Auth check timed out or failed:', err.message);
+    session = null;
   }
   const sessionEmail = session?.user?.email ?? '';
   if (sessionEmail.toLowerCase() === REAL_ADMIN_EMAIL.toLowerCase()) {
