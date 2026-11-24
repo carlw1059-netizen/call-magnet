@@ -1814,20 +1814,6 @@ function urlBase64ToUint8Array(base64String) {
   return Uint8Array.from([...atob(base64)].map(c => c.charCodeAt(0)));
 }
 
-async function vapidLog(step, detail) {
-  try {
-    await fetch(SUPABASE_URL + '/rest/v1/vapid_debug_log', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-        'Prefer': 'return=minimal',
-      },
-      body: JSON.stringify({ step, detail: String(detail) }),
-    });
-  } catch(_) {}
-}
 
 document.addEventListener('visibilitychange', function() {
   if (document.visibilityState === 'visible' && typeof currentClient !== 'undefined' && currentClient?.id) {
