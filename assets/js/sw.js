@@ -1,4 +1,4 @@
-var CACHE = 'cm-v1';
+var CACHE = 'cm-v2';
 var ASSETS = [
   '/b.html',
   '/assets/css/middleman.css',
