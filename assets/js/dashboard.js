@@ -248,14 +248,18 @@ async function crossFadeToDashboard(user, fromEl) {
     const cached = localStorage.getItem('cm_client_cache');
     if (cached) {
       const c = JSON.parse(cached);
-      currentClient = c;
-      const bizEl = document.getElementById('bizNameLarge');
-      if (bizEl) bizEl.textContent = c.business_name || '';
-      if (skeletonEl) skeletonEl.style.display = 'none';
-      const mainEl2 = dashEl.querySelector('.main');
-      if (mainEl2) mainEl2.style.display = '';
-      try { renderTilesForMode(getDashboardMode()); } catch(e) {}
-      loadMiddleManSection().catch(() => {});
+      if (!c.vertical) {
+        localStorage.removeItem('cm_client_cache');
+      } else {
+        currentClient = c;
+        const bizEl = document.getElementById('bizNameLarge');
+        if (bizEl) bizEl.textContent = c.business_name || '';
+        if (skeletonEl) skeletonEl.style.display = 'none';
+        const mainEl2 = dashEl.querySelector('.main');
+        if (mainEl2) mainEl2.style.display = '';
+        try { renderTilesForMode(getDashboardMode()); } catch(e) {}
+        loadMiddleManSection().catch(() => {});
+      }
     }
   } catch(e) {}
   const mainEl = dashEl.querySelector('.main');
