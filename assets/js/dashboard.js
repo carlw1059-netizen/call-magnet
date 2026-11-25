@@ -697,6 +697,7 @@ function setDashboardMode(mode) {
 }
 
 function renderTilesForMode(mode) {
+  console.log('[renderTiles] mode=' + mode + ' vertical=' + (currentClient && currentClient.vertical), new Error().stack);
   const hg = document.getElementById('hairdresserMetrics');
   const lbr = document.querySelector('.log-booking-row');
   const vtR = document.getElementById('vtRestaurant');
