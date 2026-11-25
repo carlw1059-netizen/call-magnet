@@ -1085,7 +1085,6 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 window.addEventListener('appinstalled', () => {
   deferredInstallPrompt = null;
-  localStorage.setItem('callmagnet-install-dismissed', '1');
   const banner = document.getElementById('installPromptBanner');
   if (banner) banner.style.display = 'none';
 });
@@ -1116,41 +1115,78 @@ async function requestNotifyPermission() {
   const btn = document.getElementById('notifyBtn');
   if (btn) btn.style.display = 'none';
   try {
-    const permission = await Notification.requestPermission();
-    if (currentClient?.id && typeof OneSignal !== 'undefined') {
+    if (typeof OneSignal !== 'undefined' && OneSignal.Notifications) {
       await OneSignal.Notifications.requestPermission();
-      OneSignal.login(currentClient.id);
+      if (OneSignal.User && OneSignal.User.PushSubscription &&
+          typeof OneSignal.User.PushSubscription.optIn === 'function') {
+        await OneSignal.User.PushSubscription.optIn();
+      }
+      if (currentClient && currentClient.id) OneSignal.login(currentClient.id);
     }
-  } catch(e) {
+  } catch (e) {
     console.warn('[notify] permission request failed:', e);
   }
+  try { maybeShowInstallBanner(); } catch (e) {}
+}
+
+function installSnoozed() {
+  const until = parseInt(localStorage.getItem('callmagnet-install-snooze-until') || '0', 10);
+  return Date.now() < until;
 }
 
 function maybeShowInstallBanner() {
   if (!isMobileDevice()) return;
-  if (isAlreadyInstalled()) return;
-  if (localStorage.getItem('callmagnet-install-dismissed') === '1') return;
   if (!currentClient) return;
 
   const banner = document.getElementById('installPromptBanner');
   if (!banner) return;
+  const installBtn = document.getElementById('installBtn');
+  const notifyBtn = document.getElementById('notifyBtn');
+  const textEl = document.querySelector('.install-banner-text');
+  const hideAll = () => { banner.style.display = 'none'; };
+
+  if (installSnoozed()) { hideAll(); return; }
+
+  let pushSupported = false;
+  try {
+    if (typeof OneSignal !== 'undefined' && OneSignal.Notifications &&
+        typeof OneSignal.Notifications.isPushSupported === 'function') {
+      pushSupported = OneSignal.Notifications.isPushSupported();
+    } else {
+      pushSupported = (typeof Notification !== 'undefined');
+    }
+  } catch (e) {
+    pushSupported = (typeof Notification !== 'undefined');
+  }
+  const alreadyGranted = (typeof Notification !== 'undefined' && Notification.permission === 'granted');
+
+  if (alreadyGranted) { hideAll(); return; }
+
+  if (pushSupported) {
+    banner.classList.remove('ios-mode');
+    if (textEl) textEl.textContent = 'Turn on notifications so you never miss a customer.';
+    if (installBtn) installBtn.style.display = 'none';
+    if (notifyBtn) notifyBtn.style.display = '';
+    banner.style.display = 'flex';
+    return;
+  }
+
+  if (isAlreadyInstalled()) { hideAll(); return; }
 
   if (deferredInstallPrompt) {
     banner.classList.remove('ios-mode');
-    document.querySelector('.install-banner-text').textContent = 'Install CallMagnet on your home screen for instant access.';
+    if (textEl) textEl.textContent = 'Install CallMagnet on your home screen for instant access.';
+    if (installBtn) installBtn.style.display = '';
+    if (notifyBtn) notifyBtn.style.display = 'none';
     banner.style.display = 'flex';
   } else if (isIOSSafari()) {
     banner.classList.add('ios-mode');
-    document.querySelector('.install-banner-text').textContent = 'Tap Share → Add to Home Screen to install CallMagnet.';
+    if (textEl) textEl.textContent = 'Tap Share then Add to Home Screen to turn on alerts.';
+    if (installBtn) installBtn.style.display = 'none';
+    if (notifyBtn) notifyBtn.style.display = 'none';
     banner.style.display = 'flex';
-  }
-  const notifyBtn = document.getElementById('notifyBtn');
-  if (notifyBtn) {
-    if (typeof Notification !== 'undefined' && Notification.permission !== 'granted') {
-      notifyBtn.style.display = '';
-    } else {
-      notifyBtn.style.display = 'none';
-    }
+  } else {
+    hideAll();
   }
 }
 
@@ -1165,8 +1201,9 @@ async function handleInstall() {
 }
 
 function dismissInstall() {
-  localStorage.setItem('callmagnet-install-dismissed', '1');
-  document.getElementById('installPromptBanner').style.display = 'none';
+  localStorage.setItem('callmagnet-install-snooze-until', String(Date.now() + 7 * 24 * 60 * 60 * 1000));
+  const b = document.getElementById('installPromptBanner');
+  if (b) b.style.display = 'none';
 }
 
 // ── Admin Tools Panel ──────────────────────────────────────────────────────
