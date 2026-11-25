@@ -327,6 +327,7 @@ async function loadDashboard(user, opts = {}) {
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('dash').style.display = 'block';
     }
+    setTimeout(maybeShowInstallBanner, 1500);
     return true;
   }
   const demoQuery = user.email === 'demo@callmagnet.com.au'
@@ -1121,7 +1122,11 @@ async function requestNotifyPermission() {
           typeof OneSignal.User.PushSubscription.optIn === 'function') {
         await OneSignal.User.PushSubscription.optIn();
       }
-      if (currentClient && currentClient.id) OneSignal.login(currentClient.id);
+      let pushId = (currentClient && currentClient.id) ? currentClient.id : null;
+      if (!pushId) {
+        try { const { data } = await sb.auth.getUser(); pushId = (data && data.user) ? data.user.id : null; } catch (e) {}
+      }
+      if (pushId) OneSignal.login(pushId);
     }
   } catch (e) {
     console.warn('[notify] permission request failed:', e);
@@ -1136,7 +1141,7 @@ function installSnoozed() {
 
 function maybeShowInstallBanner() {
   if (!isMobileDevice()) return;
-  if (!currentClient) return;
+  if (!currentClient && !_isAdminCached) return;
 
   const banner = document.getElementById('installPromptBanner');
   if (!banner) return;
