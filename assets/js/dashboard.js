@@ -1868,4 +1868,30 @@ document.addEventListener('visibilitychange', function() {
   }
 });
 
+// TEMP DEBUG — remove after diagnosis
+(function(){
+  try {
+    var d = document.createElement('div');
+    d.id = 'cmDebug';
+    d.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:2147483647;background:#CC5500;color:#fff;font:12px monospace;padding:6px;white-space:pre-wrap;';
+    d.textContent = 'BUILD 20261126c LOADED — gathering...';
+    var attach = function(){ if (document.body && !document.getElementById('cmDebug')) document.body.appendChild(d); };
+    attach();
+    document.addEventListener('DOMContentLoaded', attach);
+    setTimeout(function(){
+      var oneSig = (typeof OneSignal !== 'undefined');
+      var pushSup = 'n/a';
+      try { if (oneSig && OneSignal.Notifications && OneSignal.Notifications.isPushSupported) pushSup = String(OneSignal.Notifications.isPushSupported()); } catch(e){ pushSup = 'err'; }
+      var perm = (typeof Notification !== 'undefined') ? Notification.permission : 'no-Notification';
+      d.textContent = 'BUILD 20261126c\n' +
+        'mobile=' + (typeof isMobileDevice==='function'?isMobileDevice():'?') +
+        ' installed=' + (typeof isAlreadyInstalled==='function'?isAlreadyInstalled():'?') + '\n' +
+        'OneSignal=' + oneSig + ' pushSupported=' + pushSup + ' perm=' + perm + '\n' +
+        'client=' + (typeof currentClient!=='undefined' && currentClient ? 'yes':'no') +
+        ' admin=' + (typeof _isAdminCached!=='undefined' ? _isAdminCached : '?') + '\n' +
+        'banner=' + (document.getElementById('installPromptBanner') ? 'exists':'MISSING');
+    }, 3000);
+  } catch(e) {}
+})();
+
 
