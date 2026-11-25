@@ -195,6 +195,7 @@ async function handleLogout() {
   stopAutoRefresh();
   if (mmRefreshInterval !== null) { clearInterval(mmRefreshInterval); mmRefreshInterval = null; }
   currentClient = null;
+  try { localStorage.removeItem('cm_client_cache'); } catch (e) {}
   document.getElementById('dash').style.display = 'none';
   const loginScreen = document.getElementById('loginScreen');
   loginScreen.style.display = 'flex';
@@ -248,7 +249,8 @@ async function crossFadeToDashboard(user, fromEl) {
     const cached = localStorage.getItem('cm_client_cache');
     if (cached) {
       const c = JSON.parse(cached);
-      if (!c.vertical) {
+      const sameUser = !!(c.email && user && user.email && c.email.toLowerCase() === user.email.toLowerCase());
+      if (!c.vertical || !sameUser) {
         localStorage.removeItem('cm_client_cache');
       } else {
         currentClient = c;
@@ -668,7 +670,6 @@ function getDashboardMode() {
       const v = localStorage.getItem('dashboardMode');
       if (v === 'restaurant' || v === 'hairdresser') return v;
     } catch (e) { /* localStorage unavailable */ }
-    return 'hairdresser';
   }
   if (currentClient && currentClient.vertical === 'restaurant') return 'restaurant';
   return 'hairdresser';
@@ -697,7 +698,6 @@ function setDashboardMode(mode) {
 }
 
 function renderTilesForMode(mode) {
-  console.log('[renderTiles] mode=' + mode + ' vertical=' + (currentClient && currentClient.vertical), new Error().stack);
   const hg = document.getElementById('hairdresserMetrics');
   const lbr = document.querySelector('.log-booking-row');
   const vtR = document.getElementById('vtRestaurant');
