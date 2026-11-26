@@ -1903,24 +1903,30 @@ document.addEventListener('visibilitychange', function() {
     wrap.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:2147483647;background:#111;color:#0f0;font:12px monospace;padding:8px;max-height:50vh;overflow:auto;';
     var btn = document.createElement('button');
     btn.id='pushDiagBtn';
-    btn.textContent='TAP TO DIAGNOSE PUSH';
+    btn.textContent='TAP TO TURN ON NOTIFICATIONS';
     btn.style.cssText='display:block;width:100%;padding:14px;margin-bottom:8px;background:#10b981;color:#000;font:bold 15px sans-serif;border:none;border-radius:8px;';
     var pre = document.createElement('pre');
     pre.id='pushDiag';
     pre.style.cssText='white-space:pre-wrap;margin:0;';
-    pre.textContent='Tap the green button above, then screenshot this.';
+    pre.textContent='Tap the green button. A popup should appear.';
     wrap.appendChild(btn); wrap.appendChild(pre); document.body.appendChild(wrap);
     var log=[]; function render(){ pre.textContent=log.join('\n'); } function w(s){ log.push(s); render(); }
-    btn.addEventListener('click', async function(){
+    btn.addEventListener('click', function(){
       log=[]; w('--- running ---');
-      w('OneSignal defined: '+(typeof OneSignal!=='undefined'));
-      w('Notification before: '+(typeof Notification!=='undefined'?Notification.permission:'UNDEFINED'));
-      try { var s=(typeof OneSignal!=='undefined'&&OneSignal.Notifications)?OneSignal.Notifications.isPushSupported():'n/a'; w('isPushSupported: '+s);}catch(e){w('isPushSupported ERR: '+(e&&e.message||e));}
-      try { w('calling requestPermission NOW...'); var r=await OneSignal.Notifications.requestPermission(); w('requestPermission returned: '+JSON.stringify(r)); }catch(e){ w('requestPermission ERR: '+(e&&e.message||e)); }
-      w('Notification after: '+(typeof Notification!=='undefined'?Notification.permission:'UNDEFINED'));
-      try { w('optedIn: '+(OneSignal.User&&OneSignal.User.PushSubscription?OneSignal.User.PushSubscription.optedIn:'n/a')); }catch(e){ w('optedIn ERR: '+(e&&e.message||e)); }
-      try { w('subId: '+(OneSignal.User&&OneSignal.User.PushSubscription?OneSignal.User.PushSubscription.id:'n/a')); }catch(e){ w('subId ERR: '+(e&&e.message||e)); }
-      w('--- done ---');
+      if (typeof Notification === 'undefined') { w('Notification UNDEFINED - open from home screen icon'); return; }
+      w('perm before: ' + Notification.permission);
+      var p;
+      try { p = Notification.requestPermission(); } catch(e){ w('native throw: '+(e&&e.message||e)); return; }
+      w('native request called - popup should appear now');
+      Promise.resolve(p).then(function(res){
+        w('native result: ' + res + ' | perm now: ' + Notification.permission);
+        if (res === 'granted' && typeof OneSignal!=='undefined' && OneSignal.User && OneSignal.User.PushSubscription) {
+          w('registering with OneSignal...');
+          Promise.resolve(OneSignal.User.PushSubscription.optIn()).then(function(){
+            w('DONE. subId=' + OneSignal.User.PushSubscription.id + ' optedIn=' + OneSignal.User.PushSubscription.optedIn);
+          }).catch(function(e){ w('optIn err: '+(e&&e.message||e)); });
+        }
+      }).catch(function(e){ w('native err: '+(e&&e.message||e)); });
     });
   }
   if (document.body) mk(); else document.addEventListener('DOMContentLoaded', mk);
