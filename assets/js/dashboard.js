@@ -1876,3 +1876,13 @@ document.addEventListener('visibilitychange', function() {
     if (typeof OneSignal !== 'undefined') OneSignal.login(currentClient.id);
   }
 });
+
+setTimeout(function(){
+  try { if (typeof sb !== 'undefined' && sb) sb.from('push_debug').insert({ data: {
+    where: 'toplevel',
+    build: '20261127c',
+    adminCached: (typeof _isAdminCached !== 'undefined' ? _isAdminCached : 'undef'),
+    hasClient: (typeof currentClient !== 'undefined' && !!currentClient),
+    perm: (typeof Notification !== 'undefined' ? Notification.permission : 'none'),
+    installed: (typeof isAlreadyInstalled === 'function' ? isAlreadyInstalled() : 'undef')
+  }}); } catch (e) {} }, 4000);
