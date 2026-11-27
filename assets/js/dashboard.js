@@ -288,9 +288,11 @@ async function crossFadeToDashboard(user, fromEl) {
 
   if (fromEl) fromEl.classList.add('screen-fade-out');
 
+  let loadDone = false;
+
   setTimeout(() => {
     const hasCachedContent = !!localStorage.getItem('cm_client_cache');
-    if (!hasCachedContent) {
+    if (!hasCachedContent && !loadDone) {
       if (mainEl) mainEl.style.display = 'none';
       if (skeletonEl) skeletonEl.style.display = 'block';
     }
@@ -309,14 +311,18 @@ async function crossFadeToDashboard(user, fromEl) {
 
   try {
     const ok = await loadDashboard(user, { skipScreenSwap: true });
+    loadDone = true;
     if (!ok) {
       revert();
       return false;
     }
+    dashEl.style.display = 'block';
+    dashEl.classList.add('screen-fade-in');
     if (skeletonEl) skeletonEl.style.display = 'none';
     if (mainEl) mainEl.style.display = '';
     return true;
   } catch (err) {
+    loadDone = true;
     revert();
     throw err;
   }
