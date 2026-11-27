@@ -1142,16 +1142,6 @@ function maybeShowInstallBanner() {
   if (!isMobileDevice()) return;
   if (!currentClient && !_isAdminCached) return;
 
-  try { if (typeof sb !== 'undefined' && sb) sb.from('push_debug').insert({ data: {
-    mobile: isMobileDevice(),
-    installed: isAlreadyInstalled(),
-    snoozed: installSnoozed(),
-    oneSignal: (typeof OneSignal !== 'undefined'),
-    perm: (typeof Notification !== 'undefined' ? Notification.permission : 'none'),
-    hasClient: !!currentClient,
-    isAdmin: _isAdminCached
-  }}); } catch (e) {}
-
   const banner = document.getElementById('installPromptBanner');
   if (!banner) return;
   const installBtn = document.getElementById('installBtn');
@@ -1876,13 +1866,3 @@ document.addEventListener('visibilitychange', function() {
     if (typeof OneSignal !== 'undefined') OneSignal.login(currentClient.id);
   }
 });
-
-setTimeout(function(){
-  try { if (typeof sb !== 'undefined' && sb) sb.from('push_debug').insert({ data: {
-    where: 'toplevel',
-    build: '20261127c',
-    adminCached: (typeof _isAdminCached !== 'undefined' ? _isAdminCached : 'undef'),
-    hasClient: (typeof currentClient !== 'undefined' && !!currentClient),
-    perm: (typeof Notification !== 'undefined' ? Notification.permission : 'none'),
-    installed: (typeof isAlreadyInstalled === 'function' ? isAlreadyInstalled() : 'undef')
-  }}); } catch (e) {} }, 4000);
