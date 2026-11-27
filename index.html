@@ -1,6 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+(function(){
+  function showErr(msg){
+    try{
+      var el=document.getElementById('cmErrOverlay');
+      if(!el){
+        el=document.createElement('div');
+        el.id='cmErrOverlay';
+        el.style.cssText='position:fixed;top:0;left:0;right:0;z-index:100000;background:#b00020;color:#fff;font:12px/1.4 monospace;padding:8px;white-space:pre-wrap;word-break:break-word;max-height:50vh;overflow:auto';
+        (document.body||document.documentElement).appendChild(el);
+      }
+      el.textContent='APP ERROR:\n'+msg;
+    }catch(e){}
+  }
+  window.addEventListener('error',function(e){
+    showErr((e.message||'error')+'\n'+(e.filename||'')+':'+(e.lineno||'')+':'+(e.colno||''));
+  });
+  window.addEventListener('unhandledrejection',function(e){
+    var r=e.reason;
+    showErr('unhandled promise rejection:\n'+((r&&r.message)?r.message:String(r))+((r&&r.stack)?'\n'+r.stack:''));
+  });
+})();
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>CallMagnet</title>
@@ -376,7 +399,8 @@
     </div>
   </div>
 </div>
-<script src="/assets/js/dashboard.js?v=20261127e" defer></script>
+<script src="/assets/js/dashboard.js?v=20261127f" defer></script>
+<div id="buildStamp" style="position:fixed;bottom:4px;right:6px;font:9px/1 monospace;color:#fff;background:rgba(0,0,0,0.55);padding:2px 5px;border-radius:3px;z-index:99999;pointer-events:none">build 20261127f</div>
 </body>
 </html>
 <!-- cf migration test -->
