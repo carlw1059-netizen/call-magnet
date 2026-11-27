@@ -16,6 +16,11 @@ let autoRefreshTimer = null;
 let bookingInFlight = false;
 let statsRequestId = 0;
 
+const withTimeout = (promise, ms) => Promise.race([
+  promise,
+  new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
+]);
+
 function isAccountReadOnly() {
   if (!currentClient) return true;
   if (currentClient.is_test_account) return false;
@@ -334,7 +339,27 @@ async function loadDashboard(user, opts = {}) {
     ? sb.from('clients').select('*').eq('email', user.email).eq('demo_active', true).limit(1)
     : sb.from('clients').select('*').eq('email', user.email).limit(1);
   console.time('client-fetch');
-  const { data: clients, error } = await demoQuery;
+  let clients, error;
+  try {
+    ({ data: clients, error } = await withTimeout(demoQuery, 8000));
+  } catch (_) {
+    console.timeEnd('client-fetch');
+    try {
+      const cached = localStorage.getItem('cm_client_cache');
+      if (cached) {
+        const c = JSON.parse(cached);
+        if (c.vertical && c.email && user.email && c.email.toLowerCase() === user.email.toLowerCase()) return true;
+      }
+    } catch(e) {}
+    const errEl = document.getElementById('errorMsg');
+    if (errEl) {
+      errEl.innerHTML = 'Connection slow — <span style="text-decoration:underline;cursor:pointer" onclick="window.location.reload()">tap to retry</span>';
+      errEl.style.display = 'block';
+    }
+    const btn = document.getElementById('loginBtn');
+    if (btn) { btn.disabled = false; btn.textContent = 'Sign in'; }
+    return false;
+  }
   console.timeEnd('client-fetch');
 
   if (error || !clients || clients.length === 0) {
@@ -1019,10 +1044,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let session = null;
   try {
-    const withTimeout = (promise, ms) => Promise.race([
-      promise,
-      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
-    ]);
     const { data: sessionData } = await withTimeout(sb.auth.getSession(), 8000);
     session = sessionData?.session ?? null;
     if (session) {
