@@ -1112,26 +1112,25 @@ function isMobileDevice() {
   return window.matchMedia('(max-width: 768px)').matches;
 }
 
-async function requestNotifyPermission() {
-  const btn = document.getElementById('notifyBtn');
+function requestNotifyPermission() {
+  var btn = document.getElementById('notifyBtn');
   if (btn) btn.style.display = 'none';
-  try {
-    if (typeof OneSignal !== 'undefined' && OneSignal.Notifications) {
-      await OneSignal.Notifications.requestPermission();
-      if (OneSignal.User && OneSignal.User.PushSubscription &&
-          typeof OneSignal.User.PushSubscription.optIn === 'function') {
-        await OneSignal.User.PushSubscription.optIn();
-      }
-      let pushId = (currentClient && currentClient.id) ? currentClient.id : null;
-      if (!pushId) {
-        try { const { data } = await sb.auth.getUser(); pushId = (data && data.user) ? data.user.id : null; } catch (e) {}
-      }
-      if (pushId) OneSignal.login(pushId);
+  if (typeof Notification === 'undefined') { return; }
+  var p;
+  try { p = Notification.requestPermission(); } catch (e) { return; }
+  Promise.resolve(p).then(function (res) {
+    if (res === 'granted' && typeof OneSignal !== 'undefined' && OneSignal.User && OneSignal.User.PushSubscription) {
+      Promise.resolve(OneSignal.User.PushSubscription.optIn()).then(function () {
+        var pushId = (currentClient && currentClient.id) ? currentClient.id : null;
+        if (pushId) {
+          OneSignal.login(pushId);
+        } else {
+          try { sb.auth.getUser().then(function (r) { var id = (r && r.data && r.data.user) ? r.data.user.id : null; if (id) OneSignal.login(id); }); } catch (e) {}
+        }
+      }).catch(function () {});
     }
-  } catch (e) {
-    console.warn('[notify] permission request failed:', e);
-  }
-  try { maybeShowInstallBanner(); } catch (e) {}
+    try { maybeShowInstallBanner(); } catch (e) {}
+  }).catch(function () {});
 }
 
 function installSnoozed() {
@@ -1867,67 +1866,3 @@ document.addEventListener('visibilitychange', function() {
     if (typeof OneSignal !== 'undefined') OneSignal.login(currentClient.id);
   }
 });
-
-// TEMP DEBUG — remove after diagnosis
-(function(){
-  try {
-    var d = document.createElement('div');
-    d.id = 'cmDebug';
-    d.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:2147483647;background:#CC5500;color:#fff;font:12px monospace;padding:6px;white-space:pre-wrap;';
-    d.textContent = 'BUILD 20261126c LOADED — gathering...';
-    var attach = function(){ if (document.body && !document.getElementById('cmDebug')) document.body.appendChild(d); };
-    attach();
-    document.addEventListener('DOMContentLoaded', attach);
-    setTimeout(function(){
-      var oneSig = (typeof OneSignal !== 'undefined');
-      var pushSup = 'n/a';
-      try { if (oneSig && OneSignal.Notifications && OneSignal.Notifications.isPushSupported) pushSup = String(OneSignal.Notifications.isPushSupported()); } catch(e){ pushSup = 'err'; }
-      var perm = (typeof Notification !== 'undefined') ? Notification.permission : 'no-Notification';
-      d.textContent = 'BUILD 20261126c\n' +
-        'mobile=' + (typeof isMobileDevice==='function'?isMobileDevice():'?') +
-        ' installed=' + (typeof isAlreadyInstalled==='function'?isAlreadyInstalled():'?') + '\n' +
-        'OneSignal=' + oneSig + ' pushSupported=' + pushSup + ' perm=' + perm + '\n' +
-        'client=' + (typeof currentClient!=='undefined' && currentClient ? 'yes':'no') +
-        ' admin=' + (typeof _isAdminCached!=='undefined' ? _isAdminCached : '?') + '\n' +
-        'banner=' + (document.getElementById('installPromptBanner') ? 'exists':'MISSING');
-    }, 3000);
-  } catch(e) {}
-})();
-
-
-// TEMP PUSH DIAGNOSTIC — remove after
-(function(){
-  function mk(){
-    if (!document.body || document.getElementById('pushDiagBtn')) return;
-    var wrap = document.createElement('div');
-    wrap.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:2147483647;background:#111;color:#0f0;font:12px monospace;padding:8px;max-height:50vh;overflow:auto;';
-    var btn = document.createElement('button');
-    btn.id='pushDiagBtn';
-    btn.textContent='TAP TO TURN ON NOTIFICATIONS';
-    btn.style.cssText='display:block;width:100%;padding:14px;margin-bottom:8px;background:#10b981;color:#000;font:bold 15px sans-serif;border:none;border-radius:8px;';
-    var pre = document.createElement('pre');
-    pre.id='pushDiag';
-    pre.style.cssText='white-space:pre-wrap;margin:0;';
-    pre.textContent='Tap the green button. A popup should appear.';
-    wrap.appendChild(btn); wrap.appendChild(pre); document.body.appendChild(wrap);
-    var log=[]; function render(){ pre.textContent=log.join('\n'); } function w(s){ log.push(s); render(); }
-    btn.addEventListener('click', function(){
-      log=[]; w('--- running ---');
-      if (typeof Notification === 'undefined') { w('Notification UNDEFINED - open from home screen icon'); return; }
-      w('perm before: ' + Notification.permission);
-      var p;
-      try { p = Notification.requestPermission(); } catch(e){ w('native throw: '+(e&&e.message||e)); return; }
-      w('native request called - popup should appear now');
-      Promise.resolve(p).then(function(res){
-        w('native result: ' + res + ' | perm now: ' + Notification.permission);
-        if (res === 'granted' && typeof OneSignal!=='undefined' && OneSignal.User && OneSignal.User.PushSubscription) {
-          w('registering with OneSignal...');
-          Promise.resolve(OneSignal.User.PushSubscription.optIn()).then(function(){
-            w('DONE. subId=' + OneSignal.User.PushSubscription.id + ' optedIn=' + OneSignal.User.PushSubscription.optedIn);
-          }).catch(function(e){ w('optIn err: '+(e&&e.message||e)); });
-        }
-      }).catch(function(e){ w('native err: '+(e&&e.message||e)); });
-    });
-  }
-  if (document.body) mk(); else document.addEventListener('DOMContentLoaded', mk);
-})();
