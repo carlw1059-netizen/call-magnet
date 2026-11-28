@@ -1152,7 +1152,7 @@ function requestNotifyPermission() {
         if (pushId) {
           OneSignal.login(pushId);
         } else {
-          try { sb.auth.getUser().then(function (r) { var id = (r && r.data && r.data.user) ? r.data.user.id : null; if (id) OneSignal.login(id); }); } catch (e) {}
+          try { sb.auth.getUser().then(function (r) { var id = (r && r.data && r.data.user) ? r.data.user.id : null; if (id) OneSignal.login(id); }).catch(function(){}); } catch (e) {}
         }
       }).catch(function () {});
     }
@@ -1847,9 +1847,11 @@ async function sendTestNotification() {
   const orig = btn.textContent;
   btn.textContent = 'Sending…';
   btn.disabled = true;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 10000);
   try {
     const { data: { session } } = await sb.auth.getSession();
-    if (!session) { btn.textContent = 'Not signed in'; setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 2500); return; }
+    if (!session) { clearTimeout(timer); btn.textContent = 'Not signed in'; setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 2500); return; }
     const res = await fetch(`${SUPABASE_URL}/functions/v1/send-test-notification`, {
       method: 'POST',
       headers: {
@@ -1858,7 +1860,9 @@ async function sendTestNotification() {
         'apikey': SUPABASE_ANON_KEY,
       },
       body: JSON.stringify({ client_id: currentClient?.id ?? null }),
+      signal: ctrl.signal,
     });
+    clearTimeout(timer);
     const data = await res.json().catch(() => ({}));
     if (res.ok) {
       btn.textContent = '✓ Sent!';
@@ -1868,7 +1872,8 @@ async function sendTestNotification() {
       setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 3000);
     }
   } catch (e) {
-    btn.textContent = 'Error — check console';
+    clearTimeout(timer);
+    btn.textContent = e.name === 'AbortError' ? 'Timed out' : 'Error — check console';
     setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 3000);
   }
 }
