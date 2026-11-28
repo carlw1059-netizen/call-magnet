@@ -3,24 +3,39 @@
 <head>
 <script>
 (function(){
-  function showErr(msg){
+  var ADMIN_EMAIL='car312@hotmail.com';
+  var PUSHOVER_URL='https://iskvvnhacqdxybpmwuni.supabase.co/functions/v1/pushover-alert';
+  var _sent={};
+  function logErr(msg){
     try{
-      var el=document.getElementById('cmErrOverlay');
-      if(!el){
-        el=document.createElement('div');
-        el.id='cmErrOverlay';
-        el.style.cssText='position:fixed;top:0;left:0;right:0;z-index:100000;background:#b00020;color:#fff;font:12px/1.4 monospace;padding:8px;white-space:pre-wrap;word-break:break-word;max-height:50vh;overflow:auto';
-        (document.body||document.documentElement).appendChild(el);
+      var key=msg.substring(0,120);
+      if(_sent[key])return;
+      _sent[key]=1;
+      var user='unknown';
+      try{var s=localStorage.getItem('cm_user_email');if(s)user=s;}catch(e){}
+      if(user===ADMIN_EMAIL){
+        var el=document.getElementById('cmErrOverlay');
+        if(!el){
+          el=document.createElement('div');
+          el.id='cmErrOverlay';
+          el.style.cssText='position:fixed;top:0;left:0;right:0;z-index:100000;background:#b00020;color:#fff;font:12px/1.4 monospace;padding:8px;white-space:pre-wrap;word-break:break-word;max-height:50vh;overflow:auto';
+          (document.body||document.documentElement).appendChild(el);
+        }
+        el.textContent='APP ERROR:\n'+msg;
       }
-      el.textContent='APP ERROR:\n'+msg;
+      fetch(PUSHOVER_URL,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({message:'['+user+'] '+msg.substring(0,400)})
+      }).catch(function(){});
     }catch(e){}
   }
   window.addEventListener('error',function(e){
-    showErr((e.message||'error')+'\n'+(e.filename||'')+':'+(e.lineno||'')+':'+(e.colno||''));
+    logErr((e.message||'error')+'\n'+(e.filename||'')+':'+(e.lineno||'')+':'+(e.colno||''));
   });
   window.addEventListener('unhandledrejection',function(e){
     var r=e.reason;
-    showErr('unhandled promise rejection:\n'+((r&&r.message)?r.message:String(r))+((r&&r.stack)?'\n'+r.stack:''));
+    logErr('unhandledrejection:\n'+((r&&r.message)?r.message:String(r))+((r&&r.stack)?'\n'+r.stack:''));
   });
 })();
 </script>
@@ -64,7 +79,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/dashboard.css?v=20261123c">
+<link rel="stylesheet" href="/assets/css/dashboard.css?v=20261128a">
 
 
 
