@@ -101,6 +101,40 @@
   });
 </script>
 
+<script>
+(function(){
+  var BUILD='20261128a';
+  var STORED_KEY='cm_build';
+  if(localStorage.getItem(STORED_KEY)===BUILD)return;
+  fetch('/version.json?t='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.build===BUILD){
+        localStorage.setItem(STORED_KEY,BUILD);
+        return;
+      }
+      // stale — wipe and reload once
+      localStorage.setItem(STORED_KEY,BUILD);
+      if('serviceWorker' in navigator){
+        navigator.serviceWorker.getRegistrations().then(function(regs){
+          var ps=regs.map(function(r){return r.unregister();});
+          return Promise.all(ps);
+        }).then(function(){
+          return caches.keys();
+        }).then(function(keys){
+          return Promise.all(keys.map(function(k){return caches.delete(k);}));
+        }).then(function(){
+          location.reload(true);
+        }).catch(function(){
+          location.reload(true);
+        });
+      } else {
+        location.reload(true);
+      }
+    })
+    .catch(function(){});
+})();
+</script>
 
 </head>
 <body>
@@ -417,8 +451,8 @@
     </div>
   </div>
 </div>
-<script src="/assets/js/dashboard.js?v=20261127g" defer></script>
-<div id="buildStamp" style="position:fixed;bottom:4px;right:6px;font:11px/1 monospace;color:#fff;background:rgba(0,0,0,0.55);padding:2px 5px;border-radius:3px;z-index:99999;pointer-events:none">build 20261127g</div>
+<script src="/assets/js/dashboard.js?v=20261128a" defer></script>
+<div id="buildStamp" style="position:fixed;bottom:4px;right:6px;font:11px/1 monospace;color:#fff;background:rgba(0,0,0,0.55);padding:2px 5px;border-radius:3px;z-index:99999;pointer-events:none">build 20261128a</div>
 </body>
 </html>
 <!-- cf migration test -->

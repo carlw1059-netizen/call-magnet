@@ -1097,7 +1097,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Register service worker for offline support and instant reopens
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('/assets/js/sw.js').catch((err) => {
+    navigator.serviceWorker.register('/assets/js/sw.js', { updateViaCache: 'none' }).catch((err) => {
       console.warn('Service worker registration failed:', err);
     });
   }
